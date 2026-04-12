@@ -1,0 +1,33 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-versions
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.log
+*.tmp
+*.swp
+*.lock
+*.DS_Store
+.env
+.env.*
+coverage/
+# iOS
+ios/Pods/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+# Android
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+# Web
+web/.dart_tool/
+web/build/
