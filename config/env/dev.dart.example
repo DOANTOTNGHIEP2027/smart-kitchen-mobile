@@ -1,0 +1,4 @@
+// Example: copy and rename to dev.dart (gitignored)
+const String baseUrl = 'http://localhost:8080/api';
+const String aiBaseUrl = 'http://localhost:8000';
+const String appEnv = 'dev';
