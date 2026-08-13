@@ -1,0 +1,20 @@
+#!/bin/sh
+# Gate: chặn commit nếu workspace này chưa được cấu hình đúng account (phucmouse135).
+# Setup: bash scripts/setup-git-identity.sh
+
+EXPECTED_EMAIL="102985779+phucmouse135@users.noreply.github.com"
+
+current_email=$(git config user.email)
+
+if [ "$current_email" != "$EXPECTED_EMAIL" ]; then
+  echo "" >&2
+  echo "✗ Sai tài khoản git cho workspace này." >&2
+  echo "  Hiện tại : user.email = ${current_email:-<chưa set>}" >&2
+  echo "  Cần dùng : $EXPECTED_EMAIL (phucmouse135 / Nguyễn Đình Phúc)" >&2
+  echo "" >&2
+  echo "  Fix: bash scripts/setup-git-identity.sh" >&2
+  echo "" >&2
+  exit 1
+fi
+
+exit 0

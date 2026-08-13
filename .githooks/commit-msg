@@ -1,0 +1,20 @@
+#!/bin/sh
+# Gate: chặn commit nếu message có trailer đồng tác giả AI (Claude/Codex/Copilot/ChatGPT/...)
+# hoặc banner "Generated with <AI tool>". Repo này không đính kèm AI vào đồng tác giả commit.
+# Setup: bash scripts/setup-git-identity.sh
+
+msg_file="$1"
+
+if grep -qiE '^(Co-Authored-By|Signed-off-by):.*(claude|codex|copilot|chatgpt|gpt-|gemini|anthropic|openai)' "$msg_file" \
+  || grep -qiE '(Generated with|🤖).*(Claude|Codex|Copilot|ChatGPT|Gemini)' "$msg_file"; then
+  echo "" >&2
+  echo "✗ Commit message có trailer/banner đồng tác giả AI — repo này không đính kèm." >&2
+  echo "  Dòng vi phạm:" >&2
+  grep -niE '(Co-Authored-By|Signed-off-by):.*(claude|codex|copilot|chatgpt|gpt-|gemini|anthropic|openai)|(Generated with|🤖).*(Claude|Codex|Copilot|ChatGPT|Gemini)' "$msg_file" | sed 's/^/    /' >&2
+  echo "" >&2
+  echo "  Fix: sửa lại message, bỏ dòng đó (hoặc dùng 'git commit --amend')." >&2
+  echo "" >&2
+  exit 1
+fi
+
+exit 0
