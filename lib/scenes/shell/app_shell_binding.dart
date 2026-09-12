@@ -5,6 +5,8 @@ import 'app_shell_store.dart';
 class AppShellBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<AppShellStore>(AppShellStore.new);
+    final arguments = Get.arguments;
+    final profileTab = arguments is Map && arguments['profileTab'] == true;
+    Get.lazyPut<AppShellStore>(() => AppShellStore(initialIndex: profileTab ? 4 : 0));
   }
 }

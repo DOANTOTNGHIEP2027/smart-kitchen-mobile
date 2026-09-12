@@ -19,7 +19,10 @@ dependencies:
   get: ^4.7.2
   google_sign_in: ^6.2.2
   intl: any
+  mobile_scanner: ^7.4.1
   mobx: ^2.5.0
+  permission_handler: ^13.0.2
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

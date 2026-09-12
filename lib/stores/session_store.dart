@@ -66,6 +66,33 @@ class SessionStore {
     });
   }
 
+  Future<void> replaceTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await _tokenStorage.saveTokens(accessToken: accessToken, refreshToken: refreshToken);
+    runInAction(() {
+      _applyClaims(accessToken);
+      _status.value = AuthStatus.authenticated;
+    });
+  }
+
+  Future<void> refreshSession() async {
+    final refreshToken = await _tokenStorage.readRefreshToken();
+    if (refreshToken == null || _refreshTokens == null) {
+      throw StateError('A refresh token is not available');
+    }
+    final tokens = await _refreshTokens!(refreshToken);
+    await replaceTokens(accessToken: tokens.accessToken, refreshToken: tokens.refreshToken);
+  }
+
+  void applyHouseholdContext({required String householdId, required String role}) {
+    runInAction(() {
+      _householdId.value = householdId;
+      _role.value = role;
+    });
+  }
+
   void applyRefreshedClaims(String accessToken) {
     runInAction(() => _applyClaims(accessToken));
   }

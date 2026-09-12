@@ -1,7 +1,9 @@
 import 'package:mobx/mobx.dart';
 
 class AppShellStore {
-  final Observable<int> _selectedIndex = Observable(0);
+  AppShellStore({int initialIndex = 0}) : _selectedIndex = Observable(initialIndex);
+
+  final Observable<int> _selectedIndex;
 
   int get selectedIndex => _selectedIndex.value;
 

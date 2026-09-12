@@ -22,7 +22,9 @@ class _SplashSceneState extends State<SplashScene> {
           : AuthStatus.unauthenticated;
       Get.offAllNamed(
         status == AuthStatus.authenticated
-            ? AppRoutes.shellRoot
+            ? (Get.find<SessionStore>().householdId == null
+                ? AppRoutes.householdSetup
+                : AppRoutes.shellRoot)
             : AppRoutes.login,
       );
     });

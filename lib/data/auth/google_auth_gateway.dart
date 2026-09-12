@@ -12,6 +12,19 @@ abstract interface class GoogleAuthGateway {
   Future<void> signOut();
 }
 
+class UnavailableGoogleAuthGateway implements GoogleAuthGateway {
+  const UnavailableGoogleAuthGateway();
+
+  @override
+  Future<String?> signInWithGoogle() => Future.error(const BusinessException(
+        'ERR_AUTH_FIREBASE_UNAVAILABLE',
+        'Firebase is not configured for this build.',
+      ));
+
+  @override
+  Future<void> signOut() async {}
+}
+
 class GoogleAuthGatewayImpl implements GoogleAuthGateway {
   GoogleAuthGatewayImpl({GoogleSignIn? googleSignIn, FirebaseAuth? firebaseAuth})
       : _googleSignIn = googleSignIn ?? GoogleSignIn(scopes: const ['email']),

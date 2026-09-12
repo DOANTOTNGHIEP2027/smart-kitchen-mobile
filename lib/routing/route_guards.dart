@@ -20,8 +20,42 @@ class GuestOnlyGuard extends GetMiddleware {
   RouteSettings? redirect(String? route) {
     if (Get.isRegistered<SessionStore>() &&
         Get.find<SessionStore>().status == AuthStatus.authenticated) {
-      return const RouteSettings(name: AppRoutes.shellRoot);
+      final session = Get.find<SessionStore>();
+      return RouteSettings(name: session.householdId == null ? AppRoutes.householdSetup : AppRoutes.shellRoot);
     }
+    return null;
+  }
+}
+
+class HouseholdRequiredGuard extends GetMiddleware {
+  @override
+  RouteSettings? redirect(String? route) {
+    if (!Get.isRegistered<SessionStore>() || Get.find<SessionStore>().status != AuthStatus.authenticated) {
+      return const RouteSettings(name: AppRoutes.login);
+    }
+    if (Get.find<SessionStore>().householdId == null) return const RouteSettings(name: AppRoutes.householdSetup);
+    return null;
+  }
+}
+
+class HouseholdSetupGuard extends GetMiddleware {
+  @override
+  RouteSettings? redirect(String? route) {
+    if (!Get.isRegistered<SessionStore>() || Get.find<SessionStore>().status != AuthStatus.authenticated) {
+      return const RouteSettings(name: AppRoutes.login);
+    }
+    if (Get.find<SessionStore>().householdId != null) return const RouteSettings(name: AppRoutes.shellRoot);
+    return null;
+  }
+}
+
+class GuestProviderGuard extends GetMiddleware {
+  @override
+  RouteSettings? redirect(String? route) {
+    if (!Get.isRegistered<SessionStore>() || Get.find<SessionStore>().status != AuthStatus.authenticated) {
+      return const RouteSettings(name: AppRoutes.login);
+    }
+    if (Get.find<SessionStore>().provider != 'GUEST') return const RouteSettings(name: AppRoutes.shellRoot);
     return null;
   }
 }
