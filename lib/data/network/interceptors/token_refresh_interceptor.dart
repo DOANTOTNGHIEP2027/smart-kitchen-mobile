@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:get/get.dart';
+// GetX cũng export một `FormData` riêng — ẩn đi để không lẫn với của Dio.
+import 'package:get/get.dart' hide FormData;
 
 import '../../../routing/app_routes.dart';
 import '../../../stores/session_store.dart';
@@ -57,6 +58,11 @@ class TokenRefreshInterceptor extends Interceptor {
     }
 
     // Retry request gốc đúng một lần, với access token mới.
+    if (!_rebuildBodyForRetry(request)) {
+      // Không dựng lại được body → thà để 401 trồi lên còn hơn âm thầm gửi
+      // một request thiếu dữ liệu.
+      return handler.next(err);
+    }
     try {
       request.extra[retryFlag] = true;
       request.headers['Authorization'] = 'Bearer ${_tokenStorage.accessToken}';
@@ -64,6 +70,30 @@ class TokenRefreshInterceptor extends Interceptor {
       return handler.resolve(retryResponse);
     } on DioException catch (retryErr) {
       return handler.next(retryErr);
+    }
+  }
+
+  /// Chuẩn bị body cho lần gửi lại. Trả `false` nếu không dựng lại được.
+  ///
+  /// Body multipart chỉ finalize được **một lần**: lần gửi đầu đã tiêu thụ
+  /// stream của nó. Gửi lại đúng object cũ sẽ đi kèm body rỗng hoặc ném lỗi
+  /// stream — triệu chứng cực khó lần ra vì URL, header, status đều bình
+  /// thường. JSON thuần không dính vì `Map` gửi lại được bao nhiêu lần cũng được.
+  ///
+  /// `FormData.clone()` dựng lại từ danh sách field/file gốc, nên hoạt động
+  /// với file tạo từ path hoặc bytes. Nó ném lỗi với `MultipartFile` tạo từ
+  /// stream thuần (không tái tạo được nguồn) — trường hợp đó trả `false`.
+  ///
+  /// Đường này sẽ được dùng thật khi luồng nhập kho bằng ảnh (#56/#58) upload
+  /// ảnh và access token hết hạn giữa chừng.
+  bool _rebuildBodyForRetry(RequestOptions request) {
+    final data = request.data;
+    if (data is! FormData) return true;
+    try {
+      request.data = data.clone();
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
