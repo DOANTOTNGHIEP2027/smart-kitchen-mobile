@@ -1,43 +1,47 @@
-// // This is a basic Flutter widget test.
-// //
-// // To perform an interaction with a widget in your test, use the WidgetTester
-// // utility in the flutter_test package. For example, you can send tap and scroll
-// // gestures. You can also use WidgetTester to find child widgets in the widget
-// // tree, read text, and verify that the values of widget properties are correct.
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_test/flutter_test.dart';
-
-// import 'package:smart_kitchen_mobile/main.dart';
-
-// void main() {
-//   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-//     // Build our app and trigger a frame.
-//     await tester.pumpWidget(const MyApp());
-
-//     // Verify that our counter starts at 0.
-//     expect(find.text('0'), findsOneWidget); 
-//     expect(find.text('1'), findsNothing);
-
-//     // Tap the '+' icon and trigger a frame.
-//     await tester.tap(find.byIcon(Icons.add));
-//     await tester.pump();
-
-//     // Verify that our counter has incremented.
-//     expect(find.text('0'), findsNothing);
-//     expect(find.text('1'), findsOneWidget);
-//   });
-// }
-
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:smart_kitchen_mobile/scenes/shell/app_shell_scene.dart';
+import 'package:smart_kitchen_mobile/scenes/shell/app_shell_store.dart';
+import 'package:smart_kitchen_mobile/widgets/states/app_empty_view.dart';
 
-import 'package:smart_kitchen_mobile/main.dart';
+import 'helpers/pump_app.dart';
 
+/// Khung shell bottom-nav (fe-app-shell.md §12).
 void main() {
-  testWidgets('Smart Kitchen app smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const SmartKitchenApp());
+  late AppShellStore store;
 
-    expect(find.text('Smart Kitchen'), findsOneWidget);
-    expect(find.text('Kitchen control center'), findsOneWidget);
+  setUp(() {
+    store = AppShellStore();
+    Get.put<AppShellStore>(store);
+  });
+
+  tearDown(Get.reset);
+
+  testWidgets('render 5 tab, mặc định chọn tab đầu', (WidgetTester tester) async {
+    await tester.pumpAppWidget(const AppShellScene());
+
+    expect(find.byType(NavigationDestination), findsNWidgets(5));
+    expect(store.selectedIndex, 0);
+  });
+
+  testWidgets('chạm tab đổi selectedIndex và đổi tiêu đề',
+      (WidgetTester tester) async {
+    await tester.pumpAppWidget(const AppShellScene());
+
+    await tester.tap(find.text('Inventory'));
+    await tester.pumpAndSettle();
+
+    expect(store.selectedIndex, 1);
+    expect(find.widgetWithText(AppBar, 'Inventory'), findsOneWidget);
+  });
+
+  testWidgets('mỗi tab hiện placeholder "Coming soon"',
+      (WidgetTester tester) async {
+    await tester.pumpAppWidget(const AppShellScene());
+
+    // skipOffstage: false — IndexedStack build cả 5 tab, chỉ 1 tab onstage.
+    expect(find.byType(AppEmptyView, skipOffstage: false), findsNWidgets(5));
+    expect(find.text('Coming soon'), findsWidgets);
   });
 }

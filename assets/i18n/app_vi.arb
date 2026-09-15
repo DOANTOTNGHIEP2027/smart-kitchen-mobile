@@ -1,0 +1,20 @@
+{
+  "@@locale": "vi",
+
+  "appTitle": "Smart Kitchen",
+  "commonRetry": "Thử lại",
+  "stateEmptyDefault": "Chưa có dữ liệu",
+  "stateErrorDefault": "Đã có lỗi xảy ra",
+  "comingSoon": "Sắp ra mắt",
+
+  "navHome": "Trang chủ",
+  "navInventory": "Kho",
+  "navPlanning": "Thực đơn",
+  "navShopping": "Đi chợ",
+  "navProfile": "Cá nhân",
+
+  "devLoginTitle": "Đăng nhập",
+  "devLoginSubtitle": "Luồng đăng nhập thật (Google / OTP / quét QR) sẽ có ở fe-onboarding.",
+  "devLoginCta": "Vào thử với tài khoản demo",
+  "devLoginBanner": "Bản demo app shell — chưa gọi backend"
+}

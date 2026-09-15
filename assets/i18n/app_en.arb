@@ -1,3 +1,51 @@
 {
-  "@@locale": "en"
+  "@@locale": "en",
+
+  "appTitle": "Smart Kitchen",
+  "@appTitle": {
+    "description": "Application name shown in the OS task switcher"
+  },
+
+  "commonRetry": "Retry",
+  "@commonRetry": {
+    "description": "Retry button on the shared error state"
+  },
+
+  "stateEmptyDefault": "Nothing here yet",
+  "@stateEmptyDefault": {
+    "description": "Fallback copy for AppEmptyView when the caller gives no message"
+  },
+
+  "stateErrorDefault": "Something went wrong",
+  "@stateErrorDefault": {
+    "description": "Fallback copy for AppErrorView when the caller gives no message"
+  },
+
+  "comingSoon": "Coming soon",
+  "@comingSoon": {
+    "description": "Placeholder body of every shell tab until its feature ships"
+  },
+
+  "navHome": "Home",
+  "@navHome": {},
+  "navInventory": "Inventory",
+  "@navInventory": {},
+  "navPlanning": "Planning",
+  "@navPlanning": {},
+  "navShopping": "Shopping",
+  "@navShopping": {},
+  "navProfile": "Profile",
+  "@navProfile": {},
+
+  "devLoginTitle": "Sign in",
+  "@devLoginTitle": {
+    "description": "Title of the temporary sign-in placeholder replaced by fe-onboarding (#28)"
+  },
+
+  "devLoginSubtitle": "The real sign-in flow (Google / OTP / QR join) ships with fe-onboarding.",
+  "@devLoginSubtitle": {},
+  "devLoginCta": "Continue as demo user",
+  "@devLoginCta": {},
+  "devLoginBanner": "App shell demo — no backend call is made",
+  "@devLoginBanner": {}
 }

@@ -22,18 +22,8 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: Create env files for CI
-        run: |
-          cat > config/env/dev.dart << 'EOF'
-          const String baseUrl = 'http://localhost:8080/api';
-          const String aiBaseUrl = 'http://localhost:8000';
-          const String appEnv = 'dev';
-          EOF
-          cat > config/env/prod.dart << 'EOF'
-          const String baseUrl = 'https://api.example.com/api';
-          const String aiBaseUrl = 'https://ai.example.com';
-          const String appEnv = 'prod';
-          EOF
+      # Không sinh config/env/*.dart nữa: không dòng code nào đọc chúng.
+      # Cấu hình môi trường đi qua --dart-define, xem lib/app/env_config.dart.
 
       - name: Get dependencies
         run: flutter pub get
@@ -73,22 +63,29 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: Create prod env file
-        run: |
-          cat > config/env/prod.dart << 'EOF'
-          const String baseUrl = 'https://api.example.com/api';
-          const String aiBaseUrl = 'https://ai.example.com';
-          const String appEnv = 'prod';
-          EOF
-
       - name: Get dependencies
         run: flutter pub get
 
       - name: Enable web platform
         run: flutter create . --platforms web
 
+      # Tên biến phải khớp ĐÚNG String.fromEnvironment trong
+      # lib/app/env_config.dart (APP_ENV / API_BASE_URL / AI_BASE_URL). Sai tên
+      # thì build im lặng rơi về default dev → bật LoggingInterceptor và trỏ
+      # API vào localhost. Ops set repo variables API_BASE_URL / AI_BASE_URL.
       - name: Build Web
-        run: flutter build web --release --dart-define=ENV=prod
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+          AI_BASE_URL: ${{ vars.AI_BASE_URL }}
+        run: |
+          if [ -z "$API_BASE_URL" ] || [ -z "$AI_BASE_URL" ]; then
+            echo "::error::Thiếu repo variable API_BASE_URL hoặc AI_BASE_URL."
+            exit 1
+          fi
+          flutter build web --release \
+            --dart-define=APP_ENV=prod \
+            --dart-define=API_BASE_URL="$API_BASE_URL" \
+            --dart-define=AI_BASE_URL="$AI_BASE_URL"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
