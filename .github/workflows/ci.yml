@@ -46,10 +46,17 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           title: "Coverage Report — Mobile"
 
+  # Chỉ chạy khi backend đã có địa chỉ thật. Chưa set hai repo variable
+  # API_BASE_URL/AI_BASE_URL thì job này bị bỏ qua — không đẩy lên GHCR một
+  # image trỏ vào hư không, cũng không để CI đỏ oan vì việc chưa tới lượt.
+  # Khi deploy BE xong, chỉ cần set biến là job tự sống lại, không phải sửa
+  # workflow.
   build-web:
     needs: analyze-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    if: >-
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+      && vars.API_BASE_URL != '' && vars.AI_BASE_URL != ''
     permissions:
       contents: read
       packages: write
