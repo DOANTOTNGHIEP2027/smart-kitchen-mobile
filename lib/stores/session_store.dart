@@ -101,6 +101,36 @@ abstract class _SessionStore with Store {
     status = AuthStatus.authenticated;
   }
 
+  /// Thay token sau một mutation auth (ví dụ nâng cấp guest). User và claim
+  /// hiện có được giữ lại cho tới khi endpoint OTP/refresh trả session mới.
+  @action
+  Future<void> replaceTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await _tokenStorage.saveTokens(accessToken, refreshToken);
+    _applyClaimsFromAccessToken(accessToken);
+    status = AuthStatus.authenticated;
+  }
+
+  /// Refresh tường minh để đồng bộ claim household sau create/join.
+  @action
+  Future<void> refreshSession() async {
+    final refreshToken = await _tokenStorage.readRefreshToken();
+    if (refreshToken == null) throw StateError('No refresh token');
+    final result = await _refreshUseCase.call(refreshToken);
+    await _tokenStorage.saveTokens(result.accessToken, result.refreshToken);
+    _applyClaimsFromAccessToken(result.accessToken);
+    status = AuthStatus.authenticated;
+  }
+
+  /// Áp dụng context trả trực tiếp từ API khi không cần refresh JWT.
+  @action
+  void applyHouseholdContext({required String householdId, required String role}) {
+    this.householdId = householdId;
+    this.role = role;
+  }
+
   /// Được [TokenRefreshInterceptor] gọi sau mỗi lần silent refresh thành công,
   /// để thay đổi claim chỉ xảy ra qua refresh (ví dụ `household_id` chuyển từ
   /// null sang có giá trị sau khi join Nhà) được phản ánh mà không cần gọi lại

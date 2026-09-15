@@ -7,9 +7,12 @@ abstract class AppRoutes {
   // đụng độ tên, và vì chính logic guard/redirect của shell tham chiếu tới
   // chúng. Việc đăng ký GetPage cho hai route này thuộc về onboarding.
   static const String login = '/login'; // đích redirect của AuthGuard, §6.2
+  static const String emailLogin = '/login/email';
+  static const String register = '/register';
+  static const String otp = '/otp';
   static const String qrJoin = '/join'; // seam deep-link mời tham gia
-
-  // ~30 màn hình còn lại của fe-onboarding KHÔNG được đặt trước ở đây —
-  // feature đó tự sở hữu hằng số route của mình trong file riêng và tự append
-  // danh sách GetPage vào AppPages.pages.
+  static const String qrJoinCode = '/join/:code';
+  static const String householdSetup = '/household/setup';
+  static const String householdCreate = '/household/create';
+  static const String profileUpgrade = '/profile/upgrade';
 }

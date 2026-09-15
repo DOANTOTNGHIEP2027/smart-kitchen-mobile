@@ -27,9 +27,11 @@ class _SplashSceneState extends State<SplashScene> {
       if (!mounted) return;
       final status = Get.find<SessionStore>().status;
       Get.offAllNamed(
-        status == AuthStatus.authenticated
-            ? AppRoutes.shellRoot
-            : AppRoutes.login,
+        status != AuthStatus.authenticated
+            ? AppRoutes.login
+            : Get.find<SessionStore>().needsHousehold
+                ? AppRoutes.householdSetup
+                : AppRoutes.shellRoot,
       );
     });
   }

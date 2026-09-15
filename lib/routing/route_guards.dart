@@ -17,6 +17,9 @@ class AuthGuard extends GetMiddleware {
     if (status != AuthStatus.authenticated) {
       return const RouteSettings(name: AppRoutes.login);
     }
+    if (Get.find<SessionStore>().needsHousehold) {
+      return const RouteSettings(name: AppRoutes.householdSetup);
+    }
     return null; // allow
   }
 }
@@ -30,8 +33,35 @@ class GuestOnlyGuard extends GetMiddleware {
   RouteSettings? redirect(String? route) {
     final status = Get.find<SessionStore>().status;
     if (status == AuthStatus.authenticated) {
-      return const RouteSettings(name: AppRoutes.shellRoot);
+      return RouteSettings(
+        name: Get.find<SessionStore>().needsHousehold
+            ? AppRoutes.householdSetup
+            : AppRoutes.shellRoot,
+      );
     }
     return null; // allow
+  }
+}
+
+/// Chỉ user đã đăng nhập nhưng chưa có household mới được tạo/chọn household.
+class HouseholdSetupGuard extends GetMiddleware {
+  @override
+  RouteSettings? redirect(String? route) {
+    final session = Get.find<SessionStore>();
+    if (!session.isAuthenticated) return const RouteSettings(name: AppRoutes.login);
+    if (!session.needsHousehold) return const RouteSettings(name: AppRoutes.shellRoot);
+    return null;
+  }
+}
+
+/// Trang nâng cấp chỉ áp dụng cho phiên guest đã vào household.
+class GuestProfileGuard extends GetMiddleware {
+  @override
+  RouteSettings? redirect(String? route) {
+    final session = Get.find<SessionStore>();
+    if (!session.isAuthenticated) return const RouteSettings(name: AppRoutes.login);
+    if (session.needsHousehold) return const RouteSettings(name: AppRoutes.householdSetup);
+    if (session.provider != 'GUEST') return const RouteSettings(name: AppRoutes.shellRoot);
+    return null;
   }
 }
