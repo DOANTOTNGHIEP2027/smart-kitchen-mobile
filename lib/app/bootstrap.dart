@@ -5,9 +5,14 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../data/auth/token_storage.dart';
+import '../data/auth/google_auth_gateway.dart';
 import '../data/network/dio_client.dart';
 import '../domain/auth/auth_refresh_usecase.dart';
 import '../stores/session_store.dart';
+import '../scenes/auth/api/auth_api.dart';
+import '../scenes/auth/stores/auth_store.dart';
+import '../scenes/household/api/household_api.dart';
+import '../scenes/household/stores/household_store.dart';
 import 'app.dart';
 import 'env_config.dart';
 
@@ -19,7 +24,7 @@ Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await EnvConfig.load();
-  await _initFirebase();
+  final firebaseAvailable = await _initFirebase();
 
   final tokenStorage = TokenStorage();
   final dioClient = DioClient.build(tokenStorage: tokenStorage);
@@ -32,6 +37,22 @@ Future<void> bootstrap() async {
     AuthRefreshUseCase(dioClient.dio),
   );
   Get.put<SessionStore>(sessionStore, permanent: true);
+  Get.put<AuthApi>(AuthApiImpl(dioClient), permanent: true);
+  Get.put<HouseholdApi>(HouseholdApiImpl(dioClient), permanent: true);
+  Get.put<GoogleAuthGateway>(
+    firebaseAvailable
+        ? GoogleAuthGatewayImpl()
+        : const UnavailableGoogleAuthGateway(),
+    permanent: true,
+  );
+  Get.put<AuthStore>(
+    AuthStore(Get.find<AuthApi>(), sessionStore, Get.find<GoogleAuthGateway>()),
+    permanent: true,
+  );
+  Get.put<HouseholdStore>(
+    HouseholdStore(Get.find<HouseholdApi>(), Get.find<AuthApi>(), sessionStore),
+    permanent: true,
+  );
 
   await sessionStore.bootstrap(); // thử silent refresh, set AuthStatus
 
@@ -45,9 +66,10 @@ Future<void> bootstrap() async {
 /// trống thiết kế (open question Q6). Cho tới lúc đó, init thất bại không được
 /// phép chặn app boot: chỉ luồng Google Sign-In (thuộc `fe-onboarding`) mới
 /// phụ thuộc vào nó, mọi thứ còn lại vẫn chạy bình thường.
-Future<void> _initFirebase() async {
+Future<bool> _initFirebase() async {
   try {
     await Firebase.initializeApp();
+    return true;
   } catch (error) {
     developer.log(
       'Firebase chưa được cấu hình — bỏ qua, Google Sign-In sẽ không dùng được. '
@@ -55,5 +77,6 @@ Future<void> _initFirebase() async {
       name: 'bootstrap',
       error: error,
     );
+    return false;
   }
 }

@@ -18,6 +18,29 @@ abstract class GoogleAuthGateway {
   Future<void> signOut();
 }
 
+/// Fallback khi Firebase chưa được cấu hình cho app/platform hiện tại.
+///
+/// Bootstrap vẫn cho phép ứng dụng khởi động trong trạng thái này; luồng
+/// Google sign-in trả về lỗi nghiệp vụ có thể hiển thị thay vì truy cập
+/// FirebaseAuth chưa được khởi tạo và làm app crash.
+class UnavailableGoogleAuthGateway implements GoogleAuthGateway {
+  const UnavailableGoogleAuthGateway();
+
+  @override
+  Future<String?> signInWithGoogle() =>
+      Future<String?>.error(const GoogleAuthUnavailableException());
+
+  @override
+  Future<void> signOut() async {}
+}
+
+class GoogleAuthUnavailableException implements Exception {
+  const GoogleAuthUnavailableException();
+
+  @override
+  String toString() => 'ERR_AUTH_FIREBASE_UNAVAILABLE';
+}
+
 class GoogleAuthGatewayImpl implements GoogleAuthGateway {
   GoogleAuthGatewayImpl({GoogleSignIn? googleSignIn, FirebaseAuth? firebaseAuth})
       : _googleSignIn = googleSignIn ?? GoogleSignIn(scopes: const <String>['email']),

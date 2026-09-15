@@ -8,8 +8,10 @@ part 'app_shell_store.g.dart';
 class AppShellStore = _AppShellStore with _$AppShellStore;
 
 abstract class _AppShellStore with Store {
+  _AppShellStore({int initialIndex = 0}) : selectedIndex = initialIndex;
+
   @observable
-  int selectedIndex = 0;
+  int selectedIndex;
 
   @action
   void selectTab(int index) => selectedIndex = index;

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
+import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
+import '../../stores/session_store.dart';
+import '../../widgets/buttons/app_button.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/states/app_empty_view.dart';
 import 'app_shell_store.dart';
@@ -18,6 +21,9 @@ class AppShellScene extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = Get.find<AppShellStore>();
+    final session = Get.isRegistered<SessionStore>()
+        ? Get.find<SessionStore>()
+        : null;
     final tabs = _tabsOf(context);
 
     return Observer(
@@ -27,12 +33,42 @@ class AppShellScene extends StatelessWidget {
           title: tabs[index].label,
           body: IndexedStack(
             index: index,
-            children: tabs
-                .map((tab) => AppEmptyView(
+            children: List<Widget>.generate(tabs.length, (tabIndex) {
+              final tab = tabs[tabIndex];
+              if (tabIndex == 4 && session?.provider == 'GUEST') {
+                return Column(children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(context.l10n.guestProfileBanner),
+                            const SizedBox(height: 12),
+                            AppButton(
+                              label: context.l10n.completeProfile,
+                              onPressed: () => Get.toNamed(AppRoutes.profileUpgrade),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: AppEmptyView(
                       message: context.l10n.comingSoon,
                       icon: tab.icon,
-                    ))
-                .toList(growable: false),
+                    ),
+                  ),
+                ]);
+              }
+              return AppEmptyView(
+                      message: context.l10n.comingSoon,
+                      icon: tab.icon,
+                    );
+            }),
           ),
           bottomNavigationBar: NavigationBar(
             selectedIndex: index,

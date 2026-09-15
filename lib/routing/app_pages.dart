@@ -1,7 +1,13 @@
 import 'package:get/get.dart';
 
-import '../app/env_config.dart';
-import '../scenes/dev/dev_login_scene.dart';
+import '../scenes/auth/auth_landing_scene.dart';
+import '../scenes/auth/email_login_scene.dart';
+import '../scenes/auth/email_register_scene.dart';
+import '../scenes/auth/otp_scene.dart';
+import '../scenes/auth/upgrade_profile_scene.dart';
+import '../scenes/household/create_household_scene.dart';
+import '../scenes/household/household_setup_scene.dart';
+import '../scenes/household/join_household_scene.dart';
 import '../scenes/shell/app_shell_binding.dart';
 import '../scenes/shell/app_shell_scene.dart';
 import '../scenes/splash/splash_binding.dart';
@@ -17,10 +23,7 @@ import 'route_guards.dart';
 class AppPages {
   static final List<GetPage<dynamic>> pages = <GetPage<dynamic>>[
     ...shellPages,
-    // Chỉ build dev mới có màn hình login giả. Build release KHÔNG được chứa
-    // một route mint session giả với role OWNER.
-    if (EnvConfig.isDev) ...devPlaceholderPages,
-    // ...onboardingPages,   // fe-onboarding (#28) append danh sách của nó ở đây
+    ...feature1Pages,
   ];
 
   static final List<GetPage<dynamic>> shellPages = <GetPage<dynamic>>[
@@ -37,17 +40,19 @@ class AppPages {
     ),
   ];
 
-  /// TẠM THỜI, CHỈ DEV — xóa cả danh sách này lẫn [DevLoginScene] khi
-  /// `fe-onboarding` (#28) đăng ký màn hình login thật cho [AppRoutes.login].
-  ///
-  /// Cho tới lúc đó, build release cố tình KHÔNG có route nào cho
-  /// [AppRoutes.login]: chưa có màn hình đăng nhập thật, nên hiển thị route
-  /// chưa tồn tại còn đúng hơn là hiển thị một màn hình đăng nhập giả.
-  static final List<GetPage<dynamic>> devPlaceholderPages = <GetPage<dynamic>>[
+  static final List<GetPage<dynamic>> feature1Pages = <GetPage<dynamic>>[
     GetPage<void>(
       name: AppRoutes.login,
-      page: () => const DevLoginScene(),
+      page: () => const AuthLandingScene(),
       middlewares: <GetMiddleware>[GuestOnlyGuard()],
     ),
+    GetPage<void>(name: AppRoutes.emailLogin, page: () => const EmailLoginScene(), middlewares: <GetMiddleware>[GuestOnlyGuard()]),
+    GetPage<void>(name: AppRoutes.register, page: () => const EmailRegisterScene(), middlewares: <GetMiddleware>[GuestOnlyGuard()]),
+    GetPage<void>(name: AppRoutes.otp, page: () => const OtpScene()),
+    GetPage<void>(name: AppRoutes.qrJoin, page: () => const JoinHouseholdScene()),
+    GetPage<void>(name: AppRoutes.qrJoinCode, page: () => const JoinHouseholdScene()),
+    GetPage<void>(name: AppRoutes.householdSetup, page: () => const HouseholdSetupScene(), middlewares: <GetMiddleware>[HouseholdSetupGuard()]),
+    GetPage<void>(name: AppRoutes.householdCreate, page: () => const CreateHouseholdScene(), middlewares: <GetMiddleware>[HouseholdSetupGuard()]),
+    GetPage<void>(name: AppRoutes.profileUpgrade, page: () => const UpgradeProfileScene(), middlewares: <GetMiddleware>[GuestProfileGuard()]),
   ];
 }

@@ -123,6 +123,24 @@ mixin _$SessionStore on _SessionStore, Store {
         accessToken: accessToken, refreshToken: refreshToken, user: user));
   }
 
+  late final _$replaceTokensAsyncAction =
+      AsyncAction('_SessionStore.replaceTokens', context: context);
+
+  @override
+  Future<void> replaceTokens(
+      {required String accessToken, required String refreshToken}) {
+    return _$replaceTokensAsyncAction.run(() => super
+        .replaceTokens(accessToken: accessToken, refreshToken: refreshToken));
+  }
+
+  late final _$refreshSessionAsyncAction =
+      AsyncAction('_SessionStore.refreshSession', context: context);
+
+  @override
+  Future<void> refreshSession() {
+    return _$refreshSessionAsyncAction.run(() => super.refreshSession());
+  }
+
   late final _$clearAsyncAction =
       AsyncAction('_SessionStore.clear', context: context);
 
@@ -133,6 +151,18 @@ mixin _$SessionStore on _SessionStore, Store {
 
   late final _$_SessionStoreActionController =
       ActionController(name: '_SessionStore', context: context);
+
+  @override
+  void applyHouseholdContext(
+      {required String householdId, required String role}) {
+    final _$actionInfo = _$_SessionStoreActionController.startAction(
+        name: '_SessionStore.applyHouseholdContext');
+    try {
+      return super.applyHouseholdContext(householdId: householdId, role: role);
+    } finally {
+      _$_SessionStoreActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void applyRefreshedClaims(String accessToken) {

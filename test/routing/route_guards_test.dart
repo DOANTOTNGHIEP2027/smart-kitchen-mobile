@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:smart_kitchen_mobile/app/env_config.dart';
 import 'package:smart_kitchen_mobile/data/auth/token_storage.dart';
 import 'package:smart_kitchen_mobile/domain/auth/auth_refresh_usecase.dart';
 import 'package:smart_kitchen_mobile/domain/auth/user_summary.dart';
@@ -41,14 +40,15 @@ void main() {
       expect(AuthGuard().redirect(AppRoutes.shellRoot)?.name, AppRoutes.login);
     });
 
-    test('authenticated → cho qua', () async {
+    test('authenticated chưa có household → redirect sang household setup', () async {
       await store.setSession(
         accessToken: fakeJwt(<String, dynamic>{'role': 'OWNER'}),
         refreshToken: 'r1',
         user: const UserSummary(id: 'u1'),
       );
 
-      expect(AuthGuard().redirect(AppRoutes.shellRoot), isNull);
+      expect(AuthGuard().redirect(AppRoutes.shellRoot)?.name,
+          AppRoutes.householdSetup);
     });
 
     test('status unknown → CHẶN (không có access token nào ở trạng thái này)',
@@ -60,7 +60,7 @@ void main() {
   });
 
   group('GuestOnlyGuard', () {
-    test('authenticated → bounce về shell', () async {
+    test('authenticated chưa có household → bounce về household setup', () async {
       await store.setSession(
         accessToken: fakeJwt(<String, dynamic>{'role': 'OWNER'}),
         refreshToken: 'r1',
@@ -68,7 +68,7 @@ void main() {
       );
 
       expect(GuestOnlyGuard().redirect(AppRoutes.login)?.name,
-          AppRoutes.shellRoot);
+          AppRoutes.householdSetup);
     });
 
     test('unauthenticated → cho qua', () async {
@@ -86,21 +86,11 @@ void main() {
     expect(names, contains(AppRoutes.shellRoot));
   });
 
-  test('màn hình login giả chỉ được đăng ký ở build dev', () {
+  test('Feature 1 đăng ký màn hình login thật', () {
     final names = AppPages.pages.map((GetPage<dynamic> p) => p.name).toList();
 
-    // Test chạy không có --dart-define nên EnvConfig.isDev == true.
-    expect(EnvConfig.isDev, isTrue);
     expect(names, contains(AppRoutes.login));
-    // Nhánh release không test trực tiếp được (isDev là compile-time const),
-    // nên chốt bằng cấu trúc: route login CHỈ đến từ devPlaceholderPages.
-    expect(
-      AppPages.shellPages.map((GetPage<dynamic> p) => p.name),
-      isNot(contains(AppRoutes.login)),
-    );
-    expect(
-      AppPages.devPlaceholderPages.map((GetPage<dynamic> p) => p.name),
-      contains(AppRoutes.login),
-    );
+    expect(AppPages.feature1Pages.map((GetPage<dynamic> p) => p.name),
+        containsAll(<String>[AppRoutes.emailLogin, AppRoutes.register, AppRoutes.otp, AppRoutes.qrJoin, AppRoutes.householdSetup, AppRoutes.householdCreate, AppRoutes.profileUpgrade]));
   });
 }
