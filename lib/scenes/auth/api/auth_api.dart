@@ -17,32 +17,38 @@ abstract interface class AuthApi {
 class AuthApiImpl implements AuthApi {
   AuthApiImpl(this._client);
 
+  // Path phải mang đủ tiền tố `/api` (OAS: `servers: - url: /api`), và phải
+  // khớp CHÍNH XÁC chuỗi trong `DioClient.publicPaths`. Khớp hụt không gây
+  // lỗi biên dịch mà hỏng âm thầm theo hai đường: request đi sai URL, và
+  // `AuthHeaderInterceptor` không nhận ra đây là endpoint public nên gắn
+  // `Authorization` vào cả login/register/refresh — mở lại đúng vòng lặp
+  // refresh mà fe-app-shell.md §7.5 dựng guard `hadAuthHeader` để chặn.
   final DioClient _client;
 
   @override
   Future<AuthSession> loginWithGoogle(String idToken) => _post(
-        '/v1/auth/google',
+        '/api/v1/auth/google',
         {'idToken': idToken},
         AuthSession.fromJson,
       );
 
   @override
   Future<RegisterResult> register({required String email, required String password, required String fullName}) => _post(
-        '/v1/auth/email/register',
+        '/api/v1/auth/email/register',
         {'email': email, 'password': password, 'fullName': fullName},
         RegisterResult.fromJson,
       );
 
   @override
   Future<AuthSession> login({required String email, required String password}) => _post(
-        '/v1/auth/email/login',
+        '/api/v1/auth/email/login',
         {'email': email, 'password': password},
         AuthSession.fromJson,
       );
 
   @override
   Future<AuthSession> verifyOtp({required String email, required String otp}) => _post(
-        '/v1/auth/email/verify-otp',
+        '/api/v1/auth/email/verify-otp',
         {'email': email, 'otp': otp},
         AuthSession.fromJson,
       );
@@ -50,7 +56,7 @@ class AuthApiImpl implements AuthApi {
   @override
   Future<void> sendOtp(String email) async {
     await _post<Map<String, dynamic>>(
-      '/v1/auth/email/send-otp',
+      '/api/v1/auth/email/send-otp',
       {'email': email},
       (json) => json,
     );
@@ -58,7 +64,7 @@ class AuthApiImpl implements AuthApi {
 
   @override
   Future<GuestJoinSession> joinAsGuest({required String inviteCode, String? displayName}) => _post(
-        '/v1/auth/qr-join',
+        '/api/v1/auth/qr-join',
         {
           'inviteCode': inviteCode,
           if (displayName?.trim().isNotEmpty == true) 'displayName': displayName!.trim(),
@@ -68,7 +74,7 @@ class AuthApiImpl implements AuthApi {
 
   @override
   Future<UpgradeResult> upgrade({required String email, required String password, String? fullName}) => _post(
-        '/v1/auth/upgrade-profile',
+        '/api/v1/auth/upgrade-profile',
         {
           'email': email,
           'password': password,

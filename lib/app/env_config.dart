@@ -21,6 +21,14 @@ abstract class EnvConfig {
   static const String aiBaseUrl =
       String.fromEnvironment('AI_BASE_URL', defaultValue: 'http://localhost:8000');
 
+  /// Bật backend giả lập trong app (`DemoBackendAdapter`) thay cho HTTP thật.
+  ///
+  /// CHỈ để trình diễn khi chưa có BE chạy. Bị chặn ở build `prod` để một lần
+  /// truyền nhầm cờ không thể biến bản phát hành thành bản giả lập.
+  static const bool _demoModeFlag = bool.fromEnvironment('DEMO_MODE');
+
+  static bool get isDemoMode => _demoModeFlag && appEnv != 'prod';
+
   static bool get isDev => appEnv == 'dev';
 
   /// Seam của chuỗi bootstrap (fe-app-shell.md §5). Hiện không có I/O vì mọi

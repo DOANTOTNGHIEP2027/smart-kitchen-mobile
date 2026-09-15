@@ -13,26 +13,29 @@ abstract interface class HouseholdApi {
 class HouseholdApiImpl implements HouseholdApi {
   HouseholdApiImpl(this._client);
 
+  // Tiền tố `/api` là bắt buộc — xem ghi chú cùng chủ đề trong `auth_api.dart`.
+  // Riêng `GET /api/v1/households/invites/{code}` còn phải khớp
+  // `AuthHeaderInterceptor.invitePathPrefix` để giữ đúng tính public của nó.
   final DioClient _client;
 
   @override
   Future<HouseholdCreated> create(String name) async {
     final response = await _client.dio
-        .post<Map<String, dynamic>>('/v1/households', data: {'name': name});
+        .post<Map<String, dynamic>>('/api/v1/households', data: {'name': name});
     return _unwrap(response, HouseholdCreated.fromJson);
   }
 
   @override
   Future<InvitePreview> preview(String code) async {
     final response = await _client.dio
-        .get<Map<String, dynamic>>('/v1/households/invites/$code');
+        .get<Map<String, dynamic>>('/api/v1/households/invites/$code');
     return _unwrap(response, InvitePreview.fromJson);
   }
 
   @override
   Future<HouseholdJoinResult> join(String code) async {
     final response = await _client.dio.post<Map<String, dynamic>>(
-        '/v1/households/join',
+        '/api/v1/households/join',
         data: {'code': code});
     return _unwrap(response, HouseholdJoinResult.fromJson);
   }

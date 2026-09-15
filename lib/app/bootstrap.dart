@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../data/auth/token_storage.dart';
 import '../data/auth/google_auth_gateway.dart';
 import '../data/network/dio_client.dart';
+import '../demo/demo_backend_adapter.dart';
 import '../domain/auth/auth_refresh_usecase.dart';
 import '../stores/session_store.dart';
 import '../scenes/auth/api/auth_api.dart';
@@ -28,6 +29,17 @@ Future<void> bootstrap() async {
 
   final tokenStorage = TokenStorage();
   final dioClient = DioClient.build(tokenStorage: tokenStorage);
+
+  if (EnvConfig.isDemoMode) {
+    // Chỉ thay tầng transport — api/store/scene và toàn bộ pipeline
+    // interceptor vẫn chạy nguyên code production, nên demo chứng minh được
+    // luồng thật chứ không phải một UI rỗng.
+    dioClient.dio.httpClientAdapter = DemoBackendAdapter();
+    developer.log(
+      'DEMO MODE: mọi request HTTP được giả lập trong app.',
+      name: 'bootstrap',
+    );
+  }
 
   Get.put<TokenStorage>(tokenStorage, permanent: true);
   Get.put<DioClient>(dioClient, permanent: true);

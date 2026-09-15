@@ -34,7 +34,19 @@ class HouseholdStore {
     _begin();
     try {
       final result = await _api.create(value);
-      _session.applyHouseholdContext(householdId: result.id, role: 'OWNER');
+      // Phải refresh, không được chỉ gán claim cục bộ. `applyHouseholdContext`
+      // chỉ sửa state trong máy; access token đang giữ vẫn mang
+      // `household_id: null`, nên mọi request sau đó vẫn báo với BE là user
+      // chưa thuộc Nhà nào — FE và BE lệch nhau cho tới lần refresh tự nhiên
+      // kế tiếp. Cùng lý do với `requiresTokenRefresh` của luồng join (S8.11).
+      try {
+        await _session.refreshSession();
+      } catch (_) {
+        // Refresh hỏng thì vẫn để user đi tiếp với claim cục bộ — Nhà đã được
+        // tạo thật rồi, chặn ở đây chỉ khiến họ kẹt. Claim sẽ được đồng bộ ở
+        // lần refresh kế tiếp hoặc lần mở app sau.
+        _session.applyHouseholdContext(householdId: result.id, role: 'OWNER');
+      }
       runInAction(() {
         _created.value = result;
         _status.value = FormStatus.success;

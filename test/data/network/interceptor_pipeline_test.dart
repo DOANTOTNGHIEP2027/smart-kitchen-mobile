@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart' hide Response;
+import 'package:get/get.dart' hide FormData, Response;
 import 'package:smart_kitchen_mobile/data/auth/token_storage.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/data/network/dio_client.dart';
@@ -170,6 +170,75 @@ void main() {
 
       expect(responses.every((Response<dynamic> r) => r.statusCode == 200), isTrue);
       expect(adapter.countPath(refreshPath), 1);
+    });
+  });
+
+  // Nợ từ vòng review FE-1 (M2). Chưa có call multipart nào trong app, nhưng
+  // luồng nhập kho bằng ảnh (#56/#58) sẽ đi đúng đường này.
+  group('Retry với body multipart', () {
+    test('FormData được dựng lại, lần gửi lại KHÔNG rỗng', () async {
+      // Chụp body ngay tại thời điểm gửi: retry mutate chính object
+      // RequestOptions cũ, nên đọc lại `adapter.requests[i].data` sau đó sẽ
+      // thấy cả hai lần đều trỏ tới bản clone — không phân biệt được gì.
+      final bodiesAtSendTime = <Object?>[];
+      final adapter = FakeHttpAdapter((RequestOptions options) async {
+        if (options.path == refreshPath) {
+          return jsonResponse(
+            200,
+            successEnvelope(<String, dynamic>{
+              'accessToken': fakeJwt(<String, dynamic>{'sub': 'u1'}),
+              'refreshToken': 'refresh-2',
+              'expiresIn': 900,
+            }),
+          );
+        }
+        bodiesAtSendTime.add(options.data);
+        final auth = options.headers['Authorization'] as String?;
+        if (auth != null && auth != 'Bearer access-old') {
+          return jsonResponse(200, successEnvelope(<String, dynamic>{'ok': true}));
+        }
+        return jsonResponse(401, errorEnvelope('ERR_AUTH_003', 'expired'));
+      });
+      final client = buildClient(adapter);
+
+      final response = await client.dio.post<dynamic>(
+        protectedPath,
+        data: FormData.fromMap(<String, dynamic>{
+          'note': 'hộp sữa',
+          'quantity': '2',
+        }),
+      );
+
+      expect(response.statusCode, 200);
+      expect(adapter.countPath(refreshPath), 1);
+      expect(bodiesAtSendTime.length, 2, reason: 'gửi lần đầu + gửi lại');
+
+      final retried = bodiesAtSendTime.last;
+      expect(retried, isA<FormData>());
+      // Phải là object khác: tái dùng object cũ thì stream đã bị tiêu thụ và
+      // body gửi lại sẽ rỗng.
+      expect(identical(retried, bodiesAtSendTime.first), isFalse);
+      expect(
+        (retried! as FormData)
+            .fields
+            .map((MapEntry<String, String> e) => '${e.key}=${e.value}'),
+        containsAll(<String>['note=hộp sữa', 'quantity=2']),
+      );
+    });
+
+    test('body JSON thuần không bị đụng tới', () async {
+      final adapter = refreshableAdapter(protectedEverSucceeds: true);
+      final client = buildClient(adapter);
+
+      await client.dio.post<dynamic>(
+        protectedPath,
+        data: <String, dynamic>{'name': 'sữa'},
+      );
+
+      final sent = adapter.requests
+          .where((RequestOptions r) => r.path == protectedPath)
+          .toList();
+      expect(sent.last.data, <String, dynamic>{'name': 'sữa'});
     });
   });
 
