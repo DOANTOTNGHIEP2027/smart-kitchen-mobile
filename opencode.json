@@ -1,0 +1,95 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "instructions": ["AGENTS.md"],
+
+  "permission": {
+    "bash": {
+      "*": "ask",
+
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git show*": "allow",
+      "git fetch*": "allow",
+      "git add*": "allow",
+      "git commit*": "allow",
+      "git checkout -b*": "allow",
+      "git switch -c*": "allow",
+      "git rebase origin/main": "allow",
+      "git pull --ff-only*": "allow",
+      "git push origin*": "allow",
+      "git branch*": "allow",
+      "git stash*": "allow",
+
+      "git push --force*": "deny",
+      "git push -f*": "deny",
+      "git reset --hard*": "deny",
+      "git clean -fd*": "deny",
+      "git branch -D*": "deny",
+      "rm -rf*": "deny",
+      "sudo*": "deny",
+
+      "flutter pub get*": "allow",
+      "flutter pub add*": "allow",
+      "flutter analyze*": "allow",
+      "flutter test*": "allow",
+      "flutter build*": "allow",
+      "flutter doctor*": "allow",
+      "flutter devices*": "allow",
+      "flutter run*": "allow",
+      "flutter clean*": "allow",
+      "dart run build_runner*": "allow",
+      "dart format*": "allow",
+      "dart fix*": "allow",
+
+      "gh *": "allow",
+      "ls*": "allow",
+      "cat*": "allow",
+      "grep*": "allow",
+      "rg*": "allow",
+      "find*": "allow",
+      "wc*": "allow"
+    },
+
+    "edit": {
+      "*": "allow",
+      "pubspec.yaml": "ask",
+      ".env*": "deny",
+      "**/.env*": "deny",
+      "**/google-services.json": "deny",
+      "**/GoogleService-Info.plist": "deny"
+    },
+
+    "external_directory": "allow",
+    "webfetch": "allow",
+    "websearch": "allow"
+  },
+
+  "command": {
+    "code": {
+      "description": "Implement màn hình Flutter từ design spec + mock-up",
+      "template": "Đọc `D:/DO_AN/ai-native/.github/skills/coding-fe-creator/SKILL.md` và làm theo đúng hướng dẫn trong đó.\n\nTrước tiên đọc `D:/DO_AN/ai-native/CODEX.md` và `CONTEXT_FE.md`.\n\nBắt buộc có design spec trước khi code. **Mở cả mock-up** `D:/DO_AN/ai-native/docs/design/frontend/mockups/<slug>.html` để lấy đúng hình dạng thị giác.\n\nThứ tự layer: Model → Repository → UseCase → Store (MobX) → View.\n\nLuật:\n- MobX cho toàn bộ state; GetX chỉ routing + DI. Không `Rx`/`Obx` cho feature state\n- `*Api` convert `DioException` → `ApiException` bên trong `_unwrap`\n- Mọi màn cover đủ loading/empty/error/success\n- Không hardcode text — dùng `context.l10n.xxx`\n- **Key JSON là camelCase** — parse sai không ném exception, field lặng lẽ về null\n- Chạy `dart run build_runner build --delete-conflicting-outputs` sau khi đổi `@observable`\n\nChạy cổng chất lượng §4.3 trước khi coi là xong.\n\n**Chế độ tự động:** không dừng hỏi ngoài 4 trường hợp §7. Chưa phủ thì áp §6.0 rồi ghi `D:/DO_AN/ai-native/docs/planning/open-decisions.md` và đi tiếp.\n\nTask: $ARGUMENTS"
+    },
+    "review": {
+      "description": "Review code Flutter theo diff/branch — chỉ review, không sửa",
+      "template": "Đọc `D:/DO_AN/ai-native/.github/skills/coding-fe-reviewer/SKILL.md` và làm theo.\n\nReview diff so với `origin/main`. Kiểm: Clean Architecture, pattern MobX, memory leak (dispose reaction/controller/stream), i18n, naming.\n\n**Kiểm riêng cho repo này** — mấy thứ hay trôi nhất:\n- Key JSON có đúng **camelCase** không? Đối chiếu OAS `D:/DO_AN/ai-native/docs/contracts/openapi/`\n- Thứ tự interceptor trong `DioClient.build()` có bị \"dọn cho gọn\" không? `TokenRefreshInterceptor` PHẢI nằm sau `ErrorMappingInterceptor`\n- `*Api` có convert `DioException` → `ApiException` bên trong không?\n- Có `Rx`/`Obx` lẫn vào feature state không?\n- `AllergenBanner` có nhánh nào trả `SizedBox.shrink()` khi chưa kiểm chứng dị ứng không? Đó là lỗi an toàn\n- Optimistic update có rollback đúng snapshot không?\n\n**KHÔNG implement.** Chỉ review và ghi báo cáo, xếp theo severity.\n\nPhạm vi: $ARGUMENTS"
+    },
+    "fix": {
+      "description": "Sửa code Flutter theo review report",
+      "template": "Đọc `D:/DO_AN/ai-native/.github/skills/coding-fe-fixer/SKILL.md` và làm theo.\n\nĐọc review report trước, rồi mới mở file bị ảnh hưởng. Sửa theo severity: BLOCKER → HIGH → MEDIUM → LOW.\n\nLuật (kế hoạch §5): sửa bug thì **viết test tái hiện TRƯỚC**, thấy đỏ rồi mới sửa. Cấm skip/xoá test đỏ. Cấm sửa tiện tay ngoài phạm vi.\n\nChạy lại cổng §4.3 sau khi sửa.\n\nReview report: $ARGUMENTS"
+    },
+    "gate": {
+      "description": "Chạy cổng chất lượng FE",
+      "template": "Chạy đúng thứ tự, không bỏ bước:\n\n```bash\nflutter pub get\ndart run build_runner build --delete-conflicting-outputs\nflutter analyze\nflutter test\n```\n\n`build_runner` chạy **trước** `analyze` — quên bước này thì `*.g.dart` lệch và lỗi biên dịch trông như nằm ở chỗ khác.\n\n**Xanh =** `flutter analyze` không có `error`/`warning`; `flutter test` in `All tests passed!` trên TOÀN BỘ suite, không chỉ test mới (§5 luật 1).\n\nBáo cáo output thật, không tóm tắt."
+    },
+    "task": {
+      "description": "Chạy trọn 1 task: code → review → fix → gate → PR",
+      "template": "Chạy trọn vòng lặp §3 của `D:/DO_AN/ai-native/docs/planning/mvp-demo-execution-plan.md`.\n\n1. `git fetch origin && git checkout main && git pull --ff-only && git checkout -b <nhánh task>`\n2. Đọc AGENTS.md + file thiết kế `[D]` + mock-up của task\n3. `/code`\n4. `/gate` — đỏ thì quay lại 3\n5. `/review`\n6. Còn BLOCKER/HIGH thì `/fix` rồi quay lại 4. **Tối đa 3 vòng**, hết thì thu hẹp phạm vi hoặc `PARKED` + ghi `open-decisions.md` rồi chuyển task kế tiếp\n7. Đối chiếu `[DoD]`: mọi ô tick kèm **bằng chứng output thật**\n8. Rebase rồi **chạy lại `/gate`** rồi push\n9. `/pr` rồi merge main\n\n**Không dừng hỏi** ngoài 4 trường hợp §7.\n\nTask: $ARGUMENTS"
+    },
+    "pr": {
+      "description": "Tạo PR bằng gh CLI, body tiếng Việt",
+      "template": "Đọc `D:/DO_AN/ai-native/.github/skills/github-pr-creator/SKILL.md` và làm theo.\n\nDùng `gh` CLI. Title + body **tiếng Việt**. Body nêu `[DoD]` đã tick kèm bằng chứng, mục chưa kiểm được và lý do (§6.1 D-19).\n\n**Hook chặn trailer đồng tác giả AI.**\n\nPhạm vi: $ARGUMENTS"
+    }
+  }
+}
