@@ -1,12 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
-
-  "instructions": ["AGENTS.md"],
-
+  "instructions": [
+    "AGENTS.md"
+  ],
   "permission": {
     "bash": {
       "*": "ask",
-
       "git status*": "allow",
       "git diff*": "allow",
       "git log*": "allow",
@@ -21,7 +20,6 @@
       "git push origin*": "allow",
       "git branch*": "allow",
       "git stash*": "allow",
-
       "git push --force*": "deny",
       "git push -f*": "deny",
       "git reset --hard*": "deny",
@@ -29,7 +27,6 @@
       "git branch -D*": "deny",
       "rm -rf*": "deny",
       "sudo*": "deny",
-
       "flutter pub get*": "allow",
       "flutter pub add*": "allow",
       "flutter analyze*": "allow",
@@ -42,7 +39,6 @@
       "dart run build_runner*": "allow",
       "dart format*": "allow",
       "dart fix*": "allow",
-
       "gh *": "allow",
       "ls*": "allow",
       "cat*": "allow",
@@ -51,7 +47,6 @@
       "find*": "allow",
       "wc*": "allow"
     },
-
     "edit": {
       "*": "allow",
       "pubspec.yaml": "ask",
@@ -60,16 +55,14 @@
       "**/google-services.json": "deny",
       "**/GoogleService-Info.plist": "deny"
     },
-
     "external_directory": "allow",
     "webfetch": "allow",
     "websearch": "allow"
   },
-
   "command": {
     "code": {
       "description": "Implement màn hình Flutter từ design spec + mock-up",
-      "template": "Đọc `D:/DO_AN/ai-native/.github/skills/coding-fe-creator/SKILL.md` và làm theo đúng hướng dẫn trong đó.\n\nTrước tiên đọc `D:/DO_AN/ai-native/CODEX.md` và `CONTEXT_FE.md`.\n\nBắt buộc có design spec trước khi code. **Mở cả mock-up** `D:/DO_AN/ai-native/docs/design/frontend/mockups/<slug>.html` để lấy đúng hình dạng thị giác.\n\nThứ tự layer: Model → Repository → UseCase → Store (MobX) → View.\n\nLuật:\n- MobX cho toàn bộ state; GetX chỉ routing + DI. Không `Rx`/`Obx` cho feature state\n- `*Api` convert `DioException` → `ApiException` bên trong `_unwrap`\n- Mọi màn cover đủ loading/empty/error/success\n- Không hardcode text — dùng `context.l10n.xxx`\n- **Key JSON là camelCase** — parse sai không ném exception, field lặng lẽ về null\n- Chạy `dart run build_runner build --delete-conflicting-outputs` sau khi đổi `@observable`\n\nChạy cổng chất lượng §4.3 trước khi coi là xong.\n\n**Chế độ tự động:** không dừng hỏi ngoài 4 trường hợp §7. Chưa phủ thì áp §6.0 rồi ghi `D:/DO_AN/ai-native/docs/planning/open-decisions.md` và đi tiếp.\n\nTask: $ARGUMENTS"
+      "template": "Đọc `D:/DO_AN/ai-native/.github/skills/coding-fe-creator/SKILL.md` và làm theo đúng hướng dẫn trong đó.\n\nTrước tiên đọc `D:/DO_AN/ai-native/CODEX.md` và `CONTEXT_FE.md`.\n\nBắt buộc có design spec trước khi code. **Mở cả mock-up** `D:/DO_AN/ai-native/docs/design/frontend/mockups/<slug>.html` để lấy đúng hình dạng thị giác.\n\nThứ tự layer: Model → Repository → UseCase → Store (MobX) → View.\n\nLuật:\n- MobX cho toàn bộ state; GetX chỉ routing + DI. Không `Rx`/`Obx` cho feature state\n- `*Api` convert `DioException` → `ApiException` bên trong `_unwrap`\n- Mọi màn cover đủ loading/empty/error/success\n- Không hardcode text — dùng `context.l10n.xxx`\n- **Key JSON là camelCase** — parse sai không ném exception, field lặng lẽ về null\n- Chạy `dart run build_runner build --delete-conflicting-outputs` sau khi đổi `@observable`\n\nChạy cổng chất lượng §4.3 trước khi coi là xong.\n\n**Chế độ tự động:** không dừng hỏi ngoài 4 trường hợp §7. Chưa phủ thì áp §6.0 rồi ghi `OPEN_DECISIONS.md` (gốc repo này) và đi tiếp.\n\nTask: $ARGUMENTS"
     },
     "review": {
       "description": "Review code Flutter theo diff/branch — chỉ review, không sửa",
@@ -85,7 +78,11 @@
     },
     "task": {
       "description": "Chạy trọn 1 task: code → review → fix → gate → PR",
-      "template": "Chạy trọn vòng lặp §3 của `D:/DO_AN/ai-native/docs/planning/mvp-demo-execution-plan.md`.\n\n1. `git fetch origin && git checkout main && git pull --ff-only && git checkout -b <nhánh task>`\n2. Đọc AGENTS.md + file thiết kế `[D]` + mock-up của task\n3. `/code`\n4. `/gate` — đỏ thì quay lại 3\n5. `/review`\n6. Còn BLOCKER/HIGH thì `/fix` rồi quay lại 4. **Tối đa 3 vòng**, hết thì thu hẹp phạm vi hoặc `PARKED` + ghi `open-decisions.md` rồi chuyển task kế tiếp\n7. Đối chiếu `[DoD]`: mọi ô tick kèm **bằng chứng output thật**\n8. Rebase rồi **chạy lại `/gate`** rồi push\n9. `/pr` rồi merge main\n\n**Không dừng hỏi** ngoài 4 trường hợp §7.\n\nTask: $ARGUMENTS"
+      "template": "Chạy trọn vòng lặp §3 của `D:/DO_AN/ai-native/docs/planning/mvp-demo-execution-plan.md`.\n\n1. `git fetch origin && git checkout main && git pull --ff-only && git checkout -b <nhánh task>`\n2. Đọc AGENTS.md + file thiết kế `[D]` + mock-up của task\n3. `/code`\n4. `/gate` — đỏ thì quay lại 3\n5. `/review`\n6. Còn BLOCKER/HIGH thì `/fix` rồi quay lại 4. **Tối đa 3 vòng**, hết thì thu hẹp phạm vi hoặc `PARKED` + ghi `OPEN_DECISIONS.md` (gốc repo này) rồi chuyển task kế tiếp\n7. Đối chiếu `[DoD]`: mọi ô tick kèm **bằng chứng output thật**\n8. Rebase rồi **chạy lại `/gate`** rồi push\n9. `/pr` mở PR rồi **DỪNG — KHÔNG merge** (§3.1, người duyệt PR)\n\n**Không dừng hỏi** ngoài 4 trường hợp §7.\n\nTask: $ARGUMENTS"
+    },
+    "lane": {
+      "description": "Chọn và chạy task kế tiếp của làn FE, dừng ở PR",
+      "template": "Chọn và chạy **task kế tiếp của làn FE** theo `D:/DO_AN/ai-native/docs/planning/mvp-demo-execution-plan.md`.\n\nThứ tự làn: FE-3 → FE-4 → FE-5 → FE-6 → FE-7\n\n**Bước 1 — đo trạng thái thật.** `git fetch origin --prune` ở repo này VÀ ở các repo bị phụ thuộc chéo. Chạy **bảng dấu hiệu §2.2** của kế hoạch để biết task nào đã merge thật. Dấu hiệu kiểm trên `origin/main` — PR đang mở KHÔNG tính là xong.\n\n**Bước 2 — chọn task.** Lấy task ĐẦU TIÊN trong làn thoả cả 3: chưa xong · không `PARKED` (xem `OPEN_DECISIONS.md`) · không bị chặn theo bảng phụ thuộc §2.2.\n\n**Bước 3 — task bị chặn thì BỎ QUA, xét task sau.** Không chờ, không hỏi. Ghi lại là đang chờ ai.\n\n**Bước 4 — chạy vòng lặp §3** cho task đã chọn: /code → /gate → /review → /fix → đối chiếu [DoD] → rebase → /gate lại → /pr. Tối đa **3 vòng** review/fix rồi thu hẹp phạm vi hoặc `PARKED`.\n\n**Bước 5 — DỪNG ở PR. TUYỆT ĐỐI KHÔNG MERGE** (§3.1) — người đọc PR rồi tự merge. Một task hỏng âm thầm mà merge luôn sẽ kéo các task sau xây trên nền sai.\n\n**Báo cáo cuối:** task vừa làm · link PR · [DoD] đã tick kèm bằng chứng output thật · mục chưa kiểm được và vì sao · task nào bị bỏ qua vì bị chặn và đang chờ ai · task kế tiếp sau khi merge.\n\nHết task hợp lệ thì báo cáo trạng thái toàn làn (xong / PARKED / đang chờ chặn) rồi dừng. **Không nhảy sang làn khác** — mỗi làn một session, không session nào commit chéo repo (§0.1)."
     },
     "pr": {
       "description": "Tạo PR bằng gh CLI, body tiếng Việt",
