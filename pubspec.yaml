@@ -32,6 +32,12 @@ dependencies:
   firebase_auth: ^6.1.0
   google_sign_in: ^6.3.0
 
+  # Issue #28 — quét QR mã mời (fe-onboarding.md Flow 8, S8.1/S8.2).
+  mobile_scanner: ^7.0.0
+
+  # Hiển thị QR của mã mời vừa tạo (S7.4). Thuần Dart, không plugin native.
+  qr_flutter: ^4.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

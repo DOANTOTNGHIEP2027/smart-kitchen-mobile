@@ -86,21 +86,20 @@ void main() {
     expect(names, contains(AppRoutes.shellRoot));
   });
 
-  test('màn hình login giả chỉ được đăng ký ở build dev', () {
+  test('onboarding sở hữu route login/qr-join, shell không đăng ký chúng', () {
     final names = AppPages.pages.map((GetPage<dynamic> p) => p.name).toList();
 
-    // Test chạy không có --dart-define nên EnvConfig.isDev == true.
-    expect(EnvConfig.isDev, isTrue);
     expect(names, contains(AppRoutes.login));
-    // Nhánh release không test trực tiếp được (isDev là compile-time const),
-    // nên chốt bằng cấu trúc: route login CHỈ đến từ devPlaceholderPages.
+    expect(names, contains(AppRoutes.qrJoin));
+    // Shell chỉ dành sẵn *tên*; việc đăng ký GetPage thuộc về feature (D2).
     expect(
       AppPages.shellPages.map((GetPage<dynamic> p) => p.name),
       isNot(contains(AppRoutes.login)),
     );
-    expect(
-      AppPages.devPlaceholderPages.map((GetPage<dynamic> p) => p.name),
-      contains(AppRoutes.login),
-    );
+  });
+
+  test('demo mode bị chặn ở build prod', () {
+    // Test chạy không có --dart-define nên DEMO_MODE mặc định false.
+    expect(EnvConfig.isDemoMode, isFalse);
   });
 }

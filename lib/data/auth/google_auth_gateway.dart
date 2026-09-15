@@ -20,11 +20,20 @@ abstract class GoogleAuthGateway {
 
 class GoogleAuthGatewayImpl implements GoogleAuthGateway {
   GoogleAuthGatewayImpl({GoogleSignIn? googleSignIn, FirebaseAuth? firebaseAuth})
-      : _googleSignIn = googleSignIn ?? GoogleSignIn(scopes: const <String>['email']),
-        _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+      : _googleSignIn =
+            googleSignIn ?? GoogleSignIn(scopes: const <String>['email']),
+        _injectedAuth = firebaseAuth;
 
   final GoogleSignIn _googleSignIn;
-  final FirebaseAuth _firebaseAuth;
+  final FirebaseAuth? _injectedAuth;
+
+  /// Resolve **lazy**, không phải trong constructor: `Firebase.initializeApp()`
+  /// được phép thất bại (chưa có file config platform — open question Q6) và
+  /// `bootstrap.dart` cố tình nuốt lỗi đó để app vẫn boot. Nếu constructor
+  /// chạm `FirebaseAuth.instance`, việc chỉ *đăng ký* gateway trong DI đã đủ
+  /// ném lỗi và làm chết toàn bộ route onboarding — kể cả các luồng email/QR
+  /// vốn không dùng Google chút nào.
+  FirebaseAuth get _firebaseAuth => _injectedAuth ?? FirebaseAuth.instance;
 
   @override
   Future<String?> signInWithGoogle() async {

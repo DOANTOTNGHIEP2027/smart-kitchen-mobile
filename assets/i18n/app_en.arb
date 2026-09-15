@@ -10,6 +10,12 @@
   "@commonRetry": {
     "description": "Retry button on the shared error state"
   },
+  "commonBack": "Back",
+  "@commonBack": {},
+  "commonCancel": "Cancel",
+  "@commonCancel": {},
+  "commonLater": "Later",
+  "@commonLater": {},
 
   "stateEmptyDefault": "Nothing here yet",
   "@stateEmptyDefault": {
@@ -19,6 +25,15 @@
   "stateErrorDefault": "Something went wrong",
   "@stateErrorDefault": {
     "description": "Fallback copy for AppErrorView when the caller gives no message"
+  },
+
+  "errNetworkTitle": "No internet connection",
+  "@errNetworkTitle": {
+    "description": "S13.1 — full-screen network-down retry state"
+  },
+  "errServerTitle": "Something went wrong, please try again",
+  "@errServerTitle": {
+    "description": "S13.2 — generic catch-all server error"
   },
 
   "comingSoon": "Coming soon",
@@ -37,15 +52,249 @@
   "navProfile": "Profile",
   "@navProfile": {},
 
-  "devLoginTitle": "Sign in",
-  "@devLoginTitle": {
-    "description": "Title of the temporary sign-in placeholder replaced by fe-onboarding (#28)"
+  "authLandingTitle": "Welcome to Smart Kitchen",
+  "@authLandingTitle": {
+    "description": "S1.1 auth landing headline"
+  },
+  "authLandingSubtitle": "Plan meals, track your pantry, and cut food waste together.",
+  "@authLandingSubtitle": {},
+  "authGoogleCta": "Continue with Google",
+  "@authGoogleCta": {},
+  "authEmailLoginCta": "Sign in with email",
+  "@authEmailLoginCta": {},
+  "authEmailRegisterCta": "Create an account",
+  "@authEmailRegisterCta": {},
+  "authQrJoinCta": "Join a family with a QR code",
+  "@authQrJoinCta": {},
+  "authGoogleLoading": "Signing you in with Google…",
+  "@authGoogleLoading": {
+    "description": "S2.1 overlay copy"
+  },
+  "authUseEmailInstead": "Use email instead",
+  "@authUseEmailInstead": {},
+  "errGoogleUnavailable": "We can't reach Google right now.",
+  "@errGoogleUnavailable": {
+    "description": "S2.2 — ERR_AUTH_FIREBASE_UNAVAILABLE"
+  },
+  "errGoogleNoEmail": "That Google account has no email we can use. Sign up with email instead.",
+  "@errGoogleNoEmail": {
+    "description": "S2.3 — ERR_AUTH_GOOGLE_EMAIL_REQUIRED"
+  },
+  "errGoogleFailed": "Google sign-in failed, please try again.",
+  "@errGoogleFailed": {
+    "description": "S2.4 — ERR_AUTH_001"
+  },
+  "toastAccountLinked": "Your Google account was linked to your existing email.",
+  "@toastAccountLinked": {},
+
+  "fieldEmail": "Email",
+  "@fieldEmail": {},
+  "fieldPassword": "Password",
+  "@fieldPassword": {},
+  "fieldFullName": "Full name",
+  "@fieldFullName": {},
+  "fieldFullNameOptional": "Full name (optional)",
+  "@fieldFullNameOptional": {},
+  "fieldOtp": "6-digit code",
+  "@fieldOtp": {},
+  "fieldHouseholdName": "Family name",
+  "@fieldHouseholdName": {},
+  "fieldInviteCode": "Invite code",
+  "@fieldInviteCode": {},
+  "fieldDisplayName": "Your display name",
+  "@fieldDisplayName": {},
+
+  "errInvalidEmail": "Enter a valid email address",
+  "@errInvalidEmail": {},
+  "errPasswordTooShort": "Password must be at least 8 characters",
+  "@errPasswordTooShort": {},
+  "errPasswordRequired": "Enter your password",
+  "@errPasswordRequired": {},
+  "errFullNameRequired": "Enter your name",
+  "@errFullNameRequired": {},
+  "errHouseholdNameRequired": "Enter a family name",
+  "@errHouseholdNameRequired": {},
+
+  "registerTitle": "Create an account",
+  "@registerTitle": {},
+  "registerCta": "Create account",
+  "@registerCta": {},
+  "registerHaveAccount": "Already have an account? Sign in",
+  "@registerHaveAccount": {},
+  "errEmailTaken": "This email is already registered",
+  "@errEmailTaken": {
+    "description": "S3.4 / S9.4 — ERR_AUTH_003, inline under the email field"
   },
 
-  "devLoginSubtitle": "The real sign-in flow (Google / OTP / QR join) ships with fe-onboarding.",
-  "@devLoginSubtitle": {},
-  "devLoginCta": "Continue as demo user",
-  "@devLoginCta": {},
-  "devLoginBanner": "App shell demo — no backend call is made",
-  "@devLoginBanner": {}
+  "otpTitle": "Verify your email",
+  "@otpTitle": {},
+  "otpSubtitle": "We sent a 6-digit code to {email}.",
+  "@otpSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "otpVerifyCta": "Verify",
+  "@otpVerifyCta": {},
+  "otpResendCta": "Resend code",
+  "@otpResendCta": {},
+  "otpResendIn": "Resend in {seconds}s",
+  "@otpResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "errOtpInvalid": "That code is wrong or has expired",
+  "@errOtpInvalid": {
+    "description": "S4.3 — ERR_AUTH_OTP_INVALID"
+  },
+  "errOtpLimit": "You've requested too many codes. Please wait before trying again.",
+  "@errOtpLimit": {
+    "description": "S4.4 — ERR_AUTH_OTP_LIMIT, static wait notice with no countdown"
+  },
+  "toastOtpSent": "Code sent",
+  "@toastOtpSent": {},
+
+  "loginTitle": "Sign in",
+  "@loginTitle": {},
+  "loginCta": "Sign in",
+  "@loginCta": {},
+  "loginNoAccount": "No account yet? Create one",
+  "@loginNoAccount": {},
+  "errBadCredentials": "Email or password is incorrect",
+  "@errBadCredentials": {
+    "description": "S5.3 — ERR_AUTH_004. Never distinguish unknown email from wrong password."
+  },
+  "errLoginLocked": "Too many attempts. Try again in {seconds}s.",
+  "@errLoginLocked": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "householdSetupTitle": "Set up your family",
+  "@householdSetupTitle": {
+    "description": "S6.2"
+  },
+  "householdSetupSubtitle": "Smart Kitchen works around a shared family pantry. Create one or join an existing family.",
+  "@householdSetupSubtitle": {},
+  "householdCreateCta": "Create a new family",
+  "@householdCreateCta": {},
+  "householdJoinCta": "Join with an invite code",
+  "@householdJoinCta": {},
+
+  "createHouseholdTitle": "Create a family",
+  "@createHouseholdTitle": {},
+  "createHouseholdCta": "Create",
+  "@createHouseholdCta": {},
+  "createHouseholdDoneTitle": "Family created",
+  "@createHouseholdDoneTitle": {
+    "description": "S7.4"
+  },
+  "createHouseholdDoneSubtitle": "Share this code so your family can join.",
+  "@createHouseholdDoneSubtitle": {},
+  "errHouseholdRace": "You already belong to a family. Taking you there…",
+  "@errHouseholdRace": {
+    "description": "S7.3 — ERR_HH_003"
+  },
+
+  "inviteCodeLabel": "Invite code",
+  "@inviteCodeLabel": {},
+  "inviteCopyCta": "Copy link",
+  "@inviteCopyCta": {},
+  "toastInviteCopied": "Invite link copied",
+  "@toastInviteCopied": {},
+  "inviteExpiresAt": "Expires {date}",
+  "@inviteExpiresAt": {
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      }
+    }
+  },
+  "inviteContinueCta": "Continue",
+  "@inviteContinueCta": {},
+
+  "scanTitle": "Scan invite QR",
+  "@scanTitle": {
+    "description": "S8.1"
+  },
+  "scanHint": "Point the camera at the invite QR code",
+  "@scanHint": {},
+  "scanPermissionDenied": "Smart Kitchen needs camera access to scan the invite QR code.",
+  "@scanPermissionDenied": {
+    "description": "S8.2"
+  },
+  "scanEnterManually": "Enter code manually",
+  "@scanEnterManually": {},
+  "scanRetry": "Scan again",
+  "@scanRetry": {},
+
+  "inviteCodeTitle": "Enter invite code",
+  "@inviteCodeTitle": {
+    "description": "S8.3"
+  },
+  "inviteCodeCta": "Look up",
+  "@inviteCodeCta": {},
+  "errInviteCodeFormat": "Invite codes are 8 letters or digits",
+  "@errInviteCodeFormat": {},
+
+  "previewTitle": "Join this family?",
+  "@previewTitle": {
+    "description": "S8.5"
+  },
+  "previewOwner": "Owner: {name}",
+  "@previewOwner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "previewMembers": "{count, plural, =1{1 member} other{{count} members}}",
+  "@previewMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "previewJoinCta": "Join",
+  "@previewJoinCta": {},
+  "errInviteInvalid": "This invite code is invalid or has expired",
+  "@errInviteInvalid": {
+    "description": "S8.6 — ERR_HH_002"
+  },
+  "inviteTryAnother": "Try another code",
+  "@inviteTryAnother": {},
+  "errAlreadyInHousehold": "You already belong to another family.",
+  "@errAlreadyInHousehold": {
+    "description": "S8.7 — client-side block, no BE call"
+  },
+  "errInviteRace": "Someone just used this invite code",
+  "@errInviteRace": {
+    "description": "S8.9 — ERR_HH_005 / ERR_AUTH_INVITE_INVALID"
+  },
+  "toastJoined": "You've joined the family",
+  "@toastJoined": {},
+
+  "upgradeBannerText": "Add an email so you don't lose this account",
+  "@upgradeBannerText": {
+    "description": "S9.1 — non-blocking banner for GUEST sessions"
+  },
+  "upgradeBannerCta": "Set up email",
+  "@upgradeBannerCta": {},
+  "upgradeTitle": "Secure your account",
+  "@upgradeTitle": {},
+  "upgradeSubtitle": "Add an email and password so you can sign back in on any device.",
+  "@upgradeSubtitle": {},
+  "upgradeCta": "Continue",
+  "@upgradeCta": {}
 }

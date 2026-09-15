@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../data/auth/token_storage.dart';
 import '../data/network/dio_client.dart';
+import '../demo/demo_backend_adapter.dart';
 import '../domain/auth/auth_refresh_usecase.dart';
 import '../stores/session_store.dart';
 import 'app.dart';
@@ -23,6 +24,14 @@ Future<void> bootstrap() async {
 
   final tokenStorage = TokenStorage();
   final dioClient = DioClient.build(tokenStorage: tokenStorage);
+
+  if (EnvConfig.isDemoMode) {
+    // Chỉ thay tầng transport — repository/use case/store vẫn chạy nguyên code
+    // production, đi qua đủ interceptor và envelope thật.
+    dioClient.dio.httpClientAdapter = DemoBackendAdapter();
+    developer.log('DEMO MODE: mọi request HTTP được giả lập trong app.',
+        name: 'bootstrap');
+  }
 
   Get.put<TokenStorage>(tokenStorage, permanent: true);
   Get.put<DioClient>(dioClient, permanent: true);

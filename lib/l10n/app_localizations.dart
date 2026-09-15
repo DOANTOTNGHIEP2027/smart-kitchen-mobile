@@ -110,6 +110,24 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get commonRetry;
 
+  /// No description provided for @commonBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get commonBack;
+
+  /// No description provided for @commonCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
+
+  /// No description provided for @commonLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get commonLater;
+
   /// Fallback copy for AppEmptyView when the caller gives no message
   ///
   /// In en, this message translates to:
@@ -121,6 +139,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong'**
   String get stateErrorDefault;
+
+  /// S13.1 — full-screen network-down retry state
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection'**
+  String get errNetworkTitle;
+
+  /// S13.2 — generic catch-all server error
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong, please try again'**
+  String get errServerTitle;
 
   /// Placeholder body of every shell tab until its feature ships
   ///
@@ -158,29 +188,473 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get navProfile;
 
-  /// Title of the temporary sign-in placeholder replaced by fe-onboarding (#28)
+  /// S1.1 auth landing headline
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Smart Kitchen'**
+  String get authLandingTitle;
+
+  /// No description provided for @authLandingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan meals, track your pantry, and cut food waste together.'**
+  String get authLandingSubtitle;
+
+  /// No description provided for @authGoogleCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get authGoogleCta;
+
+  /// No description provided for @authEmailLoginCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with email'**
+  String get authEmailLoginCta;
+
+  /// No description provided for @authEmailRegisterCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account'**
+  String get authEmailRegisterCta;
+
+  /// No description provided for @authQrJoinCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a family with a QR code'**
+  String get authQrJoinCta;
+
+  /// S2.1 overlay copy
+  ///
+  /// In en, this message translates to:
+  /// **'Signing you in with Google…'**
+  String get authGoogleLoading;
+
+  /// No description provided for @authUseEmailInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Use email instead'**
+  String get authUseEmailInstead;
+
+  /// S2.2 — ERR_AUTH_FIREBASE_UNAVAILABLE
+  ///
+  /// In en, this message translates to:
+  /// **'We can\'t reach Google right now.'**
+  String get errGoogleUnavailable;
+
+  /// S2.3 — ERR_AUTH_GOOGLE_EMAIL_REQUIRED
+  ///
+  /// In en, this message translates to:
+  /// **'That Google account has no email we can use. Sign up with email instead.'**
+  String get errGoogleNoEmail;
+
+  /// S2.4 — ERR_AUTH_001
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in failed, please try again.'**
+  String get errGoogleFailed;
+
+  /// No description provided for @toastAccountLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Google account was linked to your existing email.'**
+  String get toastAccountLinked;
+
+  /// No description provided for @fieldEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get fieldEmail;
+
+  /// No description provided for @fieldPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get fieldPassword;
+
+  /// No description provided for @fieldFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get fieldFullName;
+
+  /// No description provided for @fieldFullNameOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name (optional)'**
+  String get fieldFullNameOptional;
+
+  /// No description provided for @fieldOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'6-digit code'**
+  String get fieldOtp;
+
+  /// No description provided for @fieldHouseholdName.
+  ///
+  /// In en, this message translates to:
+  /// **'Family name'**
+  String get fieldHouseholdName;
+
+  /// No description provided for @fieldInviteCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code'**
+  String get fieldInviteCode;
+
+  /// No description provided for @fieldDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your display name'**
+  String get fieldDisplayName;
+
+  /// No description provided for @errInvalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get errInvalidEmail;
+
+  /// No description provided for @errPasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get errPasswordTooShort;
+
+  /// No description provided for @errPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get errPasswordRequired;
+
+  /// No description provided for @errFullNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get errFullNameRequired;
+
+  /// No description provided for @errHouseholdNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a family name'**
+  String get errHouseholdNameRequired;
+
+  /// No description provided for @registerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account'**
+  String get registerTitle;
+
+  /// No description provided for @registerCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get registerCta;
+
+  /// No description provided for @registerHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Sign in'**
+  String get registerHaveAccount;
+
+  /// S3.4 / S9.4 — ERR_AUTH_003, inline under the email field
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered'**
+  String get errEmailTaken;
+
+  /// No description provided for @otpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get otpTitle;
+
+  /// No description provided for @otpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a 6-digit code to {email}.'**
+  String otpSubtitle(String email);
+
+  /// No description provided for @otpVerifyCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get otpVerifyCta;
+
+  /// No description provided for @otpResendCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get otpResendCta;
+
+  /// No description provided for @otpResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds}s'**
+  String otpResendIn(int seconds);
+
+  /// S4.3 — ERR_AUTH_OTP_INVALID
+  ///
+  /// In en, this message translates to:
+  /// **'That code is wrong or has expired'**
+  String get errOtpInvalid;
+
+  /// S4.4 — ERR_AUTH_OTP_LIMIT, static wait notice with no countdown
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve requested too many codes. Please wait before trying again.'**
+  String get errOtpLimit;
+
+  /// No description provided for @toastOtpSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Code sent'**
+  String get toastOtpSent;
+
+  /// No description provided for @loginTitle.
   ///
   /// In en, this message translates to:
   /// **'Sign in'**
-  String get devLoginTitle;
+  String get loginTitle;
 
-  /// No description provided for @devLoginSubtitle.
+  /// No description provided for @loginCta.
   ///
   /// In en, this message translates to:
-  /// **'The real sign-in flow (Google / OTP / QR join) ships with fe-onboarding.'**
-  String get devLoginSubtitle;
+  /// **'Sign in'**
+  String get loginCta;
 
-  /// No description provided for @devLoginCta.
+  /// No description provided for @loginNoAccount.
   ///
   /// In en, this message translates to:
-  /// **'Continue as demo user'**
-  String get devLoginCta;
+  /// **'No account yet? Create one'**
+  String get loginNoAccount;
 
-  /// No description provided for @devLoginBanner.
+  /// S5.3 — ERR_AUTH_004. Never distinguish unknown email from wrong password.
   ///
   /// In en, this message translates to:
-  /// **'App shell demo — no backend call is made'**
-  String get devLoginBanner;
+  /// **'Email or password is incorrect'**
+  String get errBadCredentials;
+
+  /// No description provided for @errLoginLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again in {seconds}s.'**
+  String errLoginLocked(int seconds);
+
+  /// S6.2
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your family'**
+  String get householdSetupTitle;
+
+  /// No description provided for @householdSetupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Kitchen works around a shared family pantry. Create one or join an existing family.'**
+  String get householdSetupSubtitle;
+
+  /// No description provided for @householdCreateCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new family'**
+  String get householdCreateCta;
+
+  /// No description provided for @householdJoinCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Join with an invite code'**
+  String get householdJoinCta;
+
+  /// No description provided for @createHouseholdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a family'**
+  String get createHouseholdTitle;
+
+  /// No description provided for @createHouseholdCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get createHouseholdCta;
+
+  /// S7.4
+  ///
+  /// In en, this message translates to:
+  /// **'Family created'**
+  String get createHouseholdDoneTitle;
+
+  /// No description provided for @createHouseholdDoneSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this code so your family can join.'**
+  String get createHouseholdDoneSubtitle;
+
+  /// S7.3 — ERR_HH_003
+  ///
+  /// In en, this message translates to:
+  /// **'You already belong to a family. Taking you there…'**
+  String get errHouseholdRace;
+
+  /// No description provided for @inviteCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code'**
+  String get inviteCodeLabel;
+
+  /// No description provided for @inviteCopyCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get inviteCopyCta;
+
+  /// No description provided for @toastInviteCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite link copied'**
+  String get toastInviteCopied;
+
+  /// No description provided for @inviteExpiresAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date}'**
+  String inviteExpiresAt(DateTime date);
+
+  /// No description provided for @inviteContinueCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get inviteContinueCta;
+
+  /// S8.1
+  ///
+  /// In en, this message translates to:
+  /// **'Scan invite QR'**
+  String get scanTitle;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the invite QR code'**
+  String get scanHint;
+
+  /// S8.2
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Kitchen needs camera access to scan the invite QR code.'**
+  String get scanPermissionDenied;
+
+  /// No description provided for @scanEnterManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code manually'**
+  String get scanEnterManually;
+
+  /// No description provided for @scanRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan again'**
+  String get scanRetry;
+
+  /// S8.3
+  ///
+  /// In en, this message translates to:
+  /// **'Enter invite code'**
+  String get inviteCodeTitle;
+
+  /// No description provided for @inviteCodeCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up'**
+  String get inviteCodeCta;
+
+  /// No description provided for @errInviteCodeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite codes are 8 letters or digits'**
+  String get errInviteCodeFormat;
+
+  /// S8.5
+  ///
+  /// In en, this message translates to:
+  /// **'Join this family?'**
+  String get previewTitle;
+
+  /// No description provided for @previewOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner: {name}'**
+  String previewOwner(String name);
+
+  /// No description provided for @previewMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 member} other{{count} members}}'**
+  String previewMembers(int count);
+
+  /// No description provided for @previewJoinCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get previewJoinCta;
+
+  /// S8.6 — ERR_HH_002
+  ///
+  /// In en, this message translates to:
+  /// **'This invite code is invalid or has expired'**
+  String get errInviteInvalid;
+
+  /// No description provided for @inviteTryAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another code'**
+  String get inviteTryAnother;
+
+  /// S8.7 — client-side block, no BE call
+  ///
+  /// In en, this message translates to:
+  /// **'You already belong to another family.'**
+  String get errAlreadyInHousehold;
+
+  /// S8.9 — ERR_HH_005 / ERR_AUTH_INVITE_INVALID
+  ///
+  /// In en, this message translates to:
+  /// **'Someone just used this invite code'**
+  String get errInviteRace;
+
+  /// No description provided for @toastJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve joined the family'**
+  String get toastJoined;
+
+  /// S9.1 — non-blocking banner for GUEST sessions
+  ///
+  /// In en, this message translates to:
+  /// **'Add an email so you don\'t lose this account'**
+  String get upgradeBannerText;
+
+  /// No description provided for @upgradeBannerCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up email'**
+  String get upgradeBannerCta;
+
+  /// No description provided for @upgradeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure your account'**
+  String get upgradeTitle;
+
+  /// No description provided for @upgradeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an email and password so you can sign back in on any device.'**
+  String get upgradeSubtitle;
+
+  /// No description provided for @upgradeCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get upgradeCta;
 }
 
 class _AppLocalizationsDelegate

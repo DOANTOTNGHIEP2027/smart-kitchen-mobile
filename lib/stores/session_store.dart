@@ -116,6 +116,19 @@ abstract class _SessionStore with Store {
     provider = claims['provider'] as String?;
   }
 
+  /// Seam cho feature dọn state riêng khi phiên kết thúc (fe-app-shell.md §13).
+  ///
+  /// Shell không được biết tới store của feature, nhưng feature thì **bắt
+  /// buộc** phải biết lúc nào phiên chấm dứt: store của chúng thường sống lâu
+  /// hơn một phiên (đăng ký `permanent` để giữ state xuyên nhiều route), nên
+  /// nếu không dọn, dữ liệu của user trước sẽ hiện ra cho user sau.
+  ///
+  /// Đăng ký trong `Binding` của feature; listener không được ném lỗi.
+  void addOnClearedListener(void Function() listener) =>
+      _onClearedListeners.add(listener);
+
+  final List<void Function()> _onClearedListeners = <void Function()>[];
+
   @action
   Future<void> clear() async {
     await _tokenStorage.clear();
@@ -124,5 +137,15 @@ abstract class _SessionStore with Store {
     role = null;
     provider = null;
     status = AuthStatus.unauthenticated;
+
+    for (final listener in _onClearedListeners) {
+      // Một feature dọn state lỗi không được phép chặn các feature còn lại,
+      // và càng không được chặn việc đăng xuất.
+      try {
+        listener();
+      } catch (_) {
+        // bỏ qua có chủ đích
+      }
+    }
   }
 }
