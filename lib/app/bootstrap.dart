@@ -19,6 +19,11 @@ import '../scenes/household/stores/household_store.dart';
 import '../scenes/profile/api/family_api.dart';
 import '../scenes/profile/api/health_api.dart';
 import '../scenes/profile/api/profile_api.dart';
+import '../data/notification/device_api.dart';
+import '../data/notification/notification_service.dart';
+import '../data/realtime/realtime_service.dart';
+import '../services/connectivity_service.dart';
+import '../stores/realtime_store.dart';
 import 'app.dart';
 import 'env_config.dart';
 
@@ -78,7 +83,34 @@ Future<void> bootstrap() async {
   Get.put<FamilyApi>(FamilyApiImpl(dioClient), permanent: true);
   Get.put<ProfileApi>(ProfileApiImpl(dioClient), permanent: true);
 
+  // FE-3: Realtime WebSocket + FCM notification + Connectivity.
+  final connectivityService = ConnectivityService();
+  await connectivityService.init();
+  Get.put<ConnectivityService>(connectivityService, permanent: true);
+
+  final realtimeService = RealtimeService(tokenStorage: tokenStorage);
+  Get.put<RealtimeService>(realtimeService, permanent: true);
+
+  Get.put<DeviceApi>(DeviceApiImpl(dioClient), permanent: true);
+
+  final notificationService =
+      NotificationService(deviceApi: Get.find<DeviceApi>());
+  Get.put<NotificationService>(notificationService, permanent: true);
+
   await sessionStore.bootstrap(); // thử silent refresh, set AuthStatus
+
+  // RealtimeStore init PHẢI sau sessionStore.bootstrap() để biết auth state.
+  final realtimeStore = RealtimeStore(
+    realtimeService: realtimeService,
+    connectivityService: connectivityService,
+    sessionStore: sessionStore,
+  );
+  Get.put<RealtimeStore>(realtimeStore, permanent: true);
+  await realtimeStore.init();
+
+  // NotificationService init SAU Firebase init — nếu Firebase không có thì
+  // service sẽ degrade graceful (catch mọi exception nội bộ).
+  await notificationService.init();
 
   runApp(const SmartKitchenApp());
 }
