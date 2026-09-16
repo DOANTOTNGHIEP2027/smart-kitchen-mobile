@@ -41,7 +41,7 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpAppWidget(buildView(const EmptyState<String>()));
 
-    expect(find.text('Nothing here yet'), findsOneWidget);
+    expect(find.text('Chưa có dữ liệu'), findsOneWidget);
   });
 
   testWidgets('ErrorState → hiện message của ApiException + nút retry chạy',
@@ -57,7 +57,7 @@ void main() {
     expect(find.byType(AppErrorView), findsOneWidget);
     expect(find.text('Server error'), findsOneWidget);
 
-    await tester.tap(find.text('Retry'));
+    await tester.tap(find.text('Thử lại'));
     await tester.pump();
 
     expect(retried, 1);
