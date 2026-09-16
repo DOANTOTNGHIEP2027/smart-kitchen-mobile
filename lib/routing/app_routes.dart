@@ -15,4 +15,12 @@ abstract class AppRoutes {
   static const String householdSetup = '/household/setup';
   static const String householdCreate = '/household/create';
   static const String profileUpgrade = '/profile/upgrade';
+
+  // Profile + family (FE-3 #29)
+  static const String profile = '/profile';
+  static const String profileEdit = '/profile/edit';
+  static const String profileHealth = '/profile/health';
+  static const String profileAllergens = '/profile/allergens';
+  static const String family = '/family';
+  static const String memberDetail = '/family/:userId';
 }

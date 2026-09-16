@@ -256,4 +256,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get completeProfile => 'Complete profile';
+
+  @override
+  String get profileTitle => 'My profile';
+
+  @override
+  String get profileEmailMissing => 'Email not set';
+
+  @override
+  String get profileEdit => 'Edit profile';
+
+  @override
+  String get profileEditBlocked =>
+      'This feature is being completed. It will be available soon.';
+
+  @override
+  String get profileEditTitle => 'Edit profile';
+
+  @override
+  String get profileSave => 'Save';
+
+  @override
+  String get profileSavedToast => 'Profile updated';
+
+  @override
+  String get healthProfileTitle => 'Health profile';
+
+  @override
+  String get healthProfileEmpty =>
+      'Not set up yet — fill in to get personalized suggestions.';
+
+  @override
+  String get healthProfileTargetCalories => 'Daily calorie goal';
+
+  @override
+  String get healthProfileDietType => 'Diet type';
+
+  @override
+  String get healthProfileHeight => 'Height (cm)';
+
+  @override
+  String get healthProfileWeight => 'Weight (kg)';
+
+  @override
+  String get healthProfileAllergensSection => 'Allergens';
+
+  @override
+  String get healthProfileAllergensEmpty => 'No allergens selected.';
+
+  @override
+  String get healthProfileAllergensEdit => 'Edit allergens';
+
+  @override
+  String get healthSave => 'Save health profile';
+
+  @override
+  String get healthSavedToast => 'Health profile saved';
+
+  @override
+  String get allergensTitle => 'My allergens';
+
+  @override
+  String get allergensCatalogEmpty => 'Allergen catalog unavailable.';
+
+  @override
+  String get allergensSelectNone => 'None known';
+
+  @override
+  String get allergensSave => 'Save allergens';
+
+  @override
+  String get allergensSavedToast => 'Allergens updated';
+
+  @override
+  String get dietTypeNone => 'None';
+
+  @override
+  String get dietTypeKeto => 'Keto';
+
+  @override
+  String get dietTypeVegetarian => 'Vegetarian';
+
+  @override
+  String get dietTypeVegan => 'Vegan';
+
+  @override
+  String get dietTypePescatarian => 'Pescatarian';
+
+  @override
+  String get dietTypeGlutenFree => 'Gluten free';
+
+  @override
+  String get dietTypeDiabetic => 'Diabetic';
+
+  @override
+  String get familyTitle => 'Family';
+
+  @override
+  String get familyRosterEmpty => 'No other members yet.';
+
+  @override
+  String get familyCreateInvite => 'Create invite';
+
+  @override
+  String get familyRemove => 'Remove from household';
+
+  @override
+  String get familyRemoveConfirm => 'Remove this member from the household?';
+
+  @override
+  String get familyRemoveCancel => 'Cancel';
+
+  @override
+  String get familyYou => 'You';
+
+  @override
+  String get familyInviteRateLimited => 'You already have 3 active invites.';
+
+  @override
+  String get memberDetailTitle => 'Member';
+
+  @override
+  String get memberDetailDietType => 'Diet type';
+
+  @override
+  String get memberDetailAllergensSection => 'Allergens';
+
+  @override
+  String get memberDetailAllergensEmpty => 'No allergens registered.';
+
+  @override
+  String get staleDataBanner =>
+      'Data may be out of date — showing the latest saved copy.';
 }
