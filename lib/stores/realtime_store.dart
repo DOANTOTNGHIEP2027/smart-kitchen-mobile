@@ -43,6 +43,7 @@ class RealtimeStore {
   StreamSubscription<WsConnectionState>? _stateSub;
   StreamSubscription<WsEventEnvelope>? _eventSub;
   StreamSubscription<void>? _connectivitySub;
+  ReactionDisposer? _authReactionDisposer;
 
   /// Trạng thái kết nối WS hiện tại — dùng cho UI indicator.
   WsConnectionState get connectionState => _connectionState.value;
@@ -74,6 +75,11 @@ class RealtimeStore {
       }
     });
 
+    _authReactionDisposer = reaction<(bool, String?)>(
+      (_) => (_session.isAuthenticated, _session.householdId),
+      (_) => unawaited(onAuthChanged()),
+    );
+
     // Connect ngay nếu đã authenticated và có household
     final householdId = _session.householdId;
     if (_session.isAuthenticated && householdId != null) {
@@ -92,6 +98,7 @@ class RealtimeStore {
   }
 
   Future<void> dispose() async {
+    _authReactionDisposer?.call();
     await _stateSub?.cancel();
     await _eventSub?.cancel();
     await _connectivitySub?.cancel();
