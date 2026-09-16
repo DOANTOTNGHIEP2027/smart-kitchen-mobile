@@ -11,7 +11,7 @@ abstract class AppTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       primary: AppColors.primary,
-      secondary: AppColors.secondary,
+      secondary: AppColors.primaryDark,
       surface: AppColors.surface,
       error: AppColors.error,
     );

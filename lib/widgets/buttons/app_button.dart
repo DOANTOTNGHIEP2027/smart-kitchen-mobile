@@ -4,7 +4,23 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
 import '../../constants/app_text_styles.dart';
 
-enum AppButtonVariant { primary, secondary, text }
+/// Kiểu nút bấm — bám mock `docs/design/frontend/mockups/*.html` (`.btn-*`).
+enum AppButtonVariant {
+  /// `.btn-primary` — gradient cam + shadow hồng cam.
+  primary,
+
+  /// `.btn-secondary` — nền be `#f1eeea`, text đen.
+  secondary,
+
+  /// `.btn-outline` — nền trắng, border xám, text đen.
+  outline,
+
+  /// `.btn-google` — nền trắng, border xám, shadow rất nhẹ.
+  google,
+
+  /// `.link` (trong mock) — text-only, màu cam.
+  text,
+}
 
 /// Button dùng chung (fe-app-shell.md §10.2).
 ///
@@ -32,7 +48,7 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final child = isLoading
+    final Widget content = isLoading
         ? SizedBox(
             height: AppDimens.buttonSpinner,
             width: AppDimens.buttonSpinner,
@@ -43,34 +59,118 @@ class AppButton extends StatelessWidget {
           )
         : _buildLabel();
 
-    final button = SizedBox(
-      height: AppDimens.buttonHeight,
-      width: expanded ? double.infinity : null,
-      child: switch (variant) {
-        AppButtonVariant.primary => ElevatedButton(
-            onPressed: _isDisabled ? null : onPressed,
-            style: _elevatedStyle,
-            child: child,
-          ),
-        AppButtonVariant.secondary => OutlinedButton(
-            onPressed: _isDisabled ? null : onPressed,
-            style: _outlinedStyle,
-            child: child,
-          ),
-        AppButtonVariant.text => TextButton(
-            onPressed: _isDisabled ? null : onPressed,
-            style: _textStyle,
-            child: child,
-          ),
-      },
+    final OutlinedBorder shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(_radiusForVariant),
     );
 
-    return Semantics(button: true, enabled: !_isDisabled, label: label, child: button);
+    final Widget button = switch (variant) {
+      AppButtonVariant.primary => Container(
+          decoration: _isDisabled
+              ? null
+              : const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: <Color>[
+                      AppColors.primaryGradientStart,
+                      AppColors.primary,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(AppDimens.radiusMd)),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: AppColors.primaryShadow,
+                      blurRadius: 18,
+                      offset: Offset(0, 8),
+                    ),
+                  ],
+                ),
+          child: ElevatedButton(
+            onPressed: _isDisabled ? null : onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isDisabled ? AppColors.textDisabled : Colors.transparent,
+              foregroundColor: AppColors.textOnPrimary,
+              disabledBackgroundColor: AppColors.textDisabled,
+              disabledForegroundColor: AppColors.textOnPrimary,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              shape: shape,
+            ),
+            child: content,
+          ),
+        ),
+      AppButtonVariant.secondary => ElevatedButton(
+          onPressed: _isDisabled ? null : onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.secondaryFill,
+            foregroundColor: AppColors.textPrimary,
+            disabledBackgroundColor: AppColors.textDisabled,
+            disabledForegroundColor: AppColors.textOnPrimary,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            shape: shape,
+          ),
+          child: content,
+        ),
+      AppButtonVariant.google => DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+            border: Border.all(color: AppColors.border),
+            boxShadow: const <BoxShadow>[
+              BoxShadow(
+                color: Color(0x14111111),
+                blurRadius: 3,
+                offset: Offset(0, 1),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: _isDisabled ? null : onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              foregroundColor: AppColors.textPrimary,
+              disabledBackgroundColor: Colors.transparent,
+              disabledForegroundColor: AppColors.textDisabled,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              shape: shape,
+            ),
+            child: content,
+          ),
+        ),
+      AppButtonVariant.outline => OutlinedButton(
+          onPressed: _isDisabled ? null : onPressed,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: AppColors.surface,
+            foregroundColor: AppColors.textPrimary,
+            disabledForegroundColor: AppColors.textDisabled,
+            side: const BorderSide(color: AppColors.border),
+            shape: shape,
+          ),
+          child: content,
+        ),
+      AppButtonVariant.text => TextButton(
+          onPressed: _isDisabled ? null : onPressed,
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            disabledForegroundColor: AppColors.textDisabled,
+            shape: shape,
+          ),
+          child: content,
+        ),
+    };
+
+    final Widget sized = SizedBox(
+      height: AppDimens.buttonHeight,
+      width: expanded ? double.infinity : null,
+      child: button,
+    );
+
+    return Semantics(button: true, enabled: !_isDisabled, label: label, child: sized);
   }
 
   Widget _buildLabel() {
-    // Label dài + icon phải co lại thay vì tràn khỏi button — nhãn đã dịch
-    // i18n có thể dài hơn nhiều so với tiếng Anh.
     final text = Text(
       label,
       style: AppTextStyles.button,
@@ -91,33 +191,14 @@ class AppButton extends StatelessWidget {
 
   Color get _foregroundColor => switch (variant) {
         AppButtonVariant.primary => AppColors.textOnPrimary,
-        AppButtonVariant.secondary => AppColors.primary,
+        AppButtonVariant.secondary => AppColors.textPrimary,
+        AppButtonVariant.outline => AppColors.textPrimary,
+        AppButtonVariant.google => AppColors.textPrimary,
         AppButtonVariant.text => AppColors.primary,
       };
 
-  static final RoundedRectangleBorder _shape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-  );
-
-  ButtonStyle get _elevatedStyle => ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textOnPrimary,
-        disabledBackgroundColor: AppColors.textDisabled,
-        disabledForegroundColor: AppColors.textOnPrimary,
-        elevation: 0,
-        shape: _shape,
-      );
-
-  ButtonStyle get _outlinedStyle => OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        disabledForegroundColor: AppColors.textDisabled,
-        side: const BorderSide(color: AppColors.primary),
-        shape: _shape,
-      );
-
-  ButtonStyle get _textStyle => TextButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        disabledForegroundColor: AppColors.textDisabled,
-        shape: _shape,
-      );
+  double get _radiusForVariant => switch (variant) {
+        AppButtonVariant.text => AppDimens.radiusSm,
+        _ => AppDimens.radiusMd,
+      };
 }
