@@ -31,4 +31,10 @@ abstract class AppRoutes {
 
   // Cooking session (FE-6 #81)
   static const String cookingSession = '/cooking/session';
+
+  // Meal plan voting (FE-7 #62 #63)
+  static const String mealPlan = '/meal-plan';
+  static const String mealPlanVote = '/meal-plan/slot/:slotId/dish/:dishId/vote';
+  static const String mealPlanDetail =
+      '/meal-plan/slot/:slotId/dish/:dishId/detail';
 }
