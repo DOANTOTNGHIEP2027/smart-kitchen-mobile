@@ -172,9 +172,12 @@ class RealtimeService {
           'RealtimeService: STOMP ERROR: ${frame.message}',
           name: 'RealtimeService',
         );
-        // Đặc biệt: ERR_WS_UNAUTHORIZED nghĩa là token hết hạn —
-        // DioClient sẽ lo silent refresh qua interceptor. Reconnect sau
-        // backoff để lần connect kế tiếp dùng token mới.
+        if (frame.message == 'ERR_WS_UNAUTHORIZED') {
+          _cancelReconnect();
+          unawaited(_closeChannel(sendDisconnect: false));
+          _setState(WsConnectionState.disconnected);
+          return;
+        }
         _scheduleReconnect();
       case StompUnknown():
         // Heartbeat hoặc frame không nhận ra — bỏ qua
