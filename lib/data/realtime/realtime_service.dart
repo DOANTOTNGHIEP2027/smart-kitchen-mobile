@@ -87,6 +87,7 @@ class RealtimeService {
       return; // đã connected đúng household, không làm gì
     }
     _currentHouseholdId = householdId;
+    _cancelReconnect();
     _reconnectAttempts = 0;
     await _connect();
   }
