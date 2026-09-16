@@ -1,5 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Camera cho QR scanner (FE-1) -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Internet — cần cho HTTP + WebSocket (FE-0) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Connectivity check (FE-3 — connectivity_plus) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Push notification permission Android 13+ (FE-3 — firebase_messaging) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="smart_kitchen_mobile"
         android:name="${applicationName}"

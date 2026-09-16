@@ -42,6 +42,17 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.0
 
+  # FE-3 — Realtime WebSocket (STOMP over raw WS — BE không dùng SockJS).
+  # web_socket_channel là package chính thức của Dart, không có dependency nặng.
+  web_socket_channel: ^3.0.3
+
+  # FE-3 — Push notification (FCM + local notification for foreground).
+  firebase_messaging: ^16.5.0
+  flutter_local_notifications: ^20.1.0
+
+  # FE-3 — Connectivity để detect online/offline và kích hoạt sync.
+  connectivity_plus: ^7.1.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
