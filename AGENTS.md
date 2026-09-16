@@ -5,7 +5,7 @@
 Repo này **chỉ chứa code**. Thiết kế/contract/kế hoạch ở repo anh em:
 
 ```
-DOCS = D:/DO_AN/ai-native
+DOCS = ../ai-native
 ```
 
 Đường dẫn **ngoài project root** → lần đọc đầu OpenCode hỏi quyền `external_directory`.
