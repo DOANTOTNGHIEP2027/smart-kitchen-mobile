@@ -33,12 +33,18 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 /// chưa cấu hình (dev không có `google-services.json`), service degrade graceful
 /// (không crash, chỉ log warning và không đăng ký token).
 class NotificationService {
-  NotificationService({required DeviceApi deviceApi}) : _deviceApi = deviceApi;
+  NotificationService({
+    required DeviceApi deviceApi,
+    required bool Function() isAuthenticated,
+  })  : _deviceApi = deviceApi,
+        _isAuthenticated = isAuthenticated;
 
   final DeviceApi _deviceApi;
+  final bool Function() _isAuthenticated;
   final _localNotifications = FlutterLocalNotificationsPlugin();
   StreamSubscription<String>? _tokenRefreshSub;
   StreamSubscription<RemoteMessage>? _foregroundSub;
+  String? _pendingToken;
 
   final _messageController = StreamController<RemoteMessage>.broadcast();
 
@@ -114,12 +120,12 @@ class NotificationService {
     // Lần đầu lấy token và đăng ký
     final token = await FirebaseMessaging.instance.getToken();
     if (token != null) {
-      await _registerTokenSilently(token);
+      await _registerTokenIfAuthenticated(token);
     }
 
     // Khi token refresh (thường mỗi tháng hoặc khi app cài lại)
     _tokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen(
-      _registerTokenSilently,
+      _registerTokenIfAuthenticated,
     );
 
     // Foreground: FCM SDK không tự hiện notification khi app đang mở — cần
@@ -134,6 +140,27 @@ class NotificationService {
     if (initial != null) {
       _messageController.add(initial);
     }
+  }
+
+  Future<void> onAuthChanged() async {
+    if (!_isAuthenticated()) return;
+    final token = _pendingToken ?? await FirebaseMessaging.instance.getToken();
+    if (token == null) return;
+    await _registerTokenIfAuthenticated(token);
+  }
+
+  Future<void> _registerTokenIfAuthenticated(String token) async {
+    _pendingToken = token;
+    if (!_isAuthenticated()) {
+      developer.log(
+        'FCM: bỏ qua đăng ký token vì chưa authenticated',
+        name: 'FCM',
+      );
+      return;
+    }
+
+    await _registerTokenSilently(token);
+    _pendingToken = null;
   }
 
   Future<void> _registerTokenSilently(String token) async {

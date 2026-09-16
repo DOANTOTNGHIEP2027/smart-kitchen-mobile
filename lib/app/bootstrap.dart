@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import 'package:mobx/mobx.dart';
 
 import '../data/auth/token_storage.dart';
 import '../data/auth/google_auth_gateway.dart';
@@ -93,8 +95,10 @@ Future<void> bootstrap() async {
 
   Get.put<DeviceApi>(DeviceApiImpl(dioClient), permanent: true);
 
-  final notificationService =
-      NotificationService(deviceApi: Get.find<DeviceApi>());
+  final notificationService = NotificationService(
+    deviceApi: Get.find<DeviceApi>(),
+    isAuthenticated: () => sessionStore.isAuthenticated,
+  );
   Get.put<NotificationService>(notificationService, permanent: true);
 
   await sessionStore.bootstrap(); // thử silent refresh, set AuthStatus
@@ -111,6 +115,11 @@ Future<void> bootstrap() async {
   // NotificationService init SAU Firebase init — nếu Firebase không có thì
   // service sẽ degrade graceful (catch mọi exception nội bộ).
   await notificationService.init();
+  reaction<AuthStatus>(
+    (_) => sessionStore.status,
+    (_) => unawaited(notificationService.onAuthChanged()),
+    fireImmediately: true,
+  );
 
   runApp(const SmartKitchenApp());
 }
