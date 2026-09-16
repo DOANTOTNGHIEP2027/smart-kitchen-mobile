@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
@@ -63,6 +64,11 @@ class MealPlanStore {
   ApiException? get loadError => _loadError.value;
   DateTime get currentWeekStart => _currentWeekStart.value;
   String? get currentPlanId => _currentPlanId.value;
+
+  /// Cho test seed planId mà không qua API thật.
+  @visibleForTesting
+  set currentPlanIdForTesting(String? value) =>
+      runInAction(() => _currentPlanId.value = value);
   ObservableMap<String, MealPlanSlot> get slots => _slots;
   ObservableMap<String, VoteSessionSummary> get activeSessions =>
       _activeSessions;
@@ -244,16 +250,26 @@ class MealPlanStore {
   }
 
   /// ĐIỂM DUY NHẤT ghi vào `slots[key].dishes` — Guard §15.15.
+  ///
+  /// Sau Finding #2 MEDIUM (review pass 1): tách thành 2 helper,
+  /// `_replaceDish` (thay dish tồn tại) và `_setDishes` (thay toàn bộ list —
+  /// dùng bởi `addDish`/`removeDish`). Cả 2 đều qua cùng 1 cửa `runInAction`.
   void _replaceDish(String slotKey, MealPlanDish updated) {
     final slot = _slots[slotKey];
     if (slot == null) return;
-    runInAction(() {
-      _slots[slotKey] = slot.copyWith(
-        dishes: slot.dishes
-            .map((MealPlanDish d) => d.id == updated.id ? updated : d)
-            .toList(growable: false),
-      );
-    });
+    _setDishes(
+      slotKey,
+      slot.dishes
+          .map((MealPlanDish d) => d.id == updated.id ? updated : d)
+          .toList(growable: false),
+    );
+  }
+
+  /// Thay toàn bộ danh sách dishes của 1 slot — DUY NHẤT viết `slots[key]`.
+  void _setDishes(String slotKey, List<MealPlanDish> newDishes) {
+    final slot = _slots[slotKey];
+    if (slot == null) return;
+    runInAction(() => _slots[slotKey] = slot.copyWith(dishes: newDishes));
   }
 
   void _setDishStatusLocal(
@@ -270,11 +286,27 @@ class MealPlanStore {
   }
 
   /// Dùng bởi `SuggestionStore.acceptSuggestion()` — optimistic write.
+  ///
+  /// **Quan trọng (Finding #1 HIGH — review pass 1):** `applyManualAssign` xoá
+  /// `activeSessions[dishId]` khi `dishSnapshot.recipe != null`. Caller nào
+  /// cần rollback (như `SuggestionStore` accept fail) PHẢI snapshot session
+  /// trước và khôi phục qua [restoreActiveSession] — không khôi phục =
+  /// session thực bị mất, user quay lại vote session sẽ rơi vào nhánh degraded
+  /// (fallback `getResult`) và mất suggestions giàu field chỉ vì 1 lần PUT lỗi.
   void applyManualAssign(String slotKey, MealPlanDish dishSnapshot) {
     _replaceDish(slotKey, dishSnapshot);
     if (dishSnapshot.recipe != null) {
       runInAction(() => _activeSessions.remove(dishSnapshot.id));
     }
+  }
+
+  /// Khôi phục `activeSessions[dishId]` đã snapshot trước [applyManualAssign].
+  /// Dùng bởi `SuggestionStore.acceptSuggestion()` nhánh rollback. `null` an
+  /// toàn (no-op) — phù hợp case dish chưa từng có session (race hiếm).
+  void restoreActiveSession(
+      String dishId, VoteSessionSummary? snapshot) {
+    if (snapshot == null) return;
+    runInAction(() => _activeSessions[dishId] = snapshot);
   }
 
   /// Reconcile 1 dish sau `PUT .../dishes/{dishId}` — KHÔNG tin `sortOrder`
@@ -307,11 +339,8 @@ class MealPlanStore {
       final dish = await _api.addDish(planId, slotId);
       final slot = _slots[key];
       if (slot == null) return;
-      runInAction(() {
-        _slots[key] = slot.copyWith(
-          dishes: <MealPlanDish>[...slot.dishes, dish],
-        );
-      });
+      // Đi qua _setDishes (Guard §15.15) thay vì inline slots[key]= trực tiếp.
+      _setDishes(key, <MealPlanDish>[...slot.dishes, dish]);
     } on ApiException catch (e) {
       runInAction(() => _loadError.value = e);
     }
@@ -326,14 +355,13 @@ class MealPlanStore {
       await _api.removeDish(planId, slotId, dishId);
       final slot = _slots[key];
       if (slot == null) return;
-      runInAction(() {
-        _slots[key] = slot.copyWith(
-          dishes: slot.dishes
-              .where((MealPlanDish d) => d.id != dishId)
-              .toList(growable: false),
-        );
-        _activeSessions.remove(dishId);
-      });
+      _setDishes(
+        key,
+        slot.dishes
+            .where((MealPlanDish d) => d.id != dishId)
+            .toList(growable: false),
+      );
+      runInAction(() => _activeSessions.remove(dishId));
     } on ApiException catch (e) {
       runInAction(() => _loadError.value = e);
     }

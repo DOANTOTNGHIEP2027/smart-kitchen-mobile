@@ -74,6 +74,11 @@ class SuggestionStore {
   /// Accept — **optimistic write** (D6). Trước khi gọi API, ghi đè dish thành
   /// CONFIRMED; nếu API lỗi, rollback về ĐÚNG snapshot `previous` (đầy đủ, giữ
   /// đúng `status` gốc — thường là `voting`, không phải `empty`).
+  ///
+  /// **Quan trọng (Finding #1 HIGH — review pass 1):** `applyManualAssign` xoá
+  /// `activeSessions[dishId]` khi optimistic gán recipe. Cần snapshot session
+  /// TRƯỚC và khôi phục trong rollback — nếu không, sau khi accept lỗi, user
+  /// quay lại vote session sẽ rơi vào degraded fallback và mất suggestions.
   Future<bool> acceptSuggestion() async {
     final target = currentSuggestion;
     if (target == null) return false;
@@ -83,6 +88,11 @@ class SuggestionStore {
 
     final planId = _mealPlanStore.currentPlanId;
     if (planId == null) return false;
+
+    // Snapshot session hiện tại trước optimistic write — có thể null nếu dish
+    // chưa từng mở vote (race hiếm), nhưng thường phải có vì accept chỉ khả
+    // dụng khi dish đang có session mở.
+    final previousSession = _mealPlanStore.activeSessions[dishId];
 
     runInAction(() {
       _actionStatus.value = SuggestionActionStatus.accepting;
@@ -113,8 +123,11 @@ class SuggestionStore {
       runInAction(() => _actionStatus.value = SuggestionActionStatus.idle);
       return true;
     } on ApiException catch (e) {
-      // Rollback về ĐÚNG snapshot trước optimistic-update.
+      // Rollback cả dish VÀ activeSessions — giữ đúng state trước optimistic.
       _mealPlanStore.applyManualAssign(key, previous);
+      if (previousSession != null) {
+        _mealPlanStore.restoreActiveSession(dishId, previousSession);
+      }
       runInAction(() {
         _actionError.value = e;
         _actionStatus.value = SuggestionActionStatus.idle;

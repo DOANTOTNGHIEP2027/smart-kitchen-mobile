@@ -36,6 +36,22 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 
 ### OD-04 · FE-6 DoD nói `INSUFFICIENT_STOCK_FOR_RECIPE` nhưng OAS cooking-session v1.0.0 không có lỗi đó
 - **Ngày:** 2026-09-16 · **Task:** FE-6 (cooking session) · **Nhánh:** `feature/81_cooking-session`
+- **Tình huống:** Kế hoạch `mvp-demo-execution-plan.md` §9.0 + DoD FE-6 (thêm 2026-09-16) yêu cầu: "Bấm *Hoàn tất nấu* khi **thiếu** nguyên liệu → hiện `INSUFFICIENT_STOCK_FOR_RECIPE` kèm danh sách nguyên liệu thiếu, và **kho không đổi gì cả** (rollback toàn phần)". Nhưng OpenAPI thật `cooking-session.yaml` v1.0.0 (REVIEWED+FIXED) cho `POST /complete` mô tả khác: "Thiếu kho KHÔNG làm response trả lỗi — 200 luôn được trả nếu session hợp lệ, kể cả khi mọi shortfallQuantity đều dương."
+- **Đã chọn:** Code theo **OAS thật** (§6.2 luật 1). · **Theo:** §6.2 + §6.1 D-09 + §6.0 quy tắc 2.
+- **Đảo ngược thế nào:** Nếu BE thêm `INSUFFICIENT_STOCK_FOR_RECIPE`, cập nhật `CookingSessionStore.complete()` + dialog thiếu.
+- **Cần người quyết lại không:** Có — kịch bản demo §9.1 bước 6b có thể lệch BE thật.
+
+### OD-05 · FE-7 review pass 1 — 4 LOW findings chưa fix (gom vào pass i18n/dọn sau)
+- **Ngày:** 2026-09-16 · **Task:** FE-7 (meal-plan voting) · **Nhánh:** `feature/62-63_meal-plan-voting`
+- **Tình huống:** `/review` pass 1 tìm ra 4 LOW ngoài scope §6.1 D-10 (gom vào task dọn riêng, không chặn merge):
+  1. **Double WS handling** — cả `MealPlanStore._subscribeWs()` và `VoteSessionStore.init()` đều listen `_realtimeStore.events` rồi delegate tới `handleVoteEvent`. Mỗi vote event bị xử lý 2× (idempotent về data nhưng waste + log 2×). Khác inventory FE-5 không gặp vì không có sub thứ 2.
+  2. **Hardcode text tiếng Việt** — hàng chục chuỗi UI lie trickly: 'Kế hoạch tuần', 'Sáng/Trưa/Tối', 'Phiên vote', 'Chọn món', … — vi phạm AGENTS.md "Không hardcode text". Cùng loại với inventory FE-5, cooking FE-6 — chưa có convention i18n cấp platform.
+  3. **`MealSuggestionDetailScene._store` cleanup symmetry** — tạo `_store` trong initState nhưng không dispose. Hiện `SuggestionStore` không giữ sub/resource nên không leak, chỉ thiếu defensive.
+  4. **`navigateWeek` ERR_PLAN_001 — error recovery yếu** — chứa clear slots/sessions nhưng không có nút "Quay lại tuần này" rõ ràng trong UI error. User kẹt với `loadWeekPlan()` thủ công. Cũng gap Q1/CRITICAL thiết kế BE chưa fix.
+- **Đã chọn:** Gom tất cả vào task dọn riêng — không fix trong PR này để giữ scope gọn. · **Theo:** §6.1 D-10 (review >10 finding → MEDIUM/LOW gom vào `open-decisions.md` thành 1 task dọn riêng), §6.0 quy tắc 3 (ít thay đổi nhất thắng).
+- **Đảo ngược thế nào:** Khi pass i18n/dọn (sau demo) áp lên cả 3 feature (FE-5/6/7). Pass i18n là thay đổi cấp platform — không gộp vào 1 task feature.
+- **Cần người quyết lại không:** Không.
+- **Ngày:** 2026-09-16 · **Task:** FE-6 (cooking session) · **Nhánh:** `feature/81_cooking-session`
 - **Tình huống:** Kế hoạch `mvp-demo-execution-plan.md` §9.0 + DoD FE-6 (thêm 2026-09-16) yêu cầu: "Bấm *Hoàn tất nấu* khi **thiếu** nguyên liệu → hiện `INSUFFICIENT_STOCK_FOR_RECIPE` kèm danh sách nguyên liệu thiếu, và **kho không đổi gì cả** (rollback toàn phần)". Nhưng OpenAPI thật `cooking-session.yaml` v1.0.0 (REVIEWED+FIXED) cho `POST /complete` mô tả khác: "Thiếu kho KHÔNG làm response trả lỗi — 200 luôn được trả nếu session hợp lệ, kể cả khi mọi shortfallQuantity đều dương." Tức là BE trừ FIFO tới đâu hết rồi dừng, KHÔNG rollback, trả 200 với `deductions[].shortfallQuantity > 0`.
 - **Đã chọn:** Code theo **OAS thật** (§6.2 luật 1: code+test merge thắng kế hoạch khi mâu thuẫn). FE hiển thị kết quả `complete()` với badge "Không đủ" trên từng ingredient có `hasShortfall`, KHÔNG raise dialog lỗi đỏ. UI diễn giải rõ "BE đã trừ tới đâu hết rồi dừng", không có rollback. · **Theo:** §6.2 luật 1 + §6.1 D-09 (không bịa API) + §6.0 quy tắc 2 (thiết kế/OAS thắng phỏng đoán).
 - **Đảo ngược thế nào:** Nếu sau này BE thay đổi để thêm `INSUFFICIENT_STOCK_FOR_RECIPE` (422/409), cập nhật `CookingSessionStore.complete()` thêm `catch` cho mã đó, và sửa UI hiển thị dialog "thiếu + rollback".
