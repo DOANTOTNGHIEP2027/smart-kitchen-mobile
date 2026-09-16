@@ -106,7 +106,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                         ),
                         const SizedBox(height: AppDimens.sm),
                         DropdownButtonFormField<DietType?>(
-                          value: diet,
+                          initialValue: diet,
                           decoration: InputDecoration(
                             labelText: context.l10n.healthProfileDietType,
                             border: const OutlineInputBorder(),

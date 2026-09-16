@@ -6,6 +6,7 @@ import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
 import '../../stores/session_store.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/states/app_empty_view.dart';
 import 'app_shell_store.dart';
@@ -70,12 +71,13 @@ class AppShellScene extends StatelessWidget {
                     );
             }),
           ),
-          bottomNavigationBar: NavigationBar(
+          bottomNavigationBar: AppBottomNav(
             selectedIndex: index,
             onDestinationSelected: store.selectTab,
             destinations: tabs
-                .map((tab) => NavigationDestination(
-                      icon: Icon(tab.icon),
+                .map((tab) => AppBottomNavDestination(
+                      icon: tab.icon,
+                      activeIcon: tab.activeIcon,
                       label: tab.label,
                     ))
                 .toList(growable: false),
@@ -86,16 +88,17 @@ class AppShellScene extends StatelessWidget {
   }
 
   List<_ShellTab> _tabsOf(BuildContext context) => <_ShellTab>[
-        _ShellTab(context.l10n.navHome, Icons.home_outlined),
-        _ShellTab(context.l10n.navInventory, Icons.kitchen_outlined),
-        _ShellTab(context.l10n.navPlanning, Icons.event_note_outlined),
-        _ShellTab(context.l10n.navShopping, Icons.shopping_cart_outlined),
-        _ShellTab(context.l10n.navProfile, Icons.person_outline),
+        _ShellTab(context.l10n.navHome, Icons.home_outlined, Icons.home_rounded),
+        _ShellTab(context.l10n.navInventory, Icons.kitchen_outlined, Icons.kitchen_rounded),
+        _ShellTab(context.l10n.navPlanning, Icons.event_note_outlined, Icons.event_rounded),
+        _ShellTab(context.l10n.navShopping, Icons.shopping_cart_outlined, Icons.shopping_cart_rounded),
+        _ShellTab(context.l10n.navProfile, Icons.person_outline, Icons.person_rounded),
       ];
 }
 
 class _ShellTab {
-  const _ShellTab(this.label, this.icon);
+  const _ShellTab(this.label, this.icon, this.activeIcon);
   final String label;
   final IconData icon;
+  final IconData activeIcon;
 }

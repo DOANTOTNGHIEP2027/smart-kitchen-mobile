@@ -21,7 +21,10 @@ void main() {
   testWidgets('render 5 tab, mặc định chọn tab đầu', (WidgetTester tester) async {
     await tester.pumpAppWidget(const AppShellScene());
 
-    expect(find.byType(NavigationDestination), findsNWidgets(5));
+    // AppBottomNav dựng 1 InkResponse cho mỗi tab — không còn dùng
+    // NavigationDestination của Material 3 (đổi sang custom widget bám mock
+    // fe-app-shell.html `.nav-item/.dot`).
+    expect(find.byType(InkResponse), findsNWidgets(5));
     expect(store.selectedIndex, 0);
   });
 
