@@ -6,12 +6,14 @@ import 'package:smart_kitchen_mobile/l10n/app_localizations.dart';
 /// Bọc widget đang test bằng đúng theme + delegate i18n của app, để widget
 /// dùng `context.l10n` chạy được trong test.
 extension PumpApp on WidgetTester {
-  Future<void> pumpAppWidget(Widget child) => pumpWidget(
+  Future<void> pumpAppWidget(Widget child, {bool wrapInScaffold = true}) =>
+      pumpWidget(
         MaterialApp(
           theme: AppTheme.light,
+          locale: const Locale('vi'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: child),
+          home: wrapInScaffold ? Scaffold(body: child) : child,
         ),
       );
 }
