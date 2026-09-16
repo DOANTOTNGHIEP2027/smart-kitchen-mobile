@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
@@ -91,6 +92,15 @@ Future<void> bootstrap() async {
 /// phép chặn app boot: chỉ luồng Google Sign-In (thuộc `fe-onboarding`) mới
 /// phụ thuộc vào nó, mọi thứ còn lại vẫn chạy bình thường.
 Future<bool> _initFirebase() async {
+  // Web cần `options` (FirebaseOptions) mà repo chưa có config ops (Q6/§6.1 D-01).
+  // Skip hẳn trên web để tránh `DartError: the `web` parameter needs to be set`.
+  if (kIsWeb) {
+    developer.log(
+      'Firebase bị skip trên web — chưa có config ops. Google Sign-In không dùng được.',
+      name: 'bootstrap',
+    );
+    return false;
+  }
   try {
     await Firebase.initializeApp();
     return true;

@@ -64,6 +64,30 @@ class AppShellScene extends StatelessWidget {
                   ),
                 ]);
               }
+              // Demo wire (FE-3 không commit thay đổi này): tab Cá nhân →
+              // ProfileScreen. Cột dưới cấu trúc placeholder này khi FE-3
+              // chính thức wire shell sẽ bị thay bằng route navigation thuần.
+              if (tabIndex == 4) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Expanded(
+                      child: AppEmptyView(
+                        message: context.l10n.comingSoon,
+                        icon: tab.icon,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: AppButton(
+                        label: 'Mở hồ sơ của tôi',
+                        onPressed: () => Get.toNamed(AppRoutes.profile),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              }
               return AppEmptyView(
                       message: context.l10n.comingSoon,
                       icon: tab.icon,

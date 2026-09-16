@@ -38,6 +38,7 @@ dependencies:
   # Offline read-cache (FE-3 §5) + nền tảng cho FE-4 (AppDatabase dùng chung).
   # Đã duyệt sẵn theo §6.1 D-05.
   drift: ^2.21.0
+  drift_flutter: ^0.2.4
   sqlite3_flutter_libs: ^0.5.27
   path_provider: ^2.1.5
   path: ^1.9.0

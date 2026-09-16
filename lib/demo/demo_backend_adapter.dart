@@ -43,6 +43,38 @@ class DemoBackendAdapter implements HttpClientAdapter {
   final Set<String> _issuedInviteCodes = <String>{};
   final Set<String> _usedInviteCodes = <String>{};
 
+  // ── State FE-3 (profile + family + health) ───────────────────────────
+  //
+  // Song song với auth:的健康/roster giữ state in-memory để demo CRUD thật.
+  //
+  // Heuristic cố ý đơn giản — không phải mirror chính xác BE, chỉ để UI chạy
+  // hết flow khi không có BE. Test của demo_backend_test.dart chỉ cover auth/
+  // household; các endpoint FE-3 thêm vào không có test riêng (không thuộc
+  // phạm vi §4.4 — chỉ là crutch cho demo chứ không phải code production.
+
+  Map<String, dynamic> _healthProfile = <String, dynamic>{};
+  List<int> _allergenIds = <int>[];
+  List<Map<String, dynamic>> _roster = <Map<String, dynamic>>[];
+  int _activeInvites = 0;
+
+  static const List<Map<String, dynamic>> _allergenCatalog =
+      <Map<String, dynamic>>[
+        <String, dynamic>{'id': 1, 'name': 'Đậu phộng'},
+        <String, dynamic>{'id': 2, 'name': 'Sữa bò'},
+        <String, dynamic>{'id': 3, 'name': 'Trứng'},
+        <String, dynamic>{'id': 4, 'name': 'Cá'},
+        <String, dynamic>{'id': 5, 'name': 'Tôm cua'},
+        <String, dynamic>{'id': 6, 'name': 'Lúa mì'},
+        <String, dynamic>{'id': 7, 'name': 'Đậu nành'},
+        <String, dynamic>{'id': 8, 'name': 'Vỏ cây nguyên'},
+        <String, dynamic>{'id': 9, 'name': 'Quả hạch'},
+        <String, dynamic>{'id': 10, 'name': 'Mè'},
+        <String, dynamic>{'id': 11, 'name': 'Dễ ngô'},
+        <String, dynamic>{'id': 12, 'name': 'Bột mì'},
+        <String, dynamic>{'id': 13, 'name': 'Cà chua'},
+        <String, dynamic>{'id': 14, 'name': 'Thịt bò'},
+      ];
+
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
@@ -62,10 +94,20 @@ class DemoBackendAdapter implements HttpClientAdapter {
   ResponseBody _route(RequestOptions options, Map<String, dynamic> body) {
     final path = options.path;
 
-    if (path.startsWith('/api/v1/households/invites/')) {
+    if (path.startsWith('/api/v1/households/invites/') && options.method == 'GET') {
       return _previewInvite(
         path.substring('/api/v1/households/invites/'.length),
       );
+    }
+    // Path-templated của FE-3 — parse trước khi vào switch path cố định.
+    if (path.startsWith('/api/v1/users/') && path.endsWith('/health-summary')) {
+      final userId = path.substring(
+          '/api/v1/users/'.length, path.length - '/health-summary'.length);
+      return _memberHealthSummary(userId);
+    }
+    if (path.startsWith('/api/v1/households/members/')) {
+      final userId = path.substring('/api/v1/households/members/'.length);
+      return _removeMember(userId);
     }
 
     return switch (path) {
@@ -79,6 +121,12 @@ class DemoBackendAdapter implements HttpClientAdapter {
       '/api/v1/auth/upgrade-profile' => _upgradeProfile(body),
       '/api/v1/households' => _createHousehold(body),
       '/api/v1/households/join' => _joinHousehold(body),
+      '/api/v1/households/me' => _getHouseholdRoster(),
+      '/api/v1/households/invites' => _createInvite(),
+      '/api/v1/users/me/health-profile' =>
+          _handleHealthProfile(options.method, body),
+      '/api/v1/users/me/allergens' => _handleMyAllergens(options.method, body),
+      '/api/v1/allergens' => _getAllergenCatalog(),
       _ => _error(404, 'ERR_NOT_FOUND', 'Demo chưa mô phỏng endpoint này'),
     };
   }
@@ -275,6 +323,133 @@ class DemoBackendAdapter implements HttpClientAdapter {
     return buffer.toString();
   }
 
+  // ── FE-3: Health profile + allergens + roster + invite/remove ─────────
+
+  ResponseBody _handleHealthProfile(
+      String method, Map<String, dynamic> body) {
+    if (method == 'PUT') {
+      _healthProfile = <String, dynamic>{
+        ..._healthProfile,
+        'targetDailyCalories': body['targetDailyCalories'],
+        'dietType': body['dietType'],
+        'heightCm': body['heightCm'],
+        'weightKg': body['weightKg'],
+        'updatedAt': DateTime.now().toUtc().toIso8601String(),
+      };
+    }
+    return _ok(200, _healthProfileResponse());
+  }
+
+  Map<String, dynamic> _healthProfileResponse() => <String, dynamic>{
+        'userId': _userId,
+        'targetDailyCalories': _healthProfile['targetDailyCalories'],
+        'dietType': _healthProfile['dietType'],
+        'heightCm': _healthProfile['heightCm'],
+        'weightKg': _healthProfile['weightKg'],
+        'updatedAt': _healthProfile['updatedAt'],
+        'allergens': _allergenIds
+            .map((int id) => _allergenCatalog.firstWhere(
+                  (Map<String, dynamic> a) => a['id'] == id,
+                  orElse: () => <String, dynamic>{'id': id, 'name': 'Unknown'},
+                ))
+            .toList(growable: false),
+      };
+
+  ResponseBody _handleMyAllergens(
+      String method, Map<String, dynamic> body) {
+    if (method == 'PUT') {
+      _allergenIds = List<int>.from(body['allergenIds'] as List? ?? <dynamic>[]);
+    }
+    return _okList(200, _allergenIds
+        .map((int id) => _allergenCatalog.firstWhere(
+              (Map<String, dynamic> a) => a['id'] == id,
+              orElse: () => <String, dynamic>{'id': id, 'name': 'Unknown'},
+            ))
+        .toList());
+  }
+
+  ResponseBody _getAllergenCatalog() => _okList(200, _allergenCatalog);
+
+  ResponseBody _memberHealthSummary(String userId) {
+    // Cho demo: ai cũng trả cùng state với my-profile (không phân biệt).
+    final items = _allergenIds
+        .map((int id) => _allergenCatalog.firstWhere(
+              (Map<String, dynamic> a) => a['id'] == id,
+              orElse: () => <String, dynamic>{'id': id, 'name': 'Unknown'},
+            ))
+        .toList();
+    return _ok(200, <String, dynamic>{
+      'userId': userId,
+      'dietType': _healthProfile['dietType'],
+      'allergens': items,
+    });
+  }
+
+  ResponseBody _getHouseholdRoster() {
+    if (_householdId == null) {
+      return _error(404, 'ERR_HH_001', 'Household not found');
+    }
+    // Seed roster lần đầu: OWNER + 1 MEMBER khác household.
+    if (_roster.isEmpty) {
+      _roster = <Map<String, dynamic>>[
+        <String, dynamic>{
+          'userId': _userId,
+          'fullName': _fullName,
+          'avatarUrl': null,
+          'role': _role,
+          'provider': _provider,
+          'joinedAt': DateTime.parse('2026-09-10T10:00:00Z').toUtc().toIso8601String(),
+        },
+        if (_role == 'OWNER')
+          <String, dynamic>{
+            'userId': 'demo-member-0002',
+            'fullName': 'Thành viên thứ hai',
+            'avatarUrl': null,
+            'role': 'MEMBER',
+            'provider': 'EMAIL',
+            'joinedAt': DateTime.parse('2026-09-12T10:00:00Z').toUtc().toIso8601String(),
+          },
+      ];
+    }
+    return _ok(200, <String, dynamic>{
+      'id': _householdId,
+      'name': 'Gia đình demo',
+      'ownerId': _userId,
+      'role': _role,
+      'memberCount': _roster.length,
+      'members': _roster,
+    });
+  }
+
+  ResponseBody _createInvite() {
+    if (_role != 'OWNER') {
+      return _error(403, 'ERR_HH_004', 'Not owner');
+    }
+    if (_activeInvites >= 3) {
+      return _error(429, 'ERR_HH_006', 'Quá nhiều lời mời đang mở');
+    }
+    _activeInvites++;
+    final code = _generateInviteCode();
+    _issuedInviteCodes.add(code);
+    return _ok(201, <String, dynamic>{
+      'code': code,
+      'link': 'https://app.smartkitchen.vn/join/$code',
+      'expiresAt': DateTime.now()
+          .add(const Duration(hours: 72))
+          .toUtc()
+          .toIso8601String(),
+    });
+  }
+
+  ResponseBody _removeMember(String userId) {
+    final before = _roster.length;
+    _roster = _roster.where((Map<String, dynamic> m) => m['userId'] != userId).toList();
+    if (_roster.length == before) {
+      return _error(400, 'ERR_HH_007', 'Không tìm thấy thành viên');
+    }
+    return _ok(200, <String, dynamic>{});
+  }
+
   // ── Dựng response ────────────────────────────────────────────────
 
   Map<String, dynamic> _sessionPayload() => <String, dynamic>{
@@ -307,6 +482,14 @@ class DemoBackendAdapter implements HttpClientAdapter {
   }
 
   ResponseBody _ok(int status, Map<String, dynamic> data) => _json(status, {
+        'success': true,
+        'data': data,
+        'error': null,
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
+      });
+
+  /// Helper cho response có `data` là List (allergen catalog, allergen list).
+  ResponseBody _okList(int status, List<dynamic> data) => _json(status, {
         'success': true,
         'data': data,
         'error': null,
