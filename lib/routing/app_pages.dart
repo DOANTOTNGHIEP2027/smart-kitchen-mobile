@@ -8,6 +8,7 @@ import '../scenes/auth/upgrade_profile_scene.dart';
 import '../scenes/household/create_household_scene.dart';
 import '../scenes/household/household_setup_scene.dart';
 import '../scenes/household/join_household_scene.dart';
+import '../scenes/inventory/inventory_routes.dart';
 import '../scenes/profile/profile_family_routes.dart';
 import '../scenes/shell/app_shell_binding.dart';
 import '../scenes/shell/app_shell_scene.dart';
@@ -26,6 +27,7 @@ class AppPages {
     ...shellPages,
     ...feature1Pages,
     ...profileFamilyPages,
+    ...inventoryPages,
   ];
 
   static final List<GetPage<dynamic>> shellPages = <GetPage<dynamic>>[

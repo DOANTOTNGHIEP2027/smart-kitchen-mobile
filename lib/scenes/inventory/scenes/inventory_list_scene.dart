@@ -1,0 +1,220 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:get/get.dart';
+
+import '../../../stores/session_store.dart';
+import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/buttons/app_button.dart';
+import '../../../widgets/states/app_loading_view.dart';
+import '../../../widgets/states/app_empty_view.dart';
+import '../stores/inventory_store.dart';
+import '../widgets/inventory_item_tile.dart';
+
+/// Danh sách inventory — offline-first (FE-5 §14 `InventoryListScene`).
+///
+/// 4 trạng thái dùng `InventoryStore.status` + `InventoryStore.filteredItems`:
+/// - loading: `AppLoadingView` (chỉ lần đầu khi chưa có snapshot Drift).
+/// - empty (chưa từng có item): banner + nút "Thêm mặt hàng".
+/// - empty (do search/filter): thông báo không CTA.
+/// - success: list `InventoryItemTile`.
+///
+/// `syncError`/`isSyncing` là banner không chặn (FE-5 §9.1 Decision D13).
+class InventoryListScene extends StatefulWidget {
+  const InventoryListScene({super.key});
+
+  @override
+  State<InventoryListScene> createState() => _InventoryListSceneState();
+}
+
+class _InventoryListSceneState extends State<InventoryListScene> {
+  @override
+  void initState() {
+    super.initState();
+    final store = Get.find<InventoryStore>();
+    store.init();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = Get.find<InventoryStore>();
+    final session = Get.find<SessionStore>();
+    return AppScaffold(
+      title: 'Kho thực phẩm',
+      actions: <Widget>[
+        IconButton(
+          tooltip: 'Thêm',
+          icon: const Icon(Icons.add),
+          onPressed: () => Get.toNamed('/inventory/add'),
+        ),
+      ],
+      body: Column(
+        children: <Widget>[
+          // Sync banner (không chặn — §9.1)
+          Observer(builder: (_) {
+            if (store.syncError != null) {
+              return Material(
+                color: Colors.amber.shade100,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: <Widget>[
+                      const Expanded(
+                          child: Text(
+                              'Không đồng bộ được — hiển thị dữ liệu đã lưu')),
+                      TextButton(
+                        onPressed: () => store.syncFromServer(),
+                        child: const Text('Thử lại'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            if (store.isSyncing) {
+              return LinearProgressIndicator(
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Theme.of(context).colorScheme.primary),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+          // Search box + category chips
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Observer(
+              builder: (_) => Column(
+                children: <Widget>[
+                  TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Tìm theo tên…',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    onChanged: store.setSearchQuery,
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 36,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: <Widget>[
+                        _CategoryChip(
+                          label: 'Tất cả',
+                          selected: store.selectedCategory == null,
+                          onTap: () => store.setCategory(null),
+                        ),
+                        ...store.knownCategories.map(
+                          (c) => _CategoryChip(
+                            label: c,
+                            selected: store.selectedCategory == c,
+                            onTap: () => store.setCategory(c),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Body theo trạng thái
+          Expanded(
+            child: Observer(
+              builder: (_) {
+                if (store.householdId == null) {
+                  return const AppEmptyView(
+                    icon: Icons.home_outlined,
+                    message:
+                        'Bạn chưa thuộc Nhà nào — hãy tạo hoặc tham gia Nhà trước.',
+                  );
+                }
+                if (store.status == InventoryLoadStatus.loading) {
+                  return const AppLoadingView();
+                }
+                final filtered = store.filteredItems;
+                if (filtered.isEmpty) {
+                  // Phân biệt 2 loại empty (FE-5 §14)
+                  final isEmptyDueToFilters =
+                      store.searchQuery.isNotEmpty ||
+                          store.selectedCategory != null;
+                  if (isEmptyDueToFilters) {
+                    return const AppEmptyView(
+                      icon: Icons.search_off,
+                      message: 'Không tìm thấy mặt hàng phù hợp.',
+                    );
+                  }
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        const AppEmptyView(
+                          icon: Icons.kitchen_outlined,
+                          message: 'Chưa có mặt hàng nào.',
+                        ),
+                        const SizedBox(height: 8),
+                        AppButton(
+                          label: 'Thêm mặt hàng',
+                          icon: Icons.add,
+                          onPressed: () => Get.toNamed('/inventory/add'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return RefreshIndicator(
+                  onRefresh: () => store.syncFromServer(),
+                  child: ListView.builder(
+                    itemCount: filtered.length,
+                    itemBuilder: (_, i) {
+                      final item = filtered[i];
+                      return InventoryItemTile(
+                        item: item,
+                        onTap: () => Get.toNamed(
+                          '/inventory/${item.id}/edit',
+                          arguments: item,
+                        ),
+                        isCurrentUser:
+                            item.createdBy == session.currentUser?.id,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Get.toNamed('/inventory/add'),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: FilterChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onTap(),
+      ),
+    );
+  }
+}

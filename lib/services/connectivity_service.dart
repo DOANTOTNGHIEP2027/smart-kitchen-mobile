@@ -27,6 +27,15 @@ class ConnectivityService {
 
   bool get isListening => _sub != null;
 
+  /// Kiểm tra online tại thời điểm gọi — dùng cho InventoryFormStore quyết
+  /// định optimistic-then-enqueue vs optimistic-then-API. Lưu ý: đây là best
+  /// effort vì `connectivity_plus` không guarantee internet thật — chỉ loại
+  /// kết nối. Đủ để chặn các thao tác chắc chắn thất bại khi `none`.
+  Future<bool> isOnline() async {
+    final results = await _connectivity.checkConnectivity();
+    return !_isOffline(results);
+  }
+
   /// Bắt đầu lắng nghe thay đổi kết nối.
   Future<void> init() async {
     // Kiểm tra trạng thái hiện tại
