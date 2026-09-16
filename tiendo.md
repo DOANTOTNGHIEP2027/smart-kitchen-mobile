@@ -138,8 +138,8 @@ Tất cả routes đều được bảo vệ bởi `AuthGuard`.
 - **File**: [`bootstrap.dart`](file:///e:/DO_AN/smart-kitchen-mobile/lib/app/bootstrap.dart) tích hợp hoàn chỉnh `ConnectivityService`, `RealtimeService`, `DeviceApi`, `NotificationService`, `RealtimeStore` theo thứ tự lifecycle phù hợp (Network -> Auth/Session -> WS -> FCM).
 
 ### 5. Tests
-- [`stomp_minimal_test.dart`](file:///e:/DO_AN/smart-kitchen-mobile/test/data/realtime/stomp_minimal_test.dart): 7 tests pass.
-- [`ws_event_envelope_test.dart`](file:///e:/DO_AN/smart-kitchen-mobile/test/data/realtime/ws_event_envelope_test.dart): 5 tests pass.
+- [`stomp_minimal_test.dart`](file:///e:/DO_AN/smart-kitchen-mobile/test/data/realtime/stomp_minimal_test.dart): 8 tests pass.
+- [`ws_event_envelope_test.dart`](file:///e:/DO_AN/smart-kitchen-mobile/test/data/realtime/ws_event_envelope_test.dart): 4 tests pass.
 - Toàn bộ test suite: 93/93 tests pass (100%).
 
 ---
