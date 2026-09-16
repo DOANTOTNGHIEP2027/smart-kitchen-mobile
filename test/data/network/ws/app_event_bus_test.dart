@@ -16,14 +16,36 @@ class _FakeTokenStorage extends Fake implements TokenStorage {
 /// WebSocketChannelfake: cho phép test điều khiển `ready`, giả lập server
 /// gửi frame qua [injectServer], và mô phỏng đứt cáp qua [simulateDisconnect].
 class _FakeChannel extends Fake implements WebSocketChannel {
-  _FakeChannel();
+  _FakeChannel({bool ready = true}) {
+    if (ready) {
+      _readyCompleter.complete();
+    } else {
+      _readyCompleter.completeError('not ready');
+      _isReady = false;
+    }
+  }
   final StreamController<dynamic> _incoming =
       StreamController<dynamic>.broadcast();
   final List<String> sent = <String>[];
-  bool isReady = true;
+
+  /// `ready` controlled bằng Completer để test có thể flip trạng thái trước
+  /// khi AppEventBus awaiting.
+  final Completer<void> _readyCompleter = Completer<void>();
+  bool _isReady = true;
+  bool get isReady => _isReady;
+  set isReady(bool value) {
+    _isReady = value;
+    if (!_readyCompleter.isCompleted) {
+      if (value) {
+        _readyCompleter.complete();
+      } else {
+        _readyCompleter.completeError('not ready');
+      }
+    }
+  }
 
   @override
-  Future<void> get ready async => isReady ? Future<void>.value() : Future<void>.error('not ready');
+  Future<void> get ready => _readyCompleter.future;
 
   @override
   Stream get stream => _incoming.stream;
@@ -190,6 +212,87 @@ void main() {
 
       // Coi như hết controller — listen tiếp sẽ tạo lại.
       expect(bus.onConnected, isA<Stream<void>>());
+    });
+
+    // ── Test tái hiện lỗi (chạy trước khi fix, phải đỏ) ──────────────
+
+    test('M2: ready throw → lên lịch reconnect (hiện không tới được catch?)', () async {
+      bus = AppEventBus(
+        tokenStorage,
+        wsUrl: 'ws://test/ws',
+        // Factory đặt `ready=false` trên mỗi channel mới — AppEventBus sẽ
+        // `await ready` và phải vào catch.
+        channelFactory: (uri) {
+          final ch = _FakeChannel(ready: false);
+          createdChannels.add(ch);
+          return ch;
+        },
+        backoffFor: (attempt) {
+          reconnectDelays.add(attempt);
+          return Duration.zero;
+        },
+      );
+      bus.rawEvents('/topic/x');
+
+      // Đợi future lỗi + reconnect được lên lịch. Completer.completeError
+      // lan qua await trong _connect() — cần vài microtask.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(
+        reconnectDelays,
+        isNotEmpty,
+        reason: 'ready throw phải đi vào _onDisconnected, lên lịch reconnect',
+      );
+    });
+
+    test('M4: dispose() → listen lại onConnected không crash khi CONNECTED tới',
+        () async {
+      bus = buildBus();
+      bus.rawEvents('/topic/x');
+      await Future<void>.delayed(Duration.zero);
+      await bus.dispose();
+
+      // Listen lại và kích hoạt rawEvents — phải tạo lại controller.
+      bus.rawEvents('/topic/y');
+      await Future<void>.delayed(Duration.zero);
+
+      // Server gửi CONNECTED → nếu _connectedController chưa được tạo lại,
+      // `.add(null)` sẽ throw StateError "Cannot add new events after close".
+      expect(
+        () async {
+          createdChannels.last.injectServer(
+            const StompFrame(command: 'CONNECTED').encode(),
+          );
+          await Future<void>.delayed(Duration.zero);
+        },
+        returnsNormally,
+        reason: 'dispose() rồi listen lại không được crash khi nhận CONNECTED',
+      );
+    });
+
+    test('L7: MESSAGE thiếu destination không crash, chỉ log warning', () async {
+      bus = buildBus();
+      bus.rawEvents('/topic/x');
+      await Future<void>.delayed(Duration.zero);
+      createdChannels.last.injectServer(
+        const StompFrame(command: 'CONNECTED').encode(),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      // MESSAGE không có header destination → hiện return im; phải không crash.
+      expect(
+        () async {
+          createdChannels.last.injectServer(
+            const StompFrame(
+              command: 'MESSAGE',
+              body: '{"x":1}',
+            ).encode(),
+          );
+          await Future<void>.delayed(Duration.zero);
+        },
+        returnsNormally,
+        reason: 'MESSAGE thiếu destination phải được bỏ qua an toàn',
+      );
     });
   });
 }

@@ -23,8 +23,11 @@ abstract class EnvConfig {
 
   /// WebSocket endpoint cho AppEventBus (FE-4 §7). Mặc định trỏ vào stack local.
   /// Truyền qua `--dart-define=WS_URL=ws://...` khi deploy.
+  ///
+  /// Path phải có prefix `/api` (server context-path) theo
+  /// redis-cache-ws-baseline.md §"Transport & Handshake".
   static const String wsUrl =
-      String.fromEnvironment('WS_URL', defaultValue: 'ws://localhost:8080/ws');
+      String.fromEnvironment('WS_URL', defaultValue: 'ws://localhost:8080/api/ws');
 
   /// Bật backend giả lập trong app (`DemoBackendAdapter`) thay cho HTTP thật.
   ///

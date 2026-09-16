@@ -38,7 +38,8 @@ class AppEventBus {
   WebSocketChannel? _channel;
   final Map<String, StreamController<Map<String, dynamic>>> _destinationControllers =
       <String, StreamController<Map<String, dynamic>>>{};
-  final StreamController<void> _connectedController =
+  // Non-final để có thể tạo lại sau dispose() — xem _ensureConnected (Fix M4).
+  StreamController<void> _connectedController =
       StreamController<void>.broadcast();
 
   Timer? _reconnectTimer;
@@ -87,22 +88,40 @@ class AppEventBus {
       // Sink re-open sau dispose: reset cờ, cho phép reconnect.
       _manuallyClosed = false;
     }
+    // Fix review M4: `_connectedController` đã close sau dispose() — nếu caller
+    // listen lại rawEvents(), tạo broadcast controller mới để `.add()` không
+    // throw "Cannot add new events after calling close".
+    if (_connectedController.isClosed) {
+      _recreateConnectedController();
+    }
     if (_channel != null) return;
     unawaited(_connect());
+  }
+
+  void _recreateConnectedController() {
+    _connectedController = StreamController<void>.broadcast();
   }
 
   Future<void> _connect() async {
     try {
       final token = _tokenStorage.accessToken;
-      _channel = _channelFactory(Uri.parse(wsUrl));
-      await _channel!.ready;
-      _channel!.sink.add(
-        StompFrame.connect(authorizationHeader: 'Bearer $token').encode(),
-      );
-      _channel!.stream.listen(
+      final uri = Uri.parse(wsUrl);
+      final channel = _channelFactory(uri);
+      _channel = channel;
+      // Gắn listener TRƯỚC `await ready` để frame do server gửi trong lúc
+      // handshake (vd ERROR 401) không bị mất (Fix review M2).
+      channel.stream.listen(
         _onFrame,
         onError: (Object error) => _onDisconnected(reason: 'stream error: $error'),
         onDone: () => _onDisconnected(reason: 'stream done'),
+      );
+      await channel.ready;
+      channel.sink.add(
+        StompFrame.connect(
+          authorizationHeader: 'Bearer $token',
+          // STOMP `host` = authority của WS endpoint (Fix review M3).
+          host: uri.host.isEmpty ? 'localhost' : uri.host,
+        ).encode(),
       );
     } catch (error, stack) {
       developer.log(
@@ -141,7 +160,14 @@ class AppEventBus {
         _connectedController.add(null);
       case 'MESSAGE':
         final destination = frame.headers['destination'];
-        if (destination == null) return;
+        if (destination == null) {
+          // BE violation contract — không crash, chỉ log để debug (Fix L7).
+          developer.log(
+            'STOMP MESSAGE thiếu header destination — bỏ qua frame',
+            name: 'app_event_bus',
+          );
+          return;
+        }
         try {
           final body = jsonDecode(frame.body) as Map<String, dynamic>;
           _destinationControllers[destination]?.add(body);
@@ -181,9 +207,4 @@ class AppEventBus {
   /// Exponential backoff cap 30s — spec §7 line 459.
   static Duration _defaultBackoff(int attempt) =>
       Duration(seconds: math.min(30, math.pow(2, attempt).toInt()));
-}
-
-/// Helper nhỏ — `unawaited` chỉ có từ Dart 3.x, giữ backward compat.
-void unawaited(Future<void>? future) {
-  // no-op
 }

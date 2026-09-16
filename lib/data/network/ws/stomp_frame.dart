@@ -33,12 +33,17 @@ class StompFrame {
   ///
   /// Header `Authorization` mang access token (theo inventory-core.md
   /// §"Transport & Handshake"). `accept-version: 1.2` bắt buộc theo spec.
-  factory StompFrame.connect({required String authorizationHeader}) =>
+  /// `host` theo STOMP 1.2 §"CONNECT" (virtual host) — truyền authority của
+  /// WS endpoint. Mặc định `localhost` chỉ phù hợp dev local.
+  factory StompFrame.connect({
+    required String authorizationHeader,
+    String host = 'localhost',
+  }) =>
       StompFrame(
         command: 'CONNECT',
         headers: <String, String>{
           'accept-version': '1.2',
-          'host': 'localhost',
+          'host': host,
           'Authorization': authorizationHeader,
         },
       );
