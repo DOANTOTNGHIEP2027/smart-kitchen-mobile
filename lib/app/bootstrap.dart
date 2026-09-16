@@ -10,6 +10,7 @@ import '../data/auth/google_auth_gateway.dart';
 import '../data/db/app_database.dart';
 import '../data/db/read_cache_dao.dart';
 import '../data/network/dio_client.dart';
+import '../data/network/ws/app_event_bus.dart';
 import '../demo/demo_backend_adapter.dart';
 import '../domain/auth/auth_refresh_usecase.dart';
 import '../stores/session_store.dart';
@@ -49,6 +50,13 @@ Future<void> bootstrap() async {
 
   Get.put<TokenStorage>(tokenStorage, permanent: true);
   Get.put<DioClient>(dioClient, permanent: true);
+
+  // FE-4 §7 — realtime bus dùng chung. Permanent để mọi feature tái dụng
+  // cùng 1 STOMP connection; register trước các store/scene cần realtime.
+  Get.put<AppEventBus>(
+    AppEventBus(tokenStorage, wsUrl: EnvConfig.wsUrl),
+    permanent: true,
+  );
 
   final sessionStore = SessionStore(
     tokenStorage,

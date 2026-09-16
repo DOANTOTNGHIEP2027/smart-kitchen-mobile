@@ -21,6 +21,11 @@ abstract class EnvConfig {
   static const String aiBaseUrl =
       String.fromEnvironment('AI_BASE_URL', defaultValue: 'http://localhost:8000');
 
+  /// WebSocket endpoint cho AppEventBus (FE-4 §7). Mặc định trỏ vào stack local.
+  /// Truyền qua `--dart-define=WS_URL=ws://...` khi deploy.
+  static const String wsUrl =
+      String.fromEnvironment('WS_URL', defaultValue: 'ws://localhost:8080/ws');
+
   /// Bật backend giả lập trong app (`DemoBackendAdapter`) thay cho HTTP thật.
   ///
   /// CHỈ để trình diễn khi chưa có BE chạy. Bị chặn ở build `prod` để một lần

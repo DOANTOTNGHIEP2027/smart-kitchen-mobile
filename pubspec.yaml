@@ -43,6 +43,10 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.0
 
+  # FE-4 — WebSocket realtime infra (STOMP min frame + reconnect). Đã duyệt sẵn §6.1 D-05.
+  web_socket_channel: ^3.0.1
+  connectivity_plus: ^6.1.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -50,6 +54,7 @@ dev_dependencies:
   build_runner: ^2.4.15
   mobx_codegen: ^2.7.0
   drift_dev: ^2.21.0
+  mocktail: ^1.0.4
 
 flutter:
   uses-material-design: true
