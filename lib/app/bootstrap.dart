@@ -111,6 +111,10 @@ Future<void> bootstrap() async {
   );
   Get.put<RealtimeStore>(realtimeStore, permanent: true);
   await realtimeStore.init();
+  reaction<(AuthStatus, String?)>(
+    (_) => (sessionStore.status, sessionStore.householdId),
+    (_) => unawaited(realtimeStore.onAuthChanged()),
+  );
 
   // NotificationService init SAU Firebase init — nếu Firebase không có thì
   // service sẽ degrade graceful (catch mọi exception nội bộ).
