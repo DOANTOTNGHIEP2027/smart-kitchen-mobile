@@ -53,6 +53,10 @@ dependencies:
   # FE-3 — Connectivity để detect online/offline và kích hoạt sync.
   connectivity_plus: ^7.1.1
 
+  # FE-6 — WakeLock giữ màn hình sáng suốt buổi nấu (yêu cầu #81).
+  # Ngoài §6.1 D-05 — được duyệt qua §0.2 (ifetime duy nhất thêm dependency).
+  wakelock_plus: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
