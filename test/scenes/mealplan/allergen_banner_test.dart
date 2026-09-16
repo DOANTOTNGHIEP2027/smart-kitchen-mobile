@@ -19,7 +19,7 @@ void main() {
         allergenDerivation: AllergenDerivation.ingredientRule,
       );
 
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(const MaterialApp(
         home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
       ));
 
@@ -38,7 +38,7 @@ void main() {
         allergenDerivation: AllergenDerivation.ingredientRule,
       );
 
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(const MaterialApp(
         home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
       ));
 
@@ -58,7 +58,7 @@ void main() {
         allergenDerivation: AllergenDerivation.unverified,
       );
 
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(const MaterialApp(
         home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
       ));
 
@@ -78,7 +78,7 @@ void main() {
         allergenDerivation: AllergenDerivation.unknown,
       );
 
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(const MaterialApp(
         home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
       ));
 
@@ -93,7 +93,7 @@ void main() {
         allergenDerivation: AllergenDerivation.source,
       );
 
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(const MaterialApp(
         home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
       ));
 

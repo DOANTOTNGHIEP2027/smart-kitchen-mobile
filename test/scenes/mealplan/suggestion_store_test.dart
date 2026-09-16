@@ -69,12 +69,12 @@ void main() {
         ),
       ],
     );
-    mealPlanStore.activeSessions['dish-1'] = VoteSessionSummary(
+    mealPlanStore.activeSessions['dish-1'] = const VoteSessionSummary(
       sessionId: 's-rich',
       slotId: 'slot-1',
       dishId: 'dish-1',
       status: VoteSessionUiStatus.open,
-      suggestions: const <MealSuggestion>[
+      suggestions: <MealSuggestion>[
         MealSuggestion(
           recipeId: 'r-1',
           mealName: 'Canh chua cá lóc',
@@ -83,7 +83,7 @@ void main() {
           allergenDerivation: AllergenDerivation.ingredientRule,
         ),
       ],
-      tally: const <VoteTallyItem>[],
+      tally: <VoteTallyItem>[],
       suggestionsSourceDegraded: false,
     );
     mealPlanStore.currentPlanIdForTesting = 'plan-1';

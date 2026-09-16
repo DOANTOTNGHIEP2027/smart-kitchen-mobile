@@ -128,10 +128,10 @@ class _WeekGrid extends StatelessWidget {
             children: const <String>['Sáng', 'Trưa', 'Tối']
                 .map((String label) => Expanded(
                       child: Padding(
-                        padding: EdgeInsets.all(AppDimens.sm),
+                        padding: const EdgeInsets.all(AppDimens.sm),
                         child: Text(label,
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontWeight: FontWeight.w600)),
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
                       ),
                     ))
                 .toList(),

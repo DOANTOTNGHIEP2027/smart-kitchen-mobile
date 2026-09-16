@@ -61,7 +61,7 @@ class SuggestionCard extends StatelessWidget {
                       color: AppColors.secondary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                     ),
-                    child: Text(
+                    child: const Text(
                       'AI sinh',
                       style: TextStyle(
                         color: AppColors.secondary,

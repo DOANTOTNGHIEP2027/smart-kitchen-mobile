@@ -72,15 +72,15 @@ void main() {
     });
 
     test('withTally (WS member_voted) giữ myVote hiện tại', () {
-      final session = VoteSessionSummary(
+      final session = const VoteSessionSummary(
         sessionId: 's-real',
         slotId: 's1',
         dishId: 'd1',
         status: VoteSessionUiStatus.open,
-        suggestions: const <MealSuggestion>[
+        suggestions: <MealSuggestion>[
           MealSuggestion(recipeId: 'r1', mealName: 'M'),
         ],
-        tally: const <VoteTallyItem>[],
+        tally: <VoteTallyItem>[],
         totalMembers: 4,
         myVote: 'r1', // caller đã vote
       );
