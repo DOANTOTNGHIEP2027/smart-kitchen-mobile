@@ -28,4 +28,7 @@ abstract class AppRoutes {
   static const String inventory = '/inventory';
   static const String inventoryAdd = '/inventory/add';
   static const String inventoryEdit = '/inventory/:id/edit';
+
+  // Cooking session (FE-6 #81)
+  static const String cookingSession = '/cooking/session';
 }

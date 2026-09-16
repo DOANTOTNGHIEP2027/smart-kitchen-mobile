@@ -23,6 +23,8 @@ import '../scenes/profile/api/health_api.dart';
 import '../scenes/profile/api/profile_api.dart';
 import '../scenes/inventory/data/inventory_api.dart';
 import '../scenes/inventory/data/inventory_dao.dart';
+import '../scenes/cooking/data/cooking_session_api.dart';
+import '../scenes/cooking/data/recipe_api.dart';
 import '../data/notification/device_api.dart';
 import '../data/notification/notification_service.dart';
 import '../data/realtime/realtime_service.dart';
@@ -91,6 +93,11 @@ Future<void> bootstrap() async {
   // InventoryFormStore đều dùng.
   Get.put<InventoryApi>(InventoryApiImpl(dioClient), permanent: true);
   Get.put<InventoryDao>(InventoryDao(Get.find<AppDatabase>()), permanent: true);
+
+  // FE-6: CookingApi + RecipeApi — cả CookingSessionStore đều dùng.
+  Get.put<CookingSessionApi>(CookingSessionApiImpl(dioClient),
+      permanent: true);
+  Get.put<RecipeApi>(RecipeApiImpl(dioClient), permanent: true);
 
   // FE-3: Realtime WebSocket + FCM notification + Connectivity.
   final connectivityService = ConnectivityService();
