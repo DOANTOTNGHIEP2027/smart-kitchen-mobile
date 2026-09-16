@@ -83,5 +83,55 @@
   "inviteRace": "Lời mời này không còn khả dụng",
   "genericRetryError": "Đã có lỗi xảy ra. Vui lòng thử lại",
   "guestProfileBanner": "Hoàn tất hồ sơ để duy trì quyền truy cập Nhà của bạn",
-  "completeProfile": "Hoàn tất hồ sơ"
+  "completeProfile": "Hoàn tất hồ sơ",
+
+  "profileTitle": "Hồ sơ của tôi",
+  "profileEmailMissing": "Chưa đặt email",
+  "profileEdit": "Chỉnh sửa hồ sơ",
+  "profileEditBlocked": "Tính năng đang hoàn thiện, sẽ sớm ra mắt.",
+  "profileEditTitle": "Chỉnh sửa hồ sơ",
+  "profileSave": "Lưu",
+  "profileSavedToast": "Đã cập nhật hồ sơ",
+
+  "healthProfileTitle": "Hồ sơ sức khoẻ",
+  "healthProfileEmpty": "Chưa thiết lập — điền để nhận gợi ý cá nhân hoá.",
+  "healthProfileTargetCalories": "Mục tiêu calo/ngày",
+  "healthProfileDietType": "Chế độ ăn",
+  "healthProfileHeight": "Chiều cao (cm)",
+  "healthProfileWeight": "Cân nặng (kg)",
+  "healthProfileAllergensSection": "Dị ứng",
+  "healthProfileAllergensEmpty": "Chưa chọn dị ứng nào.",
+  "healthProfileAllergensEdit": "Sửa dị ứng",
+  "healthSave": "Lưu hồ sơ sức khoẻ",
+  "healthSavedToast": "Đã lưu hồ sơ sức khoẻ",
+
+  "allergensTitle": "Dị ứng của tôi",
+  "allergensCatalogEmpty": "Danh mục dị ứng không khả dụng.",
+  "allergensSelectNone": "Không có dị ứng",
+  "allergensSave": "Lưu dị ứng",
+  "allergensSavedToast": "Đã cập nhật dị ứng",
+
+  "dietTypeNone": "Không",
+  "dietTypeKeto": "Keto",
+  "dietTypeVegetarian": "Ăn chay",
+  "dietTypeVegan": "Vegan",
+  "dietTypePescatarian": "Pescatarian",
+  "dietTypeGlutenFree": "Không gluten",
+  "dietTypeDiabetic": "Tiểu đường",
+
+  "familyTitle": "Gia đình",
+  "familyRosterEmpty": "Chưa có thành viên khác.",
+  "familyCreateInvite": "Tạo lời mời",
+  "familyRemove": "Xoá khỏi gia đình",
+  "familyRemoveConfirm": "Xoá thành viên này khỏi gia đình?",
+  "familyRemoveCancel": "Huỷ",
+  "familyYou": "Bạn",
+  "familyInviteRateLimited": "Bạn đã có 3 lời mời đang mở.",
+
+  "memberDetailTitle": "Thành viên",
+  "memberDetailDietType": "Chế độ ăn",
+  "memberDetailAllergensSection": "Dị ứng",
+  "memberDetailAllergensEmpty": "Chưa có dị ứng.",
+
+  "staleDataBanner": "Dữ liệu có thể chưa cập nhật — đang hiển thị bản lưu gần nhất."
 }

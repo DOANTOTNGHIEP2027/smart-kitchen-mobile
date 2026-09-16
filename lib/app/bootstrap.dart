@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 
 import '../data/auth/token_storage.dart';
 import '../data/auth/google_auth_gateway.dart';
+import '../data/db/app_database.dart';
+import '../data/db/read_cache_dao.dart';
 import '../data/network/dio_client.dart';
 import '../demo/demo_backend_adapter.dart';
 import '../domain/auth/auth_refresh_usecase.dart';
@@ -14,6 +16,9 @@ import '../scenes/auth/api/auth_api.dart';
 import '../scenes/auth/stores/auth_store.dart';
 import '../scenes/household/api/household_api.dart';
 import '../scenes/household/stores/household_store.dart';
+import '../scenes/profile/api/family_api.dart';
+import '../scenes/profile/api/health_api.dart';
+import '../scenes/profile/api/profile_api.dart';
 import 'app.dart';
 import 'env_config.dart';
 
@@ -65,6 +70,13 @@ Future<void> bootstrap() async {
     HouseholdStore(Get.find<HouseholdApi>(), Get.find<AuthApi>(), sessionStore),
     permanent: true,
   );
+
+  // FE-3: Drift + read-cache + 3 API của profile/family/health.
+  Get.put<AppDatabase>(AppDatabase(), permanent: true);
+  Get.put<ReadCacheDao>(ReadCacheDao(Get.find<AppDatabase>()), permanent: true);
+  Get.put<HealthApi>(HealthApiImpl(dioClient), permanent: true);
+  Get.put<FamilyApi>(FamilyApiImpl(dioClient), permanent: true);
+  Get.put<ProfileApi>(ProfileApiImpl(dioClient), permanent: true);
 
   await sessionStore.bootstrap(); // thử silent refresh, set AuthStatus
 

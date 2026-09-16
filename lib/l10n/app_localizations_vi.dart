@@ -254,4 +254,135 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get completeProfile => 'Hoàn tất hồ sơ';
+
+  @override
+  String get profileTitle => 'Hồ sơ của tôi';
+
+  @override
+  String get profileEmailMissing => 'Chưa đặt email';
+
+  @override
+  String get profileEdit => 'Chỉnh sửa hồ sơ';
+
+  @override
+  String get profileEditBlocked => 'Tính năng đang hoàn thiện, sẽ sớm ra mắt.';
+
+  @override
+  String get profileEditTitle => 'Chỉnh sửa hồ sơ';
+
+  @override
+  String get profileSave => 'Lưu';
+
+  @override
+  String get profileSavedToast => 'Đã cập nhật hồ sơ';
+
+  @override
+  String get healthProfileTitle => 'Hồ sơ sức khoẻ';
+
+  @override
+  String get healthProfileEmpty =>
+      'Chưa thiết lập — điền để nhận gợi ý cá nhân hoá.';
+
+  @override
+  String get healthProfileTargetCalories => 'Mục tiêu calo/ngày';
+
+  @override
+  String get healthProfileDietType => 'Chế độ ăn';
+
+  @override
+  String get healthProfileHeight => 'Chiều cao (cm)';
+
+  @override
+  String get healthProfileWeight => 'Cân nặng (kg)';
+
+  @override
+  String get healthProfileAllergensSection => 'Dị ứng';
+
+  @override
+  String get healthProfileAllergensEmpty => 'Chưa chọn dị ứng nào.';
+
+  @override
+  String get healthProfileAllergensEdit => 'Sửa dị ứng';
+
+  @override
+  String get healthSave => 'Lưu hồ sơ sức khoẻ';
+
+  @override
+  String get healthSavedToast => 'Đã lưu hồ sơ sức khoẻ';
+
+  @override
+  String get allergensTitle => 'Dị ứng của tôi';
+
+  @override
+  String get allergensCatalogEmpty => 'Danh mục dị ứng không khả dụng.';
+
+  @override
+  String get allergensSelectNone => 'Không có dị ứng';
+
+  @override
+  String get allergensSave => 'Lưu dị ứng';
+
+  @override
+  String get allergensSavedToast => 'Đã cập nhật dị ứng';
+
+  @override
+  String get dietTypeNone => 'Không';
+
+  @override
+  String get dietTypeKeto => 'Keto';
+
+  @override
+  String get dietTypeVegetarian => 'Ăn chay';
+
+  @override
+  String get dietTypeVegan => 'Vegan';
+
+  @override
+  String get dietTypePescatarian => 'Pescatarian';
+
+  @override
+  String get dietTypeGlutenFree => 'Không gluten';
+
+  @override
+  String get dietTypeDiabetic => 'Tiểu đường';
+
+  @override
+  String get familyTitle => 'Gia đình';
+
+  @override
+  String get familyRosterEmpty => 'Chưa có thành viên khác.';
+
+  @override
+  String get familyCreateInvite => 'Tạo lời mời';
+
+  @override
+  String get familyRemove => 'Xoá khỏi gia đình';
+
+  @override
+  String get familyRemoveConfirm => 'Xoá thành viên này khỏi gia đình?';
+
+  @override
+  String get familyRemoveCancel => 'Huỷ';
+
+  @override
+  String get familyYou => 'Bạn';
+
+  @override
+  String get familyInviteRateLimited => 'Bạn đã có 3 lời mời đang mở.';
+
+  @override
+  String get memberDetailTitle => 'Thành viên';
+
+  @override
+  String get memberDetailDietType => 'Chế độ ăn';
+
+  @override
+  String get memberDetailAllergensSection => 'Dị ứng';
+
+  @override
+  String get memberDetailAllergensEmpty => 'Chưa có dị ứng.';
+
+  @override
+  String get staleDataBanner =>
+      'Dữ liệu có thể chưa cập nhật — đang hiển thị bản lưu gần nhất.';
 }

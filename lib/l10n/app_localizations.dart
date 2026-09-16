@@ -63,7 +63,7 @@ import 'app_localizations_vi.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('vi')
+    Locale('vi'),
   ];
 
   /// Application name shown in the OS task switcher
@@ -583,6 +583,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Complete profile'**
   String get completeProfile;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My profile'**
+  String get profileTitle;
+
+  /// No description provided for @profileEmailMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Email not set'**
+  String get profileEmailMissing;
+
+  /// No description provided for @profileEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get profileEdit;
+
+  /// No description provided for @profileEditBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature is being completed. It will be available soon.'**
+  String get profileEditBlocked;
+
+  /// No description provided for @profileEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get profileEditTitle;
+
+  /// No description provided for @profileSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get profileSave;
+
+  /// No description provided for @profileSavedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated'**
+  String get profileSavedToast;
+
+  /// No description provided for @healthProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health profile'**
+  String get healthProfileTitle;
+
+  /// No description provided for @healthProfileEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set up yet — fill in to get personalized suggestions.'**
+  String get healthProfileEmpty;
+
+  /// No description provided for @healthProfileTargetCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily calorie goal'**
+  String get healthProfileTargetCalories;
+
+  /// No description provided for @healthProfileDietType.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet type'**
+  String get healthProfileDietType;
+
+  /// No description provided for @healthProfileHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (cm)'**
+  String get healthProfileHeight;
+
+  /// No description provided for @healthProfileWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg)'**
+  String get healthProfileWeight;
+
+  /// No description provided for @healthProfileAllergensSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergens'**
+  String get healthProfileAllergensSection;
+
+  /// No description provided for @healthProfileAllergensEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No allergens selected.'**
+  String get healthProfileAllergensEmpty;
+
+  /// No description provided for @healthProfileAllergensEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit allergens'**
+  String get healthProfileAllergensEdit;
+
+  /// No description provided for @healthSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save health profile'**
+  String get healthSave;
+
+  /// No description provided for @healthSavedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Health profile saved'**
+  String get healthSavedToast;
+
+  /// No description provided for @allergensTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My allergens'**
+  String get allergensTitle;
+
+  /// No description provided for @allergensCatalogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergen catalog unavailable.'**
+  String get allergensCatalogEmpty;
+
+  /// No description provided for @allergensSelectNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None known'**
+  String get allergensSelectNone;
+
+  /// No description provided for @allergensSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save allergens'**
+  String get allergensSave;
+
+  /// No description provided for @allergensSavedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergens updated'**
+  String get allergensSavedToast;
+
+  /// No description provided for @dietTypeNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get dietTypeNone;
+
+  /// No description provided for @dietTypeKeto.
+  ///
+  /// In en, this message translates to:
+  /// **'Keto'**
+  String get dietTypeKeto;
+
+  /// No description provided for @dietTypeVegetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetarian'**
+  String get dietTypeVegetarian;
+
+  /// No description provided for @dietTypeVegan.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegan'**
+  String get dietTypeVegan;
+
+  /// No description provided for @dietTypePescatarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Pescatarian'**
+  String get dietTypePescatarian;
+
+  /// No description provided for @dietTypeGlutenFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Gluten free'**
+  String get dietTypeGlutenFree;
+
+  /// No description provided for @dietTypeDiabetic.
+  ///
+  /// In en, this message translates to:
+  /// **'Diabetic'**
+  String get dietTypeDiabetic;
+
+  /// No description provided for @familyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get familyTitle;
+
+  /// No description provided for @familyRosterEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No other members yet.'**
+  String get familyRosterEmpty;
+
+  /// No description provided for @familyCreateInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Create invite'**
+  String get familyCreateInvite;
+
+  /// No description provided for @familyRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from household'**
+  String get familyRemove;
+
+  /// No description provided for @familyRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this member from the household?'**
+  String get familyRemoveConfirm;
+
+  /// No description provided for @familyRemoveCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get familyRemoveCancel;
+
+  /// No description provided for @familyYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get familyYou;
+
+  /// No description provided for @familyInviteRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have 3 active invites.'**
+  String get familyInviteRateLimited;
+
+  /// No description provided for @memberDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get memberDetailTitle;
+
+  /// No description provided for @memberDetailDietType.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet type'**
+  String get memberDetailDietType;
+
+  /// No description provided for @memberDetailAllergensSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergens'**
+  String get memberDetailAllergensSection;
+
+  /// No description provided for @memberDetailAllergensEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No allergens registered.'**
+  String get memberDetailAllergensEmpty;
+
+  /// No description provided for @staleDataBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Data may be out of date — showing the latest saved copy.'**
+  String get staleDataBanner;
 }
 
 class _AppLocalizationsDelegate
@@ -612,8 +870,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }
