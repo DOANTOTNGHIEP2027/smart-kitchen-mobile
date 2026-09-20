@@ -1,4 +1,4 @@
-package com.example.smart_kitchen_mobile
+package com.smartkitchen.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 
