@@ -4,6 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../domain/meal_suggestion.dart';
 import 'allergen_banner.dart';
+import 'recipe_cover_image.dart';
 
 /// Card hiển thị 1 suggestion món ăn. Dùng trong cả `MealSuggestionDetailScene`
 /// (chi tiết đầy đủ) và `VoteSessionScene` (rút gọn).
@@ -33,84 +34,144 @@ class SuggestionCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(
           horizontal: AppDimens.md, vertical: AppDimens.xs),
+      elevation: 0,
       shape: isMyVote
           ? RoundedRectangleBorder(
               side: BorderSide(
                   color: theme.colorScheme.primary, width: 2),
               borderRadius: BorderRadius.circular(AppDimens.radiusMd),
             )
-          : null,
+          : RoundedRectangleBorder(
+              side: const BorderSide(color: AppColors.border),
+              borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+            ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    suggestion.mealName,
-                    style: theme.textTheme.titleMedium,
+            if (compact)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  RecipeCoverImage(
+                    recipeId: suggestion.recipeId,
+                    recipeName: suggestion.mealName,
+                    width: 96,
+                    height: 96,
                   ),
-                ),
-                if (suggestion.source == 'GENERATED')
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimens.sm, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppDimens.radiusSm),
-                    ),
-                    child: const Text(
-                      'AI sinh',
-                      style: TextStyle(
-                        color: AppColors.secondary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  const SizedBox(width: AppDimens.md),
+                  Expanded(
+                    child: _SuggestionSummary(
+                      suggestion: suggestion,
+                      tallyCount: tallyCount,
+                      theme: theme,
                     ),
                   ),
-                if (tallyCount != null && tallyCount! > 0) ...<Widget>[
-                  const SizedBox(width: AppDimens.sm),
-                  _TallyBadge(count: tallyCount!),
                 ],
-              ],
-            ),
-            const SizedBox(height: AppDimens.sm),
-            // rankReason (lý do xếp hạng) — sinh từ engine, không từ LLM.
-            Text(
-              suggestion.rankReason ?? 'Không có lý do',
-              style: theme.textTheme.bodyMedium,
-            ),
-            if (suggestion.tradeoffNote != null) ...<Widget>[
-              const SizedBox(height: AppDimens.xs),
-              Text(
-                suggestion.tradeoffNote!,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: AppColors.textSecondary),
               ),
-            ],
-            AllergenBanner(suggestion: suggestion),
-            if (!compact &&
-                suggestion.missingIngredients.isNotEmpty) ...<Widget>[
-              const SizedBox(height: AppDimens.sm),
-              Text('Cần thêm:', style: theme.textTheme.titleSmall),
-              ...suggestion.missingIngredients.map(
-                (IngredientItem i) => Padding(
-                  padding: const EdgeInsets.only(left: AppDimens.md, top: 2),
-                  child: Text(
-                    '• ${i.role?.toLowerCase() == 'main' ? '[Chính] ' : ''}'
-                    '${i.name} — ${i.quantity} ${i.unit}',
-                    style: theme.textTheme.bodySmall,
+            if (compact) AllergenBanner(suggestion: suggestion)
+            else ...<Widget>[
+              RecipeCoverImage(
+                recipeId: suggestion.recipeId,
+                recipeName: suggestion.mealName,
+              ),
+              const SizedBox(height: AppDimens.md),
+              _SuggestionSummary(
+                suggestion: suggestion,
+                tallyCount: tallyCount,
+                theme: theme,
+              ),
+              AllergenBanner(suggestion: suggestion),
+              if (suggestion.missingIngredients.isNotEmpty) ...<Widget>[
+                const SizedBox(height: AppDimens.sm),
+                Text('Cần thêm:', style: theme.textTheme.titleSmall),
+                ...suggestion.missingIngredients.map(
+                  (IngredientItem i) => Padding(
+                    padding: const EdgeInsets.only(left: AppDimens.md, top: 2),
+                    child: Text(
+                      '• ${i.role?.toLowerCase() == 'main' ? '[Chính] ' : ''}'
+                      '${i.name} — ${i.quantity} ${i.unit}',
+                      style: theme.textTheme.bodySmall,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
           ],
         ),
       ),
     );
   }
+}
+
+class _SuggestionSummary extends StatelessWidget {
+  const _SuggestionSummary({
+    required this.suggestion,
+    required this.tallyCount,
+    required this.theme,
+  });
+
+  final MealSuggestion suggestion;
+  final int? tallyCount;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  suggestion.mealName,
+                  style: theme.textTheme.titleMedium,
+                ),
+              ),
+              if (suggestion.source == 'GENERATED') const _SourceBadge(),
+              if (tallyCount != null && tallyCount! > 0) ...<Widget>[
+                const SizedBox(width: AppDimens.sm),
+                _TallyBadge(count: tallyCount!),
+              ],
+            ],
+          ),
+          const SizedBox(height: AppDimens.sm),
+          Text(
+            suggestion.rankReason ?? 'Không có lý do',
+            style: theme.textTheme.bodyMedium,
+          ),
+          if (suggestion.tradeoffNote != null) ...<Widget>[
+            const SizedBox(height: AppDimens.xs),
+            Text(
+              suggestion.tradeoffNote!,
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: AppColors.textSecondary),
+            ),
+          ],
+        ],
+      );
+}
+
+class _SourceBadge extends StatelessWidget {
+  const _SourceBadge();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppDimens.sm, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.secondary.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+        ),
+        child: const Text(
+          'AI sinh',
+          style: TextStyle(
+            color: AppColors.secondary,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
 }
 
 class _TallyBadge extends StatelessWidget {

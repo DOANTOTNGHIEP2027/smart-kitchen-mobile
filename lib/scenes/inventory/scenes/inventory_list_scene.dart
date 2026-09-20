@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
+import '../../../constants/app_dimens.dart';
 import '../../../stores/session_store.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
@@ -90,7 +91,6 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                     decoration: const InputDecoration(
                       hintText: 'Tìm theo tên…',
                       prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
                       isDense: true,
                     ),
                     onChanged: store.setSearchQuery,
@@ -167,6 +167,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                 return RefreshIndicator(
                   onRefresh: () => store.syncFromServer(),
                   child: ListView.builder(
+                    padding: const EdgeInsets.only(bottom: AppDimens.xxl),
                     itemCount: filtered.length,
                     itemBuilder: (_, i) {
                       final item = filtered[i];

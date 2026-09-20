@@ -55,7 +55,12 @@ class _EmailLoginSceneState extends State<EmailLoginScene> {
               enabled: !store.isSubmitting && !locked,
               keyboardType: TextInputType.emailAddress,
               autofillHints: const [AutofillHints.email],
-              decoration: InputDecoration(labelText: 'email'.localized(context), errorText: _fieldError('email')),
+              decoration: InputDecoration(
+                labelText: 'email'.localized(context),
+                hintText: 'you@example.com',
+                prefixIcon: const Icon(Icons.alternate_email_rounded),
+                errorText: _fieldError('email'),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -64,7 +69,11 @@ class _EmailLoginSceneState extends State<EmailLoginScene> {
               obscureText: true,
               autofillHints: const [AutofillHints.password],
               onSubmitted: (_) => _submit(),
-              decoration: InputDecoration(labelText: 'password'.localized(context), errorText: _fieldError('password')),
+              decoration: InputDecoration(
+                labelText: 'password'.localized(context),
+                prefixIcon: const Icon(Icons.lock_outline),
+                errorText: _fieldError('password'),
+              ),
             ),
             const SizedBox(height: 20),
             AppButton(label: 'sign_in'.localized(context), isLoading: store.isSubmitting, onPressed: locked ? null : _submit),

@@ -31,6 +31,11 @@ class InventoryItemTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(
           horizontal: AppDimens.md, vertical: AppDimens.xs),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        side: const BorderSide(color: AppColors.border),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
@@ -39,17 +44,34 @@ class InventoryItemTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              Container(
+                width: 42,
+                height: 42,
+                margin: const EdgeInsets.only(right: AppDimens.sm),
+                decoration: BoxDecoration(
+                  color: _categoryColor(item.category),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+                ),
+                child: Icon(_categoryIcon(item.category),
+                    color: AppColors.primaryDark, size: 21),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(item.name, style: theme.textTheme.titleMedium),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(item.name,
+                              style: theme.textTheme.titleMedium),
+                        ),
+                        Text('$displayQty $displayUnitStr',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700)),
+                      ],
+                    ),
                     const SizedBox(height: AppDimens.xs),
-                    Text('$displayQty $displayUnitStr',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary)),
                     if (item.category != null) ...<Widget>[
-                      const SizedBox(height: AppDimens.xs),
                       Text(item.category!,
                           style: theme.textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary)),
@@ -77,12 +99,35 @@ class InventoryItemTile extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: AppDimens.xs),
               const Icon(Icons.chevron_right, color: AppColors.textDisabled),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Color _categoryColor(String? category) {
+    switch (category) {
+      case 'Rau củ':
+        return AppColors.success.withValues(alpha: 0.12);
+      case 'Thịt cá':
+        return AppColors.primaryLight;
+      default:
+        return AppColors.secondaryFill;
+    }
+  }
+
+  IconData _categoryIcon(String? category) {
+    switch (category) {
+      case 'Rau củ':
+        return Icons.eco_outlined;
+      case 'Thịt cá':
+        return Icons.set_meal_outlined;
+      default:
+        return Icons.inventory_2_outlined;
+    }
   }
 }
 

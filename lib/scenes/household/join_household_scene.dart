@@ -161,7 +161,12 @@ class _JoinHouseholdSceneState extends State<JoinHouseholdScene> {
         },
         onSubmitted: (_) => _preview(),
         decoration:
-            InputDecoration(labelText: 'invite_code'.localized(context), counterText: ''),
+            InputDecoration(
+              labelText: 'invite_code'.localized(context),
+              hintText: 'ABC12345',
+              prefixIcon: const Icon(Icons.key_outlined),
+              counterText: '',
+            ),
       ),
       const SizedBox(height: 16),
       if (state is LoadingState<InvitePreview>)
@@ -196,11 +201,27 @@ class _JoinHouseholdSceneState extends State<JoinHouseholdScene> {
       AppCard(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(preview.householdName,
-            style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
+        Row(children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.home_rounded, color: AppColors.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(preview.householdName,
+                style: Theme.of(context).textTheme.titleLarge),
+          ),
+        ]),
+        const SizedBox(height: 12),
         Text('${'household_owner'.localized(context)}: ${preview.ownerName}'),
+        const SizedBox(height: 4),
         Text('${'member_count'.localized(context)}: ${preview.memberCount}'),
+        const SizedBox(height: 4),
         Text(
             '${'invite_expires'.localized(context)}: ${MaterialLocalizations.of(context).formatMediumDate(preview.expiresAt.toLocal())}'),
       ])),
@@ -210,7 +231,11 @@ class _JoinHouseholdSceneState extends State<JoinHouseholdScene> {
             controller: displayName,
             enabled: !store.isSubmitting,
             textCapitalization: TextCapitalization.words,
-            decoration: InputDecoration(labelText: 'display_name_optional'.localized(context))),
+            decoration: InputDecoration(
+              labelText: 'display_name_optional'.localized(context),
+              hintText: 'Thành viên',
+              prefixIcon: const Icon(Icons.person_outline),
+            )),
       ],
       const SizedBox(height: 20),
       AppButton(

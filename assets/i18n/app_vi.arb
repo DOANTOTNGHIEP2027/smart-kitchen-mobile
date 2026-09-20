@@ -13,6 +13,37 @@
   "navShopping": "Đi chợ",
   "navProfile": "Cá nhân",
 
+  "homeGreeting": "Chào buổi sáng",
+  "homeQuickActions": "Hôm nay bạn muốn làm gì?",
+  "homeStartCooking": "Bắt đầu buổi nấu",
+  "homeStartCookingSubtitle": "Chọn món trong thực đơn để bắt đầu nấu",
+  "homeInventoryTitle": "Kho thực phẩm",
+  "homeInventorySubtitle": "Theo dõi nguyên liệu trong bếp",
+  "homeMealPlanTitle": "Kế hoạch bữa ăn",
+  "homeMealPlanSubtitle": "Sắp lịch và vote món cùng gia đình",
+  "homeRecommendedMeals": "Món ăn phù hợp",
+  "homeRecipeAction": "Xem cách nấu",
+  "homeRecipeDetailTitle": "Chi tiết món ăn",
+  "homeRecipeIngredients": "Nguyên liệu",
+  "homeRecipeGuide": "Nguồn công thức tham khảo",
+  "homeRecipeCook": "Nấu món này",
+  "homeRecipeMinutes": "{minutes} phút",
+  "@homeRecipeMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "homeRecipeCalories": "{calories} kcal",
+  "@homeRecipeCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+
   "devLoginTitle": "Đăng nhập",
   "devLoginSubtitle": "Luồng đăng nhập thật (Google / OTP / quét QR) sẽ có ở fe-onboarding.",
   "devLoginCta": "Vào thử với tài khoản demo",

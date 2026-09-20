@@ -43,7 +43,12 @@ class _DeductionRow extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(
-          horizontal: AppDimens.md, vertical: AppDimens.xs),
+          vertical: AppDimens.xs),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        side: const BorderSide(color: AppColors.border),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.md),
         child: Row(

@@ -4,6 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../widgets/cards/app_card.dart';
 import '../domain/household_member.dart';
 
 /// Một dòng roster trong FamilyScreen. `_isMe` → không tap được.
@@ -24,38 +25,45 @@ class MemberRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final avatar = member.avatarUrl;
-    return ListTile(
-      onTap: onTap,
-      leading: CircleAvatar(
-        backgroundColor: AppColors.primaryLight,
-        backgroundImage:
-            avatar == null ? null : NetworkImage(avatar) as ImageProvider<Object>,
-        radius: 20,
-        child: avatar == null
-            ? const Icon(Icons.person, color: AppColors.primary)
-            : null,
-      ),
-      title: Text(member.fullName, style: AppTextStyles.bodyMedium),
-      subtitle: member.provider == 'GUEST'
-          ? const Text('GUEST', style: AppTextStyles.label)
-          : null,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          if (member.role == 'OWNER')
-            _Badge(
-                label: context.l10n.householdOwner, filled: true)
-          else if (member.role == 'MEMBER')
-            _Badge(label: member.role, filled: false),
-          if (isOwner && onRemove != null) ...<Widget>[
-            const SizedBox(width: AppDimens.sm),
-            IconButton(
-              tooltip: context.l10n.familyRemove,
-              icon: const Icon(Icons.person_remove_outlined, size: 20),
-              onPressed: onRemove,
-            ),
-          ],
-        ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          AppDimens.md, AppDimens.sm, AppDimens.md, 0),
+      child: AppCard(
+        padding: EdgeInsets.zero,
+        onTap: onTap,
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: AppColors.primaryLight,
+            backgroundImage: avatar == null
+                ? null
+                : NetworkImage(avatar) as ImageProvider<Object>,
+            radius: 20,
+            child: avatar == null
+                ? const Icon(Icons.person, color: AppColors.primary)
+                : null,
+          ),
+          title: Text(member.fullName, style: AppTextStyles.bodyMedium),
+          subtitle: member.provider == 'GUEST'
+              ? const Text('GUEST', style: AppTextStyles.label)
+              : null,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (member.role == 'OWNER')
+                _Badge(label: context.l10n.householdOwner, filled: true)
+              else if (member.role == 'MEMBER')
+                _Badge(label: member.role, filled: false),
+              if (isOwner && onRemove != null) ...<Widget>[
+                const SizedBox(width: AppDimens.sm),
+                IconButton(
+                  tooltip: context.l10n.familyRemove,
+                  icon: const Icon(Icons.person_remove_outlined, size: 20),
+                  onPressed: onRemove,
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

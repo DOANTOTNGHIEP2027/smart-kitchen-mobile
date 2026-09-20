@@ -39,6 +39,7 @@ class SuggestionStore {
       Observable<ApiException?>(null);
 
   int get index => _index.value;
+  int get suggestionCount => _suggestions.length;
   SuggestionActionStatus get actionStatus => _actionStatus.value;
   ApiException? get actionError => _actionError.value;
 
@@ -52,6 +53,17 @@ class SuggestionStore {
           : null;
 
   bool get hasNext => _index.value + 1 < _suggestions.length;
+  bool get hasPrevious => _index.value > 0;
+
+  /// Di chuyển giữa các candidate chỉ đổi view state cục bộ, không vote hay
+  /// thay đổi dish. Đây là hành vi của nút/swap trái-phải trên màn gợi ý.
+  void viewNext() {
+    if (hasNext) runInAction(() => _index.value++);
+  }
+
+  void viewPrevious() {
+    if (hasPrevious) runInAction(() => _index.value--);
+  }
 
   /// `true` khi session join-degraded (CRITICAL-4) VÀ suggestions rỗng — UI
   /// PHẢI hiển thị state riêng, không lẫn với "đã xem hết".
@@ -138,9 +150,7 @@ class SuggestionStore {
 
   /// Reject — local-only, không gọi API.
   void rejectSuggestion() {
-    if (hasNext) {
-      runInAction(() => _index.value++);
-    }
+    viewNext();
   }
 
   /// Re-roll — KHÔNG optimistic (AC). Gần như luôn nhận 409 cho đúng dish này

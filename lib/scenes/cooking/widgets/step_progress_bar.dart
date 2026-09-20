@@ -20,8 +20,14 @@ class StepProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = totalSteps <= 0 ? 0.0 : (viewedStep / totalSteps);
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimens.md),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppDimens.md),
+      padding: const EdgeInsets.all(AppDimens.sm),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -43,7 +49,7 @@ class StepProgressBar extends StatelessWidget {
           const SizedBox(height: AppDimens.xs),
           LinearProgressIndicator(
             value: progress.clamp(0.0, 1.0),
-            minHeight: 6,
+            minHeight: 8,
             backgroundColor: AppColors.border,
             valueColor: AlwaysStoppedAnimation<Color>(
                 theme.colorScheme.primary),

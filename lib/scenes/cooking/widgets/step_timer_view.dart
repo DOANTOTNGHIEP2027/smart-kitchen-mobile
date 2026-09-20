@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 
 /// Hiển thị đồng hồ đếm ngược hoặc thời lượng gợi ý tĩnh (FE-6 §7.3).
@@ -30,12 +31,23 @@ class StepTimerView extends StatelessWidget {
     // Không đang ở bước hiện tại → hiển thị tĩnh.
     if (!isViewingCurrentStep) {
       final minutes = (durationSeconds! / 60).ceil();
-      return Padding(
+      return Container(
         padding: const EdgeInsets.symmetric(
             horizontal: AppDimens.md, vertical: AppDimens.sm),
-        child: Text(
-          'Thời lượng gợi ý: $minutes phút',
-          style: theme.textTheme.bodyMedium,
+        decoration: BoxDecoration(
+          color: AppColors.secondaryFill,
+          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        ),
+        child: Row(
+          children: <Widget>[
+            const Icon(Icons.timer_outlined,
+                size: 19, color: AppColors.textSecondary),
+            const SizedBox(width: AppDimens.sm),
+            Text(
+              'Thời lượng gợi ý: $minutes phút',
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
         ),
       );
     }
@@ -44,17 +56,24 @@ class StepTimerView extends StatelessWidget {
     final remaining = remainingSeconds ?? durationSeconds!;
     final mm = (remaining ~/ 60).toString().padLeft(2, '0');
     final ss = (remaining % 60).toString().padLeft(2, '0');
-    return Padding(
+    return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppDimens.md, vertical: AppDimens.sm),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.16)),
+      ),
       child: Row(
         children: <Widget>[
           Icon(timerRunning ? Icons.timer : Icons.timer_off,
-              size: 28),
+              size: 28, color: AppColors.primaryDark),
           const SizedBox(width: AppDimens.sm),
           Text(
             '$mm:$ss',
             style: theme.textTheme.headlineSmall?.copyWith(
+              color: AppColors.primaryDark,
+              fontWeight: FontWeight.w800,
               fontFeatures: const <FontFeature>[
                 FontFeature.tabularFigures()
               ],

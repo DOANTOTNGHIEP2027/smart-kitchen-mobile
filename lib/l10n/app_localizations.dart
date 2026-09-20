@@ -158,6 +158,102 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get navProfile;
 
+  /// No description provided for @homeGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get homeGreeting;
+
+  /// No description provided for @homeQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to do today?'**
+  String get homeQuickActions;
+
+  /// No description provided for @homeStartCooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Start cooking'**
+  String get homeStartCooking;
+
+  /// No description provided for @homeStartCookingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a dish in your plan to start cooking'**
+  String get homeStartCookingSubtitle;
+
+  /// No description provided for @homeInventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Food inventory'**
+  String get homeInventoryTitle;
+
+  /// No description provided for @homeInventorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep track of ingredients in your kitchen'**
+  String get homeInventorySubtitle;
+
+  /// No description provided for @homeMealPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal plan'**
+  String get homeMealPlanTitle;
+
+  /// No description provided for @homeMealPlanSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan and vote on meals with your household'**
+  String get homeMealPlanSubtitle;
+
+  /// No description provided for @homeRecommendedMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended meals'**
+  String get homeRecommendedMeals;
+
+  /// No description provided for @homeRecipeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View cooking steps'**
+  String get homeRecipeAction;
+
+  /// No description provided for @homeRecipeDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe details'**
+  String get homeRecipeDetailTitle;
+
+  /// No description provided for @homeRecipeIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get homeRecipeIngredients;
+
+  /// No description provided for @homeRecipeGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe source'**
+  String get homeRecipeGuide;
+
+  /// No description provided for @homeRecipeCook.
+  ///
+  /// In en, this message translates to:
+  /// **'Cook this meal'**
+  String get homeRecipeCook;
+
+  /// No description provided for @homeRecipeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String homeRecipeMinutes(int minutes);
+
+  /// No description provided for @homeRecipeCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'{calories} kcal'**
+  String homeRecipeCalories(int calories);
+
   /// Title of the temporary sign-in placeholder replaced by fe-onboarding (#28)
   ///
   /// In en, this message translates to:

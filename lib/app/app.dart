@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'env_config.dart';
 import '../constants/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../routing/app_pages.dart';
@@ -17,6 +18,9 @@ class SmartKitchenApp extends StatelessWidget {
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      // Bản demo dùng copy tiếng Việt nhất quán, không phụ thuộc locale của
+      // emulator. Bản kết nối backend thật vẫn theo ngôn ngữ hệ điều hành.
+      locale: EnvConfig.isDemoMode ? const Locale('vi') : null,
       initialRoute: AppRoutes.splash,
       getPages: AppPages.pages,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

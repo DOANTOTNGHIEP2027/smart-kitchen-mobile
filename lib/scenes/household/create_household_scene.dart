@@ -53,18 +53,37 @@ class _CreateHouseholdSceneState extends State<CreateHouseholdScene> {
             title: 'household_created'.localized(context),
             subtitle: household.name,
             child: Column(children: [
-              Semantics(
-                  label: 'invite_qr_semantics'.localized(context),
-                  child: QrImageView(
-                      data:
-                          'https://app.smartkitchen.vn/join/${household.inviteCode}',
-                      size: 220)),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5E5EA)),
+                ),
+                child: Semantics(
+                    label: 'invite_qr_semantics'.localized(context),
+                    child: QrImageView(
+                        data:
+                            'https://app.smartkitchen.vn/join/${household.inviteCode}',
+                        size: 188)),
+              ),
               const SizedBox(height: 12),
-              SelectableText(household.inviteCode,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF4EC),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: SelectableText(
+                  household.inviteCode,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 3)),
+                      letterSpacing: 3),
+                ),
+              ),
               const SizedBox(height: 20),
               AppButton(
                   label: 'invite_members'.localized(context),
@@ -92,7 +111,10 @@ class _CreateHouseholdSceneState extends State<CreateHouseholdScene> {
                 textCapitalization: TextCapitalization.words,
                 onSubmitted: (_) => _submit(),
                 decoration: InputDecoration(
-                    labelText: 'household_name'.localized(context), errorText: localError)),
+                    labelText: 'household_name'.localized(context),
+                    hintText: 'Nhà Nguyễn',
+                    prefixIcon: const Icon(Icons.home_outlined),
+                    errorText: localError)),
             const SizedBox(height: 20),
             AppButton(
                 label: 'create_household'.localized(context),
