@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../domain/unit_option.dart';
 
@@ -22,9 +23,14 @@ Future<UnitOption?> showUnitPicker(BuildContext context,
           ...unitOptions.map((u) {
             final isSelected = selected?.value == u.value;
             return ListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+              ),
+              tileColor: isSelected ? AppColors.primaryLight : null,
               leading: Icon(isSelected
                   ? Icons.radio_button_checked
-                  : Icons.radio_button_off),
+                  : Icons.radio_button_off,
+                  color: isSelected ? AppColors.primaryDark : null),
               title: Text(u.label),
               onTap: () => Navigator.of(context).pop(u),
             );

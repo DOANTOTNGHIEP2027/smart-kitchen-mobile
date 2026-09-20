@@ -47,11 +47,14 @@ class RealtimeService {
   RealtimeService({
     required TokenStorage tokenStorage,
     String? wsBaseUrl,
+    bool enabled = true,
   })  : _tokenStorage = tokenStorage,
-        _wsBaseUrl = wsBaseUrl ?? _defaultWsBaseUrl();
+        _wsBaseUrl = wsBaseUrl ?? _defaultWsBaseUrl(),
+        _enabled = enabled;
 
   final TokenStorage _tokenStorage;
   final String _wsBaseUrl;
+  final bool _enabled;
 
   WebSocketChannel? _channel;
   StreamSubscription<dynamic>? _channelSub;
@@ -82,6 +85,14 @@ class RealtimeService {
   /// Kết nối và subscribe các topic của [householdId].
   /// Nếu đang kết nối với household khác, disconnect trước.
   Future<void> connect(String householdId) async {
+    if (!_enabled) {
+      // Demo mode có transport no-op: không mở socket, không retry và cũng
+      // không giả event. Feature store vẫn có một stream hợp lệ để đăng ký.
+      _currentHouseholdId = householdId;
+      _cancelReconnect();
+      _setState(WsConnectionState.disconnected);
+      return;
+    }
     if (_currentHouseholdId == householdId &&
         _state == WsConnectionState.connected) {
       return; // đã connected đúng household, không làm gì

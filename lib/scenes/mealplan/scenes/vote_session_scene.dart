@@ -8,6 +8,7 @@ import '../../../stores/realtime_store.dart';
 import '../../../stores/session_store.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
+import '../../../widgets/cards/app_card.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_loading_view.dart';
 import '../data/vote_api.dart';
@@ -73,15 +74,33 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
                 if (session.deadlineAt != null)
                   Padding(
                     padding: const EdgeInsets.all(AppDimens.md),
-                    child: Row(
-                      children: <Widget>[
-                        const Icon(Icons.timer_outlined, size: 18),
-                        const SizedBox(width: AppDimens.xs),
-                        Text(
-                          'Đóng lúc: ${session.deadlineAt!}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+                    child: AppCard(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.md, vertical: AppDimens.sm),
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius:
+                                  BorderRadius.circular(AppDimens.radiusSm),
+                            ),
+                            child: const Icon(Icons.how_to_vote_outlined,
+                                color: AppColors.primaryDark, size: 19),
+                          ),
+                          const SizedBox(width: AppDimens.sm),
+                          Expanded(
+                            child: Text(
+                              'Đóng lúc: ${session.deadlineAt!}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                          const Icon(Icons.timer_outlined,
+                              size: 18, color: AppColors.textSecondary),
+                        ],
+                      ),
                     ),
                   ),
                 if (session.suggestionsSourceDegraded &&
@@ -105,6 +124,7 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
                           ],
                         )
                       : ListView.builder(
+                          padding: const EdgeInsets.only(bottom: AppDimens.sm),
                           itemCount: session.suggestions.length,
                           itemBuilder: (_, int i) {
                             final suggestion = session.suggestions[i];

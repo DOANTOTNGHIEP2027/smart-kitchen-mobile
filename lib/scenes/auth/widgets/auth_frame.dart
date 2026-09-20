@@ -6,7 +6,13 @@ import '../../../widgets/app_scaffold.dart';
 import '../../../utils/l10n_x.dart';
 
 class AuthFrame extends StatelessWidget {
-  const AuthFrame({super.key, required this.title, required this.subtitle, required this.child, this.showBrand = false});
+  const AuthFrame({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+    this.showBrand = false,
+  });
 
   final String title;
   final String subtitle;
@@ -15,25 +21,70 @@ class AuthFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppScaffold(
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppDimens.xl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: AutofillGroup(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (showBrand) ...[
-                      const Align(child: BrandMark()),
-                      const SizedBox(height: AppDimens.lg),
-                    ],
-                    Text(title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800), textAlign: TextAlign.center),
-                    const SizedBox(height: AppDimens.sm),
-                    Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary), textAlign: TextAlign.center),
-                    const SizedBox(height: AppDimens.xl),
-                    child,
-                  ],
+        title: title,
+        body: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.center,
+              colors: <Color>[AppColors.primaryLight, AppColors.background],
+              stops: <double>[0, .42],
+            ),
+          ),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                AppDimens.lg,
+                AppDimens.xxl,
+                AppDimens.lg,
+                AppDimens.xl,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: AutofillGroup(
+                  child: Container(
+                    padding: const EdgeInsets.all(AppDimens.lg),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface.withValues(alpha: .96),
+                      borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+                      border: Border.all(color: AppColors.border),
+                      boxShadow: const <BoxShadow>[
+                        BoxShadow(
+                          color: Color(0x12000000),
+                          blurRadius: 24,
+                          offset: Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        if (showBrand) ...<Widget>[
+                          const Align(child: BrandMark()),
+                          const SizedBox(height: AppDimens.md),
+                          Text(
+                            'Smart Kitchen',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w800),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: AppDimens.sm),
+                        ],
+                        Text(
+                          subtitle,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.textSecondary,
+                                height: 1.45,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppDimens.lg),
+                        child,
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -62,7 +113,11 @@ class BrandMark extends StatelessWidget {
             ),
           ],
         ),
-        child: const SizedBox(width: 56, height: 56, child: Icon(Icons.soup_kitchen_rounded, color: Colors.white, size: 30)),
+        child: const SizedBox(
+          width: 56,
+          height: 56,
+          child: Icon(Icons.soup_kitchen_rounded, color: Colors.white, size: 30),
+        ),
       );
 }
 
@@ -81,11 +136,16 @@ class FeatureBanner extends StatelessWidget {
             color: isError ? const Color(0xFFFFEEEE) : AppColors.primaryLight,
             borderRadius: BorderRadius.circular(AppDimens.radiusSm),
           ),
-          child: Row(children: [
-            Icon(isError ? Icons.error_outline : Icons.info_outline, color: isError ? AppColors.error : AppColors.primary),
-            const SizedBox(width: AppDimens.sm),
-            Expanded(child: Text(message)),
-          ]),
+          child: Row(
+            children: <Widget>[
+              Icon(
+                isError ? Icons.error_outline : Icons.info_outline,
+                color: isError ? AppColors.error : AppColors.primary,
+              ),
+              const SizedBox(width: AppDimens.sm),
+              Expanded(child: Text(message)),
+            ],
+          ),
         ),
       );
 }

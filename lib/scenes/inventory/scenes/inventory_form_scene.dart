@@ -107,7 +107,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                   decoration: const InputDecoration(
                     labelText: 'Tên mặt hàng *',
                     hintText: 'vd. Cà chua',
-                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.inventory_2_outlined),
                   ),
                   textInputAction: TextInputAction.next,
                 ),
@@ -121,7 +121,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                         controller: _quantityCtrl,
                         decoration: const InputDecoration(
                           labelText: 'Số lượng *',
-                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.scale_outlined),
                         ),
                         keyboardType:
                             const TextInputType.numberWithOptions(decimal: true),
@@ -142,7 +142,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                         child: InputDecorator(
                           decoration: const InputDecoration(
                             labelText: 'Đơn vị',
-                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.straighten_outlined),
                           ),
                           child: Text(_unit?.label ?? 'Chọn…'),
                         ),
@@ -155,7 +155,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                   controller: _lowStockCtrl,
                   decoration: const InputDecoration(
                     labelText: 'Ngưỡng sắp hết (tuỳ chọn)',
-                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.warning_amber_outlined),
                   ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
@@ -177,8 +177,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                   child: InputDecorator(
                     decoration: const InputDecoration(
                       labelText: 'Hạn sử dụng (tuỳ chọn)',
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.event),
+                      prefixIcon: Icon(Icons.event_outlined),
                     ),
                     child: Text(_expiryDate == null
                         ? 'Chọn ngày…'
@@ -190,7 +189,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                   controller: _noteCtrl,
                   decoration: const InputDecoration(
                     labelText: 'Ghi chú (tuỳ chọn)',
-                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.notes_outlined),
                   ),
                   maxLines: 2,
                   textInputAction: TextInputAction.done,

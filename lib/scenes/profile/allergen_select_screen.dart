@@ -6,6 +6,7 @@ import '../../constants/app_dimens.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/cards/app_card.dart';
 import '../../widgets/states/app_state_view.dart';
 import '../../widgets/states/view_state.dart';
 import 'domain/allergen.dart';
@@ -79,16 +80,27 @@ class _AllergenSelectScreenState extends State<AllergenSelectScreen> {
                       itemCount: catalog.length,
                       itemBuilder: (_, int i) {
                         final a = catalog[i];
-                        return CheckboxListTile(
-                          value: selected.contains(a.id),
-                          onChanged: (bool? v) => setState(() {
-                            if (v == true) {
-                              selected.add(a.id);
-                            } else {
-                              selected.remove(a.id);
-                            }
-                          }),
-                          title: Text(a.name),
+                        final checked = selected.contains(a.id);
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                              AppDimens.md, 0, AppDimens.md, AppDimens.sm),
+                          child: AppCard(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppDimens.sm),
+                            child: CheckboxListTile(
+                              value: checked,
+                              contentPadding: EdgeInsets.zero,
+                              activeColor: const Color(0xFFFF7A45),
+                              onChanged: (bool? v) => setState(() {
+                                if (v == true) {
+                                  selected.add(a.id);
+                                } else {
+                                  selected.remove(a.id);
+                                }
+                              }),
+                              title: Text(a.name),
+                            ),
+                          ),
                         );
                       },
                     );

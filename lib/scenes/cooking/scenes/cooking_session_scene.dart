@@ -8,6 +8,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
+import '../../../widgets/cards/app_card.dart';
 import '../../../widgets/states/app_loading_view.dart';
 import '../stores/cooking_session_store.dart';
 import '../widgets/ingredient_deduction_list.dart';
@@ -258,10 +259,26 @@ class _ActiveStepView extends StatelessWidget {
                         onReset: store.resetTimer,
                       ),
                       const SizedBox(height: AppDimens.md),
-                      Text(
-                        store.viewedStepDef?.instruction ??
-                            'Nội dung bước không khả dụng.', // Guard #7
-                        style: theme.textTheme.bodyLarge,
+                      AppCard(
+                        padding: const EdgeInsets.all(AppDimens.lg),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Bước ${store.viewedStep}',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                  color: AppColors.primaryDark,
+                                  fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: AppDimens.sm),
+                            Text(
+                              store.viewedStepDef?.instruction ??
+                                  'Nội dung bước không khả dụng.', // Guard #7
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                  height: 1.5, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: AppDimens.lg),
                       if (!store.isViewingCurrentStep)
@@ -332,12 +349,25 @@ class _CompletedResultView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Icon(
-              hasAnyShortfall ? Icons.warning_amber : Icons.check_circle,
-              size: AppDimens.stateIcon,
-              color: hasAnyShortfall
-                  ? AppColors.warning
-                  : AppColors.success,
+            Center(
+              child: Container(
+                width: AppDimens.stateIcon + AppDimens.md,
+                height: AppDimens.stateIcon + AppDimens.md,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: (hasAnyShortfall ? AppColors.warning : AppColors.success)
+                      .withValues(alpha: 0.13),
+                ),
+                child: Icon(
+                  hasAnyShortfall
+                      ? Icons.warning_amber_rounded
+                      : Icons.check_rounded,
+                  size: AppDimens.stateIcon,
+                  color: hasAnyShortfall
+                      ? AppColors.warning
+                      : AppColors.success,
+                ),
+              ),
             ),
             const SizedBox(height: AppDimens.md),
             Text(

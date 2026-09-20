@@ -41,6 +41,7 @@ class MealCard extends StatelessWidget {
         final uiStatus = store.uiStatusOf(slotKey);
         return Card(
           margin: const EdgeInsets.all(2),
+          elevation: 0,
           color: _bgColor(uiStatus),
           shape: RoundedRectangleBorder(
             side: BorderSide(color: _borderColor(uiStatus)),
@@ -53,7 +54,7 @@ class MealCard extends StatelessWidget {
                   }
                 : null,
             child: Padding(
-              padding: const EdgeInsets.all(AppDimens.xs),
+              padding: const EdgeInsets.all(AppDimens.sm),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -71,6 +72,7 @@ class MealCard extends StatelessWidget {
                       label: const Text('Thêm món',
                           style: TextStyle(fontSize: 11)),
                       style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.primary,
                         padding: const EdgeInsets.symmetric(
                             horizontal: AppDimens.sm),
                         minimumSize: const Size(0, 28),

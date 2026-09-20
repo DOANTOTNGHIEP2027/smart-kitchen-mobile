@@ -37,6 +37,37 @@
   "navProfile": "Profile",
   "@navProfile": {},
 
+  "homeGreeting": "Good morning",
+  "homeQuickActions": "What would you like to do today?",
+  "homeStartCooking": "Start cooking",
+  "homeStartCookingSubtitle": "Choose a dish in your plan to start cooking",
+  "homeInventoryTitle": "Food inventory",
+  "homeInventorySubtitle": "Keep track of ingredients in your kitchen",
+  "homeMealPlanTitle": "Meal plan",
+  "homeMealPlanSubtitle": "Plan and vote on meals with your household",
+  "homeRecommendedMeals": "Recommended meals",
+  "homeRecipeAction": "View cooking steps",
+  "homeRecipeDetailTitle": "Recipe details",
+  "homeRecipeIngredients": "Ingredients",
+  "homeRecipeGuide": "Recipe source",
+  "homeRecipeCook": "Cook this meal",
+  "homeRecipeMinutes": "{minutes} min",
+  "@homeRecipeMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "homeRecipeCalories": "{calories} kcal",
+  "@homeRecipeCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+
   "devLoginTitle": "Sign in",
   "@devLoginTitle": {
     "description": "Title of the temporary sign-in placeholder replaced by fe-onboarding (#28)"

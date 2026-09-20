@@ -331,18 +331,20 @@ class MealPlanStore {
   }
 
   /// Thêm 1 dish rỗng (nút "+ Thêm món"). KHÔNG optimistic — chờ `id` thật.
-  Future<void> addDish(String slotId) async {
+  Future<MealPlanDish?> addDish(String slotId) async {
     final planId = _currentPlanId.value;
     final key = slotKeyOf(slotId);
-    if (key == null || planId == null) return;
+    if (key == null || planId == null) return null;
     try {
       final dish = await _api.addDish(planId, slotId);
       final slot = _slots[key];
-      if (slot == null) return;
+      if (slot == null) return null;
       // Đi qua _setDishes (Guard §15.15) thay vì inline slots[key]= trực tiếp.
       _setDishes(key, <MealPlanDish>[...slot.dishes, dish]);
+      return dish;
     } on ApiException catch (e) {
       runInAction(() => _loadError.value = e);
+      return null;
     }
   }
 

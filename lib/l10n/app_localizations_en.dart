@@ -39,6 +39,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navProfile => 'Profile';
 
   @override
+  String get homeGreeting => 'Good morning';
+
+  @override
+  String get homeQuickActions => 'What would you like to do today?';
+
+  @override
+  String get homeStartCooking => 'Start cooking';
+
+  @override
+  String get homeStartCookingSubtitle =>
+      'Choose a dish in your plan to start cooking';
+
+  @override
+  String get homeInventoryTitle => 'Food inventory';
+
+  @override
+  String get homeInventorySubtitle =>
+      'Keep track of ingredients in your kitchen';
+
+  @override
+  String get homeMealPlanTitle => 'Meal plan';
+
+  @override
+  String get homeMealPlanSubtitle =>
+      'Plan and vote on meals with your household';
+
+  @override
+  String get homeRecommendedMeals => 'Recommended meals';
+
+  @override
+  String get homeRecipeAction => 'View cooking steps';
+
+  @override
+  String get homeRecipeDetailTitle => 'Recipe details';
+
+  @override
+  String get homeRecipeIngredients => 'Ingredients';
+
+  @override
+  String get homeRecipeGuide => 'Recipe source';
+
+  @override
+  String get homeRecipeCook => 'Cook this meal';
+
+  @override
+  String homeRecipeMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String homeRecipeCalories(int calories) {
+    return '$calories kcal';
+  }
+
+  @override
   String get devLoginTitle => 'Sign in';
 
   @override

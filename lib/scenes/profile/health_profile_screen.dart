@@ -7,6 +7,7 @@ import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/cards/app_card.dart';
 import '../../widgets/states/app_state_view.dart';
 import '../../widgets/states/view_state.dart';
 import 'domain/diet_type.dart';
@@ -101,7 +102,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                           decoration: InputDecoration(
                             labelText:
                                 context.l10n.healthProfileTargetCalories,
-                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.local_fire_department_outlined),
+                            suffixText: 'kcal',
                           ),
                         ),
                         const SizedBox(height: AppDimens.sm),
@@ -109,7 +111,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                           initialValue: diet,
                           decoration: InputDecoration(
                             labelText: context.l10n.healthProfileDietType,
-                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.restaurant_menu_outlined),
                           ),
                           items: <DropdownMenuItem<DietType?>>[
                             for (final DietType d in DietType.values)
@@ -129,7 +131,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                           decoration: InputDecoration(
                             labelText:
                                 context.l10n.healthProfileHeight,
-                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.height_rounded),
                           ),
                         ),
                         const SizedBox(height: AppDimens.sm),
@@ -140,7 +142,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                           decoration: InputDecoration(
                             labelText:
                                 context.l10n.healthProfileWeight,
-                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.monitor_weight_outlined),
                           ),
                         ),
                         const SizedBox(height: AppDimens.md),
@@ -185,31 +187,39 @@ class _AllergensSummary extends StatelessWidget {
       final allergens = state is SuccessState<HealthProfile>
           ? state.data.allergens
           : const <dynamic>[];
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(context.l10n.healthProfileAllergensSection,
-              style: const TextStyle(fontWeight: FontWeight.w600)),
-          const SizedBox(height: AppDimens.sm),
-          if (allergens.isEmpty)
-            Text(context.l10n.healthProfileAllergensEmpty)
-          else
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
+      return AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
               children: <Widget>[
-                for (final a in allergens) Chip(label: Text(a.name)),
+                const Icon(Icons.health_and_safety_outlined),
+                const SizedBox(width: AppDimens.sm),
+                Text(context.l10n.healthProfileAllergensSection,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
               ],
             ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: onEdit,
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              label: Text(context.l10n.healthProfileAllergensEdit),
+            const SizedBox(height: AppDimens.sm),
+            if (allergens.isEmpty)
+              Text(context.l10n.healthProfileAllergensEmpty)
+            else
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: <Widget>[
+                  for (final a in allergens) Chip(label: Text(a.name)),
+                ],
+              ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: Text(context.l10n.healthProfileAllergensEdit),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     });
   }

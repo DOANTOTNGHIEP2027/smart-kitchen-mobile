@@ -79,7 +79,25 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                SuggestionCard(suggestion: suggestion),
+                GestureDetector(
+                  onHorizontalDragEnd: (details) {
+                    final velocity = details.primaryVelocity ?? 0;
+                    if (velocity <= -240) {
+                      _store.viewNext();
+                    } else if (velocity >= 240) {
+                      _store.viewPrevious();
+                    }
+                  },
+                  child: SuggestionCard(suggestion: suggestion),
+                ),
+                _SuggestionPager(
+                  current: _store.index + 1,
+                  total: _store.suggestionCount,
+                  canGoPrevious: _store.hasPrevious,
+                  canGoNext: _store.hasNext,
+                  onPrevious: _store.viewPrevious,
+                  onNext: _store.viewNext,
+                ),
                 // Hiển thị AllergenBanner riêng ngoài card để test DoD rõ hơn.
                 AllergenBanner(suggestion: suggestion),
                 if (suggestion.missingIngredients.isNotEmpty) ...<Widget>[
@@ -161,4 +179,76 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
       ),
     );
   }
+}
+
+class _SuggestionPager extends StatelessWidget {
+  const _SuggestionPager({
+    required this.current,
+    required this.total,
+    required this.canGoPrevious,
+    required this.canGoNext,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final int current;
+  final int total;
+  final bool canGoPrevious;
+  final bool canGoNext;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.md, vertical: AppDimens.sm),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            _PagerButton(
+              icon: Icons.arrow_back_rounded,
+              enabled: canGoPrevious,
+              onPressed: onPrevious,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppDimens.md),
+              child: Text(
+                '$current/$total',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ),
+            _PagerButton(
+              icon: Icons.arrow_forward_rounded,
+              enabled: canGoNext,
+              onPressed: onNext,
+            ),
+          ],
+        ),
+      );
+}
+
+class _PagerButton extends StatelessWidget {
+  const _PagerButton({
+    required this.icon,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: enabled ? AppColors.primaryLight : AppColors.secondaryFill,
+        shape: const CircleBorder(),
+        child: IconButton(
+          onPressed: enabled ? onPressed : null,
+          icon: Icon(icon),
+          color: enabled ? AppColors.primaryDark : AppColors.textDisabled,
+        ),
+      );
 }

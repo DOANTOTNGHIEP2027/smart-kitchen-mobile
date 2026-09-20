@@ -110,7 +110,12 @@ Future<void> bootstrap() async {
   await connectivityService.init();
   Get.put<ConnectivityService>(connectivityService, permanent: true);
 
-  final realtimeService = RealtimeService(tokenStorage: tokenStorage);
+  // Demo không được cố mở WebSocket tới backend thật. RealtimeService vẫn là
+  // no-op stream để mọi feature có thể đăng ký listener như production.
+  final realtimeService = RealtimeService(
+    tokenStorage: tokenStorage,
+    enabled: !EnvConfig.isDemoMode,
+  );
   Get.put<RealtimeService>(realtimeService, permanent: true);
 
   Get.put<DeviceApi>(DeviceApiImpl(dioClient), permanent: true);

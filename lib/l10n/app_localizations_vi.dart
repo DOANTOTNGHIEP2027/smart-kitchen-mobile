@@ -39,6 +39,59 @@ class AppLocalizationsVi extends AppLocalizations {
   String get navProfile => 'Cá nhân';
 
   @override
+  String get homeGreeting => 'Chào buổi sáng';
+
+  @override
+  String get homeQuickActions => 'Hôm nay bạn muốn làm gì?';
+
+  @override
+  String get homeStartCooking => 'Bắt đầu buổi nấu';
+
+  @override
+  String get homeStartCookingSubtitle =>
+      'Chọn món trong thực đơn để bắt đầu nấu';
+
+  @override
+  String get homeInventoryTitle => 'Kho thực phẩm';
+
+  @override
+  String get homeInventorySubtitle => 'Theo dõi nguyên liệu trong bếp';
+
+  @override
+  String get homeMealPlanTitle => 'Kế hoạch bữa ăn';
+
+  @override
+  String get homeMealPlanSubtitle => 'Sắp lịch và vote món cùng gia đình';
+
+  @override
+  String get homeRecommendedMeals => 'Món ăn phù hợp';
+
+  @override
+  String get homeRecipeAction => 'Xem cách nấu';
+
+  @override
+  String get homeRecipeDetailTitle => 'Chi tiết món ăn';
+
+  @override
+  String get homeRecipeIngredients => 'Nguyên liệu';
+
+  @override
+  String get homeRecipeGuide => 'Nguồn công thức tham khảo';
+
+  @override
+  String get homeRecipeCook => 'Nấu món này';
+
+  @override
+  String homeRecipeMinutes(int minutes) {
+    return '$minutes phút';
+  }
+
+  @override
+  String homeRecipeCalories(int calories) {
+    return '$calories kcal';
+  }
+
+  @override
   String get devLoginTitle => 'Đăng nhập';
 
   @override
