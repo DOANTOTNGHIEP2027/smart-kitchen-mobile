@@ -61,7 +61,7 @@ void main() {
       slotDate: DateTime.parse('2026-09-16T00:00:00Z'),
       mealTime: 'DINNER',
       dishes: <MealPlanDish>[
-        MealPlanDish(
+        const MealPlanDish(
           id: 'dish-1',
           slotId: 'slot-1',
           sortOrder: 0,
@@ -71,7 +71,7 @@ void main() {
     );
   });
 
-  WsEventEnvelope _event(
+  WsEventEnvelope event(
     Map<String, dynamic> data, {
     String householdId = 'h1',
   }) =>
@@ -87,7 +87,7 @@ void main() {
   group('handleVoteEvent — 4 loại event', () {
     test('session_opened → thêm session vào activeSessions + set dish VOTING',
         () {
-      store.handleVoteEvent(_event(<String, dynamic>{
+      store.handleVoteEvent(event(<String, dynamic>{
         'type': 'session_opened',
         'slotId': 'slot-1',
         'dishId': 'dish-1',
@@ -120,18 +120,18 @@ void main() {
 
     test('member_voted → tally update cho đúng dishId', () {
       // Seed session trước
-      store.activeSessions['dish-1'] = VoteSessionSummary(
+      store.activeSessions['dish-1'] = const VoteSessionSummary(
         sessionId: 's-real',
         slotId: 'slot-1',
         dishId: 'dish-1',
         status: VoteSessionUiStatus.open,
-        suggestions: const <MealSuggestion>[
+        suggestions: <MealSuggestion>[
           MealSuggestion(recipeId: 'r1', mealName: 'M'),
         ],
-        tally: const <VoteTallyItem>[],
+        tally: <VoteTallyItem>[],
       );
 
-      store.handleVoteEvent(_event(<String, dynamic>{
+      store.handleVoteEvent(event(<String, dynamic>{
         'type': 'member_voted',
         'dishId': 'dish-1',
         'tally': <Map<String, dynamic>>[
@@ -158,7 +158,7 @@ void main() {
         tally: <VoteTallyItem>[],
       );
 
-      store.handleVoteEvent(_event(<String, dynamic>{
+      store.handleVoteEvent(event(<String, dynamic>{
         'type': 'session_closed',
         'slotId': 'slot-1',
         'dishId': 'dish-1',
@@ -181,7 +181,7 @@ void main() {
         tally: <VoteTallyItem>[],
       );
 
-      store.handleVoteEvent(_event(<String, dynamic>{
+      store.handleVoteEvent(event(<String, dynamic>{
         'type': 'winner_selected',
         'slotId': 'slot-1',
         'dishId': 'dish-1',
@@ -197,7 +197,7 @@ void main() {
     });
 
     test('household khác → bỏ qua toàn bộ event', () {
-      store.handleVoteEvent(_event(
+      store.handleVoteEvent(event(
         <String, dynamic>{
           'type': 'session_opened',
           'slotId': 'slot-1',
@@ -214,7 +214,7 @@ void main() {
     });
 
     test('type lạ → log warning, không crash', () {
-      store.handleVoteEvent(_event(<String, dynamic>{
+      store.handleVoteEvent(event(<String, dynamic>{
         'type': 'unknown_event',
         'dishId': 'dish-1',
       }));
@@ -231,12 +231,12 @@ void main() {
         slotDate: DateTime.parse('2026-09-16T00:00:00Z'),
         mealTime: 'DINNER',
         dishes: <MealPlanDish>[
-          MealPlanDish(
+          const MealPlanDish(
               id: 'dish-a',
               slotId: 'slot-1',
               sortOrder: 0,
               status: DishUiStatus.empty),
-          MealPlanDish(
+          const MealPlanDish(
               id: 'dish-b',
               slotId: 'slot-1',
               sortOrder: 1,
@@ -245,7 +245,7 @@ void main() {
       );
 
       // event cho dish-a
-      store.handleVoteEvent(_event(<String, dynamic>{
+      store.handleVoteEvent(event(<String, dynamic>{
         'type': 'session_opened',
         'slotId': 'slot-1',
         'dishId': 'dish-a',
@@ -265,7 +265,7 @@ void main() {
         ],
       }));
       // event cho dish-b
-      store.handleVoteEvent(_event(<String, dynamic>{
+      store.handleVoteEvent(event(<String, dynamic>{
         'type': 'session_opened',
         'slotId': 'slot-1',
         'dishId': 'dish-b',
@@ -318,12 +318,12 @@ void main() {
         slotDate: DateTime.parse('2026-09-16T00:00:00Z'),
         mealTime: 'LUNCH',
         dishes: <MealPlanDish>[
-          MealPlanDish(
+          const MealPlanDish(
               id: 'd1',
               slotId: 's',
               sortOrder: 0,
               status: DishUiStatus.confirmed),
-          MealPlanDish(
+          const MealPlanDish(
               id: 'd2',
               slotId: 's',
               sortOrder: 1,
@@ -339,12 +339,12 @@ void main() {
         slotDate: DateTime.parse('2026-09-16T00:00:00Z'),
         mealTime: 'LUNCH',
         dishes: <MealPlanDish>[
-          MealPlanDish(
+          const MealPlanDish(
               id: 'd1',
               slotId: 's',
               sortOrder: 0,
               status: DishUiStatus.confirmed),
-          MealPlanDish(
+          const MealPlanDish(
               id: 'd2',
               slotId: 's',
               sortOrder: 1,
@@ -360,12 +360,12 @@ void main() {
         slotDate: DateTime.parse('2026-09-16T00:00:00Z'),
         mealTime: 'LUNCH',
         dishes: <MealPlanDish>[
-          MealPlanDish(
+          const MealPlanDish(
               id: 'd1',
               slotId: 's',
               sortOrder: 0,
               status: DishUiStatus.confirmed),
-          MealPlanDish(
+          const MealPlanDish(
               id: 'd2',
               slotId: 's',
               sortOrder: 1,

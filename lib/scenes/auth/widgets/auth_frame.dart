@@ -48,11 +48,21 @@ class BrandMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [AppColors.primaryLight, AppColors.primary]),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.primaryGradientStart, AppColors.primary],
+          ),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: const [BoxShadow(color: Color(0x44FF7A45), blurRadius: 20, offset: Offset(0, 8))],
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.primaryShadow,
+              blurRadius: 18,
+              offset: Offset(0, 8),
+            ),
+          ],
         ),
-        child: const SizedBox(width: 72, height: 72, child: Icon(Icons.soup_kitchen_rounded, color: Colors.white, size: 38)),
+        child: const SizedBox(width: 56, height: 56, child: Icon(Icons.soup_kitchen_rounded, color: Colors.white, size: 30)),
       );
 }
 

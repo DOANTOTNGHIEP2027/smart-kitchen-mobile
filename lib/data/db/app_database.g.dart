@@ -1230,7 +1230,11 @@ class $$ReadCacheEntriesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ReadCacheEntriesTable, ReadCacheEntry>(table),
+                    BaseReferences<_$AppDatabase, $ReadCacheEntriesTable,
+                        ReadCacheEntry>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -1605,7 +1609,11 @@ class $$InventoryItemsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$InventoryItemsTable, InventoryItem>(table),
+                    BaseReferences<_$AppDatabase, $InventoryItemsTable,
+                        InventoryItem>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));

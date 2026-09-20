@@ -44,13 +44,13 @@ class _AuthLandingSceneState extends State<AuthLandingScene> {
                 FeatureBanner(message: errorCopy(context, store.error!.code)),
                 const SizedBox(height: 16),
               ],
-              AppButton(label: 'google_sign_in'.localized(context), isLoading: store.isSubmitting, onPressed: _google),
+              AppButton(label: 'google_sign_in'.localized(context), variant: AppButtonVariant.google, isLoading: store.isSubmitting, onPressed: _google),
               const SizedBox(height: 12),
               AppButton(label: 'email_sign_in'.localized(context), variant: AppButtonVariant.secondary, onPressed: () => Get.toNamed(AppRoutes.emailLogin)),
               const SizedBox(height: 12),
-              AppButton(label: 'email_register'.localized(context), variant: AppButtonVariant.secondary, onPressed: () => Get.toNamed(AppRoutes.register)),
+              AppButton(label: 'email_register'.localized(context), variant: AppButtonVariant.outline, onPressed: () => Get.toNamed(AppRoutes.register)),
               const SizedBox(height: 12),
-              AppButton(label: 'scan_join_qr'.localized(context), variant: AppButtonVariant.text, onPressed: () => Get.toNamed(AppRoutes.qrJoin)),
+              AppButton(label: 'scan_join_qr'.localized(context), variant: AppButtonVariant.outline, onPressed: () => Get.toNamed(AppRoutes.qrJoin)),
             ])),
       );
 }

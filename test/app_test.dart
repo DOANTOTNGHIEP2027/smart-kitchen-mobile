@@ -15,6 +15,7 @@ import 'package:smart_kitchen_mobile/stores/session_store.dart';
 
 import 'helpers/fake_http_adapter.dart';
 import 'helpers/secure_storage_channel.dart';
+import 'helpers/shell_bindings_stub.dart';
 
 /// Smoke test chuỗi splash → redirect theo `SessionStore.status`
 /// (fe-app-shell.md §5 và §15 "Routing").
@@ -40,6 +41,9 @@ void main() {
       ),
       permanent: true,
     );
+    // Stub các binding mà AppShellScene._ensureBindings() cần — tránh
+    // Get.find<"AppDatabase"> ném "not found" khi shell render.
+    registerShellStubBindings(tokenStorage: TokenStorage());
   });
 
   tearDown(() {
