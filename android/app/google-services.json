@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1003432860473",
+    "project_id": "smart-kittchen-f56ac",
+    "storage_bucket": "smart-kittchen-f56ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1003432860473:android:d0f0f393803e3d50a126e8",
+        "android_client_info": {
+          "package_name": "com.smartkitchen.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1003432860473-brn6knm5k16r7mpi6nk2krp5l7ddqs6o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQEuCCwYY4Z96dY5pb3cdHeQougf6STt4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1003432860473-brn6knm5k16r7mpi6nk2krp5l7ddqs6o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
