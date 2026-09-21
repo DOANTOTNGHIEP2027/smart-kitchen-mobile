@@ -22,7 +22,10 @@ class OtpStore {
   final Observable<FormStatus> _status = Observable(FormStatus.idle);
   final Observable<ApiException?> _error = Observable(null);
   final Observable<int> _ttlSeconds = Observable(600);
-  final Observable<int> _cooldownSeconds = Observable(30);
+  // 60s — khớp cooldown server-side (OtpServiceImpl.RESEND_COOLDOWN_SECONDS,
+  // OD-49). Để 30s như trước thì sau 30s nút "Gửi lại" mở nhưng BE vẫn trả 429
+  // thêm 30s nữa — ma sát vô nghĩa với người dùng.
+  final Observable<int> _cooldownSeconds = Observable(60);
   Timer? _timer;
 
   FormStatus get status => _status.value;
@@ -58,7 +61,7 @@ class OtpStore {
       runInAction(() {
         _status.value = FormStatus.idle;
         _ttlSeconds.value = 600;
-        _cooldownSeconds.value = 30;
+        _cooldownSeconds.value = 60;
       });
       return true;
     } catch (raw) {

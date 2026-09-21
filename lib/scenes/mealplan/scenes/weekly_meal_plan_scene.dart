@@ -69,7 +69,7 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
                   selectedDate.difference(store.currentWeekStart).inDays >= 0 &&
                   selectedDate.difference(store.currentWeekStart).inDays < 7;
               final effectiveSelectedDate = dateInCurrentWeek
-                  ? selectedDate ?? store.currentWeekStart
+                  ? selectedDate
                   : store.currentWeekStart;
               return _WeekCalendar(
                 store: store,

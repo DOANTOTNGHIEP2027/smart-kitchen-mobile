@@ -443,4 +443,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get staleDataBanner =>
       'Data may be out of date — showing the latest saved copy.';
+
+  @override
+  String get profileLogout => 'Log out';
+
+  @override
+  String get profileLogoutAll => 'Log out of all devices';
+
+  @override
+  String get profileLogoutConfirm => 'Log out of this device?';
+
+  @override
+  String get profileLogoutAllConfirm =>
+      'Log out of all devices? You will need to sign in again everywhere.';
+
+  @override
+  String get profileLogoutCancel => 'Cancel';
 }

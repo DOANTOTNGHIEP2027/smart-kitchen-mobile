@@ -10,6 +10,7 @@ import 'package:smart_kitchen_mobile/domain/auth/user_summary.dart';
 import 'package:smart_kitchen_mobile/scenes/auth/api/auth_api.dart';
 import 'package:smart_kitchen_mobile/scenes/auth/domain/auth_models.dart';
 import 'package:smart_kitchen_mobile/scenes/auth/stores/auth_store.dart';
+import 'package:smart_kitchen_mobile/scenes/auth/stores/form_status.dart';
 import 'package:smart_kitchen_mobile/scenes/auth/stores/otp_store.dart';
 import 'package:smart_kitchen_mobile/scenes/household/api/household_api.dart';
 import 'package:smart_kitchen_mobile/scenes/household/domain/household_models.dart';
@@ -73,6 +74,27 @@ void main() {
 
       expect(store.fieldErrors['password'], 'auth_bad_credentials');
       expect(store.fieldErrors['email'], isNull);
+    });
+
+    test('logout xoá phiên và trả status về idle', () async {
+      final storage = _MemoryTokenStorage();
+      final session = _session(storage);
+      await session.setSession(
+        accessToken: _jwt(<String, dynamic>{'provider': 'EMAIL'}),
+        refreshToken: 'refresh-1',
+        user: const UserSummary(id: 'u1', fullName: 'An'),
+      );
+      final store = AuthStore(
+        _FakeAuthApi(),
+        session,
+        const UnavailableGoogleAuthGateway(),
+      );
+
+      await store.logout();
+
+      expect(session.status, AuthStatus.unauthenticated);
+      expect(store.status, FormStatus.idle);
+      expect(storage.refreshToken, isNull);
     });
   });
 

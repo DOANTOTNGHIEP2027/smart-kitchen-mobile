@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/data/auth/token_storage.dart';
 import 'package:smart_kitchen_mobile/domain/auth/auth_refresh_usecase.dart';
+import 'package:smart_kitchen_mobile/domain/auth/auth_revoke_usecase.dart';
 import 'package:smart_kitchen_mobile/domain/auth/user_summary.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
 
@@ -194,5 +195,94 @@ void main() {
 
     expect(store.householdId, 'h9');
     expect(store.needsHousehold, isFalse);
+  });
+
+  group('logout()', () {
+    SessionStore buildStoreWithRevoke(FakeHttpAdapter adapter) {
+      final dio = Dio(BaseOptions(baseUrl: 'https://test.local'))
+        ..httpClientAdapter = adapter;
+      return SessionStore(
+        tokenStorage,
+        AuthRefreshUseCase(dio),
+        revokeUseCase: AuthRevokeUseCase(dio),
+      );
+    }
+
+    Future<void> seedAuthenticated(SessionStore store) => store.setSession(
+          accessToken: fakeJwt(<String, dynamic>{'provider': 'EMAIL'}),
+          refreshToken: 'refresh-1',
+          user: const UserSummary(id: 'u1', fullName: 'Phúc'),
+        );
+
+    test('thu hồi refresh token hiện tại ở BE rồi xoá phiên cục bộ', () async {
+      await tokenStorage.saveTokens('access-1', 'refresh-1');
+      final adapter = FakeHttpAdapter(
+        (_) async => jsonResponse(200, successEnvelope(null)),
+      );
+      final store = buildStoreWithRevoke(adapter);
+      await seedAuthenticated(store);
+
+      await store.logout();
+
+      expect(adapter.countPath(AuthRevokeUseCase.revokePath), 1);
+      expect(adapter.countPath(AuthRevokeUseCase.revokeAllPath), 0);
+      expect(
+        adapter.requests.last.data,
+        <String, dynamic>{'refreshToken': 'refresh-1'},
+      );
+      expect(store.status, AuthStatus.unauthenticated);
+      expect(store.currentUser, isNull);
+      expect(await tokenStorage.readRefreshToken(), isNull);
+    });
+
+    test('allDevices=true gọi revoke-all thay vì revoke', () async {
+      await tokenStorage.saveTokens('access-1', 'refresh-1');
+      final adapter = FakeHttpAdapter(
+        (_) async => jsonResponse(200, successEnvelope(null)),
+      );
+      final store = buildStoreWithRevoke(adapter);
+      await seedAuthenticated(store);
+
+      await store.logout(allDevices: true);
+
+      expect(adapter.countPath(AuthRevokeUseCase.revokeAllPath), 1);
+      expect(adapter.countPath(AuthRevokeUseCase.revokePath), 0);
+      expect(await tokenStorage.readRefreshToken(), isNull);
+    });
+
+    // Logout phải thành công phía client kể cả khi BE/mạng hỏng — nếu không,
+    // refresh token còn dùng được vẫn nằm lại secure storage.
+    test('vẫn xoá phiên cục bộ khi BE revoke lỗi', () async {
+      await tokenStorage.saveTokens('access-1', 'refresh-1');
+      final adapter = FakeHttpAdapter(
+        (RequestOptions options) async => throw DioException(
+          requestOptions: options,
+          message: 'network down',
+        ),
+      );
+      final store = buildStoreWithRevoke(adapter);
+      await seedAuthenticated(store);
+
+      await expectLater(store.logout(), completes);
+
+      expect(store.status, AuthStatus.unauthenticated);
+      expect(await tokenStorage.readRefreshToken(), isNull);
+    });
+
+    test('store dựng không kèm AuthRevokeUseCase → không gọi network, vẫn xoá',
+        () async {
+      await tokenStorage.saveTokens('access-1', 'refresh-1');
+      final adapter = FakeHttpAdapter(
+        (_) async => jsonResponse(200, successEnvelope(null)),
+      );
+      final store = buildStore(adapter);
+      await seedAuthenticated(store);
+
+      await store.logout();
+
+      expect(adapter.requests, isEmpty);
+      expect(store.status, AuthStatus.unauthenticated);
+      expect(await tokenStorage.readRefreshToken(), isNull);
+    });
   });
 }

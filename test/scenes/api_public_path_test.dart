@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/data/auth/token_storage.dart';
 import 'package:smart_kitchen_mobile/data/network/dio_client.dart';
+import 'package:smart_kitchen_mobile/domain/auth/auth_revoke_usecase.dart';
 import 'package:smart_kitchen_mobile/scenes/auth/api/auth_api.dart';
 import 'package:smart_kitchen_mobile/scenes/household/api/household_api.dart';
 
@@ -140,6 +141,26 @@ void main() {
           await capture(() => HouseholdApiImpl(client).join('DEMO1234'));
 
       expectAuthenticated(request, '/api/v1/households/join');
+    });
+
+    // revoke/revoke-all CẦN access token để BE biết thu hồi token của ai — nếu
+    // lọt vào publicPaths, AuthHeaderInterceptor sẽ bỏ Authorization và BE trả
+    // 401, khiến logout không bao giờ thu hồi được token server-side.
+    test('POST /auth/revoke', () async {
+      final request = await capture(
+        () => AuthRevokeUseCase(client.dio).revoke('refresh-1'),
+      );
+
+      expectAuthenticated(request, '/api/v1/auth/revoke');
+      expect(DioClient.publicPaths, isNot(contains('/api/v1/auth/revoke')));
+    });
+
+    test('POST /auth/revoke-all', () async {
+      final request =
+          await capture(() => AuthRevokeUseCase(client.dio).revokeAll());
+
+      expectAuthenticated(request, '/api/v1/auth/revoke-all');
+      expect(DioClient.publicPaths, isNot(contains('/api/v1/auth/revoke-all')));
     });
   });
 
