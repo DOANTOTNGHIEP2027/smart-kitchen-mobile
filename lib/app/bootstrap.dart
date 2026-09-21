@@ -13,6 +13,7 @@ import '../data/db/read_cache_dao.dart';
 import '../data/network/dio_client.dart';
 import '../demo/demo_backend_adapter.dart';
 import '../domain/auth/auth_refresh_usecase.dart';
+import '../domain/auth/auth_revoke_usecase.dart';
 import '../stores/session_store.dart';
 import '../scenes/auth/api/auth_api.dart';
 import '../scenes/auth/stores/auth_store.dart';
@@ -65,6 +66,7 @@ Future<void> bootstrap() async {
   final sessionStore = SessionStore(
     tokenStorage,
     AuthRefreshUseCase(dioClient.dio),
+    revokeUseCase: AuthRevokeUseCase(dioClient.dio),
   );
   Get.put<SessionStore>(sessionStore, permanent: true);
   Get.put<AuthApi>(AuthApiImpl(dioClient), permanent: true);

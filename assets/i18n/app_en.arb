@@ -235,5 +235,16 @@
   "@memberDetailAllergensEmpty": {},
 
   "staleDataBanner": "Data may be out of date — showing the latest saved copy.",
-  "@staleDataBanner": {}
+  "@staleDataBanner": {},
+
+  "profileLogout": "Log out",
+  "@profileLogout": {},
+  "profileLogoutAll": "Log out of all devices",
+  "@profileLogoutAll": {},
+  "profileLogoutConfirm": "Log out of this device?",
+  "@profileLogoutConfirm": {},
+  "profileLogoutAllConfirm": "Log out of all devices? You will need to sign in again everywhere.",
+  "@profileLogoutAllConfirm": {},
+  "profileLogoutCancel": "Cancel",
+  "@profileLogoutCancel": {}
 }

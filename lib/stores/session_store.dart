@@ -3,6 +3,7 @@ import 'package:mobx/mobx.dart';
 import '../data/auth/jwt_claims.dart';
 import '../data/auth/token_storage.dart';
 import '../domain/auth/auth_refresh_usecase.dart';
+import '../domain/auth/auth_revoke_usecase.dart';
 import '../domain/auth/user_summary.dart';
 
 part 'session_store.g.dart';
@@ -15,10 +16,16 @@ enum AuthStatus { unknown, authenticated, unauthenticated }
 class SessionStore = _SessionStore with _$SessionStore;
 
 abstract class _SessionStore with Store {
-  _SessionStore(this._tokenStorage, this._refreshUseCase);
+  _SessionStore(this._tokenStorage, this._refreshUseCase,
+      {AuthRevokeUseCase? revokeUseCase})
+      : _revokeUseCase = revokeUseCase;
 
   final TokenStorage _tokenStorage;
   final AuthRefreshUseCase _refreshUseCase;
+
+  /// Tuỳ chọn — chỉ `bootstrap()` truyền vào. Test/guard-boot cũ dựng store
+  /// không có use case này; khi đó [logout] chỉ xoá token cục bộ (không gọi BE).
+  final AuthRevokeUseCase? _revokeUseCase;
 
   @observable
   AuthStatus status = AuthStatus.unknown;
@@ -154,5 +161,39 @@ abstract class _SessionStore with Store {
     role = null;
     provider = null;
     status = AuthStatus.unauthenticated;
+  }
+
+  /// Đăng xuất: thu hồi refresh token phía BE (best-effort) rồi xoá sạch phiên
+  /// cục bộ.
+  ///
+  /// Thu hồi ở BE là **best-effort có chủ đích**: mất mạng/token đã hết hạn
+  /// KHÔNG được chặn người dùng thoát khỏi app. Token cục bộ luôn bị xoá, kể cả
+  /// khi call revoke thất bại — nếu không, logout hỏng mạng sẽ để lại refresh
+  /// token còn dùng được trong secure storage (đúng vector mà `revoke` sinh ra
+  /// để bịt).
+  ///
+  /// [allDevices] = true gọi `revoke-all` (mọi thiết bị); mặc định chỉ thu hồi
+  /// refresh token hiện tại. Khi store được dựng không kèm [AuthRevokeUseCase]
+  /// (test/bootstrap tối giản), bỏ qua bước gọi BE.
+  @action
+  Future<void> logout({bool allDevices = false}) async {
+    try {
+      await _revokeRemote(allDevices: allDevices);
+    } catch (_) {
+      // Cố ý nuốt: logout phải thành công ở phía client bất kể BE.
+    } finally {
+      await clear();
+    }
+  }
+
+  Future<void> _revokeRemote({required bool allDevices}) async {
+    final revoke = _revokeUseCase;
+    if (revoke == null) return;
+    if (allDevices) {
+      await revoke.revokeAll();
+      return;
+    }
+    final refreshToken = await _tokenStorage.readRefreshToken();
+    if (refreshToken != null) await revoke.revoke(refreshToken);
   }
 }

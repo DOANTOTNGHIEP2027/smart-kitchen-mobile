@@ -438,4 +438,20 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get staleDataBanner =>
       'Dữ liệu có thể chưa cập nhật — đang hiển thị bản lưu gần nhất.';
+
+  @override
+  String get profileLogout => 'Đăng xuất';
+
+  @override
+  String get profileLogoutAll => 'Đăng xuất khỏi mọi thiết bị';
+
+  @override
+  String get profileLogoutConfirm => 'Đăng xuất khỏi thiết bị này?';
+
+  @override
+  String get profileLogoutAllConfirm =>
+      'Đăng xuất khỏi mọi thiết bị? Bạn sẽ phải đăng nhập lại ở tất cả nơi.';
+
+  @override
+  String get profileLogoutCancel => 'Huỷ';
 }

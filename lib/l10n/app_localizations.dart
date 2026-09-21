@@ -937,6 +937,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data may be out of date — showing the latest saved copy.'**
   String get staleDataBanner;
+
+  /// No description provided for @profileLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get profileLogout;
+
+  /// No description provided for @profileLogoutAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out of all devices'**
+  String get profileLogoutAll;
+
+  /// No description provided for @profileLogoutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out of this device?'**
+  String get profileLogoutConfirm;
+
+  /// No description provided for @profileLogoutAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out of all devices? You will need to sign in again everywhere.'**
+  String get profileLogoutAllConfirm;
+
+  /// No description provided for @profileLogoutCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get profileLogoutCancel;
 }
 
 class _AppLocalizationsDelegate
