@@ -21,7 +21,8 @@ class ResetPasswordScene extends StatefulWidget {
 }
 
 class _ResetPasswordSceneState extends State<ResetPasswordScene> {
-  late final String email = Get.arguments is String ? Get.arguments as String : '';
+  late final String email =
+      Get.arguments is String ? Get.arguments as String : '';
   // Store do ForgotPasswordScene đăng ký, dùng chung để giữ cooldown/ttl giữa
   // hai bước. Màn này KHÔNG dispose store (không phải chủ sở hữu) — nếu người
   // dùng back về bước 1, store vẫn phải sống.
@@ -57,12 +58,16 @@ class _ResetPasswordSceneState extends State<ResetPasswordScene> {
   Future<void> _submit() async {
     final current = store;
     if (current == null) return;
-    if (!await current.reset(otp: otp.text, newPassword: newPassword.text, confirmPassword: confirmPassword.text)) {
+    if (!await current.reset(
+        otp: otp.text,
+        newPassword: newPassword.text,
+        confirmPassword: confirmPassword.text)) {
       if (current.error?.code == 'ERR_AUTH_OTP_INVALID') otp.clear();
       return;
     }
     if (!mounted) return;
-    Get.snackbar('', 'auth_reset_success'.localized(context), snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('', 'auth_reset_success'.localized(context),
+        snackPosition: SnackPosition.BOTTOM);
     Get.offAllNamed(AppRoutes.login);
   }
 
@@ -76,70 +81,17 @@ class _ResetPasswordSceneState extends State<ResetPasswordScene> {
       child: Observer(
         builder: (_) => Column(
           children: <Widget>[
-            if (current.isLocked) ...<Widget>[
-              FeatureBanner(message: '${'auth_rate_limited'.localized(context)} ${current.lockSeconds}s'),
-              const SizedBox(height: 16),
-            ] else if (current.error != null && current.error!.code != 'ERR_AUTH_OTP_INVALID') ...<Widget>[
-              FeatureBanner(message: errorCopy(context, current.error!.code)),
-              const SizedBox(height: 16),
-            ],
-            TextField(
-              controller: emailField,
-              readOnly: true,
-              enabled: false,
-              decoration: InputDecoration(
-                labelText: 'email'.localized(context),
-                prefixIcon: const Icon(Icons.alternate_email_rounded),
-              ),
-            ),
+            ..._banners(context, current),
+            _emailField(context),
             const SizedBox(height: 12),
-            TextField(
-              controller: otp,
-              enabled: !current.isSubmitting,
-              keyboardType: TextInputType.number,
-              autofocus: true,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(6),
-              ],
-              onSubmitted: (_) => _submit(),
-              decoration: InputDecoration(
-                labelText: 'otp_code'.localized(context),
-                prefixIcon: const Icon(Icons.password_rounded),
-                errorText: _fieldError('otp'),
-              ),
-            ),
+            _otpField(context, current),
             const SizedBox(height: 12),
-            TextField(
-              controller: newPassword,
-              enabled: !current.isSubmitting,
-              obscureText: _obscure,
-              autofillHints: const <String>[AutofillHints.newPassword],
-              decoration: InputDecoration(
-                labelText: 'auth_new_password'.localized(context),
-                prefixIcon: const Icon(Icons.lock_outline),
-                errorText: _fieldError('newPassword'),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                  onPressed: () => setState(() => _obscure = !_obscure),
-                ),
-              ),
-            ),
+            _newPasswordField(context, current),
             const SizedBox(height: 12),
-            TextField(
-              controller: confirmPassword,
-              enabled: !current.isSubmitting,
-              obscureText: _obscure,
-              autofillHints: const <String>[AutofillHints.newPassword],
-              onSubmitted: (_) => _submit(),
-              decoration: InputDecoration(
-                labelText: 'auth_confirm_password'.localized(context),
-                prefixIcon: const Icon(Icons.lock_outline),
-                errorText: _fieldError('confirmPassword'),
-              ),
-            ),
+            _confirmPasswordField(context, current),
             const SizedBox(height: 12),
-            Text('${'otp_expires'.localized(context)} ${_clock(current.ttlSeconds)}'),
+            Text(
+                '${'otp_expires'.localized(context)} ${_clock(current.ttlSeconds)}'),
             const SizedBox(height: 20),
             AppButton(
               label: 'auth_reset_password_submit'.localized(context),
@@ -158,6 +110,87 @@ class _ResetPasswordSceneState extends State<ResetPasswordScene> {
       ),
     );
   }
+
+  List<Widget> _banners(BuildContext context, PasswordResetStore current) {
+    if (current.isLocked) {
+      return <Widget>[
+        FeatureBanner(
+            message:
+                '${'auth_rate_limited'.localized(context)} ${current.lockSeconds}s'),
+        const SizedBox(height: 16),
+      ];
+    }
+    final error = current.error;
+    if (error != null && error.code != 'ERR_AUTH_OTP_INVALID') {
+      return <Widget>[
+        FeatureBanner(message: errorCopy(context, error.code)),
+        const SizedBox(height: 16),
+      ];
+    }
+    return const <Widget>[];
+  }
+
+  Widget _emailField(BuildContext context) => TextField(
+        controller: emailField,
+        readOnly: true,
+        enabled: false,
+        decoration: InputDecoration(
+          labelText: 'email'.localized(context),
+          prefixIcon: const Icon(Icons.alternate_email_rounded),
+        ),
+      );
+
+  Widget _otpField(BuildContext context, PasswordResetStore current) =>
+      TextField(
+        controller: otp,
+        enabled: !current.isSubmitting,
+        keyboardType: TextInputType.number,
+        autofocus: true,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(6),
+        ],
+        onSubmitted: (_) => _submit(),
+        decoration: InputDecoration(
+          labelText: 'otp_code'.localized(context),
+          prefixIcon: const Icon(Icons.password_rounded),
+          errorText: _fieldError('otp'),
+        ),
+      );
+
+  Widget _newPasswordField(BuildContext context, PasswordResetStore current) =>
+      TextField(
+        controller: newPassword,
+        enabled: !current.isSubmitting,
+        obscureText: _obscure,
+        autofillHints: const <String>[AutofillHints.newPassword],
+        decoration: InputDecoration(
+          labelText: 'auth_new_password'.localized(context),
+          prefixIcon: const Icon(Icons.lock_outline),
+          errorText: _fieldError('newPassword'),
+          suffixIcon: IconButton(
+            icon: Icon(_obscure
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined),
+            onPressed: () => setState(() => _obscure = !_obscure),
+          ),
+        ),
+      );
+
+  Widget _confirmPasswordField(
+          BuildContext context, PasswordResetStore current) =>
+      TextField(
+        controller: confirmPassword,
+        enabled: !current.isSubmitting,
+        obscureText: _obscure,
+        autofillHints: const <String>[AutofillHints.newPassword],
+        onSubmitted: (_) => _submit(),
+        decoration: InputDecoration(
+          labelText: 'auth_confirm_password'.localized(context),
+          prefixIcon: const Icon(Icons.lock_outline),
+          errorText: _fieldError('confirmPassword'),
+        ),
+      );
 
   String? _fieldError(String field) {
     final key = store?.fieldErrors[field];
