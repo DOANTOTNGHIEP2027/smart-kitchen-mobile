@@ -256,21 +256,29 @@ class _MemoryTokenStorage implements TokenStorage {
   @override
   String? accessToken;
   String? refreshToken;
+  Map<String, dynamic>? user;
 
   @override
   Future<void> clear() async {
     accessToken = null;
     refreshToken = null;
+    user = null;
   }
 
   @override
   Future<String?> readRefreshToken() async => refreshToken;
 
   @override
+  Future<Map<String, dynamic>?> readUser() async => user;
+
+  @override
   Future<void> saveTokens(String accessToken, String refreshToken) async {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
   }
+
+  @override
+  Future<void> saveUser(Map<String, dynamic> json) async => user = json;
 }
 
 SessionStore _session(

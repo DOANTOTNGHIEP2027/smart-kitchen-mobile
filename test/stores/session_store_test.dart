@@ -71,6 +71,59 @@ void main() {
     expect(await tokenStorage.readRefreshToken(), 'refresh-2');
   });
 
+  // Regression: BE không có GET /users/me, nên hồ sơ phải được khôi phục từ
+  // storage lưu lúc setSession; nếu không, ProfileScreen hiện màn lỗi dù đã
+  // đăng nhập (currentUser null).
+  test('cold start khôi phục currentUser từ hồ sơ đã lưu', () async {
+    await tokenStorage.saveTokens('access-old', 'refresh-1');
+    await tokenStorage.saveUser(
+      const UserSummary(id: 'u1', fullName: 'Phúc', email: 'p@example.com')
+          .toJson(),
+    );
+    final store = buildStore(
+      FakeHttpAdapter(
+        (_) async => jsonResponse(
+          200,
+          successEnvelope(<String, dynamic>{
+            'accessToken': fakeJwt(<String, dynamic>{'sub': 'u1'}),
+            'refreshToken': 'refresh-2',
+            'expiresIn': 900,
+          }),
+        ),
+      ),
+    );
+
+    await store.bootstrap();
+
+    expect(store.status, AuthStatus.authenticated);
+    expect(store.currentUser?.id, 'u1');
+    expect(store.currentUser?.displayName, 'Phúc');
+  });
+
+  // Phiên tạo bởi bản cũ không có hồ sơ lưu → dựng danh tính tối thiểu từ JWT
+  // `sub` để không rơi vào màn lỗi; lần đăng nhập sau sẽ lưu hồ sơ đầy đủ.
+  test('cold start không có hồ sơ lưu → dùng danh tính tối thiểu từ JWT sub',
+      () async {
+    await tokenStorage.saveTokens('access-old', 'refresh-1');
+    final store = buildStore(
+      FakeHttpAdapter(
+        (_) async => jsonResponse(
+          200,
+          successEnvelope(<String, dynamic>{
+            'accessToken': fakeJwt(<String, dynamic>{'sub': 'u1'}),
+            'refreshToken': 'refresh-2',
+            'expiresIn': 900,
+          }),
+        ),
+      ),
+    );
+
+    await store.bootstrap();
+
+    expect(store.status, AuthStatus.authenticated);
+    expect(store.currentUser?.id, 'u1');
+  });
+
   test('refresh token đã revoke → clear token, unauthenticated', () async {
     await tokenStorage.saveTokens('access-old', 'refresh-1');
     final adapter = FakeHttpAdapter(
