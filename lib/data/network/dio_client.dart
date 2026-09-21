@@ -22,6 +22,8 @@ class DioClient {
     '/api/v1/auth/email/send-otp',
     '/api/v1/auth/email/verify-otp',
     '/api/v1/auth/email/login',
+    '/api/v1/auth/email/forgot-password',
+    '/api/v1/auth/email/reset-password',
     '/api/v1/auth/refresh',
     '/api/v1/auth/qr-join',
     // GET /api/v1/households/invites/{code} cũng public nhưng path-templated,

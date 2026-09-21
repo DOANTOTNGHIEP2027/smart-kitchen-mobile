@@ -10,6 +10,8 @@ abstract interface class AuthApi {
   Future<AuthSession> login({required String email, required String password});
   Future<AuthSession> verifyOtp({required String email, required String otp});
   Future<void> sendOtp(String email);
+  Future<void> forgotPassword(String email);
+  Future<void> resetPassword({required String email, required String otp, required String newPassword});
   Future<GuestJoinSession> joinAsGuest({required String inviteCode, String? displayName});
   Future<UpgradeResult> upgrade({required String email, required String password, String? fullName});
 }
@@ -59,6 +61,23 @@ class AuthApiImpl implements AuthApi {
       '/api/v1/auth/email/send-otp',
       {'email': email},
       (json) => json,
+    );
+  }
+
+  @override
+  Future<void> forgotPassword(String email) async {
+    // Response `ApiResponse<Void>` có `data: null` nên không dùng `_post`/`_unwrap`.
+    await _client.dio.post<Map<String, dynamic>>(
+      '/api/v1/auth/email/forgot-password',
+      data: {'email': email},
+    );
+  }
+
+  @override
+  Future<void> resetPassword({required String email, required String otp, required String newPassword}) async {
+    await _client.dio.post<Map<String, dynamic>>(
+      '/api/v1/auth/email/reset-password',
+      data: {'email': email, 'otp': otp, 'newPassword': newPassword},
     );
   }
 

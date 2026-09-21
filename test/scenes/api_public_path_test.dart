@@ -103,6 +103,22 @@ void main() {
       expectPublic(request, '/api/v1/auth/email/verify-otp');
     });
 
+    test('POST /auth/email/forgot-password', () async {
+      final request = await capture(
+        () => AuthApiImpl(client).forgotPassword('a@b.com'),
+      );
+
+      expectPublic(request, '/api/v1/auth/email/forgot-password');
+    });
+
+    test('POST /auth/email/reset-password', () async {
+      final request = await capture(
+        () => AuthApiImpl(client).resetPassword(email: 'a@b.com', otp: '123456', newPassword: 'password1'),
+      );
+
+      expectPublic(request, '/api/v1/auth/email/reset-password');
+    });
+
     test('POST /auth/google', () async {
       final request = await capture(
         () => AuthApiImpl(client).loginWithGoogle('id-token'),
