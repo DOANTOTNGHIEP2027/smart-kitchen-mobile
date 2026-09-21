@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1003432860473-tdd6fkpu1ah9v0a5hvc9g02j6dkqgn6t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.smartkitchen.mobile",
+            "certificate_hash": "13392a7c9a7403f0a1b718b210ec1b767660a312"
+          }
+        },
+        {
           "client_id": "1003432860473-brn6knm5k16r7mpi6nk2krp5l7ddqs6o.apps.googleusercontent.com",
           "client_type": 3
         }
