@@ -225,6 +225,10 @@ class _FakeAuthApi implements AuthApi {
   @override
   Future<void> sendOtp(String email) async {}
   @override
+  Future<void> forgotPassword(String email) async {}
+  @override
+  Future<void> resetPassword({required String email, required String otp, required String newPassword}) async {}
+  @override
   Future<UpgradeResult> upgrade({required String email, required String password, String? fullName}) async => const UpgradeResult(accessToken: 'access', refreshToken: 'refresh', requiresOtp: true);
 }
 

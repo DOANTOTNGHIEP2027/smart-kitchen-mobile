@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import '../scenes/auth/auth_landing_scene.dart';
 import '../scenes/auth/email_login_scene.dart';
 import '../scenes/auth/email_register_scene.dart';
+import '../scenes/auth/forgot_password_scene.dart';
 import '../scenes/auth/otp_scene.dart';
+import '../scenes/auth/reset_password_scene.dart';
 import '../scenes/auth/upgrade_profile_scene.dart';
 import '../scenes/cooking/scenes/cooking_routes.dart';
 import '../scenes/household/create_household_scene.dart';
@@ -57,6 +59,8 @@ class AppPages {
     GetPage<void>(name: AppRoutes.emailLogin, page: () => const EmailLoginScene(), middlewares: <GetMiddleware>[GuestOnlyGuard()]),
     GetPage<void>(name: AppRoutes.register, page: () => const EmailRegisterScene(), middlewares: <GetMiddleware>[GuestOnlyGuard()]),
     GetPage<void>(name: AppRoutes.otp, page: () => const OtpScene()),
+    GetPage<void>(name: AppRoutes.forgotPassword, page: () => const ForgotPasswordScene(), middlewares: <GetMiddleware>[GuestOnlyGuard()]),
+    GetPage<void>(name: AppRoutes.resetPassword, page: () => const ResetPasswordScene(), middlewares: <GetMiddleware>[GuestOnlyGuard()]),
     GetPage<void>(name: AppRoutes.qrJoin, page: () => const JoinHouseholdScene()),
     GetPage<void>(name: AppRoutes.qrJoinCode, page: () => const JoinHouseholdScene()),
     GetPage<void>(name: AppRoutes.householdSetup, page: () => const HouseholdSetupScene(), middlewares: <GetMiddleware>[HouseholdSetupGuard()]),

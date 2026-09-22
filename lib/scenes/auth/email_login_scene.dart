@@ -75,7 +75,15 @@ class _EmailLoginSceneState extends State<EmailLoginScene> {
                 errorText: _fieldError('password'),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
+                child: Text('auth_forgot_password_link'.localized(context)),
+              ),
+            ),
+            const SizedBox(height: 8),
             AppButton(label: 'sign_in'.localized(context), isLoading: store.isSubmitting, onPressed: locked ? null : _submit),
             AppButton(label: 'no_account_register'.localized(context), variant: AppButtonVariant.text, onPressed: () => Get.offNamed(AppRoutes.register)),
           ]);
