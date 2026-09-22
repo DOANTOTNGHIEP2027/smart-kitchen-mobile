@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cho phép HTTP cleartext CHỈ tới backend local khi chạy demo/dev.
+
+  Flutter's dart:io chặn `http://` trên Android (targetSdk >= 28) theo mặc
+  định, nên mọi call tới `http://localhost:8080/api/v1/auth/*` thất bại ngay
+  với lỗi "Insecure HTTP is not allowed by platform" — đúng hiện tượng auth
+  "không chạy dù đã nối". Android >= 9 không còn cho phép bật cleartext toàn
+  cục một cách an toàn, nên chỉ mở cho các host dev:
+    - localhost / 127.0.0.1 : qua `adb reverse tcp:8080 tcp:8080`
+    - 10.0.2.2              : host loopback của Android emulator
+  Mọi host khác vẫn HTTPS-only.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

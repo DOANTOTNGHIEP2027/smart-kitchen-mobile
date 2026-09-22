@@ -11,6 +11,7 @@ import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
+import '../auth/stores/auth_store.dart';
 import 'stores/profile_store.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -104,10 +105,57 @@ class ProfileScreen extends StatelessWidget {
               title: context.l10n.familyTitle,
               onPressed: () => Get.toNamed(AppRoutes.family),
             ),
+            const SizedBox(height: AppDimens.lg),
+            AppButton(
+              label: context.l10n.profileLogout,
+              icon: Icons.logout,
+              variant: AppButtonVariant.outline,
+              onPressed: () => _logout(context, allDevices: false),
+            ),
+            const SizedBox(height: AppDimens.sm),
+            AppButton(
+              label: context.l10n.profileLogoutAll,
+              icon: Icons.devices_other_outlined,
+              variant: AppButtonVariant.text,
+              onPressed: () => _logout(context, allDevices: true),
+            ),
           ],
         );
       }),
     );
+  }
+
+  /// Xác nhận rồi đăng xuất. [allDevices] = true → `POST /auth/revoke-all`
+  /// (mọi thiết bị); mặc định chỉ thu hồi refresh token của thiết bị này.
+  ///
+  /// Điều hướng bằng `Get.offAllNamed` vì guard chỉ chạy khi điều hướng — nếu
+  /// chỉ đổi `SessionStore.status`, người dùng sẽ đứng lại trên màn hình
+  /// profile đã bị chặn.
+  Future<void> _logout(BuildContext context, {required bool allDevices}) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        content: Text(
+          allDevices ? l10n.profileLogoutAllConfirm : l10n.profileLogoutConfirm,
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.profileLogoutCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              allDevices ? l10n.profileLogoutAll : l10n.profileLogout,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await Get.find<AuthStore>().logout(allDevices: allDevices);
+    Get.offAllNamed(AppRoutes.login);
   }
 }
 

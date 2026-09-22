@@ -277,6 +277,46 @@ class AppLocalizationsVi extends AppLocalizations {
   String get resendOtp => 'Gửi lại mã';
 
   @override
+  String get authForgotPasswordLink => 'Quên mật khẩu?';
+
+  @override
+  String get authForgotPasswordTitle => 'Đặt lại mật khẩu';
+
+  @override
+  String get authForgotPasswordHint =>
+      'Nhập email, chúng tôi sẽ gửi mã xác thực.';
+
+  @override
+  String get authSendResetOtp => 'Gửi mã';
+
+  @override
+  String get authResetPasswordTitle => 'Nhập mã xác thực';
+
+  @override
+  String get authResetPasswordSubmit => 'Đặt lại mật khẩu';
+
+  @override
+  String get authNewPassword => 'Mật khẩu mới';
+
+  @override
+  String get authConfirmPassword => 'Xác nhận mật khẩu';
+
+  @override
+  String get authPasswordMismatch => 'Mật khẩu xác nhận không khớp';
+
+  @override
+  String get authResetSuccess => 'Đổi mật khẩu thành công. Vui lòng đăng nhập.';
+
+  @override
+  String get authOtpCooldown => 'Vui lòng chờ trước khi gửi lại mã.';
+
+  @override
+  String get authTooManyAttempts => 'Quá nhiều lần thử. Vui lòng thử lại sau.';
+
+  @override
+  String get authEmailInvalid => 'Email không hợp lệ';
+
+  @override
   String get upgradeProfileTitle => 'Hoàn tất hồ sơ';
 
   @override
@@ -532,4 +572,20 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get staleDataBanner =>
       'Dữ liệu có thể chưa cập nhật — đang hiển thị bản lưu gần nhất.';
+
+  @override
+  String get profileLogout => 'Đăng xuất';
+
+  @override
+  String get profileLogoutAll => 'Đăng xuất khỏi mọi thiết bị';
+
+  @override
+  String get profileLogoutConfirm => 'Đăng xuất khỏi thiết bị này?';
+
+  @override
+  String get profileLogoutAllConfirm =>
+      'Đăng xuất khỏi mọi thiết bị? Bạn sẽ phải đăng nhập lại ở tất cả nơi.';
+
+  @override
+  String get profileLogoutCancel => 'Huỷ';
 }

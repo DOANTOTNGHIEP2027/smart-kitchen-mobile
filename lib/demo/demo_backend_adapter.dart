@@ -94,6 +94,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
       '/api/v1/auth/email/verify-otp' => _verifyOtp(body),
       '/api/v1/auth/email/login' => _login(body),
       '/api/v1/auth/refresh' => _refresh(),
+      '/api/v1/auth/revoke' => _okEmpty(200),
+      '/api/v1/auth/revoke-all' => _okEmpty(200),
       '/api/v1/auth/qr-join' => _qrJoin(body),
       '/api/v1/auth/upgrade-profile' => _upgradeProfile(body),
       '/api/v1/households' => _createHousehold(body),
@@ -916,6 +918,15 @@ class DemoBackendAdapter implements HttpClientAdapter {
   ResponseBody _ok(int status, Object? data) => _json(status, {
         'success': true,
         'data': data,
+        'error': null,
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
+      });
+
+  /// `ApiResponse<Void>` — `data: null`, dùng cho `revoke`/`revoke-all`
+  /// (OAS `ApiResponseEmpty`).
+  ResponseBody _okEmpty(int status) => _json(status, {
+        'success': true,
+        'data': null,
         'error': null,
         'timestamp': DateTime.now().toUtc().toIso8601String(),
       });

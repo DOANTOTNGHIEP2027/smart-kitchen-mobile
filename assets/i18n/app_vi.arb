@@ -129,6 +129,19 @@
   "verified": "Đã xác minh",
   "verify": "Xác minh",
   "resendOtp": "Gửi lại mã",
+  "authForgotPasswordLink": "Quên mật khẩu?",
+  "authForgotPasswordTitle": "Đặt lại mật khẩu",
+  "authForgotPasswordHint": "Nhập email, chúng tôi sẽ gửi mã xác thực.",
+  "authSendResetOtp": "Gửi mã",
+  "authResetPasswordTitle": "Nhập mã xác thực",
+  "authResetPasswordSubmit": "Đặt lại mật khẩu",
+  "authNewPassword": "Mật khẩu mới",
+  "authConfirmPassword": "Xác nhận mật khẩu",
+  "authPasswordMismatch": "Mật khẩu xác nhận không khớp",
+  "authResetSuccess": "Đổi mật khẩu thành công. Vui lòng đăng nhập.",
+  "authOtpCooldown": "Vui lòng chờ trước khi gửi lại mã.",
+  "authTooManyAttempts": "Quá nhiều lần thử. Vui lòng thử lại sau.",
+  "authEmailInvalid": "Email không hợp lệ",
   "upgradeProfileTitle": "Hoàn tất hồ sơ",
   "upgradeProfileSubtitle": "Thêm email và mật khẩu để duy trì tài khoản",
   "fullNameOptional": "Họ và tên (không bắt buộc)",
@@ -219,5 +232,11 @@
   "memberDetailAllergensSection": "Dị ứng",
   "memberDetailAllergensEmpty": "Chưa có dị ứng.",
 
-  "staleDataBanner": "Dữ liệu có thể chưa cập nhật — đang hiển thị bản lưu gần nhất."
+  "staleDataBanner": "Dữ liệu có thể chưa cập nhật — đang hiển thị bản lưu gần nhất.",
+
+  "profileLogout": "Đăng xuất",
+  "profileLogoutAll": "Đăng xuất khỏi mọi thiết bị",
+  "profileLogoutConfirm": "Đăng xuất khỏi thiết bị này?",
+  "profileLogoutAllConfirm": "Đăng xuất khỏi mọi thiết bị? Bạn sẽ phải đăng nhập lại ở tất cả nơi.",
+  "profileLogoutCancel": "Huỷ"
 }

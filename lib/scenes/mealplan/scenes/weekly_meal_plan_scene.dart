@@ -69,10 +69,12 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
               final dateInCurrentWeek = selectedDate != null &&
                   selectedDate.difference(store.currentWeekStart).inDays >= 0 &&
                   selectedDate.difference(store.currentWeekStart).inDays < 7;
+              final effectiveSelectedDate = dateInCurrentWeek
+                  ? selectedDate
+                  : store.currentWeekStart;
               return _WeekCalendar(
                 store: store,
-                selectedDate:
-                    dateInCurrentWeek ? selectedDate! : store.currentWeekStart,
+                selectedDate: effectiveSelectedDate,
                 onDateSelected: (date) => setState(() => _selectedDate = date),
                 onNavigateWeek: (direction) => _navigateWeek(store, direction),
               );

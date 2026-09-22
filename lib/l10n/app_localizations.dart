@@ -603,6 +603,84 @@ abstract class AppLocalizations {
   /// **'Resend code'**
   String get resendOtp;
 
+  /// No description provided for @authForgotPasswordLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get authForgotPasswordLink;
+
+  /// No description provided for @authForgotPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset your password'**
+  String get authForgotPasswordTitle;
+
+  /// No description provided for @authForgotPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email and we\'ll send a verification code.'**
+  String get authForgotPasswordHint;
+
+  /// No description provided for @authSendResetOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get authSendResetOtp;
+
+  /// No description provided for @authResetPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code'**
+  String get authResetPasswordTitle;
+
+  /// No description provided for @authResetPasswordSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get authResetPasswordSubmit;
+
+  /// No description provided for @authNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get authNewPassword;
+
+  /// No description provided for @authConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get authConfirmPassword;
+
+  /// No description provided for @authPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get authPasswordMismatch;
+
+  /// No description provided for @authResetSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated. Please sign in.'**
+  String get authResetSuccess;
+
+  /// No description provided for @authOtpCooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait before requesting another code.'**
+  String get authOtpCooldown;
+
+  /// No description provided for @authTooManyAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again later.'**
+  String get authTooManyAttempts;
+
+  /// No description provided for @authEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get authEmailInvalid;
+
   /// No description provided for @upgradeProfileTitle.
   ///
   /// In en, this message translates to:
@@ -1106,6 +1184,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data may be out of date — showing the latest saved copy.'**
   String get staleDataBanner;
+
+  /// No description provided for @profileLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get profileLogout;
+
+  /// No description provided for @profileLogoutAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out of all devices'**
+  String get profileLogoutAll;
+
+  /// No description provided for @profileLogoutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out of this device?'**
+  String get profileLogoutConfirm;
+
+  /// No description provided for @profileLogoutAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out of all devices? You will need to sign in again everywhere.'**
+  String get profileLogoutAllConfirm;
+
+  /// No description provided for @profileLogoutCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get profileLogoutCancel;
 }
 
 class _AppLocalizationsDelegate

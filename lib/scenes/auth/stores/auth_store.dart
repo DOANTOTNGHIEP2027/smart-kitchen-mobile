@@ -112,6 +112,31 @@ class AuthStore {
     }
   }
 
+  /// Đăng xuất: thu hồi refresh token phía BE (best-effort) + xoá phiên Google
+  /// native + xoá phiên cục bộ.
+  ///
+  /// Không dùng [_fail] vì logout không có màn hình lỗi: [SessionStore.logout]
+  /// đã nuốt lỗi BE để client luôn thoát được. `signOut()` của Firebase vẫn có
+  /// thể ném khi Firebase chưa init — bọc riêng để không làm hỏng trạng thái.
+  ///
+  /// [allDevices] = true → `revoke-all` (đăng xuất mọi thiết bị).
+  Future<void> logout({bool allDevices = false}) async {
+    if (isSubmitting) return;
+    runInAction(() {
+      _status.value = FormStatus.submitting;
+      _error.value = null;
+    });
+    try {
+      await _session.logout(allDevices: allDevices);
+      await _googleGateway.signOut();
+    } catch (_) {
+      // Phiên cục bộ đã bị xoá trong _session.logout(); chỉ còn lỗi signOut()
+      // của Firebase native — bỏ qua để UI vẫn coi như đã đăng xuất.
+    } finally {
+      runInAction(() => _status.value = FormStatus.idle);
+    }
+  }
+
   void _begin() => runInAction(() {
         _status.value = FormStatus.submitting;
         _error.value = null;

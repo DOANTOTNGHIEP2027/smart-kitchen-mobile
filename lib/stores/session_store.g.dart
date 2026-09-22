@@ -149,6 +149,14 @@ mixin _$SessionStore on _SessionStore, Store {
     return _$clearAsyncAction.run(() => super.clear());
   }
 
+  late final _$logoutAsyncAction =
+      AsyncAction('_SessionStore.logout', context: context);
+
+  @override
+  Future<void> logout({bool allDevices = false}) {
+    return _$logoutAsyncAction.run(() => super.logout(allDevices: allDevices));
+  }
+
   late final _$_SessionStoreActionController =
       ActionController(name: '_SessionStore', context: context);
 

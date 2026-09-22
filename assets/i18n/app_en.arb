@@ -160,6 +160,19 @@
   "verified": "Verified",
   "verify": "Verify",
   "resendOtp": "Resend code",
+  "authForgotPasswordLink": "Forgot password?",
+  "authForgotPasswordTitle": "Reset your password",
+  "authForgotPasswordHint": "Enter your email and we'll send a verification code.",
+  "authSendResetOtp": "Send code",
+  "authResetPasswordTitle": "Enter code",
+  "authResetPasswordSubmit": "Reset password",
+  "authNewPassword": "New password",
+  "authConfirmPassword": "Confirm password",
+  "authPasswordMismatch": "Passwords do not match",
+  "authResetSuccess": "Password updated. Please sign in.",
+  "authOtpCooldown": "Please wait before requesting another code.",
+  "authTooManyAttempts": "Too many attempts. Try again later.",
+  "authEmailInvalid": "Enter a valid email address",
   "upgradeProfileTitle": "Complete your profile",
   "upgradeProfileSubtitle": "Add an email and password to keep your account",
   "fullNameOptional": "Full name (optional)",
@@ -290,5 +303,16 @@
   "@memberDetailAllergensEmpty": {},
 
   "staleDataBanner": "Data may be out of date — showing the latest saved copy.",
-  "@staleDataBanner": {}
+  "@staleDataBanner": {},
+
+  "profileLogout": "Log out",
+  "@profileLogout": {},
+  "profileLogoutAll": "Log out of all devices",
+  "@profileLogoutAll": {},
+  "profileLogoutConfirm": "Log out of this device?",
+  "@profileLogoutConfirm": {},
+  "profileLogoutAllConfirm": "Log out of all devices? You will need to sign in again everywhere.",
+  "@profileLogoutAllConfirm": {},
+  "profileLogoutCancel": "Cancel",
+  "@profileLogoutCancel": {}
 }

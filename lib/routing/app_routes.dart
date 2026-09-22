@@ -10,6 +10,8 @@ abstract class AppRoutes {
   static const String emailLogin = '/login/email';
   static const String register = '/register';
   static const String otp = '/otp';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
   static const String qrJoin = '/join'; // seam deep-link mời tham gia
   static const String qrJoinCode = '/join/:code';
   static const String householdSetup = '/household/setup';
