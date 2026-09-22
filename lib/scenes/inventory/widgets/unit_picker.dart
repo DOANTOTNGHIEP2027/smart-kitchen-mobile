@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../domain/unit_option.dart';
 
 /// Picker cho [unitOptions] (FE-5 §14 UnitPicker). Hiển thị dưới dạng
@@ -17,7 +18,7 @@ Future<UnitOption?> showUnitPicker(BuildContext context,
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.all(AppDimens.md),
-            child: Text('Chọn đơn vị',
+            child: Text(context.l10n.inventoryChooseUnit,
                 style: Theme.of(context).textTheme.titleMedium),
           ),
           ...unitOptions.map((u) {

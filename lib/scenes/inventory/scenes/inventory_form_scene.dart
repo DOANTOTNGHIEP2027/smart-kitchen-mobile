@@ -7,6 +7,7 @@ import 'package:mobx/mobx.dart';
 
 import '../../../constants/app_dimens.dart';
 import '../../../data/network/api_exception.dart';
+import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../domain/inventory_item.dart';
@@ -86,7 +87,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   Widget build(BuildContext context) {
     final isEdit = store.mode == InventoryFormMode.edit;
     return AppScaffold(
-      title: isEdit ? 'Sửa mặt hàng' : 'Thêm mặt hàng',
+      title: isEdit ? context.l10n.inventoryEditItem : context.l10n.inventoryAddItem,
       body: Observer(
         builder: (_) {
           if (store.isSaving) {
@@ -104,10 +105,10 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                   ),
                 TextField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Tên mặt hàng *',
-                    hintText: 'vd. Cà chua',
-                    prefixIcon: Icon(Icons.inventory_2_outlined),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.inventoryItemName,
+                    hintText: context.l10n.inventoryItemNameHint,
+                    prefixIcon: const Icon(Icons.inventory_2_outlined),
                   ),
                   textInputAction: TextInputAction.next,
                 ),
@@ -119,9 +120,9 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                       flex: 2,
                       child: TextField(
                         controller: _quantityCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Số lượng *',
-                          prefixIcon: Icon(Icons.scale_outlined),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.inventoryQuantity,
+                          prefixIcon: const Icon(Icons.scale_outlined),
                         ),
                         keyboardType:
                             const TextInputType.numberWithOptions(decimal: true),
@@ -140,11 +141,11 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                           }
                         },
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'Đơn vị',
-                            prefixIcon: Icon(Icons.straighten_outlined),
+                          decoration: InputDecoration(
+                            labelText: context.l10n.inventoryUnit,
+                            prefixIcon: const Icon(Icons.straighten_outlined),
                           ),
-                          child: Text(_unit?.label ?? 'Chọn…'),
+                          child: Text(_unit?.label ?? context.l10n.choose),
                         ),
                       ),
                     ),
@@ -153,9 +154,9 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                 const SizedBox(height: AppDimens.md),
                 TextField(
                   controller: _lowStockCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Ngưỡng sắp hết (tuỳ chọn)',
-                    prefixIcon: Icon(Icons.warning_amber_outlined),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.inventoryLowStockOptional,
+                    prefixIcon: const Icon(Icons.warning_amber_outlined),
                   ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
@@ -175,21 +176,21 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                     }
                   },
                   child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Hạn sử dụng (tuỳ chọn)',
-                      prefixIcon: Icon(Icons.event_outlined),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.inventoryExpiryOptional,
+                      prefixIcon: const Icon(Icons.event_outlined),
                     ),
                     child: Text(_expiryDate == null
-                        ? 'Chọn ngày…'
+                        ? context.l10n.inventoryChooseDate
                         : '${_expiryDate!.day}/${_expiryDate!.month}/${_expiryDate!.year}'),
                   ),
                 ),
                 const SizedBox(height: AppDimens.md),
                 TextField(
                   controller: _noteCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Ghi chú (tuỳ chọn)',
-                    prefixIcon: Icon(Icons.notes_outlined),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.inventoryNoteOptional,
+                    prefixIcon: const Icon(Icons.notes_outlined),
                   ),
                   maxLines: 2,
                   textInputAction: TextInputAction.done,
@@ -197,7 +198,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                 const SizedBox(height: AppDimens.lg),
                 Observer(
                   builder: (_) => AppButton(
-                    label: isEdit ? 'Lưu thay đổi' : 'Thêm vào kho',
+                    label: isEdit ? context.l10n.saveChanges : context.l10n.inventoryAddToInventory,
                     isLoading: store.isSaving,
                     onPressed: store.isSaving ? null : _onSave,
                   ),
@@ -208,8 +209,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                     onPressed: store.isSaving ? null : _onDelete,
                     icon: const Icon(Icons.delete_outline,
                         color: Colors.red),
-                    label: const Text('Xoá mặt hàng',
-                        style: TextStyle(color: Colors.red)),
+                    label: Text(context.l10n.inventoryDeleteItem,
+                        style: const TextStyle(color: Colors.red)),
                   ),
                 ],
               ],
@@ -223,7 +224,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   String? _validateForSave() {
     final nameErr = InventoryFormStore.validateName(_nameCtrl.text);
     if (nameErr != null) return nameErr;
-    if (_unit == null) return 'Vui lòng chọn đơn vị';
+    if (_unit == null) return context.l10n.inventoryUnitRequired;
     final qtyErr = InventoryFormStore.validateQuantity(
       _quantityCtrl.text,
       mode: store.mode,
@@ -311,7 +312,7 @@ class _SaveErrorBanner extends StatelessWidget {
         child: Row(
           children: <Widget>[
             Expanded(child: Text(error.message)),
-            TextButton(onPressed: onRetry, child: const Text('Bỏ')),
+            TextButton(onPressed: onRetry, child: Text(context.l10n.dismiss)),
           ],
         ),
       ),

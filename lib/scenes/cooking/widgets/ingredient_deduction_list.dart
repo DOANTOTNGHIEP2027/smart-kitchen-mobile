@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../domain/ingredient_deduction.dart';
 
 /// Danh sách kết quả trừ kho sau `complete()` (FE-6 §7.4).
@@ -16,9 +17,9 @@ class IngredientDeductionList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (deductions.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(AppDimens.md),
-        child: Text('Không có nguyên liệu nào để trừ (recipe rỗng).'),
+      return Padding(
+        padding: const EdgeInsets.all(AppDimens.md),
+        child: Text(context.l10n.cookingNoIngredientsToDeduct),
       );
     }
     return ListView.builder(
@@ -42,8 +43,7 @@ class _DeductionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
-      margin: const EdgeInsets.symmetric(
-          vertical: AppDimens.xs),
+      margin: const EdgeInsets.symmetric(vertical: AppDimens.xs),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
@@ -62,27 +62,31 @@ class _DeductionRow extends StatelessWidget {
                       style: theme.textTheme.titleMedium),
                   const SizedBox(height: AppDimens.xs),
                   Text(
-                    'Cần: ${deduction.requiredQuantity} ${deduction.requiredUnit}',
+                    context.l10n.cookingDeductionRequired(
+                        deduction.requiredQuantity, deduction.requiredUnit),
                     style: theme.textTheme.bodySmall
                         ?.copyWith(color: AppColors.textSecondary),
                   ),
                   Text(
-                    'Đã trừ: ${deduction.deductedQuantity} ${deduction.requiredUnit}',
+                    context.l10n.cookingDeducted(
+                        deduction.deductedQuantity, deduction.requiredUnit),
                     style: theme.textTheme.bodySmall
                         ?.copyWith(color: AppColors.textSecondary),
                   ),
-                  if (deduction.deductedQuantity <
-                      deduction.requiredQuantity)
+                  if (deduction.deductedQuantity < deduction.requiredQuantity)
                     Padding(
                       padding: const EdgeInsets.only(top: AppDimens.xs),
                       child: Text(
-                        'Thiếu: ${deduction.shortfallQuantity} ${deduction.requiredUnit}',
+                        context.l10n.cookingShortfall(
+                            deduction.shortfallQuantity,
+                            deduction.requiredUnit),
                         style: theme.textTheme.bodySmall
                             ?.copyWith(color: AppColors.error),
                       ),
                     ),
                   Text(
-                    'Từ ${deduction.matchedItemCount} lô hàng',
+                    context.l10n
+                        .cookingDeductionLots(deduction.matchedItemCount),
                     style: theme.textTheme.bodySmall
                         ?.copyWith(color: AppColors.textSecondary),
                   ),
@@ -96,12 +100,12 @@ class _DeductionRow extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppDimens.radiusSm),
-                  border: Border.all(
-                      color: AppColors.error.withValues(alpha: 0.4)),
+                  border:
+                      Border.all(color: AppColors.error.withValues(alpha: 0.4)),
                 ),
-                child: const Text(
-                  'Không đủ',
-                  style: TextStyle(
+                child: Text(
+                  context.l10n.cookingInsufficient,
+                  style: const TextStyle(
                     color: AppColors.error,
                     fontWeight: FontWeight.w600,
                     fontSize: 11,

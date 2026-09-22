@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../domain/inventory_item.dart';
 import '../stores/inventory_form_store.dart';
 
@@ -28,15 +29,14 @@ class ConflictDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AlertDialog(
-      title: const Text(
-          'Dữ liệu đã bị thay đổi bởi thành viên khác. Đang làm mới…'),
+      title: Text(context.l10n.inventoryConflictMessage),
       content: SingleChildScrollView(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: _Column(
-                title: 'Của bạn',
+                title: context.l10n.inventoryYours,
                 item: conflict.local,
                 color: theme.colorScheme.primary,
               ),
@@ -44,7 +44,7 @@ class ConflictDialog extends StatelessWidget {
             const SizedBox(width: AppDimens.md),
             Expanded(
               child: _Column(
-                title: 'Trên server',
+                title: context.l10n.inventoryServer,
                 item: conflict.server,
                 color: theme.colorScheme.error,
               ),
@@ -53,8 +53,8 @@ class ConflictDialog extends StatelessWidget {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: onUseServer, child: const Text('Dùng của server')),
-        FilledButton(onPressed: onKeepMine, child: const Text('Giữ của tôi')),
+        TextButton(onPressed: onUseServer, child: Text(context.l10n.inventoryUseServer)),
+        FilledButton(onPressed: onKeepMine, child: Text(context.l10n.inventoryKeepMine)),
       ],
     );
   }
@@ -80,17 +80,17 @@ class _Column extends StatelessWidget {
             style: TextStyle(
                 color: color, fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: AppDimens.xs),
-        _Pair(label: 'Tên', value: item.name),
+        _Pair(label: context.l10n.inventoryName, value: item.name),
         _Pair(
-            label: 'Số lượng',
+            label: context.l10n.inventoryQuantityLabel,
             value: '${item.displayQuantity ?? item.quantity} ${item.displayUnit ?? item.unit}'),
-        _Pair(label: 'Nhóm', value: item.category ?? '—'),
+        _Pair(label: context.l10n.inventoryCategory, value: item.category ?? '—'),
         if (item.expiryDate != null)
           _Pair(
-              label: 'HSD',
+              label: context.l10n.inventoryExpiry,
               value:
                   '${item.expiryDate!.day}/${item.expiryDate!.month}/${item.expiryDate!.year}'),
-        _Pair(label: 'Version', value: 'v${item.version}'),
+        _Pair(label: context.l10n.inventoryVersion, value: 'v${item.version}'),
       ],
     );
   }

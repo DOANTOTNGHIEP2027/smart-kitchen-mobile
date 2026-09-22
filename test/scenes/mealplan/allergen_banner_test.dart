@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/domain/allergen_derivation.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_suggestion.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/allergen_banner.dart';
+
+import '../../helpers/pump_app.dart';
 
 /// Tests cho `AllergenBanner` 3 nhánh — DoD FE-7 bắt buộc (Implementation Guard
 /// #7, engine §7.3). Test nhánh "UNVERIFIED + [] = chưa kiểm, không phải an
@@ -19,9 +20,7 @@ void main() {
         allergenDerivation: AllergenDerivation.ingredientRule,
       );
 
-      await tester.pumpWidget(const MaterialApp(
-        home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
-      ));
+      await tester.pumpAppWidget(const AllergenBanner(suggestion: suggestion));
 
       expect(find.byType(AllergenBanner), findsOneWidget);
       expect(find.textContaining('dị ứng'), findsNothing,
@@ -38,9 +37,7 @@ void main() {
         allergenDerivation: AllergenDerivation.ingredientRule,
       );
 
-      await tester.pumpWidget(const MaterialApp(
-        home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
-      ));
+      await tester.pumpAppWidget(const AllergenBanner(suggestion: suggestion));
 
       expect(find.textContaining('Shellfish'), findsOneWidget);
       expect(find.textContaining('Eggs'), findsOneWidget);
@@ -58,9 +55,7 @@ void main() {
         allergenDerivation: AllergenDerivation.unverified,
       );
 
-      await tester.pumpWidget(const MaterialApp(
-        home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
-      ));
+      await tester.pumpAppWidget(const AllergenBanner(suggestion: suggestion));
 
       expect(find.textContaining('Chưa kiểm chứng'), findsOneWidget,
           reason:
@@ -78,9 +73,7 @@ void main() {
         allergenDerivation: AllergenDerivation.unknown,
       );
 
-      await tester.pumpWidget(const MaterialApp(
-        home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
-      ));
+      await tester.pumpAppWidget(const AllergenBanner(suggestion: suggestion));
 
       expect(find.textContaining('Chưa kiểm chứng'), findsOneWidget);
     });
@@ -93,9 +86,7 @@ void main() {
         allergenDerivation: AllergenDerivation.source,
       );
 
-      await tester.pumpWidget(const MaterialApp(
-        home: Scaffold(body: AllergenBanner(suggestion: suggestion)),
-      ));
+      await tester.pumpAppWidget(const AllergenBanner(suggestion: suggestion));
 
       expect(find.textContaining('Chưa kiểm chứng'), findsOneWidget);
     });

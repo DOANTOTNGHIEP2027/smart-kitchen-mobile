@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 
 /// Thanh tiến trình bước hiện tại / tổng số bước (FE-6 §7.3).
 class StepProgressBar extends StatelessWidget {
@@ -35,12 +36,12 @@ class StepProgressBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                'Bước $viewedStep/$totalSteps',
+                context.l10n.cookingStepProgress(viewedStep, totalSteps),
                 style: theme.textTheme.titleSmall,
               ),
               if (viewedStep != currentStep)
                 Text(
-                  'Đang xem lại (hiện tại: bước $currentStep)',
+                  context.l10n.cookingStepReviewing(currentStep),
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: AppColors.warning),
                 ),
@@ -51,8 +52,8 @@ class StepProgressBar extends StatelessWidget {
             value: progress.clamp(0.0, 1.0),
             minHeight: 8,
             backgroundColor: AppColors.border,
-            valueColor: AlwaysStoppedAnimation<Color>(
-                theme.colorScheme.primary),
+            valueColor:
+                AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
           ),
         ],
       ),

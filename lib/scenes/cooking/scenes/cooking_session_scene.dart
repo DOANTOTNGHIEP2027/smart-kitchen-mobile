@@ -6,6 +6,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/cards/app_card.dart';
@@ -81,16 +82,16 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
     await showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Huỷ buổi nấu ăn?'),
-        content: const Text('Nguyên liệu sẽ KHÔNG bị trừ khỏi kho.'),
+        title: Text(context.l10n.cookingAbandonTitle),
+        content: Text(context.l10n.cookingAbandonMessage),
         actions: <Widget>[
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Tiếp tục nấu'),
+            child: Text(context.l10n.cookingContinue),
           ),
           Observer(
             builder: (_) => AppButton(
-              label: 'Huỷ Bỏ',
+              label: context.l10n.cookingAbandonAction,
               variant: AppButtonVariant.text,
               isLoading: _store.isAbandoning,
               expanded: false,
@@ -134,8 +135,7 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
       case CookingScreenPhase.error:
         return AppScaffold(
           body: _ErrorPhaseView(
-            message:
-                store.loadError?.message ?? 'Không tải được phiên nấu ăn.',
+            message: store.loadError?.message ?? context.l10n.cookingLoadFailed,
             retryable: store.loadErrorIsRetryable,
             onRetry: store.retryLoad,
           ),
@@ -183,7 +183,9 @@ class _ErrorPhaseView extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: AppDimens.lg),
             AppButton(
-              label: retryable ? 'Thử lại' : 'Quay lại',
+              label: retryable
+                  ? context.l10n.cookingRetry
+                  : context.l10n.cookingBack,
               variant: AppButtonVariant.secondary,
               expanded: false,
               onPressed: retryable ? onRetry : () => Get.back<void>(),
@@ -210,7 +212,7 @@ class _ActiveStepView extends StatelessWidget {
       actions: <Widget>[
         IconButton(
           icon: const Icon(Icons.close),
-          tooltip: 'Huỷ buổi nấu',
+          tooltip: context.l10n.cookingAbandonTooltip,
           onPressed: onAbandon,
         ),
       ],
@@ -224,7 +226,7 @@ class _ActiveStepView extends StatelessWidget {
                   SnackBar(
                     content: Text(store.actionError!.message),
                     action: SnackBarAction(
-                      label: 'Thử lại',
+                      label: context.l10n.cookingRetry,
                       onPressed: () {
                         store.clearActionError();
                         // KHÔNG tự động retry — user explicit.
@@ -251,8 +253,7 @@ class _ActiveStepView extends StatelessWidget {
                     children: <Widget>[
                       StepTimerView(
                         remainingSeconds: store.remainingSeconds,
-                        durationSeconds:
-                            store.viewedStepDef?.durationSeconds,
+                        durationSeconds: store.viewedStepDef?.durationSeconds,
                         isViewingCurrentStep: store.isViewingCurrentStep,
                         timerRunning: store.timerRunning,
                         onToggle: store.toggleTimer,
@@ -265,7 +266,7 @@ class _ActiveStepView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              'Bước ${store.viewedStep}',
+                              context.l10n.cookingStepLabel(store.viewedStep),
                               style: theme.textTheme.labelLarge?.copyWith(
                                   color: AppColors.primaryDark,
                                   fontWeight: FontWeight.w700),
@@ -273,7 +274,8 @@ class _ActiveStepView extends StatelessWidget {
                             const SizedBox(height: AppDimens.sm),
                             Text(
                               store.viewedStepDef?.instruction ??
-                                  'Nội dung bước không khả dụng.', // Guard #7
+                                  context
+                                      .l10n.cookingStepUnavailable, // Guard #7
                               style: theme.textTheme.titleMedium?.copyWith(
                                   height: 1.5, fontWeight: FontWeight.w600),
                             ),
@@ -283,7 +285,7 @@ class _ActiveStepView extends StatelessWidget {
                       const SizedBox(height: AppDimens.lg),
                       if (!store.isViewingCurrentStep)
                         AppButton(
-                          label: 'Quay lại bước đang nấu',
+                          label: context.l10n.cookingReturnToCurrentStep,
                           icon: Icons.fast_forward,
                           onPressed: store.returnToCurrentStep,
                         ),
@@ -299,7 +301,7 @@ class _ActiveStepView extends StatelessWidget {
                     if (store.isViewingCurrentStep)
                       IconButton(
                         icon: const Icon(Icons.arrow_back),
-                        tooltip: 'Bước trước',
+                        tooltip: context.l10n.cookingPreviousStep,
                         onPressed: store.viewedStep <= 1
                             ? null
                             : store.viewPreviousStep,
@@ -308,15 +310,13 @@ class _ActiveStepView extends StatelessWidget {
                     Expanded(
                       child: AppButton(
                         label: store.session?.isLastStep == true
-                            ? 'Hoàn thành'
-                            : 'Bước tiếp theo',
-                        isLoading:
-                            store.isAdvancing || store.isCompleting,
+                            ? context.l10n.cookingComplete
+                            : context.l10n.cookingNextStep,
+                        isLoading: store.isAdvancing || store.isCompleting,
                         icon: store.session?.isLastStep == true
                             ? Icons.check_circle_outline
                             : Icons.arrow_forward,
-                        onPressed: (store.isAdvancing ||
-                                store.isCompleting)
+                        onPressed: (store.isAdvancing || store.isCompleting)
                             ? null
                             : store.advanceOrComplete,
                       ),
@@ -355,25 +355,25 @@ class _CompletedResultView extends StatelessWidget {
                 height: AppDimens.stateIcon + AppDimens.md,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: (hasAnyShortfall ? AppColors.warning : AppColors.success)
-                      .withValues(alpha: 0.13),
+                  color:
+                      (hasAnyShortfall ? AppColors.warning : AppColors.success)
+                          .withValues(alpha: 0.13),
                 ),
                 child: Icon(
                   hasAnyShortfall
                       ? Icons.warning_amber_rounded
                       : Icons.check_rounded,
                   size: AppDimens.stateIcon,
-                  color: hasAnyShortfall
-                      ? AppColors.warning
-                      : AppColors.success,
+                  color:
+                      hasAnyShortfall ? AppColors.warning : AppColors.success,
                 ),
               ),
             ),
             const SizedBox(height: AppDimens.md),
             Text(
               hasAnyShortfall
-                  ? 'Đã hoàn thành — còn thiếu nguyên liệu'
-                  : 'Đã hoàn thành!',
+                  ? context.l10n.cookingCompletedWithShortfall
+                  : context.l10n.cookingCompleted,
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall,
             ),
@@ -381,20 +381,20 @@ class _CompletedResultView extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: AppDimens.sm),
                 child: Text(
-                  'BE đã trừ tới đâu hết rồi dừng (FIFO). Không có rollback — '
-                  'nguyên liệu đã dùng được tính theo deductedQuantity.',
+                  context.l10n.cookingCompletedShortfallDetail,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: AppColors.textSecondary),
                 ),
               ),
             const SizedBox(height: AppDimens.lg),
-            Text('Kết quả trừ kho:', style: theme.textTheme.titleMedium),
+            Text(context.l10n.cookingDeductionResult,
+                style: theme.textTheme.titleMedium),
             const SizedBox(height: AppDimens.sm),
             IngredientDeductionList(deductions: store.deductions),
             const SizedBox(height: AppDimens.lg),
             AppButton(
-              label: 'Xong',
+              label: context.l10n.cookingDone,
               icon: Icons.home,
               onPressed: () {
                 // Đích cụ thể là câu hỏi mở Q3 của file thiết kế — hiện tại
@@ -425,16 +425,17 @@ class _AbandonedView extends StatelessWidget {
             const Icon(Icons.logout,
                 size: AppDimens.stateIcon, color: AppColors.textSecondary),
             const SizedBox(height: AppDimens.md),
-            Text('Đã bỏ dở buổi nấu.', style: theme.textTheme.bodyLarge),
+            Text(context.l10n.cookingAbandoned,
+                style: theme.textTheme.bodyLarge),
             const SizedBox(height: AppDimens.sm),
             Text(
-              'Kho không bị thay đổi gì.',
+              context.l10n.cookingAbandonedDetail,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: AppColors.textSecondary),
             ),
             const SizedBox(height: AppDimens.lg),
             AppButton(
-              label: 'Về trang chủ',
+              label: context.l10n.cookingHome,
               icon: Icons.home,
               expanded: false,
               onPressed: () => Get.back<void>(),

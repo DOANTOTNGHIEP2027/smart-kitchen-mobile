@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../domain/meal_suggestion.dart';
 
 /// Widget 3 nhánh cảnh báo dị ứng (FE-7 §9.3, Implementation Guard #7).
@@ -35,15 +36,15 @@ class AllergenBanner extends StatelessWidget {
       final tags = suggestion.allergenTags.join(', ');
       return _Banner(
         icon: Icons.dangerous_outlined,
-        text: 'Món này chứa: $tags',
+        text: context.l10n.mealplanContainsAllergens(tags),
         color: AppColors.error,
       );
     }
 
     // 3. derivation khác INGREDIENT_RULE → BẮT BUỘC cảnh báo vàng.
-    return const _Banner(
+    return _Banner(
       icon: Icons.warning_amber,
-      text: 'Chưa kiểm chứng dị ứng cho món này',
+      text: context.l10n.mealplanAllergenUnverified,
       color: AppColors.warning,
     );
   }
