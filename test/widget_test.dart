@@ -27,7 +27,8 @@ void main() {
 
   tearDown(Get.reset);
 
-  testWidgets('render 5 tab, mặc định chọn tab đầu', (WidgetTester tester) async {
+  testWidgets('render 5 tab, mặc định chọn tab đầu',
+      (WidgetTester tester) async {
     await tester.pumpAppWidget(const AppShellScene(), wrapInScaffold: false);
 
     expect(find.byType(AppBottomNav), findsOneWidget);
@@ -35,13 +36,24 @@ void main() {
     expect(store.selectedIndex, 0);
   });
 
-  testWidgets('chạm tab đổi selectedIndex',
-      (WidgetTester tester) async {
+  testWidgets('chạm tab đổi selectedIndex', (WidgetTester tester) async {
     await tester.pumpAppWidget(const AppShellScene(), wrapInScaffold: false);
 
     await tester.tap(find.text('Kho'));
     await tester.pumpAndSettle();
     expect(store.selectedIndex, 1);
+  });
+
+  testWidgets('system back từ tab khác Home chuyển về tab Home',
+      (WidgetTester tester) async {
+    store.selectTab(4);
+    await tester.pumpAppWidget(const AppShellScene(), wrapInScaffold: false);
+
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+
+    expect(store.selectedIndex, 0,
+        reason: 'IndexedStack không có route history; back phải quay về Home');
   });
 
   testWidgets('tab Shopping (index 3) giữ placeholder Coming soon',

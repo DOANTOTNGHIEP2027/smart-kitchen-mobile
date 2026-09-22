@@ -112,7 +112,7 @@ class _CreateHouseholdSceneState extends State<CreateHouseholdScene> {
                 onSubmitted: (_) => _submit(),
                 decoration: InputDecoration(
                     labelText: 'household_name'.localized(context),
-                    hintText: 'Nhà Nguyễn',
+                    hintText: context.l10n.householdNameExample,
                     prefixIcon: const Icon(Icons.home_outlined),
                     errorText: localError)),
             const SizedBox(height: 20),

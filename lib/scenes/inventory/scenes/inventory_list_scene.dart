@@ -3,6 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../../../stores/session_store.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
@@ -40,10 +41,10 @@ class _InventoryListSceneState extends State<InventoryListScene> {
     final store = Get.find<InventoryStore>();
     final session = Get.find<SessionStore>();
     return AppScaffold(
-      title: 'Kho thực phẩm',
+      title: context.l10n.inventoryTitle,
       actions: <Widget>[
         IconButton(
-          tooltip: 'Thêm',
+          tooltip: context.l10n.add,
           icon: const Icon(Icons.add),
           onPressed: () => Get.toNamed('/inventory/add'),
         ),
@@ -60,12 +61,10 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                       horizontal: 16, vertical: 8),
                   child: Row(
                     children: <Widget>[
-                      const Expanded(
-                          child: Text(
-                              'Không đồng bộ được — hiển thị dữ liệu đã lưu')),
+                      Expanded(child: Text(context.l10n.inventorySyncFailed)),
                       TextButton(
                         onPressed: () => store.syncFromServer(),
-                        child: const Text('Thử lại'),
+                        child: Text(context.l10n.retry),
                       ),
                     ],
                   ),
@@ -88,9 +87,9 @@ class _InventoryListSceneState extends State<InventoryListScene> {
               builder: (_) => Column(
                 children: <Widget>[
                   TextField(
-                    decoration: const InputDecoration(
-                      hintText: 'Tìm theo tên…',
-                      prefixIcon: Icon(Icons.search),
+                    decoration: InputDecoration(
+                      hintText: context.l10n.inventorySearchHint,
+                      prefixIcon: const Icon(Icons.search),
                       isDense: true,
                     ),
                     onChanged: store.setSearchQuery,
@@ -102,7 +101,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                       scrollDirection: Axis.horizontal,
                       children: <Widget>[
                         _CategoryChip(
-                          label: 'Tất cả',
+                          label: context.l10n.all,
                           selected: store.selectedCategory == null,
                           onTap: () => store.setCategory(null),
                         ),
@@ -125,10 +124,9 @@ class _InventoryListSceneState extends State<InventoryListScene> {
             child: Observer(
               builder: (_) {
                 if (store.householdId == null) {
-                  return const AppEmptyView(
+                  return AppEmptyView(
                     icon: Icons.home_outlined,
-                    message:
-                        'Bạn chưa thuộc Nhà nào — hãy tạo hoặc tham gia Nhà trước.',
+                    message: context.l10n.inventoryNoHousehold,
                   );
                 }
                 if (store.status == InventoryLoadStatus.loading) {
@@ -141,22 +139,22 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                       store.searchQuery.isNotEmpty ||
                           store.selectedCategory != null;
                   if (isEmptyDueToFilters) {
-                    return const AppEmptyView(
+                    return AppEmptyView(
                       icon: Icons.search_off,
-                      message: 'Không tìm thấy mặt hàng phù hợp.',
+                      message: context.l10n.inventoryNoResults,
                     );
                   }
                   return Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        const AppEmptyView(
+                        AppEmptyView(
                           icon: Icons.kitchen_outlined,
-                          message: 'Chưa có mặt hàng nào.',
+                          message: context.l10n.inventoryEmpty,
                         ),
                         const SizedBox(height: 8),
                         AppButton(
-                          label: 'Thêm mặt hàng',
+                          label: context.l10n.inventoryAddItem,
                           icon: Icons.add,
                           onPressed: () => Get.toNamed('/inventory/add'),
                         ),

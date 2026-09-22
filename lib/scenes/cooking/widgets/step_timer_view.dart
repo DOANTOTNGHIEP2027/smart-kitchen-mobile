@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 
 /// Hiển thị đồng hồ đếm ngược hoặc thời lượng gợi ý tĩnh (FE-6 §7.3).
 class StepTimerView extends StatelessWidget {
@@ -44,7 +45,7 @@ class StepTimerView extends StatelessWidget {
                 size: 19, color: AppColors.textSecondary),
             const SizedBox(width: AppDimens.sm),
             Text(
-              'Thời lượng gợi ý: $minutes phút',
+              context.l10n.cookingSuggestedDuration(minutes),
               style: theme.textTheme.bodyMedium,
             ),
           ],
@@ -74,9 +75,7 @@ class StepTimerView extends StatelessWidget {
             style: theme.textTheme.headlineSmall?.copyWith(
               color: AppColors.primaryDark,
               fontWeight: FontWeight.w800,
-              fontFeatures: const <FontFeature>[
-                FontFeature.tabularFigures()
-              ],
+              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
             ),
           ),
           const SizedBox(width: AppDimens.sm),
@@ -86,13 +85,15 @@ class StepTimerView extends StatelessWidget {
                   ? Icons.pause_circle_outline
                   : Icons.play_circle_outline),
               onPressed: onToggle,
-              tooltip: timerRunning ? 'Tạm dừng' : 'Tiếp tục',
+              tooltip: timerRunning
+                  ? context.l10n.cookingPause
+                  : context.l10n.cookingResume,
             ),
           if (onReset != null)
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: onReset,
-              tooltip: 'Đặt lại',
+              tooltip: context.l10n.cookingReset,
             ),
         ],
       ),

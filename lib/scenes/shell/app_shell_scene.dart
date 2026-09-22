@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
+import '../../app/env_config.dart';
 import '../../demo/fixtures/demo_fixtures.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
@@ -49,27 +50,38 @@ class AppShellScene extends StatelessWidget {
         final index = store.selectedIndex;
         // Mỗi tab là Scaffold riêng — không dùng AppScaffold cha để tránh 2
         // AppBar chồng lên nhau (feature scene đã có AppBar của mình).
-        return Scaffold(
-          body: IndexedStack(
-            index: index,
-            children: <Widget>[
-              const _HomeTab(),
-              const InventoryListScene(),
-              const WeeklyMealPlanScene(),
-              _PlaceholderTab(icon: tabs[3].icon),
-              const ProfileScreen(),
-            ],
-          ),
-          bottomNavigationBar: AppBottomNav(
-            selectedIndex: index,
-            onDestinationSelected: store.selectTab,
-            destinations: tabs
-                .map((tab) => AppBottomNavDestination(
-                      icon: tab.icon,
-                      activeIcon: tab.activeIcon,
-                      label: tab.label,
-                    ))
-                .toList(growable: false),
+        return PopScope<void>(
+          // IndexedStack không tạo route history khi đổi tab. Chặn pop ở tab
+          // khác Home để Android back gesture/nút back đưa người dùng về
+          // Home, thay vì pop route shell và thoát app.
+          canPop: index == 0,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop && store.selectedIndex != 0) {
+              store.selectTab(0);
+            }
+          },
+          child: Scaffold(
+            body: IndexedStack(
+              index: index,
+              children: <Widget>[
+                const _HomeTab(),
+                const InventoryListScene(),
+                const WeeklyMealPlanScene(),
+                _PlaceholderTab(icon: tabs[3].icon),
+                const ProfileScreen(),
+              ],
+            ),
+            bottomNavigationBar: AppBottomNav(
+              selectedIndex: index,
+              onDestinationSelected: store.selectTab,
+              destinations: tabs
+                  .map((tab) => AppBottomNavDestination(
+                        icon: tab.icon,
+                        activeIcon: tab.activeIcon,
+                        label: tab.label,
+                      ))
+                  .toList(growable: false),
+            ),
           ),
         );
       },
@@ -77,11 +89,16 @@ class AppShellScene extends StatelessWidget {
   }
 
   List<_ShellTab> _tabsOf(BuildContext context) => <_ShellTab>[
-        _ShellTab(context.l10n.navHome, Icons.home_outlined, Icons.home_rounded),
-        _ShellTab(context.l10n.navInventory, Icons.kitchen_outlined, Icons.kitchen_rounded),
-        _ShellTab(context.l10n.navPlanning, Icons.event_note_outlined, Icons.event_rounded),
-        _ShellTab(context.l10n.navShopping, Icons.shopping_cart_outlined, Icons.shopping_cart_rounded),
-        _ShellTab(context.l10n.navProfile, Icons.person_outline, Icons.person_outline),
+        _ShellTab(
+            context.l10n.navHome, Icons.home_outlined, Icons.home_rounded),
+        _ShellTab(context.l10n.navInventory, Icons.kitchen_outlined,
+            Icons.kitchen_rounded),
+        _ShellTab(context.l10n.navPlanning, Icons.event_note_outlined,
+            Icons.event_rounded),
+        _ShellTab(context.l10n.navShopping, Icons.shopping_cart_outlined,
+            Icons.shopping_cart_rounded),
+        _ShellTab(context.l10n.navProfile, Icons.person_outline,
+            Icons.person_outline),
       ];
 
   static void _ensureBindings() {
@@ -101,9 +118,8 @@ class _HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final session = Get.isRegistered<SessionStore>()
-        ? Get.find<SessionStore>()
-        : null;
+    final session =
+        Get.isRegistered<SessionStore>() ? Get.find<SessionStore>() : null;
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -161,30 +177,32 @@ class _HomeTab extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppDimens.xl),
-            Text(
-              context.l10n.homeRecommendedMeals,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: AppDimens.sm),
-            ...DemoFixtures.suggestions().map(
-              (recipe) => Padding(
-                padding: const EdgeInsets.only(bottom: AppDimens.md),
-                child: _HomeRecipeCard(
-                  recipeId: recipe['recipeId']! as String,
-                  recipeName: recipe['recipeName']! as String,
-                  actionLabel: context.l10n.homeRecipeAction,
-                  onTap: () => Get.to<void>(
-                    () => HomeRecipeDetailScene(
-                      recipeId: recipe['recipeId']! as String,
+            if (EnvConfig.isDemoMode) ...<Widget>[
+              const SizedBox(height: AppDimens.xl),
+              Text(
+                context.l10n.homeRecommendedMeals,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: AppDimens.sm),
+              ...DemoFixtures.suggestions().map(
+                (recipe) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppDimens.md),
+                  child: _HomeRecipeCard(
+                    recipeId: recipe['recipeId']! as String,
+                    recipeName: recipe['recipeName']! as String,
+                    actionLabel: context.l10n.homeRecipeAction,
+                    onTap: () => Get.to<void>(
+                      () => HomeRecipeDetailScene(
+                        recipeId: recipe['recipeId']! as String,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -313,7 +331,8 @@ class _HomeActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(AppDimens.radiusMd);
-    final foreground = primary ? AppColors.textOnPrimary : AppColors.textPrimary;
+    final foreground =
+        primary ? AppColors.textOnPrimary : AppColors.textPrimary;
     return Material(
       color: Colors.transparent,
       borderRadius: radius,
@@ -395,7 +414,8 @@ class _HomeActionCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: primary
-                                ? AppColors.textOnPrimary.withValues(alpha: 0.86)
+                                ? AppColors.textOnPrimary
+                                    .withValues(alpha: 0.86)
                                 : AppColors.textSecondary,
                             height: 1.3,
                           ),
@@ -434,65 +454,65 @@ class _HomeRecipeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(AppDimens.radiusMd);
     return Material(
-        color: AppColors.surface,
+      color: AppColors.surface,
+      borderRadius: radius,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: radius,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: radius,
-          child: Container(
-            padding: const EdgeInsets.all(AppDimens.sm),
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              border: Border.all(
-                color: AppColors.textSecondary.withValues(alpha: 0.32),
-                width: 1.2,
+        child: Container(
+          padding: const EdgeInsets.all(AppDimens.sm),
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(
+              color: AppColors.textSecondary.withValues(alpha: 0.32),
+              width: 1.2,
+            ),
+            boxShadow: const <BoxShadow>[
+              BoxShadow(
+                color: Color(0x0D111111),
+                blurRadius: 10,
+                offset: Offset(0, 3),
               ),
-              boxShadow: const <BoxShadow>[
-                BoxShadow(
-                  color: Color(0x0D111111),
-                  blurRadius: 10,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                RecipeCoverImage(
-                  recipeId: recipeId,
-                  recipeName: recipeName,
-                  height: 184,
-                ),
-                const SizedBox(height: AppDimens.sm),
-                Text(
-                  recipeName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: AppDimens.sm),
-                Row(
-                  children: <Widget>[
-                    const Icon(Icons.play_circle_outline_rounded,
-                        size: 18, color: AppColors.primaryDark),
-                    const SizedBox(width: AppDimens.xs),
-                    Text(
-                      actionLabel,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: AppColors.primaryDark,
-                            fontWeight: FontWeight.w800,
-                          ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              RecipeCoverImage(
+                recipeId: recipeId,
+                recipeName: recipeName,
+                height: 184,
+              ),
+              const SizedBox(height: AppDimens.sm),
+              Text(
+                recipeName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
                     ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: AppDimens.sm),
+              Row(
+                children: <Widget>[
+                  const Icon(Icons.play_circle_outline_rounded,
+                      size: 18, color: AppColors.primaryDark),
+                  const SizedBox(width: AppDimens.xs),
+                  Text(
+                    actionLabel,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: AppColors.primaryDark,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
 }
 

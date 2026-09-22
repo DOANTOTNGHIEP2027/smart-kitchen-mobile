@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
@@ -11,7 +12,6 @@ import '../data/meal_plan_api.dart';
 import '../domain/shopping_list_sink.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/suggestion_store.dart';
-import '../widgets/allergen_banner.dart';
 import '../widgets/suggestion_card.dart';
 
 /// Chi tiết 1 suggestion (FE-7 §12). Route chỉ từ dish VOTING.
@@ -44,7 +44,7 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'Gợi ý món ăn',
+      title: context.l10n.mealplanSuggestionsTitle,
       body: Observer(
         builder: (_) {
           final suggestion = _store.currentSuggestion;
@@ -53,14 +53,13 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const AppEmptyView(
+                  AppEmptyView(
                     icon: Icons.cloud_off,
-                    message:
-                        'Phiên đã tồn tại nhưng chưa tải lại được danh sách gợi ý.',
+                    message: context.l10n.mealplanSuggestionsUnavailable,
                   ),
                   const SizedBox(height: AppDimens.md),
                   AppButton(
-                    label: 'Làm mới',
+                    label: context.l10n.refresh,
                     expanded: false,
                     icon: Icons.refresh,
                     onPressed: () => _store.refreshSuggestions(),
@@ -70,9 +69,9 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
             );
           }
           if (suggestion == null) {
-            return const AppEmptyView(
+            return AppEmptyView(
               icon: Icons.search_off,
-              message: 'Đã xem hết gợi ý. Chờ vote hoặc thử re-roll.',
+              message: context.l10n.mealplanSuggestionsExhausted,
             );
           }
           return SingleChildScrollView(
@@ -98,20 +97,18 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                   onPrevious: _store.viewPrevious,
                   onNext: _store.viewNext,
                 ),
-                // Hiển thị AllergenBanner riêng ngoài card để test DoD rõ hơn.
-                AllergenBanner(suggestion: suggestion),
                 if (suggestion.missingIngredients.isNotEmpty) ...<Widget>[
                   const SizedBox(height: AppDimens.md),
                   Padding(
                     padding: const EdgeInsets.all(AppDimens.md),
                     child: AppButton(
-                      label: 'Thêm vào danh sách mua sắm',
+                      label: context.l10n.mealplanAddShoppingList,
                       variant: AppButtonVariant.secondary,
                       icon: Icons.shopping_cart_outlined,
                       onPressed: () {
                         Get.snackbar(
-                          'Chưa khả dụng',
-                          'Danh sách mua sắm sẽ ra mắt trong bản sau.',
+                          context.l10n.unavailable,
+                          context.l10n.mealplanShoppingListUnavailable,
                         );
                       },
                     ),
@@ -135,7 +132,7 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                     children: <Widget>[
                       Expanded(
                         child: AppButton(
-                          label: 'Bỏ qua',
+                          label: context.l10n.skip,
                           variant: AppButtonVariant.secondary,
                           icon: Icons.close,
                           onPressed:
@@ -148,7 +145,7 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                       const SizedBox(width: AppDimens.sm),
                       Expanded(
                         child: AppButton(
-                          label: 'Chọn món',
+                          label: context.l10n.mealplanChooseDish,
                           icon: Icons.check,
                           isLoading: _store.actionStatus ==
                               SuggestionActionStatus.accepting,
@@ -161,9 +158,10 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                                   if (ok) {
                                     Get.back<void>();
                                   } else {
+                                    if (!context.mounted) return;
                                     Get.snackbar(
-                                      'Không chọn được',
-                                      'Đã hoàn tác thao tác.',
+                                      context.l10n.mealplanUnableToChoose,
+                                      context.l10n.mealplanActionRolledBack,
                                     );
                                   }
                                 },

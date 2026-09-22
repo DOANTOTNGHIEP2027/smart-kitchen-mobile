@@ -40,20 +40,40 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
     if (_isAdding) return;
     setState(() => _isAdding = true);
     final store = Get.find<MealPlanStore>();
-    final dish = await store.addDish(widget.slotId);
-    if (dish != null) {
-      try {
-        await store.openVoteSession(widget.slotId, dish.id);
-        if (mounted) {
-          await Get.toNamed<void>(
-            MealPlanRoutes.detailOf(widget.slotId, dish.id),
-          );
-        }
-      } catch (_) {
-        // Lỗi đã nằm trong state/adapter hiện tại; editor chỉ thoát loading.
+    try {
+      final dish = await store.addDish(widget.slotId);
+      if (!mounted) return;
+      if (dish == null) {
+        _showActionError(context.l10n.mealPlanAddDishFailed);
+        return;
+      }
+      await _openSuggestions(dish.id);
+    } catch (_) {
+      if (mounted) _showActionError(context.l10n.mealPlanAddDishFailed);
+    } finally {
+      if (mounted) setState(() => _isAdding = false);
+    }
+  }
+
+  Future<void> _openSuggestions(String dishId) async {
+    try {
+      final store = Get.find<MealPlanStore>();
+      await store.openVoteSession(widget.slotId, dishId);
+      if (!mounted) return;
+      await Get.toNamed<void>(
+        MealPlanRoutes.detailOf(widget.slotId, dishId),
+      );
+    } catch (_) {
+      if (mounted) {
+        _showActionError(context.l10n.mealPlanOpenSuggestionsFailed);
       }
     }
-    if (mounted) setState(() => _isAdding = false);
+  }
+
+  void _showActionError(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -90,23 +110,12 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                     onDelete: () => store.removeDish(widget.slotId, dish.id),
                     onChoose: dish.status == DishUiStatus.confirmed
                         ? null
-                        : () async {
-                            try {
-                              await store.openVoteSession(widget.slotId, dish.id);
-                              if (mounted) {
-                                await Get.toNamed<void>(
-                                  MealPlanRoutes.detailOf(widget.slotId, dish.id),
-                                );
-                              }
-                            } catch (_) {
-                              // Error adapter/store đã dịch sang UI tiếng Việt.
-                            }
-                          },
+                        : () => _openSuggestions(dish.id),
                   ),
                 ),
               ),
               AppButton(
-                label: 'Thêm món',
+                label: context.l10n.mealPlanAddDish,
                 icon: Icons.add_rounded,
                 isLoading: _isAdding,
                 onPressed: _isAdding ? null : _addDish,
@@ -220,7 +229,7 @@ class _PendingDishCard extends StatelessWidget {
             const SizedBox(width: AppDimens.sm),
             Expanded(
               child: Text(
-                'Chưa chọn món',
+                context.l10n.mealPlanDishUnselected,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w700,

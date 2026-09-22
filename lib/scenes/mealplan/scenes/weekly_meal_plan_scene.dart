@@ -46,13 +46,13 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
     final store = Get.find<MealPlanStore>();
     final session = Get.find<SessionStore>();
     return AppScaffold(
-      title: 'Kế hoạch tuần',
+      title: context.l10n.mealPlanTitle,
       body: Observer(
         builder: (_) {
           if (session.householdId == null) {
-            return const AppEmptyView(
+            return AppEmptyView(
               icon: Icons.home_outlined,
-              message: 'Bạn chưa thuộc Nhà nào.',
+              message: context.l10n.mealPlanNoHousehold,
             );
           }
           switch (store.status) {
@@ -60,7 +60,8 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
               return const AppLoadingView();
             case MealPlanLoadStatus.error:
               return AppErrorView(
-                message: store.loadError?.message ?? 'Không tải được kế hoạch.',
+                message: store.loadError?.message ??
+                    context.l10n.mealPlanLoadFailed,
                 onRetry: () => store.loadWeekPlan(),
               );
             case MealPlanLoadStatus.ready:
@@ -98,13 +99,13 @@ class _WeekCalendar extends StatelessWidget {
   final Future<void> Function(int direction) onNavigateWeek;
 
   @override
-  Widget build(BuildContext context) {
-    return ListView(
+  Widget build(BuildContext context) => Observer(
+        builder: (_) => ListView(
       padding: const EdgeInsets.fromLTRB(
           AppDimens.md, AppDimens.md, AppDimens.md, AppDimens.xl),
       children: <Widget>[
         _WeekNavigation(
-          label: _weekLabel(store.currentWeekStart),
+          label: _weekLabel(context, store.currentWeekStart),
           onPrevious: () => onNavigateWeek(-1),
           onNext: () => onNavigateWeek(1),
         ),
@@ -133,7 +134,7 @@ class _WeekCalendar extends StatelessWidget {
               final date = store.currentWeekStart.add(Duration(days: index));
               return _CalendarDay(
                 date: date,
-                label: const <String>['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'][index],
+                label: _weekdayLabels(context)[index],
                 selected: _isSameDay(date, selectedDate),
                 hasDishes: _hasDishes(store, date),
                 onTap: () => onDateSelected(date),
@@ -143,7 +144,10 @@ class _WeekCalendar extends StatelessWidget {
         ),
         const SizedBox(height: AppDimens.xl),
         Text(
-          'Lịch ngày ${selectedDate.day}/${selectedDate.month}',
+          context.l10n.mealPlanDaySchedule(
+            selectedDate.day,
+            selectedDate.month,
+          ),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w800,
@@ -151,9 +155,9 @@ class _WeekCalendar extends StatelessWidget {
         ),
         const SizedBox(height: AppDimens.sm),
         ...const <_MealPeriod>[
-          _MealPeriod('Sáng', 'BREAKFAST', Icons.wb_sunny_outlined),
-          _MealPeriod('Trưa', 'LUNCH', Icons.light_mode_outlined),
-          _MealPeriod('Tối', 'DINNER', Icons.nightlight_round),
+          _MealPeriod('BREAKFAST', Icons.wb_sunny_outlined),
+          _MealPeriod('LUNCH', Icons.light_mode_outlined),
+          _MealPeriod('DINNER', Icons.nightlight_round),
         ].map(
           (period) => Padding(
             padding: const EdgeInsets.only(bottom: AppDimens.sm),
@@ -165,8 +169,8 @@ class _WeekCalendar extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
+        ),
+      );
 
   static bool _hasDishes(MealPlanStore store, DateTime date) =>
       const <String>['BREAKFAST', 'LUNCH', 'DINNER'].any(
@@ -179,9 +183,24 @@ class _WeekCalendar extends StatelessWidget {
   static String _slotKey(DateTime date, String meal) =>
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}_$meal';
 
-  static String _weekLabel(DateTime monday) {
+  static List<String> _weekdayLabels(BuildContext context) => <String>[
+        context.l10n.mealPlanWeekdayMonday,
+        context.l10n.mealPlanWeekdayTuesday,
+        context.l10n.mealPlanWeekdayWednesday,
+        context.l10n.mealPlanWeekdayThursday,
+        context.l10n.mealPlanWeekdayFriday,
+        context.l10n.mealPlanWeekdaySaturday,
+        context.l10n.mealPlanWeekdaySunday,
+      ];
+
+  static String _weekLabel(BuildContext context, DateTime monday) {
     final sunday = monday.add(const Duration(days: 6));
-    return 'Tuần ${monday.day}/${monday.month} – ${sunday.day}/${sunday.month}';
+    return context.l10n.mealPlanWeekRange(
+      monday.day,
+      monday.month,
+      sunday.day,
+      sunday.month,
+    );
   }
 }
 
@@ -301,7 +320,7 @@ class _PendingVoteBanner extends StatelessWidget {
             const SizedBox(width: AppDimens.sm),
             Expanded(
               child: Text(
-                '$count phiên vote đang mở',
+                context.l10n.mealPlanOpenVotes(count),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w700,
@@ -314,11 +333,17 @@ class _PendingVoteBanner extends StatelessWidget {
 }
 
 class _MealPeriod {
-  const _MealPeriod(this.label, this.wireValue, this.icon);
+  const _MealPeriod(this.wireValue, this.icon);
 
-  final String label;
   final String wireValue;
   final IconData icon;
+
+  String labelOf(BuildContext context) => switch (wireValue) {
+        'BREAKFAST' => context.l10n.mealPlanBreakfast,
+        'LUNCH' => context.l10n.mealPlanLunch,
+        'DINNER' => context.l10n.mealPlanDinner,
+        _ => wireValue,
+      };
 }
 
 class _MealScheduleCard extends StatelessWidget {
@@ -337,6 +362,7 @@ class _MealScheduleCard extends StatelessWidget {
     final slot = store.slots[_WeekCalendar._slotKey(date, period.wireValue)];
     final slotId = slot?.id;
     final canEdit = slotId?.isNotEmpty == true;
+    final periodLabel = period.labelOf(context);
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(AppDimens.radiusMd),
@@ -345,8 +371,9 @@ class _MealScheduleCard extends StatelessWidget {
             ? () => Get.to<void>(
                   () => MealSlotEditorScene(
                     slotId: slotId!,
-                    mealLabel: period.label,
-                    dateLabel: '${date.day}/${date.month}',
+                    mealLabel: periodLabel,
+                    dateLabel:
+                        context.l10n.mealPlanDateShort(date.day, date.month),
                   ),
                 )
             : null,
@@ -367,7 +394,7 @@ class _MealScheduleCard extends StatelessWidget {
                 children: <Widget>[
                   Icon(period.icon, color: AppColors.primaryDark, size: 20),
                   const SizedBox(width: AppDimens.sm),
-                  Text(period.label,
+                  Text(periodLabel,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.w800)),
@@ -380,7 +407,7 @@ class _MealScheduleCard extends StatelessWidget {
               ),
               const SizedBox(height: AppDimens.sm),
               if (slot == null || slot.dishes.isEmpty)
-                Text('Chạm để thêm món',
+                Text(context.l10n.mealPlanTapToAdd,
                     style: Theme.of(context).textTheme.bodyMedium)
               else
                 ...slot.dishes.map(
@@ -407,7 +434,10 @@ class _ScheduledDishCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final recipe = dish.recipe;
     if (recipe == null) {
-      return Text('Đang chọn món', style: Theme.of(context).textTheme.bodyMedium);
+      return Text(
+        context.l10n.mealPlanSelectingDish,
+        style: Theme.of(context).textTheme.bodyMedium,
+      );
     }
     final minutes = RecipeCoverImage.demoPrepTimeMinutes(recipe.recipeId);
     return Padding(

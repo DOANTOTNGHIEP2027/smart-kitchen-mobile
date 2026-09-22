@@ -92,6 +92,100 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String get authEmailExample => 'ban@example.com';
+
+  @override
+  String get authFullNameExample => 'Nguyễn Văn A';
+
+  @override
+  String get householdNameExample => 'Nhà Nguyễn';
+
+  @override
+  String get inviteCodeExample => 'ABC12345';
+
+  @override
+  String get joinDisplayNameExample => 'Thành viên';
+
+  @override
+  String get mealPlanTitle => 'Kế hoạch tuần';
+
+  @override
+  String get mealPlanNoHousehold => 'Bạn chưa thuộc Nhà nào.';
+
+  @override
+  String get mealPlanLoadFailed => 'Không tải được kế hoạch.';
+
+  @override
+  String mealPlanWeekRange(
+      int startDay, int startMonth, int endDay, int endMonth) {
+    return 'Tuần $startDay/$startMonth – $endDay/$endMonth';
+  }
+
+  @override
+  String mealPlanDaySchedule(int day, int month) {
+    return 'Lịch ngày $day/$month';
+  }
+
+  @override
+  String mealPlanDateShort(int day, int month) {
+    return '$day/$month';
+  }
+
+  @override
+  String get mealPlanWeekdayMonday => 'T2';
+
+  @override
+  String get mealPlanWeekdayTuesday => 'T3';
+
+  @override
+  String get mealPlanWeekdayWednesday => 'T4';
+
+  @override
+  String get mealPlanWeekdayThursday => 'T5';
+
+  @override
+  String get mealPlanWeekdayFriday => 'T6';
+
+  @override
+  String get mealPlanWeekdaySaturday => 'T7';
+
+  @override
+  String get mealPlanWeekdaySunday => 'CN';
+
+  @override
+  String get mealPlanBreakfast => 'Sáng';
+
+  @override
+  String get mealPlanLunch => 'Trưa';
+
+  @override
+  String get mealPlanDinner => 'Tối';
+
+  @override
+  String mealPlanOpenVotes(int count) {
+    return '$count phiên vote đang mở';
+  }
+
+  @override
+  String get mealPlanTapToAdd => 'Chạm để thêm món';
+
+  @override
+  String get mealPlanSelectingDish => 'Đang chọn món';
+
+  @override
+  String get mealPlanDishUnselected => 'Chưa chọn món';
+
+  @override
+  String get mealPlanAddDish => 'Thêm món';
+
+  @override
+  String get mealPlanAddDishFailed => 'Không thể thêm món. Vui lòng thử lại.';
+
+  @override
+  String get mealPlanOpenSuggestionsFailed =>
+      'Không thể mở gợi ý món. Vui lòng thử lại.';
+
+  @override
   String get devLoginTitle => 'Đăng nhập';
 
   @override
@@ -404,6 +498,137 @@ class AppLocalizationsVi extends AppLocalizations {
   String get healthSavedToast => 'Đã lưu hồ sơ sức khoẻ';
 
   @override
+  String get healthSavedDialogTitle => 'Đã lưu hồ sơ sức khoẻ';
+
+  @override
+  String get healthSavedDialogMessage =>
+      'Hồ sơ sức khoẻ của bạn đã được lưu thành công.';
+
+  @override
+  String get healthSavedDialogConfirm => 'Xong';
+
+  @override
+  String get cookingAbandonTitle => 'Huỷ buổi nấu ăn?';
+
+  @override
+  String get cookingAbandonMessage => 'Nguyên liệu sẽ không bị trừ khỏi kho.';
+
+  @override
+  String get cookingContinue => 'Tiếp tục nấu';
+
+  @override
+  String get cookingAbandonAction => 'Huỷ bỏ';
+
+  @override
+  String get cookingLoadFailed => 'Không tải được phiên nấu ăn.';
+
+  @override
+  String get cookingRetry => 'Thử lại';
+
+  @override
+  String get cookingBack => 'Quay lại';
+
+  @override
+  String get cookingAbandonTooltip => 'Huỷ buổi nấu';
+
+  @override
+  String cookingStepLabel(int step) {
+    return 'Bước $step';
+  }
+
+  @override
+  String get cookingStepUnavailable => 'Nội dung bước không khả dụng.';
+
+  @override
+  String get cookingReturnToCurrentStep => 'Quay lại bước đang nấu';
+
+  @override
+  String get cookingPreviousStep => 'Bước trước';
+
+  @override
+  String get cookingComplete => 'Hoàn thành';
+
+  @override
+  String get cookingNextStep => 'Bước tiếp theo';
+
+  @override
+  String get cookingCompletedWithShortfall =>
+      'Đã hoàn thành — còn thiếu nguyên liệu';
+
+  @override
+  String get cookingCompleted => 'Đã hoàn thành!';
+
+  @override
+  String get cookingCompletedShortfallDetail =>
+      'Kho đã được trừ đến khi hết hàng (FIFO). Nguyên liệu đã dùng được ghi nhận theo số lượng đã trừ.';
+
+  @override
+  String get cookingDeductionResult => 'Kết quả trừ kho:';
+
+  @override
+  String get cookingDone => 'Xong';
+
+  @override
+  String get cookingAbandoned => 'Đã bỏ dở buổi nấu.';
+
+  @override
+  String get cookingAbandonedDetail => 'Kho không bị thay đổi gì.';
+
+  @override
+  String get cookingHome => 'Về trang chủ';
+
+  @override
+  String get cookingNoIngredientsToDeduct =>
+      'Không có nguyên liệu nào để trừ (công thức rỗng).';
+
+  @override
+  String cookingDeductionRequired(Object quantity, Object unit) {
+    return 'Cần: $quantity $unit';
+  }
+
+  @override
+  String cookingDeducted(Object quantity, Object unit) {
+    return 'Đã trừ: $quantity $unit';
+  }
+
+  @override
+  String cookingShortfall(Object quantity, Object unit) {
+    return 'Thiếu: $quantity $unit';
+  }
+
+  @override
+  String cookingDeductionLots(int count) {
+    return 'Từ $count lô hàng';
+  }
+
+  @override
+  String get cookingInsufficient => 'Không đủ';
+
+  @override
+  String cookingStepProgress(int viewedStep, int totalSteps) {
+    return 'Bước $viewedStep/$totalSteps';
+  }
+
+  @override
+  String cookingStepReviewing(int currentStep) {
+    return 'Đang xem lại (hiện tại: bước $currentStep)';
+  }
+
+  @override
+  String cookingSuggestedDuration(int minutes) {
+    return 'Thời lượng gợi ý: $minutes phút';
+  }
+
+  @override
+  String get cookingPause => 'Tạm dừng';
+
+  @override
+  String get cookingResume => 'Tiếp tục';
+
+  @override
+  String get cookingReset => 'Đặt lại';
+
+  @override
   String get allergensTitle => 'Dị ứng của tôi';
 
   @override
@@ -494,4 +719,262 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get profileLogoutCancel => 'Huỷ';
+
+  @override
+  String get inventoryTitle => 'Kho thực phẩm';
+
+  @override
+  String get add => 'Thêm';
+
+  @override
+  String get retry => 'Thử lại';
+
+  @override
+  String get all => 'Tất cả';
+
+  @override
+  String get cancel => 'Huỷ';
+
+  @override
+  String get choose => 'Chọn';
+
+  @override
+  String get dismiss => 'Bỏ';
+
+  @override
+  String get saveChanges => 'Lưu thay đổi';
+
+  @override
+  String get delete => 'Xoá';
+
+  @override
+  String get refresh => 'Làm mới';
+
+  @override
+  String get skip => 'Bỏ qua';
+
+  @override
+  String get unavailable => 'Chưa khả dụng';
+
+  @override
+  String get inventorySyncFailed =>
+      'Không đồng bộ được — hiển thị dữ liệu đã lưu.';
+
+  @override
+  String get inventorySearchHint => 'Tìm theo tên…';
+
+  @override
+  String get inventoryNoHousehold =>
+      'Bạn chưa thuộc Nhà nào — hãy tạo hoặc tham gia Nhà trước.';
+
+  @override
+  String get inventoryNoResults => 'Không tìm thấy mặt hàng phù hợp.';
+
+  @override
+  String get inventoryEmpty => 'Chưa có mặt hàng nào.';
+
+  @override
+  String get inventoryAddItem => 'Thêm mặt hàng';
+
+  @override
+  String get inventoryChooseUnit => 'Chọn đơn vị';
+
+  @override
+  String get inventoryDeleteTitle => 'Xoá mặt hàng này?';
+
+  @override
+  String get inventoryDeleteMessage => 'Chọn lý do xoá để ghi vào lịch sử kho.';
+
+  @override
+  String get inventoryDeleteCooked => 'Đã dùng hết';
+
+  @override
+  String get inventoryDeleteWaste => 'Hết hạn, hỏng, bỏ đi';
+
+  @override
+  String get inventoryDeleteCorrected => 'Xoá nhầm, sửa số liệu';
+
+  @override
+  String get inventoryEditItem => 'Sửa mặt hàng';
+
+  @override
+  String get inventoryItemName => 'Tên mặt hàng *';
+
+  @override
+  String get inventoryItemNameHint => 'vd. Cà chua';
+
+  @override
+  String get inventoryQuantity => 'Số lượng *';
+
+  @override
+  String get inventoryUnit => 'Đơn vị';
+
+  @override
+  String get inventoryLowStockOptional => 'Ngưỡng sắp hết (tuỳ chọn)';
+
+  @override
+  String get inventoryExpiryOptional => 'Hạn sử dụng (tuỳ chọn)';
+
+  @override
+  String get inventoryChooseDate => 'Chọn ngày…';
+
+  @override
+  String get inventoryNoteOptional => 'Ghi chú (tuỳ chọn)';
+
+  @override
+  String get inventoryAddToInventory => 'Thêm vào kho';
+
+  @override
+  String get inventoryDeleteItem => 'Xoá mặt hàng';
+
+  @override
+  String get inventoryUnitRequired => 'Vui lòng chọn đơn vị';
+
+  @override
+  String get inventoryLowStock => 'Sắp hết';
+
+  @override
+  String get inventoryExpiringSoon => 'HSD sắp tới';
+
+  @override
+  String get inventoryPendingSync => 'Chưa đồng bộ';
+
+  @override
+  String get inventoryConflict => 'Xung đột';
+
+  @override
+  String get inventoryConflictMessage =>
+      'Dữ liệu đã bị thay đổi bởi thành viên khác. Đang làm mới…';
+
+  @override
+  String get inventoryYours => 'Của bạn';
+
+  @override
+  String get inventoryServer => 'Trên server';
+
+  @override
+  String get inventoryUseServer => 'Dùng của server';
+
+  @override
+  String get inventoryKeepMine => 'Giữ của tôi';
+
+  @override
+  String get inventoryName => 'Tên';
+
+  @override
+  String get inventoryQuantityLabel => 'Số lượng';
+
+  @override
+  String get inventoryCategory => 'Nhóm';
+
+  @override
+  String get inventoryExpiry => 'HSD';
+
+  @override
+  String get inventoryVersion => 'Phiên bản';
+
+  @override
+  String get mealplanAddDish => 'Thêm món';
+
+  @override
+  String get mealplanConfirmed => 'Đã xác nhận';
+
+  @override
+  String get mealplanAddSuggestion => 'Thêm gợi ý';
+
+  @override
+  String get mealplanWaitingForVote => 'Chờ vote';
+
+  @override
+  String get mealplanVoting => 'Đang vote';
+
+  @override
+  String get mealplanSelectedDish => 'Món đã chọn';
+
+  @override
+  String get mealplanAiSuggestion => 'Gợi ý từ AI';
+
+  @override
+  String get mealplanStartCooking => 'Bắt đầu nấu';
+
+  @override
+  String get mealplanDeleteDishTitle => 'Xoá món này?';
+
+  @override
+  String get mealplanDeleteDishMessage =>
+      'Nếu đang có phiên vote, phiên đó sẽ bị huỷ.';
+
+  @override
+  String get mealplanDeleteDish => 'Xoá món';
+
+  @override
+  String get mealplanNeedsMore => 'Cần thêm:';
+
+  @override
+  String get mealplanMainIngredientPrefix => '[Chính] ';
+
+  @override
+  String get mealplanNoReason => 'Không có lý do';
+
+  @override
+  String get mealplanAiGenerated => 'AI sinh';
+
+  @override
+  String mealplanContainsAllergens(Object tags) {
+    return 'Món này chứa: $tags';
+  }
+
+  @override
+  String get mealplanAllergenUnverified => 'Chưa kiểm chứng dị ứng cho món này';
+
+  @override
+  String get mealplanSuggestionsTitle => 'Gợi ý món ăn';
+
+  @override
+  String get mealplanSuggestionsUnavailable =>
+      'Phiên đã tồn tại nhưng chưa tải lại được danh sách gợi ý.';
+
+  @override
+  String get mealplanSuggestionsExhausted =>
+      'Đã xem hết gợi ý. Chờ vote hoặc thử re-roll.';
+
+  @override
+  String get mealplanAddShoppingList => 'Thêm vào danh sách mua sắm';
+
+  @override
+  String get mealplanShoppingListUnavailable =>
+      'Danh sách mua sắm sẽ ra mắt trong bản sau.';
+
+  @override
+  String get mealplanChooseDish => 'Chọn món';
+
+  @override
+  String get mealplanUnableToChoose => 'Không chọn được';
+
+  @override
+  String get mealplanActionRolledBack => 'Đã hoàn tác thao tác.';
+
+  @override
+  String get mealplanVoteSession => 'Phiên vote';
+
+  @override
+  String mealplanClosesAt(Object time) {
+    return 'Đóng lúc: $time';
+  }
+
+  @override
+  String get mealplanVoteSuggestionsUnavailable =>
+      'Phiên đã tồn tại nhưng chưa tải lại được danh sách gợi ý. Bấm Làm mới hoặc chờ thành viên khác vote.';
+
+  @override
+  String get mealplanNoVotes => 'Chưa ai vote.';
+
+  @override
+  String get mealplanVoted => 'Đã vote';
+
+  @override
+  String get mealplanVote => 'Vote';
+
+  @override
+  String get mealplanCloseVoting => 'Đóng vote';
 }

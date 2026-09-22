@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../domain/inventory_item.dart';
 
 /// Hiển thị một [InventoryItemModel] trong danh sách (FE-5 §14 InventoryItemTile).
@@ -82,18 +83,14 @@ class InventoryItemTile extends StatelessWidget {
                       runSpacing: AppDimens.xs,
                       children: <Widget>[
                         if (item.isLowStock)
-                          const _Badge(
-                              label: 'Sắp hết', color: AppColors.error),
+                          _Badge(label: context.l10n.inventoryLowStock, color: AppColors.error),
                         if (item.isExpiringSoon)
-                          const _Badge(
-                              label: 'HSD sắp tới', color: AppColors.warning),
+                          _Badge(label: context.l10n.inventoryExpiringSoon, color: AppColors.warning),
                         if (item.isPendingSync)
-                          const _Badge(
-                              label: 'Chưa đồng bộ',
+                          _Badge(label: context.l10n.inventoryPendingSync,
                               color: AppColors.secondary),
                         if (item.hasConflict)
-                          const _Badge(
-                              label: 'Xung đột', color: AppColors.error),
+                          _Badge(label: context.l10n.inventoryConflict, color: AppColors.error),
                       ],
                     ),
                   ],

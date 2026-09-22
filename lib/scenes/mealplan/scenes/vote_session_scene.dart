@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../../../stores/realtime_store.dart';
 import '../../../stores/session_store.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -56,7 +57,7 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'Phiên vote',
+      title: context.l10n.mealplanVoteSession,
       body: Observer(
         builder: (_) {
           final session = _store.session;
@@ -93,7 +94,7 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
                           const SizedBox(width: AppDimens.sm),
                           Expanded(
                             child: Text(
-                              'Đóng lúc: ${session.deadlineAt!}',
+                              context.l10n.mealplanClosesAt(session.deadlineAt!),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ),
@@ -105,21 +106,20 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
                   ),
                 if (session.suggestionsSourceDegraded &&
                     session.suggestions.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(AppDimens.md),
+                  Padding(
+                    padding: const EdgeInsets.all(AppDimens.md),
                     child: Text(
-                      'Phiên đã tồn tại nhưng chưa tải lại được danh sách gợi '
-                      'ý. Bấm "Làm mới" hoặc chờ thành viên khác vote.',
+                      context.l10n.mealplanVoteSuggestionsUnavailable,
                       textAlign: TextAlign.center,
                     ),
                   ),
                 Expanded(
                   child: session.suggestions.isEmpty
                       ? ListView(
-                          children: const <Widget>[
+                          children: <Widget>[
                             AppEmptyView(
                               icon: Icons.how_to_vote,
-                              message: 'Chưa ai vote.',
+                              message: context.l10n.mealplanNoVotes,
                             ),
                           ],
                         )
@@ -147,8 +147,8 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
                                       horizontal: AppDimens.md),
                                   child: AppButton(
                                     label: session.myVote == suggestion.recipeId
-                                        ? 'Đã vote'
-                                        : 'Vote',
+                                        ? context.l10n.mealplanVoted
+                                        : context.l10n.mealplanVote,
                                     variant:
                                         session.myVote == suggestion.recipeId
                                             ? AppButtonVariant.secondary
@@ -187,7 +187,7 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
                     children: <Widget>[
                       Expanded(
                         child: AppButton(
-                          label: 'Làm mới',
+                          label: context.l10n.refresh,
                           variant: AppButtonVariant.secondary,
                           icon: Icons.refresh,
                           onPressed: () => _store.refreshTally(),
@@ -196,7 +196,7 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
                       const SizedBox(width: AppDimens.sm),
                       Expanded(
                         child: AppButton(
-                          label: 'Đóng vote',
+                          label: context.l10n.mealplanCloseVoting,
                           variant: AppButtonVariant.text,
                           onPressed: () async {
                             await _store.closeManually();

@@ -64,8 +64,20 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
       weightKg: double.tryParse(weightCtl.text.trim()),
     );
     if (ok && mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(context.l10n.healthSavedToast)));
+      final acknowledged = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(context.l10n.healthSavedDialogTitle),
+          content: Text(context.l10n.healthSavedDialogMessage),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(context.l10n.healthSavedDialogConfirm),
+            ),
+          ],
+        ),
+      );
+      if (acknowledged == true && mounted) Get.back();
     }
   }
 
@@ -97,13 +109,24 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                           const SizedBox(height: AppDimens.md),
                         ],
                         TextField(
-                          controller: caloriesCtl,
-                          keyboardType: TextInputType.number,
+                          controller: weightCtl,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
                           decoration: InputDecoration(
                             labelText:
-                                context.l10n.healthProfileTargetCalories,
-                            prefixIcon: const Icon(Icons.local_fire_department_outlined),
-                            suffixText: 'kcal',
+                                context.l10n.healthProfileWeight,
+                            prefixIcon: const Icon(Icons.monitor_weight_outlined),
+                          ),
+                        ),
+                        const SizedBox(height: AppDimens.sm),
+                        TextField(
+                          controller: heightCtl,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration: InputDecoration(
+                            labelText:
+                                context.l10n.healthProfileHeight,
+                            prefixIcon: const Icon(Icons.height_rounded),
                           ),
                         ),
                         const SizedBox(height: AppDimens.sm),
@@ -125,24 +148,13 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                         ),
                         const SizedBox(height: AppDimens.sm),
                         TextField(
-                          controller: heightCtl,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
+                          controller: caloriesCtl,
+                          keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText:
-                                context.l10n.healthProfileHeight,
-                            prefixIcon: const Icon(Icons.height_rounded),
-                          ),
-                        ),
-                        const SizedBox(height: AppDimens.sm),
-                        TextField(
-                          controller: weightCtl,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          decoration: InputDecoration(
-                            labelText:
-                                context.l10n.healthProfileWeight,
-                            prefixIcon: const Icon(Icons.monitor_weight_outlined),
+                                context.l10n.healthProfileTargetCalories,
+                            prefixIcon: const Icon(Icons.local_fire_department_outlined),
+                            suffixText: 'kcal',
                           ),
                         ),
                         const SizedBox(height: AppDimens.md),

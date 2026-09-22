@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../utils/l10n_x.dart';
+
 /// Dialog xác nhận xoá (FE-5 §14 DeleteConfirmDialog, fix M12 hậu D21).
 ///
 /// 3 lựa chọn — mỗi lựa chọn map sang đúng `reason` của BE trên endpoint
@@ -41,28 +43,28 @@ class DeleteConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Xoá mặt hàng này?'),
-      content: const Text('Chọn lý do xoá để ghi vào lịch sử kho.'),
+      title: Text(context.l10n.inventoryDeleteTitle),
+      content: Text(context.l10n.inventoryDeleteMessage),
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Huỷ'),
+          child: Text(context.l10n.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(context)
               .pop(const DeleteReasonChoice(DeleteReason.cooked)),
-          child: const Text('Đã dùng hết'),
+          child: Text(context.l10n.inventoryDeleteCooked),
         ),
         TextButton(
           onPressed: () => Navigator.of(context)
               .pop(const DeleteReasonChoice(DeleteReason.waste)),
           style: TextButton.styleFrom(foregroundColor: Colors.deepOrange),
-          child: const Text('Hết hạn, hỏng, bỏ đi'),
+          child: Text(context.l10n.inventoryDeleteWaste),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context)
               .pop(const DeleteReasonChoice(DeleteReason.corrected)),
-          child: const Text('Xoá nhầm, sửa số liệu'),
+          child: Text(context.l10n.inventoryDeleteCorrected),
         ),
       ],
     );

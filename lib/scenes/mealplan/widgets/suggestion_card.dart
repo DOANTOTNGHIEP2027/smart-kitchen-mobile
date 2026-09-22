@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../domain/meal_suggestion.dart';
 import 'allergen_banner.dart';
 import 'recipe_cover_image.dart';
@@ -85,12 +86,12 @@ class SuggestionCard extends StatelessWidget {
               AllergenBanner(suggestion: suggestion),
               if (suggestion.missingIngredients.isNotEmpty) ...<Widget>[
                 const SizedBox(height: AppDimens.sm),
-                Text('Cần thêm:', style: theme.textTheme.titleSmall),
+                Text(context.l10n.mealplanNeedsMore, style: theme.textTheme.titleSmall),
                 ...suggestion.missingIngredients.map(
                   (IngredientItem i) => Padding(
                     padding: const EdgeInsets.only(left: AppDimens.md, top: 2),
                     child: Text(
-                      '• ${i.role?.toLowerCase() == 'main' ? '[Chính] ' : ''}'
+                      '• ${i.role?.toLowerCase() == 'main' ? context.l10n.mealplanMainIngredientPrefix : ''}'
                       '${i.name} — ${i.quantity} ${i.unit}',
                       style: theme.textTheme.bodySmall,
                     ),
@@ -137,7 +138,7 @@ class _SuggestionSummary extends StatelessWidget {
           ),
           const SizedBox(height: AppDimens.sm),
           Text(
-            suggestion.rankReason ?? 'Không có lý do',
+            suggestion.rankReason ?? context.l10n.mealplanNoReason,
             style: theme.textTheme.bodyMedium,
           ),
           if (suggestion.tradeoffNote != null) ...<Widget>[
@@ -163,9 +164,9 @@ class _SourceBadge extends StatelessWidget {
           color: AppColors.secondary.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(AppDimens.radiusSm),
         ),
-        child: const Text(
-          'AI sinh',
-          style: TextStyle(
+        child: Text(
+          context.l10n.mealplanAiGenerated,
+          style: const TextStyle(
             color: AppColors.secondary,
             fontSize: 11,
             fontWeight: FontWeight.w600,

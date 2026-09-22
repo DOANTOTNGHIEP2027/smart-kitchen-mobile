@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../../cooking/scenes/cooking_routes.dart' show CookingArgs, CookingRoutes;
 import '../domain/meal_plan_slot.dart';
 import '../domain/vote_session_summary.dart';
@@ -69,8 +70,8 @@ class MealCard extends StatelessWidget {
                     TextButton.icon(
                       onPressed: () => _confirmAddDish(currentSlot.id),
                       icon: const Icon(Icons.add, size: 16),
-                      label: const Text('Thêm món',
-                          style: TextStyle(fontSize: 11)),
+                      label: Text(context.l10n.mealPlanAddDish,
+                          style: const TextStyle(fontSize: 11)),
                       style: TextButton.styleFrom(
                         foregroundColor: Theme.of(context).colorScheme.primary,
                         padding: const EdgeInsets.symmetric(
@@ -171,7 +172,7 @@ class _DishChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final label = _label();
+    final label = _label(context);
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -204,17 +205,17 @@ class _DishChip extends StatelessWidget {
     );
   }
 
-  String _label() {
+  String _label(BuildContext context) {
     if (dish.status == DishUiStatus.confirmed) {
-      return dish.recipe?.recipeName ?? 'Đã xác nhận';
+      return dish.recipe?.recipeName ?? context.l10n.mealplanConfirmed;
     }
     switch (dish.status) {
       case DishUiStatus.empty:
-        return 'Thêm gợi ý';
+        return context.l10n.mealplanAddSuggestion;
       case DishUiStatus.suggested:
-        return 'Chờ vote';
+        return context.l10n.mealplanWaitingForVote;
       case DishUiStatus.voting:
-        return 'Đang vote';
+        return context.l10n.mealplanVoting;
       case DishUiStatus.confirmed:
         return dish.recipe?.recipeName ?? '';
     }
@@ -251,11 +252,11 @@ class ConfirmedDishSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            Text(dish.recipe?.recipeName ?? 'Món đã chọn',
+            Text(dish.recipe?.recipeName ?? context.l10n.mealplanSelectedDish,
                 style: theme.textTheme.titleMedium),
             const SizedBox(height: AppDimens.sm),
             if (dish.recipe != null && dish.recipe!.source == 'AI')
-              const Text('Gợi ý từ AI'),
+              Text(context.l10n.mealplanAiSuggestion),
             const SizedBox(height: AppDimens.lg),
             if (dish.recipe != null)
               FilledButton.icon(
@@ -267,7 +268,7 @@ class ConfirmedDishSheet extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.restaurant),
-                label: const Text('Bắt đầu nấu'),
+                label: Text(context.l10n.mealplanStartCooking),
               ),
             const SizedBox(height: AppDimens.sm),
             TextButton.icon(
@@ -275,18 +276,17 @@ class ConfirmedDishSheet extends StatelessWidget {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text('Xoá món này?'),
-                    content: const Text(
-                        'Nếu đang có phiên vote, phiên đó sẽ bị huỷ.'),
+                    title: Text(context.l10n.mealplanDeleteDishTitle),
+                    content: Text(context.l10n.mealplanDeleteDishMessage),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Huỷ'),
+                        child: Text(context.l10n.cancel),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Xoá',
-                            style: TextStyle(color: AppColors.error)),
+                        child: Text(context.l10n.delete,
+                            style: const TextStyle(color: AppColors.error)),
                       ),
                     ],
                   ),
@@ -296,8 +296,8 @@ class ConfirmedDishSheet extends StatelessWidget {
                 if (context.mounted) Get.back<void>();
               },
               icon: const Icon(Icons.delete_outline, color: AppColors.error),
-              label: const Text('Xoá món',
-                  style: TextStyle(color: AppColors.error)),
+              label: Text(context.l10n.mealplanDeleteDish,
+                  style: const TextStyle(color: AppColors.error)),
             ),
           ],
         ),
