@@ -254,6 +254,175 @@ abstract class AppLocalizations {
   /// **'{calories} kcal'**
   String homeRecipeCalories(int calories);
 
+  /// No description provided for @authEmailExample.
+  ///
+  /// In en, this message translates to:
+  /// **'you@example.com'**
+  String get authEmailExample;
+
+  /// No description provided for @authFullNameExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Alex Johnson'**
+  String get authFullNameExample;
+
+  /// No description provided for @householdNameExample.
+  ///
+  /// In en, this message translates to:
+  /// **'The Johnson household'**
+  String get householdNameExample;
+
+  /// No description provided for @inviteCodeExample.
+  ///
+  /// In en, this message translates to:
+  /// **'ABC12345'**
+  String get inviteCodeExample;
+
+  /// No description provided for @joinDisplayNameExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Household member'**
+  String get joinDisplayNameExample;
+
+  /// No description provided for @mealPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly meal plan'**
+  String get mealPlanTitle;
+
+  /// No description provided for @mealPlanNoHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not belong to a household yet.'**
+  String get mealPlanNoHousehold;
+
+  /// No description provided for @mealPlanLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the meal plan.'**
+  String get mealPlanLoadFailed;
+
+  /// No description provided for @mealPlanWeekRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Week {startDay}/{startMonth} – {endDay}/{endMonth}'**
+  String mealPlanWeekRange(
+      int startDay, int startMonth, int endDay, int endMonth);
+
+  /// No description provided for @mealPlanDaySchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule for {day}/{month}'**
+  String mealPlanDaySchedule(int day, int month);
+
+  /// No description provided for @mealPlanDateShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{month}/{day}'**
+  String mealPlanDateShort(int day, int month);
+
+  /// No description provided for @mealPlanWeekdayMonday.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get mealPlanWeekdayMonday;
+
+  /// No description provided for @mealPlanWeekdayTuesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get mealPlanWeekdayTuesday;
+
+  /// No description provided for @mealPlanWeekdayWednesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get mealPlanWeekdayWednesday;
+
+  /// No description provided for @mealPlanWeekdayThursday.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get mealPlanWeekdayThursday;
+
+  /// No description provided for @mealPlanWeekdayFriday.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get mealPlanWeekdayFriday;
+
+  /// No description provided for @mealPlanWeekdaySaturday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get mealPlanWeekdaySaturday;
+
+  /// No description provided for @mealPlanWeekdaySunday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get mealPlanWeekdaySunday;
+
+  /// No description provided for @mealPlanBreakfast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast'**
+  String get mealPlanBreakfast;
+
+  /// No description provided for @mealPlanLunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch'**
+  String get mealPlanLunch;
+
+  /// No description provided for @mealPlanDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner'**
+  String get mealPlanDinner;
+
+  /// No description provided for @mealPlanOpenVotes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} open vote sessions'**
+  String mealPlanOpenVotes(int count);
+
+  /// No description provided for @mealPlanTapToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add a dish'**
+  String get mealPlanTapToAdd;
+
+  /// No description provided for @mealPlanSelectingDish.
+  ///
+  /// In en, this message translates to:
+  /// **'Choosing a dish'**
+  String get mealPlanSelectingDish;
+
+  /// No description provided for @mealPlanDishUnselected.
+  ///
+  /// In en, this message translates to:
+  /// **'No dish selected'**
+  String get mealPlanDishUnselected;
+
+  /// No description provided for @mealPlanAddDish.
+  ///
+  /// In en, this message translates to:
+  /// **'Add dish'**
+  String get mealPlanAddDish;
+
+  /// No description provided for @mealPlanAddDishFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to add the dish. Please try again.'**
+  String get mealPlanAddDishFailed;
+
+  /// No description provided for @mealPlanOpenSuggestionsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open meal suggestions. Please try again.'**
+  String get mealPlanOpenSuggestionsFailed;
+
   /// Title of the temporary sign-in placeholder replaced by fe-onboarding (#28)
   ///
   /// In en, this message translates to:

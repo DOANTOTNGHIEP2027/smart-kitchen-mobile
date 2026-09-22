@@ -57,7 +57,7 @@ class _EmailLoginSceneState extends State<EmailLoginScene> {
               autofillHints: const [AutofillHints.email],
               decoration: InputDecoration(
                 labelText: 'email'.localized(context),
-                hintText: 'you@example.com',
+                hintText: context.l10n.authEmailExample,
                 prefixIcon: const Icon(Icons.alternate_email_rounded),
                 errorText: _fieldError('email'),
               ),

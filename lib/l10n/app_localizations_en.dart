@@ -94,6 +94,101 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get authEmailExample => 'you@example.com';
+
+  @override
+  String get authFullNameExample => 'Alex Johnson';
+
+  @override
+  String get householdNameExample => 'The Johnson household';
+
+  @override
+  String get inviteCodeExample => 'ABC12345';
+
+  @override
+  String get joinDisplayNameExample => 'Household member';
+
+  @override
+  String get mealPlanTitle => 'Weekly meal plan';
+
+  @override
+  String get mealPlanNoHousehold => 'You do not belong to a household yet.';
+
+  @override
+  String get mealPlanLoadFailed => 'Unable to load the meal plan.';
+
+  @override
+  String mealPlanWeekRange(
+      int startDay, int startMonth, int endDay, int endMonth) {
+    return 'Week $startDay/$startMonth – $endDay/$endMonth';
+  }
+
+  @override
+  String mealPlanDaySchedule(int day, int month) {
+    return 'Schedule for $day/$month';
+  }
+
+  @override
+  String mealPlanDateShort(int day, int month) {
+    return '$month/$day';
+  }
+
+  @override
+  String get mealPlanWeekdayMonday => 'Mon';
+
+  @override
+  String get mealPlanWeekdayTuesday => 'Tue';
+
+  @override
+  String get mealPlanWeekdayWednesday => 'Wed';
+
+  @override
+  String get mealPlanWeekdayThursday => 'Thu';
+
+  @override
+  String get mealPlanWeekdayFriday => 'Fri';
+
+  @override
+  String get mealPlanWeekdaySaturday => 'Sat';
+
+  @override
+  String get mealPlanWeekdaySunday => 'Sun';
+
+  @override
+  String get mealPlanBreakfast => 'Breakfast';
+
+  @override
+  String get mealPlanLunch => 'Lunch';
+
+  @override
+  String get mealPlanDinner => 'Dinner';
+
+  @override
+  String mealPlanOpenVotes(int count) {
+    return '$count open vote sessions';
+  }
+
+  @override
+  String get mealPlanTapToAdd => 'Tap to add a dish';
+
+  @override
+  String get mealPlanSelectingDish => 'Choosing a dish';
+
+  @override
+  String get mealPlanDishUnselected => 'No dish selected';
+
+  @override
+  String get mealPlanAddDish => 'Add dish';
+
+  @override
+  String get mealPlanAddDishFailed =>
+      'Unable to add the dish. Please try again.';
+
+  @override
+  String get mealPlanOpenSuggestionsFailed =>
+      'Unable to open meal suggestions. Please try again.';
+
+  @override
   String get devLoginTitle => 'Sign in';
 
   @override

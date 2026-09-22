@@ -92,6 +92,100 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String get authEmailExample => 'ban@example.com';
+
+  @override
+  String get authFullNameExample => 'Nguyễn Văn A';
+
+  @override
+  String get householdNameExample => 'Nhà Nguyễn';
+
+  @override
+  String get inviteCodeExample => 'ABC12345';
+
+  @override
+  String get joinDisplayNameExample => 'Thành viên';
+
+  @override
+  String get mealPlanTitle => 'Kế hoạch tuần';
+
+  @override
+  String get mealPlanNoHousehold => 'Bạn chưa thuộc Nhà nào.';
+
+  @override
+  String get mealPlanLoadFailed => 'Không tải được kế hoạch.';
+
+  @override
+  String mealPlanWeekRange(
+      int startDay, int startMonth, int endDay, int endMonth) {
+    return 'Tuần $startDay/$startMonth – $endDay/$endMonth';
+  }
+
+  @override
+  String mealPlanDaySchedule(int day, int month) {
+    return 'Lịch ngày $day/$month';
+  }
+
+  @override
+  String mealPlanDateShort(int day, int month) {
+    return '$day/$month';
+  }
+
+  @override
+  String get mealPlanWeekdayMonday => 'T2';
+
+  @override
+  String get mealPlanWeekdayTuesday => 'T3';
+
+  @override
+  String get mealPlanWeekdayWednesday => 'T4';
+
+  @override
+  String get mealPlanWeekdayThursday => 'T5';
+
+  @override
+  String get mealPlanWeekdayFriday => 'T6';
+
+  @override
+  String get mealPlanWeekdaySaturday => 'T7';
+
+  @override
+  String get mealPlanWeekdaySunday => 'CN';
+
+  @override
+  String get mealPlanBreakfast => 'Sáng';
+
+  @override
+  String get mealPlanLunch => 'Trưa';
+
+  @override
+  String get mealPlanDinner => 'Tối';
+
+  @override
+  String mealPlanOpenVotes(int count) {
+    return '$count phiên vote đang mở';
+  }
+
+  @override
+  String get mealPlanTapToAdd => 'Chạm để thêm món';
+
+  @override
+  String get mealPlanSelectingDish => 'Đang chọn món';
+
+  @override
+  String get mealPlanDishUnselected => 'Chưa chọn món';
+
+  @override
+  String get mealPlanAddDish => 'Thêm món';
+
+  @override
+  String get mealPlanAddDishFailed => 'Không thể thêm món. Vui lòng thử lại.';
+
+  @override
+  String get mealPlanOpenSuggestionsFailed =>
+      'Không thể mở gợi ý món. Vui lòng thử lại.';
+
+  @override
   String get devLoginTitle => 'Đăng nhập';
 
   @override

@@ -11,7 +11,6 @@ import '../data/meal_plan_api.dart';
 import '../domain/shopping_list_sink.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/suggestion_store.dart';
-import '../widgets/allergen_banner.dart';
 import '../widgets/suggestion_card.dart';
 
 /// Chi tiết 1 suggestion (FE-7 §12). Route chỉ từ dish VOTING.
@@ -98,8 +97,6 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                   onPrevious: _store.viewPrevious,
                   onNext: _store.viewNext,
                 ),
-                // Hiển thị AllergenBanner riêng ngoài card để test DoD rõ hơn.
-                AllergenBanner(suggestion: suggestion),
                 if (suggestion.missingIngredients.isNotEmpty) ...<Widget>[
                   const SizedBox(height: AppDimens.md),
                   Padding(

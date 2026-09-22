@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
+import '../../app/env_config.dart';
 import '../../demo/fixtures/demo_fixtures.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
@@ -161,30 +162,32 @@ class _HomeTab extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppDimens.xl),
-            Text(
-              context.l10n.homeRecommendedMeals,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
+            if (EnvConfig.isDemoMode) ...<Widget>[
+              const SizedBox(height: AppDimens.xl),
+              Text(
+                context.l10n.homeRecommendedMeals,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
                   ),
-            ),
-            const SizedBox(height: AppDimens.sm),
-            ...DemoFixtures.suggestions().map(
-              (recipe) => Padding(
-                padding: const EdgeInsets.only(bottom: AppDimens.md),
-                child: _HomeRecipeCard(
-                  recipeId: recipe['recipeId']! as String,
-                  recipeName: recipe['recipeName']! as String,
-                  actionLabel: context.l10n.homeRecipeAction,
-                  onTap: () => Get.to<void>(
-                    () => HomeRecipeDetailScene(
-                      recipeId: recipe['recipeId']! as String,
+                ),
+              const SizedBox(height: AppDimens.sm),
+              ...DemoFixtures.suggestions().map(
+                (recipe) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppDimens.md),
+                  child: _HomeRecipeCard(
+                    recipeId: recipe['recipeId']! as String,
+                    recipeName: recipe['recipeName']! as String,
+                    actionLabel: context.l10n.homeRecipeAction,
+                    onTap: () => Get.to<void>(
+                      () => HomeRecipeDetailScene(
+                        recipeId: recipe['recipeId']! as String,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),

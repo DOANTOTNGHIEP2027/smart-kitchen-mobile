@@ -44,6 +44,61 @@
     }
   },
 
+  "authEmailExample": "ban@example.com",
+  "authFullNameExample": "Nguyễn Văn A",
+  "householdNameExample": "Nhà Nguyễn",
+  "inviteCodeExample": "ABC12345",
+  "joinDisplayNameExample": "Thành viên",
+
+  "mealPlanTitle": "Kế hoạch tuần",
+  "mealPlanNoHousehold": "Bạn chưa thuộc Nhà nào.",
+  "mealPlanLoadFailed": "Không tải được kế hoạch.",
+  "mealPlanWeekRange": "Tuần {startDay}/{startMonth} – {endDay}/{endMonth}",
+  "@mealPlanWeekRange": {
+    "placeholders": {
+      "startDay": {"type": "int"},
+      "startMonth": {"type": "int"},
+      "endDay": {"type": "int"},
+      "endMonth": {"type": "int"}
+    }
+  },
+  "mealPlanDaySchedule": "Lịch ngày {day}/{month}",
+  "@mealPlanDaySchedule": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "month": {"type": "int"}
+    }
+  },
+  "mealPlanDateShort": "{day}/{month}",
+  "@mealPlanDateShort": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "month": {"type": "int"}
+    }
+  },
+  "mealPlanWeekdayMonday": "T2",
+  "mealPlanWeekdayTuesday": "T3",
+  "mealPlanWeekdayWednesday": "T4",
+  "mealPlanWeekdayThursday": "T5",
+  "mealPlanWeekdayFriday": "T6",
+  "mealPlanWeekdaySaturday": "T7",
+  "mealPlanWeekdaySunday": "CN",
+  "mealPlanBreakfast": "Sáng",
+  "mealPlanLunch": "Trưa",
+  "mealPlanDinner": "Tối",
+  "mealPlanOpenVotes": "{count} phiên vote đang mở",
+  "@mealPlanOpenVotes": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "mealPlanTapToAdd": "Chạm để thêm món",
+  "mealPlanSelectingDish": "Đang chọn món",
+  "mealPlanDishUnselected": "Chưa chọn món",
+  "mealPlanAddDish": "Thêm món",
+  "mealPlanAddDishFailed": "Không thể thêm món. Vui lòng thử lại.",
+  "mealPlanOpenSuggestionsFailed": "Không thể mở gợi ý món. Vui lòng thử lại.",
+
   "devLoginTitle": "Đăng nhập",
   "devLoginSubtitle": "Luồng đăng nhập thật (Google / OTP / quét QR) sẽ có ở fe-onboarding.",
   "devLoginCta": "Vào thử với tài khoản demo",

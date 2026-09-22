@@ -163,7 +163,7 @@ class _JoinHouseholdSceneState extends State<JoinHouseholdScene> {
         decoration:
             InputDecoration(
               labelText: 'invite_code'.localized(context),
-              hintText: 'ABC12345',
+              hintText: context.l10n.inviteCodeExample,
               prefixIcon: const Icon(Icons.key_outlined),
               counterText: '',
             ),
@@ -233,7 +233,7 @@ class _JoinHouseholdSceneState extends State<JoinHouseholdScene> {
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(
               labelText: 'display_name_optional'.localized(context),
-              hintText: 'Thành viên',
+              hintText: context.l10n.joinDisplayNameExample,
               prefixIcon: const Icon(Icons.person_outline),
             )),
       ],

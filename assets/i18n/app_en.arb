@@ -68,6 +68,61 @@
     }
   },
 
+  "authEmailExample": "you@example.com",
+  "authFullNameExample": "Alex Johnson",
+  "householdNameExample": "The Johnson household",
+  "inviteCodeExample": "ABC12345",
+  "joinDisplayNameExample": "Household member",
+
+  "mealPlanTitle": "Weekly meal plan",
+  "mealPlanNoHousehold": "You do not belong to a household yet.",
+  "mealPlanLoadFailed": "Unable to load the meal plan.",
+  "mealPlanWeekRange": "Week {startDay}/{startMonth} – {endDay}/{endMonth}",
+  "@mealPlanWeekRange": {
+    "placeholders": {
+      "startDay": {"type": "int"},
+      "startMonth": {"type": "int"},
+      "endDay": {"type": "int"},
+      "endMonth": {"type": "int"}
+    }
+  },
+  "mealPlanDaySchedule": "Schedule for {day}/{month}",
+  "@mealPlanDaySchedule": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "month": {"type": "int"}
+    }
+  },
+  "mealPlanDateShort": "{month}/{day}",
+  "@mealPlanDateShort": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "month": {"type": "int"}
+    }
+  },
+  "mealPlanWeekdayMonday": "Mon",
+  "mealPlanWeekdayTuesday": "Tue",
+  "mealPlanWeekdayWednesday": "Wed",
+  "mealPlanWeekdayThursday": "Thu",
+  "mealPlanWeekdayFriday": "Fri",
+  "mealPlanWeekdaySaturday": "Sat",
+  "mealPlanWeekdaySunday": "Sun",
+  "mealPlanBreakfast": "Breakfast",
+  "mealPlanLunch": "Lunch",
+  "mealPlanDinner": "Dinner",
+  "mealPlanOpenVotes": "{count} open vote sessions",
+  "@mealPlanOpenVotes": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "mealPlanTapToAdd": "Tap to add a dish",
+  "mealPlanSelectingDish": "Choosing a dish",
+  "mealPlanDishUnselected": "No dish selected",
+  "mealPlanAddDish": "Add dish",
+  "mealPlanAddDishFailed": "Unable to add the dish. Please try again.",
+  "mealPlanOpenSuggestionsFailed": "Unable to open meal suggestions. Please try again.",
+
   "devLoginTitle": "Sign in",
   "@devLoginTitle": {
     "description": "Title of the temporary sign-in placeholder replaced by fe-onboarding (#28)"
