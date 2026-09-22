@@ -250,6 +250,12 @@
   "healthSave": "Save health profile",
   "@healthSave": {},
   "healthSavedToast": "Health profile saved",
+  "healthSavedDialogTitle": "Health profile saved",
+  "@healthSavedDialogTitle": {},
+  "healthSavedDialogMessage": "Your health profile has been saved successfully.",
+  "@healthSavedDialogMessage": {},
+  "healthSavedDialogConfirm": "Done",
+  "@healthSavedDialogConfirm": {},
 
   "allergensTitle": "My allergens",
   "@allergensTitle": {},

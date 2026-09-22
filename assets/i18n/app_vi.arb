@@ -203,6 +203,9 @@
   "healthProfileAllergensEdit": "Sửa dị ứng",
   "healthSave": "Lưu hồ sơ sức khoẻ",
   "healthSavedToast": "Đã lưu hồ sơ sức khoẻ",
+  "healthSavedDialogTitle": "Đã lưu hồ sơ sức khoẻ",
+  "healthSavedDialogMessage": "Hồ sơ sức khoẻ của bạn đã được lưu thành công.",
+  "healthSavedDialogConfirm": "Xong",
 
   "allergensTitle": "Dị ứng của tôi",
   "allergensCatalogEmpty": "Danh mục dị ứng không khả dụng.",

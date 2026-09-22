@@ -1035,6 +1035,24 @@ abstract class AppLocalizations {
   /// **'Health profile saved'**
   String get healthSavedToast;
 
+  /// No description provided for @healthSavedDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health profile saved'**
+  String get healthSavedDialogTitle;
+
+  /// No description provided for @healthSavedDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your health profile has been saved successfully.'**
+  String get healthSavedDialogMessage;
+
+  /// No description provided for @healthSavedDialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get healthSavedDialogConfirm;
+
   /// No description provided for @allergensTitle.
   ///
   /// In en, this message translates to:

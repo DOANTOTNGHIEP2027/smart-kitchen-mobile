@@ -498,6 +498,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get healthSavedToast => 'Đã lưu hồ sơ sức khoẻ';
 
   @override
+  String get healthSavedDialogTitle => 'Đã lưu hồ sơ sức khoẻ';
+
+  @override
+  String get healthSavedDialogMessage =>
+      'Hồ sơ sức khoẻ của bạn đã được lưu thành công.';
+
+  @override
+  String get healthSavedDialogConfirm => 'Xong';
+
+  @override
   String get allergensTitle => 'Dị ứng của tôi';
 
   @override

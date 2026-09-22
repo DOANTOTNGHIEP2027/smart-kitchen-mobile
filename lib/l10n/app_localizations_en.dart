@@ -504,6 +504,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthSavedToast => 'Health profile saved';
 
   @override
+  String get healthSavedDialogTitle => 'Health profile saved';
+
+  @override
+  String get healthSavedDialogMessage =>
+      'Your health profile has been saved successfully.';
+
+  @override
+  String get healthSavedDialogConfirm => 'Done';
+
+  @override
   String get allergensTitle => 'My allergens';
 
   @override
