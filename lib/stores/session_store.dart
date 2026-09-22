@@ -76,13 +76,27 @@ abstract class _SessionStore with Store {
       }
       final result = await _refreshUseCase.call(refreshToken);
       await _tokenStorage.saveTokens(result.accessToken, result.refreshToken);
-      _applyClaimsFromAccessToken(result.accessToken);
+      final claims = _applyClaimsFromAccessToken(result.accessToken);
+      currentUser = await _restoreUser() ?? _userFromClaims(claims);
       status = AuthStatus.authenticated;
     } catch (_) {
       // Catch trần là bắt buộc, không phải `on Exception`: các cast lỗi ném
       // `TypeError`, vốn là `Error` chứ không phải `Exception`.
       await _clearTokensQuietly();
       status = AuthStatus.unauthenticated;
+    }
+  }
+
+  /// Đọc lại `UserSummary` đã lưu từ phiên trước. BE không có `GET /users/me`,
+  /// nên đây là cách duy nhất để `currentUser` không null sau cold start (nếu
+  /// null, `ProfileScreen` sẽ hiện màn lỗi dù đã đăng nhập).
+  Future<UserSummary?> _restoreUser() async {
+    try {
+      final json = await _tokenStorage.readUser();
+      return json == null ? null : UserSummary.fromJson(json);
+    } catch (_) {
+      // Hồ sơ hỏng không được phép làm mất phiên đăng nhập.
+      return null;
     }
   }
 
@@ -103,6 +117,7 @@ abstract class _SessionStore with Store {
     required UserSummary user,
   }) async {
     await _tokenStorage.saveTokens(accessToken, refreshToken);
+    await _tokenStorage.saveUser(user.toJson());
     currentUser = user;
     _applyClaimsFromAccessToken(accessToken);
     status = AuthStatus.authenticated;
@@ -146,11 +161,21 @@ abstract class _SessionStore with Store {
   void applyRefreshedClaims(String accessToken) =>
       _applyClaimsFromAccessToken(accessToken);
 
-  void _applyClaimsFromAccessToken(String accessToken) {
+  Map<String, dynamic> _applyClaimsFromAccessToken(String accessToken) {
     final claims = decodeJwtPayload(accessToken);
     householdId = claims['household_id'] as String?;
     role = claims['role'] as String?;
     provider = claims['provider'] as String?;
+    return claims;
+  }
+
+  /// Người dùng đang đăng nhập luôn phải có một `UserSummary`, kể cả khi
+  /// storage chưa có hồ sơ (phiên tạo bởi bản cũ) — nếu null, `ProfileScreen`
+  /// sẽ hiện màn lỗi. JWT chỉ có `sub`, nên đây là danh tính tối thiểu; hồ sơ
+  /// đầy đủ (tên/email) được ghi lại ở lần đăng nhập kế tiếp.
+  UserSummary? _userFromClaims(Map<String, dynamic> claims) {
+    final sub = claims['sub'];
+    return sub is String && sub.isNotEmpty ? UserSummary(id: sub) : null;
   }
 
   @action

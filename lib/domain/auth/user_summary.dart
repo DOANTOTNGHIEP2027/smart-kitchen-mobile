@@ -22,6 +22,13 @@ class UserSummary {
         avatarUrl: json['avatarUrl'] as String?,
       );
 
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'id': id,
+        'email': email,
+        'fullName': fullName,
+        'avatarUrl': avatarUrl,
+      };
+
   /// Tên hiển thị an toàn cho UI khi user chưa đặt `fullName`.
   String get displayName => fullName ?? email ?? id;
 }
