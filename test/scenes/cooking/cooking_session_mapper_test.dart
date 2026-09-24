@@ -5,11 +5,11 @@ import 'package:smart_kitchen_mobile/scenes/cooking/domain/ingredient_deduction.
 
 void main() {
   group('mapCookingSessionStep — Implementation Guard #10', () {
-    test('duration_minutes 5 (JSON) → durationSeconds 300 (GIÂY)', () {
+    test('durationMinutes 5 (recipe-core JSON) → durationSeconds 300 (GIÂY)', () {
       final step = mapCookingSessionStep(<String, dynamic>{
-        'step_number': 1,
+        'stepNumber': 1,
         'instruction': ' Rang hành',
-        'duration_minutes': 5,
+        'durationMinutes': 5,
       });
 
       expect(step.stepNumber, 1);
@@ -20,20 +20,20 @@ void main() {
               'khiến Timer nhanh × 60.');
     });
 
-    test('duration_minutes = null → durationSeconds = null', () {
+    test('durationMinutes = null → durationSeconds = null', () {
       final step = mapCookingSessionStep(<String, dynamic>{
-        'step_number': 2,
+        'stepNumber': 2,
         'instruction': 'Nêm nếm',
       });
       expect(step.durationSeconds, isNull);
     });
 
-    test('duration_minutes = 0 → durationSeconds = 0', () {
+    test('durationMinutes = 0 → durationSeconds = 0', () {
       // Edge case — 0 phút là 0 giây, không null (người dùng chủ động khai 0).
       final step = mapCookingSessionStep(<String, dynamic>{
-        'step_number': 3,
+        'stepNumber': 3,
         'instruction': 'Xong',
-        'duration_minutes': 0,
+        'durationMinutes': 0,
       });
       expect(step.durationSeconds, 0);
     });

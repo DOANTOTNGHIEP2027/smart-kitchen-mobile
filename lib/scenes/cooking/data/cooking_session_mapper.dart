@@ -5,12 +5,14 @@ import '../domain/ingredient_deduction.dart';
 
 /// Parse 1 phần tử `recipes.steps[]` (#75) → [CookingSessionStep].
 ///
-/// Quy đổi `duration_minutes` (PHÚT) → `durationSeconds` (GIÂY) tại ĐÂY
+/// Quy đổi `durationMinutes` (PHÚT) → `durationSeconds` (GIÂY) tại ĐÂY
 /// (Implementation Guard #10). Bỏ qua bước này = timer chạy nhanh × 60.
 CookingSessionStep mapCookingSessionStep(Map<String, dynamic> json) {
-  final durationMinutes = json['duration_minutes'] as int?;
+  // `Step` của recipe-core được serialize camelCase (recipe-core.yaml).
+  // Không dùng snake_case ở đây: endpoint GET steps trả trực tiếp DTO này.
+  final durationMinutes = json['durationMinutes'] as int?;
   return CookingSessionStep(
-    stepNumber: json['step_number'] as int,
+    stepNumber: json['stepNumber'] as int,
     instruction: json['instruction'] as String,
     durationSeconds:
         durationMinutes == null ? null : durationMinutes * 60,

@@ -150,10 +150,28 @@ void main() {
       final row = await dao.getById('local-test');
       expect(row, isNotNull);
       expect(row!.syncStatus, SyncStatus.pendingCreate);
+      final queue = await dao.queuedOperations('h1');
+      expect(queue, hasLength(1),
+          reason: 'pending CREATE phải sống trong SQLite, không chỉ là nhãn UI');
+      expect(queue.single.operation, 'CREATE');
     });
   });
 
   group('save EDIT — rollback đúng snapshot', () {
+    test('offline edit → coalesce thành UPDATE trong durable queue', () async {
+      await seedItem(id: 'i1', version: 4);
+      connectivity.set(false);
+
+      final store = editStore('i1');
+      expect(await store.save(name: 'Lần một', quantity: 100, unit: 'g'), isTrue);
+      expect(await store.save(name: 'Lần hai', quantity: 200, unit: 'g'), isTrue);
+
+      final queue = await dao.queuedOperations('h1');
+      expect(queue, hasLength(1));
+      expect(queue.single.operation, 'UPDATE');
+      expect(queue.single.baseVersion, 4);
+      expect((await dao.getById('i1'))!.name, 'Lần hai');
+    });
     test('online success → markSynced với server version mới', () async {
       final previous = await seedItem(id: 'i1', version: 1);
       api.onUpdate = (_, __, payload) async {

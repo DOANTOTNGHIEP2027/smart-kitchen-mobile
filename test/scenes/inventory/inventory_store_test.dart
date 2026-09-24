@@ -17,6 +17,7 @@ import 'package:smart_kitchen_mobile/stores/session_store.dart';
 import '../../helpers/fake_http_adapter.dart';
 import '../../helpers/secure_storage_channel.dart';
 import 'fake_inventory_api.dart';
+import 'fake_connectivity_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -29,12 +30,14 @@ void main() {
   late InventoryDao dao;
   late FakeInventoryApi api;
   late SessionStore session;
+  late FakeConnectivityService connectivity;
   late InventoryStore store;
 
   setUp(() {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     dao = InventoryDao(db);
     api = FakeInventoryApi();
+    connectivity = FakeConnectivityService(online: true);
     final tokenStorage = TokenStorage();
     session = SessionStore(
       tokenStorage,
@@ -52,6 +55,7 @@ void main() {
     store = InventoryStore(
       dao: dao,
       api: api,
+      connectivity: connectivity,
       sessionStore: session,
     );
   });
@@ -364,6 +368,63 @@ void main() {
 
       expect(store.syncError, isNotNull);
       expect(store.syncError!.code, 'ERR_NETWORK');
+    });
+  });
+
+  group('drainSyncQueue — offline mutation bền vững', () {
+    test('CREATE chờ offline → gửi lại, remap id và xoá queue', () async {
+      final local = serverItem(id: 'local-1', name: 'Mì').copyWith(
+        version: 0,
+        syncStatus: SyncStatus.pendingCreate,
+      );
+      await dao.upsertItem(local);
+      await dao.enqueueCreate(local);
+      api.onCreate = (_) async => local.copyWith(
+        id: 'server-1',
+        version: 1,
+        syncStatus: SyncStatus.synced,
+      );
+
+      await store.drainSyncQueue();
+
+      expect(await dao.getById('local-1'), isNull);
+      expect((await dao.getById('server-1'))!.syncStatus, SyncStatus.synced);
+      expect(await dao.queuedOperations('h1'), isEmpty);
+    });
+
+    test('mạng khôi phục → tự drain queue', () async {
+      final local = serverItem(id: 'local-2').copyWith(
+        version: 0,
+        syncStatus: SyncStatus.pendingCreate,
+      );
+      await dao.upsertItem(local);
+      await dao.enqueueCreate(local);
+      api.onCreate = (_) async => local.copyWith(
+        id: 'server-2',
+        version: 1,
+        syncStatus: SyncStatus.synced,
+      );
+      api.onList = ({page = 0, size = 100}) async => InventoryListPage(
+            items: <InventoryItemModel>[
+              local.copyWith(
+                id: 'server-2',
+                version: 1,
+                syncStatus: SyncStatus.synced,
+              ),
+            ],
+            page: page,
+            size: size,
+            totalElements: 1,
+            totalPages: 1,
+          );
+
+      await store.init();
+      connectivity.set(false);
+      connectivity.set(true);
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+
+      expect(await dao.getById('local-2'), isNull);
+      expect(await dao.getById('server-2'), isNotNull);
     });
   });
 }

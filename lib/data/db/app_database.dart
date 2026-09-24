@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'inventory_items_table.dart';
+import 'inventory_sync_queue_table.dart';
 import 'read_cache_table.dart';
 
 part 'app_database.g.dart';
@@ -16,7 +17,12 @@ part 'app_database.g.dart';
 /// - 1 (FE-3): chỉ bảng [ReadCacheEntries].
 /// - 2 (FE-5): thêm bảng [InventoryItems] cho kho household. Migration
 ///   `CREATE TABLE` thuần tăng — không đụng bảng cũ, không ALTER, không DROP.
-@DriftDatabase(tables: <Type>[ReadCacheEntries, InventoryItems])
+/// - 3 (P0-2): thêm [InventorySyncQueue] để mutation offline sống qua restart.
+@DriftDatabase(tables: <Type>[
+  ReadCacheEntries,
+  InventoryItems,
+  InventorySyncQueue,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_filesystemBackend());
 
@@ -24,7 +30,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -33,6 +39,9 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             // FE-5 — schemaVersion 2: thêm bảng inventory_items.
             await m.createTable(inventoryItems);
+          }
+          if (from < 3) {
+            await m.createTable(inventorySyncQueue);
           }
         },
       );
