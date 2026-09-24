@@ -179,12 +179,12 @@ class SuggestionStore {
     }
   }
 
-  /// Thêm nguyên liệu thiếu vào shopping list (FE-7 §9.4). Sẽ no-op cho tới
-  /// khi Epic 5 ship.
-  Future<void> addMissingToShoppingList() async {
+  /// Thêm nguyên liệu thiếu vào ShoppingStore (FE-7 §9.4), trả số dòng đã
+  /// được nhận để UI quyết định có điều hướng sang tab Đi chợ hay không.
+  Future<int> addMissingToShoppingList() async {
     final target = currentSuggestion;
-    if (target == null || target.missingIngredients.isEmpty) return;
-    await _shoppingSink.addItems(target.missingIngredients);
+    if (target == null || target.missingIngredients.isEmpty) return 0;
+    return _shoppingSink.addItems(target.missingIngredients);
   }
 
   /// Refresh degraded (CRITICAL-4) — thử lại phòng đã có người vote từ lúc join.

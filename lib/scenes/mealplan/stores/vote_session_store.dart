@@ -1,11 +1,6 @@
-import 'dart:async';
-
 import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
-import '../../../data/realtime/ws_event_envelope.dart';
-import '../../../stores/realtime_store.dart';
-import '../../../stores/session_store.dart';
 import '../data/vote_api.dart';
 import '../domain/vote_session_summary.dart';
 import 'meal_plan_store.dart';
@@ -22,21 +17,13 @@ class VoteSessionStore {
     required this.dishId,
     required MealPlanStore mealPlanStore,
     required VoteApi voteApi,
-    required RealtimeStore realtimeStore,
-    required SessionStore sessionStore,
   })  : _mealPlanStore = mealPlanStore,
-        _voteApi = voteApi,
-        _realtimeStore = realtimeStore,
-        _sessionStore = sessionStore;
+        _voteApi = voteApi;
 
   final String slotId;
   final String dishId;
   final MealPlanStore _mealPlanStore;
   final VoteApi _voteApi;
-  final RealtimeStore _realtimeStore;
-  final SessionStore _sessionStore;
-
-  StreamSubscription<WsEventEnvelope>? _wsSub;
 
   final Observable<bool> _isCasting = Observable<bool>(false);
   final Observable<ApiException?> _castError =
@@ -61,18 +48,9 @@ class VoteSessionStore {
         return;
       }
     }
-    final householdId = _sessionStore.householdId;
-    if (householdId != null) {
-      // Filter theo `dishId` trên cùng stream household — WS member_voted
-      // payload mang `dishId` trực tiếp.
-      _wsSub = _realtimeStore.events
-          .where((WsEventEnvelope envelope) {
-            final raw =
-                envelope.data as Map<String, dynamic>? ?? const <String, dynamic>{};
-            return raw['dishId'] == dishId;
-          })
-          .listen(_mealPlanStore.handleVoteEvent);
-    }
+    // MealPlanStore là owner duy nhất của subscription vote WebSocket. Session
+    // store chỉ đọc `activeSessions` dùng chung, nên không được subscribe lần
+    // hai khi mở bottom-sheet (tránh tally bị apply hai lần).
   }
 
   /// Cast — trả raw `{votes, totalMembers, myVote}`, merge qua
@@ -122,7 +100,4 @@ class VoteSessionStore {
 
   void clearError() => runInAction(() => _castError.value = null);
 
-  void dispose() {
-    _wsSub?.cancel();
-  }
 }

@@ -21,6 +21,7 @@ class InventoryListBinding extends Bindings {
         InventoryStore(
           dao: InventoryDao(Get.find<AppDatabase>()),
           api: Get.find<InventoryApi>(),
+          connectivity: Get.find<ConnectivityService>(),
           sessionStore: Get.find<SessionStore>(),
         ),
         permanent: true,

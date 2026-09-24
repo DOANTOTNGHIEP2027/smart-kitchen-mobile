@@ -87,6 +87,105 @@ class InventoryDao {
         .go();
   }
 
+  /// Đưa CREATE vào durable queue. Snapshot payload được lấy từ item local lúc
+  /// drain, nên edit tiếp theo khi offline không tạo request CREATE cũ.
+  Future<void> enqueueCreate(InventoryItemModel item) async {
+    final existing = await _queuedForItem(item.householdId, item.id);
+    if (existing != null) return;
+    await _db.into(_db.inventorySyncQueue).insert(
+          InventorySyncQueueCompanion.insert(
+            householdId: item.householdId,
+            itemId: item.id,
+            operation: 'CREATE',
+            baseVersion: item.version,
+            createdAt: DateTime.now().toUtc(),
+          ),
+        );
+  }
+
+  /// Coalesce nhiều lần sửa offline: chỉ request UPDATE mới nhất được giữ,
+  /// nhưng vẫn dùng version trước lần sửa đầu để optimistic-lock chính xác.
+  Future<void> enqueueUpdate(
+    InventoryItemModel item, {
+    required int baseVersion,
+  }) async {
+    final existing = await _queuedForItem(item.householdId, item.id);
+    if (existing?.operation == 'CREATE') return;
+    if (existing != null) {
+      await (_db.update(_db.inventorySyncQueue)
+            ..where((t) => t.id.equals(existing.id)))
+          .write(const InventorySyncQueueCompanion(
+        operation: Value('UPDATE'),
+        deleteReason: Value(null),
+      ));
+      return;
+    }
+    await _db.into(_db.inventorySyncQueue).insert(
+          InventorySyncQueueCompanion.insert(
+            householdId: item.householdId,
+            itemId: item.id,
+            operation: 'UPDATE',
+            baseVersion: baseVersion,
+            createdAt: DateTime.now().toUtc(),
+          ),
+        );
+  }
+
+  /// Delete một item mới tạo khi offline sẽ hủy CREATE hoàn toàn. Với item đã
+  /// có trên server, DELETE thay thế UPDATE đang chờ để server nhận intent cuối.
+  Future<bool> enqueueDelete(
+    InventoryItemModel item, {
+    required String reason,
+  }) async {
+    final existing = await _queuedForItem(item.householdId, item.id);
+    if (existing?.operation == 'CREATE') {
+      await removeQueuedOperation(existing!.id);
+      await deleteItem(item.id);
+      return true;
+    }
+    if (existing != null) {
+      await (_db.update(_db.inventorySyncQueue)
+            ..where((t) => t.id.equals(existing.id)))
+          .write(InventorySyncQueueCompanion(
+        operation: const Value('DELETE'),
+        deleteReason: Value(reason),
+      ));
+      return false;
+    }
+    await _db.into(_db.inventorySyncQueue).insert(
+          InventorySyncQueueCompanion.insert(
+            householdId: item.householdId,
+            itemId: item.id,
+            operation: 'DELETE',
+            baseVersion: item.version,
+            deleteReason: Value(reason),
+            createdAt: DateTime.now().toUtc(),
+          ),
+        );
+    return false;
+  }
+
+  Future<List<InventorySyncQueueData>> queuedOperations(String householdId) {
+    final query = _db.select(_db.inventorySyncQueue)
+      ..where((t) => t.householdId.equals(householdId))
+      ..orderBy([(t) => OrderingTerm.asc(t.id)]);
+    return query.get();
+  }
+
+  Future<void> removeQueuedOperation(int id) {
+    return (_db.delete(_db.inventorySyncQueue)..where((t) => t.id.equals(id)))
+        .go();
+  }
+
+  Future<InventorySyncQueueData?> _queuedForItem(
+    String householdId,
+    String itemId,
+  ) {
+    final query = _db.select(_db.inventorySyncQueue)
+      ..where((t) => t.householdId.equals(householdId) & t.itemId.equals(itemId));
+    return query.getSingleOrNull();
+  }
+
   String _toString(SyncStatus s) {
     switch (s) {
       case SyncStatus.synced:

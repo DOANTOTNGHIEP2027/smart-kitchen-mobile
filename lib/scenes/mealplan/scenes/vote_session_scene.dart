@@ -5,8 +5,6 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
-import '../../../stores/realtime_store.dart';
-import '../../../stores/session_store.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/cards/app_card.dart';
@@ -42,16 +40,8 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
       dishId: dishId,
       mealPlanStore: _mealPlanStore,
       voteApi: Get.find<VoteApi>(),
-      realtimeStore: Get.find<RealtimeStore>(),
-      sessionStore: Get.find<SessionStore>(),
     );
     _store.init();
-  }
-
-  @override
-  void dispose() {
-    _store.dispose();
-    super.dispose();
   }
 
   @override

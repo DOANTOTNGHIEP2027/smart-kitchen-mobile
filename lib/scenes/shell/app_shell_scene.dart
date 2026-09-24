@@ -19,13 +19,15 @@ import '../mealplan/scenes/weekly_meal_plan_scene.dart';
 import '../mealplan/widgets/recipe_cover_image.dart';
 import '../profile/profile_family_bindings.dart';
 import '../profile/profile_screen.dart';
+import '../shopping/scenes/shopping_list_binding.dart';
+import '../shopping/scenes/shopping_list_scene.dart';
 import 'app_shell_store.dart';
 import 'home_recipe_detail_scene.dart';
 
 /// Khung bottom-nav (fe-app-shell.md §12).
 ///
-/// 5 tab: Home (placeholder), Kho (FE-5), Thực đơn (FE-7), Đi chợ (chưa làm
-/// theo §6.1 D-07), Cá nhân (FE-3). Mỗi tab render feature scene thật —
+/// 5 tab: Home, Kho (FE-5), Thực đơn (FE-7), Đi chợ (Shopping offline-first),
+/// Cá nhân (FE-3). Mỗi tab render feature scene thật —
 /// không còn placeholder "Coming soon" cho các feature đã ship.
 ///
 /// **Lưu ý binding (D7):** GetPage binding chỉ chạy khi route được navigate,
@@ -67,7 +69,7 @@ class AppShellScene extends StatelessWidget {
                 const _HomeTab(),
                 const InventoryListScene(),
                 const WeeklyMealPlanScene(),
-                _PlaceholderTab(icon: tabs[3].icon),
+                const ShoppingListScene(),
                 const ProfileScreen(),
               ],
             ),
@@ -104,6 +106,7 @@ class AppShellScene extends StatelessWidget {
   static void _ensureBindings() {
     InventoryListBinding().dependencies();
     WeeklyMealPlanBinding().dependencies();
+    ShoppingListBinding().dependencies();
     ProfileBinding().dependencies();
   }
 }

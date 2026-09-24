@@ -6,6 +6,7 @@ import 'package:mobx/mobx.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../data/realtime/ws_event_envelope.dart';
 import '../../../stores/session_store.dart';
+import '../../../services/connectivity_service.dart';
 import '../data/inventory_api.dart';
 import '../data/inventory_dao.dart';
 import '../domain/inventory_item.dart';
@@ -26,16 +27,21 @@ class InventoryStore {
   InventoryStore({
     required InventoryDao dao,
     required InventoryApi api,
+    required ConnectivityService connectivity,
     required SessionStore sessionStore,
   })  : _dao = dao,
         _api = api,
+        _connectivity = connectivity,
         _session = sessionStore;
 
   final InventoryDao _dao;
   final InventoryApi _api;
+  final ConnectivityService _connectivity;
   final SessionStore _session;
 
   StreamSubscription<List<InventoryItemModel>>? _dbSub;
+  StreamSubscription<void>? _connectivitySub;
+  bool _isDrainingQueue = false;
 
   final Observable<InventoryLoadStatus> _status =
       Observable<InventoryLoadStatus>(InventoryLoadStatus.loading);
@@ -99,14 +105,19 @@ class InventoryStore {
         _status.value = InventoryLoadStatus.ready;
       });
     });
+    _connectivitySub = _connectivity.onConnectivityRestored.listen((_) {
+      unawaited(_syncAfterConnectivityRestored());
+    });
 
     // Background sync — không chặn UI. Không đổi status (Drift sẽ emit).
-    unawaited(syncFromServer());
+    unawaited(_syncAfterConnectivityRestored());
   }
 
   Future<void> dispose() async {
     await _dbSub?.cancel();
     _dbSub = null;
+    await _connectivitySub?.cancel();
+    _connectivitySub = null;
   }
 
   // ── Actions ───────────────────────────────────────────────────────────────
@@ -167,6 +178,91 @@ class InventoryStore {
     } finally {
       runInAction(() => _isSyncing.value = false);
     }
+  }
+
+  /// Gửi lại mutation offline theo đúng thứ tự sau khi có mạng. Queue lưu trên
+  /// SQLite nên không mất khi app bị đóng trước lúc reconnect.
+  Future<void> drainSyncQueue() async {
+    if (_isDrainingQueue) return;
+    final hid = _session.householdId;
+    if (hid == null) return;
+
+    _isDrainingQueue = true;
+    try {
+      final operations = await _dao.queuedOperations(hid);
+      for (final operation in operations) {
+        final local = await _dao.getById(operation.itemId);
+        if (local == null) {
+          await _dao.removeQueuedOperation(operation.id);
+          continue;
+        }
+        try {
+          switch (operation.operation) {
+            case 'CREATE':
+              final serverItem = await _api.create(_payloadFor(local));
+              await _dao.remapAndMarkSynced(local.id, serverItem);
+              break;
+            case 'UPDATE':
+              final serverItem = await _api.update(
+                local.id,
+                version: operation.baseVersion,
+                payload: _payloadFor(local),
+              );
+              await _dao.markSynced(local.id, serverItem);
+              break;
+            case 'DELETE':
+              await _api.delete(
+                local.id,
+                version: operation.baseVersion,
+                reason: operation.deleteReason ?? 'CORRECTED',
+              );
+              await _dao.deleteItem(local.id);
+              break;
+            default:
+              break;
+          }
+          await _dao.removeQueuedOperation(operation.id);
+        } on BusinessException catch (e) {
+          if (e.code == 'ERR_INVENTORY_NOT_FOUND' &&
+              operation.operation == 'DELETE') {
+            await _dao.deleteItem(local.id);
+            await _dao.removeQueuedOperation(operation.id);
+            continue;
+          }
+          if (e.code == 'ERR_INVENTORY_VERSION_CONFLICT') {
+            await _dao.updateSyncStatus(local.id, SyncStatus.conflict);
+            await _dao.removeQueuedOperation(operation.id);
+            continue;
+          }
+          // Lỗi nghiệp vụ khác không thể tự retry; giữ item được đánh dấu để
+          // người dùng chỉnh lại, đồng thời bỏ queue tránh vòng lặp vô hạn.
+          await _dao.updateSyncStatus(local.id, SyncStatus.conflict);
+          await _dao.removeQueuedOperation(operation.id);
+        } on ApiException {
+          // Mạng/server chưa sẵn sàng: giữ nguyên queue và dừng, bảo toàn thứ tự.
+          break;
+        }
+      }
+    } finally {
+      _isDrainingQueue = false;
+    }
+  }
+
+  Future<void> _syncAfterConnectivityRestored() async {
+    await drainSyncQueue();
+    await syncFromServer();
+  }
+
+  Map<String, dynamic> _payloadFor(InventoryItemModel item) {
+    return <String, dynamic>{
+      'name': item.name,
+      'category': item.category,
+      'quantity': item.quantity,
+      'unit': item.unit,
+      'lowStockThreshold': item.lowStockThreshold,
+      'expiryDate': item.expiryDate?.toUtc().toIso8601String().split('T').first,
+      'note': item.note,
+    };
   }
 
   Future<void> _reconcileDeletes(Set<String> serverIds) async {

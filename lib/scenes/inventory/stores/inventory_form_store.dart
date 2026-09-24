@@ -170,13 +170,20 @@ class InventoryFormStore {
         await _dao.upsertItem(optimistic);
 
         if (!isOnline) {
+          await _dao.enqueueCreate(optimistic);
           runInAction(() => _isSaving.value = false);
-          return true; // đã enqueue — save() interface vẫn thành công
+          return true;
         }
         try {
           final serverItem = await _api.create(payload);
           // Remap: temp id không đổi được (PK) — xoá row temp + insert server
           await _dao.remapAndMarkSynced(tempId, serverItem);
+          runInAction(() => _isSaving.value = false);
+          return true;
+        } on NetworkException {
+          // Kết nối có thể rớt sau lần check. Giữ optimistic row và chuyển
+          // sang durable queue thay vì rollback làm mất thao tác của người dùng.
+          await _dao.enqueueCreate(optimistic);
           runInAction(() => _isSaving.value = false);
           return true;
         } on ApiException catch (e) {
@@ -222,6 +229,12 @@ class InventoryFormStore {
       );
       await _dao.upsertItem(optimistic);
 
+      if (!isOnline) {
+        await _dao.enqueueUpdate(optimistic, baseVersion: previous.version);
+        runInAction(() => _isSaving.value = false);
+        return true;
+      }
+
       try {
         final serverItem = await _api.update(
           id,
@@ -258,6 +271,10 @@ class InventoryFormStore {
           _isSaving.value = false;
         });
         return false;
+      } on NetworkException {
+        await _dao.enqueueUpdate(optimistic, baseVersion: previous.version);
+        runInAction(() => _isSaving.value = false);
+        return true;
       } on ApiException catch (e) {
         await _dao.upsertItem(previous);
         runInAction(() {
@@ -302,6 +319,7 @@ class InventoryFormStore {
     final isOnline = await _isOnline();
 
     if (!isOnline) {
+      await _dao.enqueueDelete(previous, reason: reason);
       runInAction(() => _isSaving.value = false);
       return true;
     }
@@ -340,6 +358,10 @@ class InventoryFormStore {
         _isSaving.value = false;
       });
       return false;
+    } on NetworkException {
+      await _dao.enqueueDelete(previous, reason: reason);
+      runInAction(() => _isSaving.value = false);
+      return true;
     } on ApiException catch (e) {
       await _dao.upsertItem(previous);
       runInAction(() {
