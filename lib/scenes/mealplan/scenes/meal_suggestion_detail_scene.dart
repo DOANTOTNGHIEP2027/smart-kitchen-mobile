@@ -10,6 +10,8 @@ import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../data/meal_plan_api.dart';
 import '../domain/shopping_list_sink.dart';
+import '../../shopping/domain/shopping_list_sink_impl.dart';
+import '../../shopping/stores/shopping_store.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/suggestion_store.dart';
 import '../widgets/suggestion_card.dart';
@@ -37,7 +39,9 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
       dishId: dishId,
       mealPlanStore: Get.find<MealPlanStore>(),
       api: Get.find<MealPlanApi>(),
-      shoppingSink: const NoOpShoppingListSink(),
+      shoppingSink: Get.isRegistered<ShoppingStore>()
+          ? ShoppingListSinkImpl(Get.find<ShoppingStore>())
+          : const NoOpShoppingListSink(),
     );
   }
 
@@ -105,12 +109,7 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                       label: context.l10n.mealplanAddShoppingList,
                       variant: AppButtonVariant.secondary,
                       icon: Icons.shopping_cart_outlined,
-                      onPressed: () {
-                        Get.snackbar(
-                          context.l10n.unavailable,
-                          context.l10n.mealplanShoppingListUnavailable,
-                        );
-                      },
+                      onPressed: _store.addMissingToShoppingList,
                     ),
                   ),
                 ],

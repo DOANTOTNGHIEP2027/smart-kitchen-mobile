@@ -14,6 +14,7 @@ import '../scenes/household/join_household_scene.dart';
 import '../scenes/inventory/inventory_routes.dart';
 import '../scenes/mealplan/scenes/meal_plan_routes.dart';
 import '../scenes/profile/profile_family_routes.dart';
+import '../scenes/shopping/scenes/shopping_routes.dart';
 import '../scenes/shell/app_shell_binding.dart';
 import '../scenes/shell/app_shell_scene.dart';
 import '../scenes/splash/splash_binding.dart';
@@ -34,6 +35,7 @@ class AppPages {
     ...inventoryPages,
     ...cookingPages,
     ...mealPlanPages,
+    ...shoppingPages,
   ];
 
   static final List<GetPage<dynamic>> shellPages = <GetPage<dynamic>>[

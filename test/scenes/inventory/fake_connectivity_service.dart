@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:smart_kitchen_mobile/services/connectivity_service.dart';
 
 /// [ConnectivityService] fake cho test — tránh gọi `connectivity_plus` platform
@@ -32,4 +33,3 @@ class FakeConnectivityService implements ConnectivityService {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-import 'dart:async';

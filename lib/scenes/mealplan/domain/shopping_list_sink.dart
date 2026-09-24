@@ -1,7 +1,6 @@
 import 'meal_suggestion.dart';
 
-/// Interface tối thiểu — Epic 5 ShoppingStore implement interface này khi
-/// ship (FE-7 §9.4, chưa có thiết kế).
+/// Interface tối thiểu nối missing ingredients của Meal plan sang Shopping.
 ///
 /// Đăng ký no-op khi chưa có ShoppingStore — bấm nút "Thêm vào ds mua sắm"
 /// hiển thị snackbar thay vì im lặng không phản hồi.
@@ -9,8 +8,7 @@ abstract class ShoppingListSink {
   Future<void> addItems(List<IngredientItem> items);
 }
 
-/// No-op sink cho demo — FE-7 §9.4 ghi rõ không được im lặng khi bấm nút
-/// "Thêm vào ds mua sắm" mà Epic 5 chưa ship.
+/// Fallback an toàn khi ShoppingStore chưa được đăng ký (ví dụ route độc lập).
 class NoOpShoppingListSink implements ShoppingListSink {
   const NoOpShoppingListSink();
 
