@@ -10,8 +10,9 @@ import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../data/meal_plan_api.dart';
 import '../domain/shopping_list_sink.dart';
-import '../../shopping/domain/shopping_list_sink_impl.dart';
-import '../../shopping/stores/shopping_store.dart';
+import '../../shopping/scenes/shopping_list_binding.dart';
+import '../../shell/app_shell_store.dart';
+import '../../../routing/app_routes.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/suggestion_store.dart';
 import '../widgets/suggestion_card.dart';
@@ -39,9 +40,7 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
       dishId: dishId,
       mealPlanStore: Get.find<MealPlanStore>(),
       api: Get.find<MealPlanApi>(),
-      shoppingSink: Get.isRegistered<ShoppingStore>()
-          ? ShoppingListSinkImpl(Get.find<ShoppingStore>())
-          : const NoOpShoppingListSink(),
+      shoppingSink: _shoppingSink(),
     );
   }
 
@@ -109,7 +108,7 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                       label: context.l10n.mealplanAddShoppingList,
                       variant: AppButtonVariant.secondary,
                       icon: Icons.shopping_cart_outlined,
-                      onPressed: _store.addMissingToShoppingList,
+                      onPressed: () => _addMissingToShopping(context),
                     ),
                   ),
                 ],
@@ -175,6 +174,31 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
         },
       ),
     );
+  }
+
+  ShoppingListSink _shoppingSink() {
+    // Suggestion detail cũng có thể được mở trực tiếp qua deep-link, không chỉ
+    // từ IndexedStack shell. Binding bảo đảm luôn có sink thật trong cả hai.
+    ShoppingListBinding().dependencies();
+    return Get.find<ShoppingListSink>();
+  }
+
+  Future<void> _addMissingToShopping(BuildContext context) async {
+    final count = await _store.addMissingToShoppingList();
+    if (!mounted) return;
+    if (count == 0) {
+      Get.snackbar(
+        context.l10n.unavailable,
+        context.l10n.mealplanShoppingListUnavailable,
+      );
+      return;
+    }
+    if (Get.isRegistered<AppShellStore>()) {
+      Get.back<void>();
+      Get.find<AppShellStore>().selectTab(3);
+    } else {
+      await Get.offNamed<void>(AppRoutes.shopping);
+    }
   }
 }
 

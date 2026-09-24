@@ -162,6 +162,51 @@ void main() {
       DishUiStatus.confirmed,
     );
   });
+
+  test('missing ingredients → chuyển nguyên danh sách sang ShoppingListSink',
+      () async {
+    final sink = _RecordingShoppingSink();
+    mealPlanStore.activeSessions['dish-1'] = const VoteSessionSummary(
+      sessionId: 's-rich',
+      slotId: 'slot-1',
+      dishId: 'dish-1',
+      status: VoteSessionUiStatus.open,
+      suggestions: <MealSuggestion>[
+        MealSuggestion(
+          recipeId: 'r-1',
+          mealName: 'Canh chua',
+          missingIngredients: <IngredientItem>[
+            IngredientItem(name: 'Cà chua', quantity: 200, unit: 'g'),
+            IngredientItem(name: 'Cá lóc', quantity: 500, unit: 'g'),
+          ],
+        ),
+      ],
+      tally: <VoteTallyItem>[],
+    );
+    final store = SuggestionStore(
+      slotId: 'slot-1',
+      dishId: 'dish-1',
+      mealPlanStore: mealPlanStore,
+      api: mealPlanApi,
+      shoppingSink: sink,
+    );
+
+    final count = await store.addMissingToShoppingList();
+
+    expect(count, 2);
+    expect(sink.received.map((item) => item.name),
+        <String>['Cà chua', 'Cá lóc']);
+  });
+}
+
+class _RecordingShoppingSink implements ShoppingListSink {
+  final List<IngredientItem> received = <IngredientItem>[];
+
+  @override
+  Future<int> addItems(List<IngredientItem> items) async {
+    received.addAll(items);
+    return items.length;
+  }
 }
 
 class _NoOpRealtimeStore implements RealtimeStore {

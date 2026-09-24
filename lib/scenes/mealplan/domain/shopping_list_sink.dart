@@ -5,7 +5,9 @@ import 'meal_suggestion.dart';
 /// Đăng ký no-op khi chưa có ShoppingStore — bấm nút "Thêm vào ds mua sắm"
 /// hiển thị snackbar thay vì im lặng không phản hồi.
 abstract class ShoppingListSink {
-  Future<void> addItems(List<IngredientItem> items);
+  /// Số nguyên liệu đã được chuyển sang Shopping. Giá trị 0 cho biết sink
+  /// không khả dụng hoặc không có item hợp lệ để thêm.
+  Future<int> addItems(List<IngredientItem> items);
 }
 
 /// Fallback an toàn khi ShoppingStore chưa được đăng ký (ví dụ route độc lập).
@@ -13,7 +15,5 @@ class NoOpShoppingListSink implements ShoppingListSink {
   const NoOpShoppingListSink();
 
   @override
-  Future<void> addItems(List<IngredientItem> items) async {
-    // Caller check sentinel qua `runtimeType` hoặc注册 riêng — không throw.
-  }
+  Future<int> addItems(List<IngredientItem> items) async => 0;
 }

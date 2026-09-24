@@ -35,15 +35,15 @@ class ShoppingStore {
     unawaited(sync());
   }
 
-  Future<void> add(String name, double quantity, String unit, {String? category}) async {
-    final householdId = _session.householdId; if (householdId == null || name.trim().isEmpty || quantity <= 0) return;
+  Future<bool> add(String name, double quantity, String unit, {String? category}) async {
+    final householdId = _session.householdId; if (householdId == null || name.trim().isEmpty || quantity <= 0) return false;
     final now = DateTime.now();
     final local = ShoppingItem(id: 'local-${now.microsecondsSinceEpoch}-${Random().nextInt(1 << 20)}', householdId: householdId, name: name.trim(), quantity: quantity, unit: unit, displayQuantity: quantity, displayUnit: unit, category: category?.trim().isEmpty == true ? null : category?.trim(), status: ShoppingItemStatus.pending, source: ShoppingItemSource.manual, version: 0, createdBy: _session.currentUser?.id, createdAt: now, updatedAt: now, syncStatus: ShoppingSyncStatus.pendingCreate);
     await _dao.upsert(local);
-    if (!await _online()) { await _dao.enqueueCreate(local); return; }
-    try { await _dao.remap(local.id, await _api.create(shoppingCreatePayload(local), householdId)); }
-    on NetworkException { await _dao.enqueueCreate(local); }
-    on ApiException catch (e) { await _dao.delete(local.id); runInAction(() => _error.value = e); }
+    if (!await _online()) { await _dao.enqueueCreate(local); return true; }
+    try { await _dao.remap(local.id, await _api.create(shoppingCreatePayload(local), householdId)); return true; }
+    on NetworkException { await _dao.enqueueCreate(local); return true; }
+    on ApiException catch (e) { await _dao.delete(local.id); runInAction(() => _error.value = e); return false; }
   }
 
   Future<void> toggle(ShoppingItem item) async {
