@@ -185,7 +185,7 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
 
   Future<void> _addMissingToShopping(BuildContext context) async {
     final count = await _store.addMissingToShoppingList();
-    if (!mounted) return;
+    if (!context.mounted) return;
     if (count == 0) {
       Get.snackbar(
         context.l10n.unavailable,

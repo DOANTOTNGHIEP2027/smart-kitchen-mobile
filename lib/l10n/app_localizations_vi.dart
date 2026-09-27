@@ -977,4 +977,96 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get mealplanCloseVoting => 'Đóng vote';
+
+  @override
+  String get recipesTitle => 'Công thức';
+
+  @override
+  String get recipesAll => 'Tất cả';
+
+  @override
+  String get recipesFavorites => 'Yêu thích';
+
+  @override
+  String get recipesSearch => 'Tìm công thức…';
+
+  @override
+  String get recipesFilters => 'Bộ lọc';
+
+  @override
+  String get recipesFilterDiet => 'Chế độ ăn';
+
+  @override
+  String get recipesFilterDifficulty => 'Độ khó';
+
+  @override
+  String get recipesFilterPrepTime => 'Thời gian chuẩn bị';
+
+  @override
+  String get recipesNoResults => 'Không tìm thấy công thức phù hợp.';
+
+  @override
+  String get recipesNoFavorites => 'Bạn chưa lưu công thức yêu thích nào.';
+
+  @override
+  String get recipesLoadMore => 'Tải thêm';
+
+  @override
+  String get recipesListChanged => 'Danh sách yêu thích đã thay đổi.';
+
+  @override
+  String get recipesReload => 'Tải lại danh sách';
+
+  @override
+  String get recipeIngredients => 'Nguyên liệu';
+
+  @override
+  String get recipeSteps => 'Các bước nấu';
+
+  @override
+  String get recipeNutrition => 'Dinh dưỡng mỗi phần ăn';
+
+  @override
+  String recipePrepTime(int minutes) {
+    return 'Chuẩn bị: $minutes phút';
+  }
+
+  @override
+  String recipeCookTime(int minutes) {
+    return 'Nấu: $minutes phút';
+  }
+
+  @override
+  String recipeServes(int count) {
+    return 'Khẩu phần: $count';
+  }
+
+  @override
+  String get recipeDifficulty => 'Độ khó';
+
+  @override
+  String get recipeDifficultyEasy => 'Dễ';
+
+  @override
+  String get recipeDifficultyMedium => 'Trung bình';
+
+  @override
+  String get recipeDifficultyHard => 'Khó';
+
+  @override
+  String get recipeStartCooking => 'Bắt đầu nấu';
+
+  @override
+  String get recipeNoSteps => 'Công thức này chưa có các bước nấu.';
+
+  @override
+  String get recipeYourRating => 'Đánh giá của bạn';
+
+  @override
+  String get recipeClearRating => 'Xoá đánh giá';
+
+  @override
+  String recipeHouseholdFavorites(int count) {
+    return '$count thành viên trong Nhà đã lưu';
+  }
 }

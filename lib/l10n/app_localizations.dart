@@ -1928,6 +1928,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close voting'**
   String get mealplanCloseVoting;
+
+  /// No description provided for @recipesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipes'**
+  String get recipesTitle;
+
+  /// No description provided for @recipesAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All recipes'**
+  String get recipesAll;
+
+  /// No description provided for @recipesFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get recipesFavorites;
+
+  /// No description provided for @recipesSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search recipes…'**
+  String get recipesSearch;
+
+  /// No description provided for @recipesFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get recipesFilters;
+
+  /// No description provided for @recipesFilterDiet.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet type'**
+  String get recipesFilterDiet;
+
+  /// No description provided for @recipesFilterDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get recipesFilterDifficulty;
+
+  /// No description provided for @recipesFilterPrepTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation time'**
+  String get recipesFilterPrepTime;
+
+  /// No description provided for @recipesNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching recipes found.'**
+  String get recipesNoResults;
+
+  /// No description provided for @recipesNoFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not saved any favorite recipes yet.'**
+  String get recipesNoFavorites;
+
+  /// No description provided for @recipesLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get recipesLoadMore;
+
+  /// No description provided for @recipesListChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Your favorites list has changed.'**
+  String get recipesListChanged;
+
+  /// No description provided for @recipesReload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload list'**
+  String get recipesReload;
+
+  /// No description provided for @recipeIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get recipeIngredients;
+
+  /// No description provided for @recipeSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking steps'**
+  String get recipeSteps;
+
+  /// No description provided for @recipeNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition per serving'**
+  String get recipeNutrition;
+
+  /// No description provided for @recipePrepTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Prep: {minutes} min'**
+  String recipePrepTime(int minutes);
+
+  /// No description provided for @recipeCookTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Cook: {minutes} min'**
+  String recipeCookTime(int minutes);
+
+  /// No description provided for @recipeServes.
+  ///
+  /// In en, this message translates to:
+  /// **'Serves {count}'**
+  String recipeServes(int count);
+
+  /// No description provided for @recipeDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get recipeDifficulty;
+
+  /// No description provided for @recipeDifficultyEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get recipeDifficultyEasy;
+
+  /// No description provided for @recipeDifficultyMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get recipeDifficultyMedium;
+
+  /// No description provided for @recipeDifficultyHard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get recipeDifficultyHard;
+
+  /// No description provided for @recipeStartCooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Start cooking'**
+  String get recipeStartCooking;
+
+  /// No description provided for @recipeNoSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking steps are not available for this recipe.'**
+  String get recipeNoSteps;
+
+  /// No description provided for @recipeYourRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating'**
+  String get recipeYourRating;
+
+  /// No description provided for @recipeClearRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear rating'**
+  String get recipeClearRating;
+
+  /// No description provided for @recipeHouseholdFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved by {count} household members'**
+  String recipeHouseholdFavorites(int count);
 }
 
 class _AppLocalizationsDelegate

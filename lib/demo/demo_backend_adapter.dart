@@ -53,6 +53,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
       <String, Map<String, dynamic>>{};
   final Map<String, Map<String, dynamic>> _cookingSessions =
       <String, Map<String, dynamic>>{};
+  final Map<String, bool> _recipeFavorites = <String, bool>{};
+  final Map<String, int?> _recipeRatings = <String, int?>{};
+  final Map<String, DateTime> _recipeFavoritedAt = <String, DateTime>{};
   late Map<String, dynamic> _healthProfile = DemoFixtures.healthProfile();
   var _inventorySequence = 4;
   var _dishSequence = 1;
@@ -195,9 +198,24 @@ class DemoBackendAdapter implements HttpClientAdapter {
           : _ok(200, plan);
     }
 
+    if (path == '/api/v1/recipes' && method == 'GET') {
+      return _listRecipes(options);
+    }
+    if (path == '/api/v1/recipes/favorites' && method == 'GET') {
+      return _listFavoriteRecipes(options);
+    }
+    final recipeFavoriteMatch =
+        RegExp(r'^/api/v1/recipes/([^/]+)/(favorite|rating)$').firstMatch(path);
+    if (recipeFavoriteMatch != null && method == 'PUT') {
+      return _updateRecipeFavorite(
+        recipeFavoriteMatch.group(1)!,
+        recipeFavoriteMatch.group(2)!,
+        body,
+      );
+    }
     final recipeMatch = RegExp(r'^/api/v1/recipes/([^/]+)$').firstMatch(path);
     if (recipeMatch != null && method == 'GET') {
-      return _ok(200, DemoFixtures.recipe(recipeMatch.group(1)!));
+      return _getRecipe(recipeMatch.group(1)!);
     }
     if (path == '/api/v1/cooking/sessions' && method == 'POST') {
       return _startCooking(body);
@@ -226,6 +244,149 @@ class DemoBackendAdapter implements HttpClientAdapter {
       return _getCookingSession(cookingSession.group(1)!);
     }
     return null;
+  }
+
+  // ── Recipe catalog (Demo Mode) ───────────────────────────────────
+
+  static const List<String> _recipeIds = <String>[
+    'demo-recipe-ca-kho',
+    'demo-recipe-canh-chua',
+    'demo-recipe-com-ga',
+  ];
+
+  ResponseBody _listRecipes(RequestOptions options) {
+    final query = options.queryParameters;
+    final search = (query['search'] as String? ?? '').trim().toLowerCase();
+    final dietType = query['dietType'] as String?;
+    final difficulty = query['difficulty'] as String?;
+    final maxPrepTime = int.tryParse('${query['maxPrepTime'] ?? ''}');
+    final matches = _recipeIds
+        .map(_recipeResponse)
+        .where((recipe) {
+          final name = recipe['name'] as String;
+          final diets = (recipe['dietTypes'] as List<dynamic>).cast<String>();
+          return (search.isEmpty || name.toLowerCase().contains(search)) &&
+              (dietType == null || diets.contains(dietType)) &&
+              (difficulty == null || recipe['difficulty'] == difficulty) &&
+              (maxPrepTime == null ||
+                  (recipe['prepTimeMinutes'] as int? ?? 0) <= maxPrepTime);
+        })
+        .toList(growable: false);
+    return _ok(200, _recipePage(matches, options));
+  }
+
+  ResponseBody _listFavoriteRecipes(RequestOptions options) {
+    final matches = _recipeIds
+        .where((id) => _recipeFavorites[id] == true)
+        .map(_recipeResponse)
+        .toList(growable: false);
+    return _ok(200, _recipePage(matches, options));
+  }
+
+  ResponseBody _getRecipe(String recipeId) {
+    if (!_recipeIds.contains(recipeId)) {
+      return _error(404, 'ERR_RECIPE_NOT_FOUND', 'Không tìm thấy công thức.');
+    }
+    return _ok(200, _recipeResponse(recipeId));
+  }
+
+  ResponseBody _updateRecipeFavorite(
+    String recipeId,
+    String action,
+    Map<String, dynamic> body,
+  ) {
+    if (!_recipeIds.contains(recipeId)) {
+      return _error(404, 'ERR_RECIPE_NOT_FOUND', 'Không tìm thấy công thức.');
+    }
+    if (action == 'favorite') {
+      final value = body['isFavorite'];
+      if (value is! bool) {
+        return _error(400, 'ERR_VALIDATION_FAILED', 'Giá trị yêu thích không hợp lệ.');
+      }
+      _recipeFavorites[recipeId] = value;
+      if (value) {
+        _recipeFavoritedAt.putIfAbsent(recipeId, DateTime.now);
+      } else {
+        _recipeFavoritedAt.remove(recipeId);
+      }
+    } else {
+      final value = body['rating'];
+      if (value != null && (value is! int || value < 1 || value > 5)) {
+        return _error(400, 'ERR_VALIDATION_FAILED', 'Đánh giá không hợp lệ.');
+      }
+      _recipeRatings[recipeId] = value as int?;
+    }
+    return _ok(200, _favoriteState(recipeId));
+  }
+
+  Map<String, dynamic> _recipePage(
+    List<Map<String, dynamic>> all,
+    RequestOptions options,
+  ) {
+    final page = int.tryParse('${options.queryParameters['page'] ?? 0}') ?? 0;
+    final size = int.tryParse('${options.queryParameters['size'] ?? 20}') ?? 20;
+    final start = page * size;
+    final end = start + size > all.length ? all.length : start + size;
+    return <String, dynamic>{
+      'items': start >= all.length ? <Map<String, dynamic>>[] : all.sublist(start, end),
+      'page': page,
+      'size': size,
+      'totalElements': all.length,
+      'totalPages': all.isEmpty ? 0 : (all.length / size).ceil(),
+    };
+  }
+
+  Map<String, dynamic> _recipeResponse(String recipeId) {
+    final raw = DemoFixtures.recipe(recipeId);
+    final steps = (raw['steps'] as List<dynamic>)
+        .map((step) => Map<String, dynamic>.from(step as Map))
+        .map(
+          (step) => <String, dynamic>{
+            'stepNumber': step['step_number'],
+            'instruction': step['instruction'],
+            'durationMinutes': step['duration_minutes'],
+          },
+        )
+        .toList(growable: false);
+    final ingredients = (raw['ingredients'] as List<dynamic>)
+        .map((name) => <String, dynamic>{'name': name})
+        .toList(growable: false);
+    final dietTypes = recipeId == 'demo-recipe-com-ga'
+        ? <String>['NONE']
+        : <String>['NONE', 'PESCATARIAN'];
+    return <String, dynamic>{
+      'id': raw['id'],
+      'householdId': null,
+      'name': raw['recipeName'],
+      'cuisine': 'Việt Nam',
+      'dietTypes': dietTypes,
+      'prepTimeMinutes': raw['prepTimeMinutes'],
+      'cookTimeMinutes': raw['prepTimeMinutes'],
+      'serves': 4,
+      'difficulty': recipeId == 'demo-recipe-com-ga' ? 'EASY' : 'MEDIUM',
+      'thumbnailUrl': null,
+      'ingredients': ingredients,
+      'steps': steps,
+      'nutrition': <String, dynamic>{'calories': raw['calories']},
+      'source': 'AI_SUGGESTED',
+      'createdBy': null,
+      'createdAt': '2026-09-20T08:00:00.000Z',
+      'updatedAt': '2026-09-20T08:00:00.000Z',
+      ..._favoriteState(recipeId),
+    };
+  }
+
+  Map<String, dynamic> _favoriteState(String recipeId) {
+    final isFavorite = _recipeFavorites[recipeId] ?? false;
+    final rating = _recipeRatings[recipeId];
+    return <String, dynamic>{
+      'recipeId': recipeId,
+      'myFavorite': isFavorite,
+      'favoritedAt': _recipeFavoritedAt[recipeId]?.toUtc().toIso8601String(),
+      'myRating': rating,
+      'favoriteCount': isFavorite ? 1 : 0,
+      'avgRating': rating?.toDouble(),
+    };
   }
 
   // ── Auth ─────────────────────────────────────────────────────────

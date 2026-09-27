@@ -985,4 +985,98 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealplanCloseVoting => 'Close voting';
+
+  @override
+  String get recipesTitle => 'Recipes';
+
+  @override
+  String get recipesAll => 'All recipes';
+
+  @override
+  String get recipesFavorites => 'Favorites';
+
+  @override
+  String get recipesSearch => 'Search recipes…';
+
+  @override
+  String get recipesFilters => 'Filters';
+
+  @override
+  String get recipesFilterDiet => 'Diet type';
+
+  @override
+  String get recipesFilterDifficulty => 'Difficulty';
+
+  @override
+  String get recipesFilterPrepTime => 'Preparation time';
+
+  @override
+  String get recipesNoResults => 'No matching recipes found.';
+
+  @override
+  String get recipesNoFavorites =>
+      'You have not saved any favorite recipes yet.';
+
+  @override
+  String get recipesLoadMore => 'Load more';
+
+  @override
+  String get recipesListChanged => 'Your favorites list has changed.';
+
+  @override
+  String get recipesReload => 'Reload list';
+
+  @override
+  String get recipeIngredients => 'Ingredients';
+
+  @override
+  String get recipeSteps => 'Cooking steps';
+
+  @override
+  String get recipeNutrition => 'Nutrition per serving';
+
+  @override
+  String recipePrepTime(int minutes) {
+    return 'Prep: $minutes min';
+  }
+
+  @override
+  String recipeCookTime(int minutes) {
+    return 'Cook: $minutes min';
+  }
+
+  @override
+  String recipeServes(int count) {
+    return 'Serves $count';
+  }
+
+  @override
+  String get recipeDifficulty => 'Difficulty';
+
+  @override
+  String get recipeDifficultyEasy => 'Easy';
+
+  @override
+  String get recipeDifficultyMedium => 'Medium';
+
+  @override
+  String get recipeDifficultyHard => 'Hard';
+
+  @override
+  String get recipeStartCooking => 'Start cooking';
+
+  @override
+  String get recipeNoSteps =>
+      'Cooking steps are not available for this recipe.';
+
+  @override
+  String get recipeYourRating => 'Your rating';
+
+  @override
+  String get recipeClearRating => 'Clear rating';
+
+  @override
+  String recipeHouseholdFavorites(int count) {
+    return 'Saved by $count household members';
+  }
 }

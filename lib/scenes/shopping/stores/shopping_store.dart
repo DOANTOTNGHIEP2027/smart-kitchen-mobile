@@ -63,11 +63,37 @@ class ShoppingStore {
     on ApiException catch (e) { runInAction(() => _error.value = e); }
   }
   Future<void> _drain(String householdId) async {
-    if (_draining) return; _draining = true;
-    try { for (final entry in await _dao.queue(householdId)) { final item = await _dao.getById(entry.itemId); if (item == null) { await _dao.removeQueue(entry.id); continue; }
-      try { if (entry.operation == 'CREATE') await _dao.remap(item.id, await _api.create(shoppingCreatePayload(item), householdId)); else await _dao.upsert((await _api.toggle(item.id, entry.baseVersion!, householdId)).copyWith(syncStatus: ShoppingSyncStatus.synced)); await _dao.removeQueue(entry.id); }
-      on ApiException { break; }
-    }} finally { _draining = false; }
+    if (_draining) {
+      return;
+    }
+    _draining = true;
+    try {
+      for (final entry in await _dao.queue(householdId)) {
+        final item = await _dao.getById(entry.itemId);
+        if (item == null) {
+          await _dao.removeQueue(entry.id);
+          continue;
+        }
+        try {
+          if (entry.operation == 'CREATE') {
+            await _dao.remap(
+              item.id,
+              await _api.create(shoppingCreatePayload(item), householdId),
+            );
+          } else {
+            await _dao.upsert(
+              (await _api.toggle(item.id, entry.baseVersion!, householdId))
+                  .copyWith(syncStatus: ShoppingSyncStatus.synced),
+            );
+          }
+          await _dao.removeQueue(entry.id);
+        } on ApiException {
+          break;
+        }
+      }
+    } finally {
+      _draining = false;
+    }
   }
   Future<bool> _online() async { try { return await _connectivity.isOnline(); } catch (_) { return true; } }
   Future<void> dispose() async { await _itemsSub?.cancel(); await _connectivitySub?.cancel(); }

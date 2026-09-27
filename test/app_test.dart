@@ -70,7 +70,11 @@ void main() {
     );
 
     await tester.pumpWidget(const SmartKitchenApp());
-    await tester.pumpAndSettle();
+    // Shell dựng các tab thật và một số tab có loading animation nền. Test
+    // này chỉ cần xác nhận Splash chọn đúng route, nên không chờ toàn bộ UI
+    // ổn định như `pumpAndSettle()`.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byType(AppShellScene), findsOneWidget);
   });

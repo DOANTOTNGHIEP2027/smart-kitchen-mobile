@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:smart_kitchen_mobile/scenes/shell/app_shell_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/shell/app_shell_store.dart';
+import 'package:smart_kitchen_mobile/scenes/shopping/scenes/shopping_list_scene.dart';
 import 'package:smart_kitchen_mobile/widgets/app_bottom_nav.dart';
 
 import 'helpers/pump_app.dart';
@@ -11,11 +12,11 @@ import 'helpers/shell_bindings_stub.dart';
 /// Khung shell bottom-nav (fe-app-shell.md §12).
 ///
 /// Sau khi wire feature scene thật vào shell (commit này), các test cũ kỳ
-/// vọng `AppEmptyView("Coming soon")` cho mọi tab không còn đúng — chỉ còn
-/// tab Shopping (chưa làm theo D-07) là placeholder. Test mới kiểm:
+/// vọng `AppEmptyView("Coming soon")` cho mọi tab không còn đúng. Test mới
+/// kiểm:
 ///  - shell dựng đủ 5 InkResponse (1 / tab).
 ///  - tap tab đổi selectedIndex.
-///  - tab Shopping (index 3) vẫn render AppEmptyView.
+///  - tab Shopping (index 3) dựng màn danh sách đi chợ thật.
 void main() {
   late AppShellStore store;
 
@@ -56,13 +57,13 @@ void main() {
         reason: 'IndexedStack không có route history; back phải quay về Home');
   });
 
-  testWidgets('tab Shopping (index 3) giữ placeholder Coming soon',
+  testWidgets('tab Shopping (index 3) dựng màn danh sách đi chợ',
       (WidgetTester tester) async {
     // Đổi sang tab Shopping.
     store.selectTab(3);
     await tester.pumpAppWidget(const AppShellScene(), wrapInScaffold: false);
     await tester.pumpAndSettle();
 
-    expect(find.text('Sắp ra mắt'), findsWidgets);
+    expect(find.byType(ShoppingListScene), findsOneWidget);
   });
 }
