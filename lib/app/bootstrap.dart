@@ -26,6 +26,7 @@ import '../scenes/inventory/data/inventory_api.dart';
 import '../scenes/inventory/data/inventory_dao.dart';
 import '../scenes/cooking/data/cooking_session_api.dart';
 import '../scenes/cooking/data/recipe_api.dart';
+import '../scenes/recipe/data/recipe_catalog_api.dart';
 import '../scenes/mealplan/data/meal_plan_api.dart';
 import '../scenes/mealplan/data/vote_api.dart';
 import '../data/notification/device_api.dart';
@@ -102,6 +103,7 @@ Future<void> bootstrap() async {
   Get.put<CookingSessionApi>(CookingSessionApiImpl(dioClient),
       permanent: true);
   Get.put<RecipeApi>(RecipeApiImpl(dioClient), permanent: true);
+  Get.put<RecipeCatalogApi>(RecipeCatalogApiImpl(dioClient), permanent: true);
 
   // FE-7: MealPlanApi + VoteApi — MealPlanStore/VoteSessionStore dùng.
   Get.put<MealPlanApi>(MealPlanApiImpl(dioClient), permanent: true);

@@ -20,7 +20,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
       if (store.isLoading) return const Center(child: CircularProgressIndicator());
       if (store.items.isEmpty) return AppEmptyView(icon: Icons.shopping_cart_outlined, message: context.l10n.stateEmptyDefault);
       return ListView(children: <Widget>[..._section(context, store.pending, false, store), if (store.completed.isNotEmpty) ..._section(context, store.completed, true, store)]);
-    }), floatingActionButton: FloatingActionButton(onPressed: () => _add(context, store), child: const Icon(Icons.add)));
+    }), floatingActionButton: FloatingActionButton(heroTag: 'shopping-list-fab', onPressed: () => _add(context, store), child: const Icon(Icons.add)));
   }
   List<Widget> _section(BuildContext context, List<ShoppingItem> items, bool completed, ShoppingStore store) => items.map((item) => ListTile(
     leading: Checkbox(value: completed, onChanged: item.canToggle ? (_) => store.toggle(item) : null),

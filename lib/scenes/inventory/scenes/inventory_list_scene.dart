@@ -187,6 +187,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'inventory-list-fab',
         onPressed: () => Get.toNamed('/inventory/add'),
         child: const Icon(Icons.add),
       ),

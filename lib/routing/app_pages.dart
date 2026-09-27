@@ -14,6 +14,7 @@ import '../scenes/household/join_household_scene.dart';
 import '../scenes/inventory/inventory_routes.dart';
 import '../scenes/mealplan/scenes/meal_plan_routes.dart';
 import '../scenes/profile/profile_family_routes.dart';
+import '../scenes/recipe/scenes/recipe_routes.dart';
 import '../scenes/shopping/scenes/shopping_routes.dart';
 import '../scenes/shell/app_shell_binding.dart';
 import '../scenes/shell/app_shell_scene.dart';
@@ -32,6 +33,7 @@ class AppPages {
     ...shellPages,
     ...feature1Pages,
     ...profileFamilyPages,
+    ...recipePages,
     ...inventoryPages,
     ...cookingPages,
     ...mealPlanPages,

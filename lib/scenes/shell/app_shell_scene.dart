@@ -11,7 +11,6 @@ import '../../utils/l10n_x.dart';
 import '../../stores/session_store.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/buttons/app_button.dart';
-import '../../widgets/states/app_empty_view.dart';
 import '../inventory/scenes/inventory_list_binding.dart';
 import '../inventory/scenes/inventory_list_scene.dart';
 import '../mealplan/scenes/meal_plan_routes.dart' show WeeklyMealPlanBinding;
@@ -273,8 +272,14 @@ class _HomeHeader extends StatelessWidget {
             color: AppColors.textPrimary,
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.notifications_none_rounded,
-              color: AppColors.textOnPrimary),
+          child: IconButton(
+            tooltip: context.l10n.recipesTitle,
+            onPressed: () => Get.toNamed(AppRoutes.recipes),
+            icon: const Icon(
+              Icons.restaurant_menu_rounded,
+              color: AppColors.textOnPrimary,
+            ),
+          ),
         ),
       ],
     );
@@ -515,19 +520,6 @@ class _HomeRecipeCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  const _PlaceholderTab({required this.icon});
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.navShopping)),
-      body: AppEmptyView(message: context.l10n.comingSoon, icon: icon),
     );
   }
 }

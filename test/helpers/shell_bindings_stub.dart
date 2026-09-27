@@ -16,6 +16,8 @@ import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_plan_slot.dart'
 import 'package:smart_kitchen_mobile/scenes/profile/api/family_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/profile_api.dart';
+import 'package:smart_kitchen_mobile/scenes/shopping/data/shopping_api.dart';
+import 'package:smart_kitchen_mobile/scenes/shopping/domain/shopping_item.dart';
 import 'package:smart_kitchen_mobile/services/connectivity_service.dart';
 import 'package:smart_kitchen_mobile/stores/realtime_store.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
@@ -71,6 +73,9 @@ void registerShellStubBindings({
   if (!Get.isRegistered<FamilyApi>()) {
     Get.put<FamilyApi>(_MockFamilyApi(), permanent: true);
   }
+  if (!Get.isRegistered<ShoppingApi>()) {
+    Get.put<ShoppingApi>(_MockShoppingApi(), permanent: true);
+  }
   if (!Get.isRegistered<ConnectivityService>()) {
     Get.put<ConnectivityService>(ConnectivityService(), permanent: true);
   }
@@ -106,12 +111,14 @@ class _MockVoteApi extends Mock implements VoteApi {}
 class _MockHealthApi extends Mock implements HealthApi {}
 class _MockProfileApi extends Mock implements ProfileApi {}
 class _MockFamilyApi extends Mock implements FamilyApi {}
+class _MockShoppingApi extends Mock implements ShoppingApi {}
 
 /// Stub các method mà shell render sẽ chạm tới (tránh `Null` crash và
 /// để feature scene render được ở empty/success state).
 void _wireStubResponses() {
   final inventory = Get.find<InventoryApi>();
   final mealPlan = Get.find<MealPlanApi>();
+  final shopping = Get.find<ShoppingApi>();
 
   when(() => inventory.list(page: any(named: 'page'), size: any(named: 'size')))
       .thenAnswer(
@@ -130,5 +137,8 @@ void _wireStubResponses() {
       weekStart: DateTime(2026, 9, 14),
       slots: const <MealPlanSlot>[],
     ),
+  );
+  when(() => shopping.list(any())).thenAnswer(
+    (_) async => const <ShoppingItem>[],
   );
 }

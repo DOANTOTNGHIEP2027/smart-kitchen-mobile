@@ -34,6 +34,10 @@ abstract class AppRoutes {
   // Shopping (P1)
   static const String shopping = '/shopping';
 
+  // Recipe catalog + detail (FE-8 #80 + #134).
+  static const String recipes = '/recipes';
+  static const String recipeDetail = '/recipes/:id';
+
   // Cooking session (FE-6 #81)
   static const String cookingSession = '/cooking/session';
 
