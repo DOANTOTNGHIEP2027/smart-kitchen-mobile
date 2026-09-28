@@ -147,6 +147,52 @@ class DemoBackendAdapter implements HttpClientAdapter {
         _ => _error(405, 'ERR_DEMO_METHOD', 'Phương thức này chưa được hỗ trợ trong bản demo.'),
       };
     }
+    if (path == '/api/v1/inventory-items/scan' && method == 'POST') {
+      return _ok(200, <String, dynamic>{
+        'scanId': 'demo-scan-${DateTime.now().microsecondsSinceEpoch}',
+        'items': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'itemId': 'demo-ocr-ca-chua',
+            'name': 'Cà chua',
+            'category': 'Rau củ',
+            'quantity': 3,
+            'unit': 'quả',
+            'needsManualReview': false,
+            'rawQuantity': 3,
+            'rawUnit': 'quả',
+            'expiryDate': '2026-10-05',
+            'duplicate': true,
+            'existingItemId': 'demo-inventory-ca-chua',
+          },
+          <String, dynamic>{
+            'itemId': 'demo-ocr-thit-bo',
+            'name': 'Thịt bò',
+            'category': null,
+            'quantity': 0.5,
+            'unit': 'kg',
+            'needsManualReview': false,
+            'rawQuantity': 0.5,
+            'rawUnit': 'kg',
+            'expiryDate': '2026-10-01',
+            'duplicate': false,
+            'existingItemId': null,
+          },
+          <String, dynamic>{
+            'itemId': 'demo-ocr-sua-tuoi',
+            'name': 'Sữa tươi',
+            'category': null,
+            'quantity': null,
+            'unit': null,
+            'needsManualReview': true,
+            'rawQuantity': 1,
+            'rawUnit': 'hộp',
+            'expiryDate': null,
+            'duplicate': false,
+            'existingItemId': null,
+          },
+        ],
+      });
+    }
     final inventoryMatch = RegExp(r'^/api/v1/inventory-items/([^/]+)$')
         .firstMatch(path);
     if (inventoryMatch != null) {

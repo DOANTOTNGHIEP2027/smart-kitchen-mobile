@@ -2096,6 +2096,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved by {count} household members'**
   String recipeHouseholdFavorites(int count);
+
+  /// No description provided for @inventoryOcrScanAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan receipt or items'**
+  String get inventoryOcrScanAction;
+
+  /// No description provided for @inventoryOcrScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan items into inventory'**
+  String get inventoryOcrScanTitle;
+
+  /// No description provided for @inventoryOcrModeItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Single item'**
+  String get inventoryOcrModeItem;
+
+  /// No description provided for @inventoryOcrModeReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt / fridge'**
+  String get inventoryOcrModeReceipt;
+
+  /// No description provided for @inventoryOcrFrameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Place the item or receipt clearly inside the frame'**
+  String get inventoryOcrFrameHint;
+
+  /// No description provided for @inventoryOcrItemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph one item clearly for the most accurate result'**
+  String get inventoryOcrItemHint;
+
+  /// No description provided for @inventoryOcrReceiptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the full receipt or fridge contents visible and well lit'**
+  String get inventoryOcrReceiptHint;
+
+  /// No description provided for @inventoryOcrTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get inventoryOcrTakePhoto;
+
+  /// No description provided for @inventoryOcrChooseGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get inventoryOcrChooseGallery;
+
+  /// No description provided for @inventoryOcrChooseAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another image'**
+  String get inventoryOcrChooseAnother;
+
+  /// No description provided for @inventoryOcrAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing image…'**
+  String get inventoryOcrAnalyzing;
+
+  /// No description provided for @inventoryOcrPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera or photo access has not been granted. Open Settings to allow access.'**
+  String get inventoryOcrPermissionDenied;
+
+  /// No description provided for @inventoryOcrImageTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The image is still over 2 MB after compression. Please choose another image.'**
+  String get inventoryOcrImageTooLarge;
+
+  /// No description provided for @inventoryOcrImageInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This image could not be read. Please choose a valid JPEG or PNG image.'**
+  String get inventoryOcrImageInvalid;
+
+  /// No description provided for @inventoryOcrAiTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI took too long to respond. Your image is still available to retry.'**
+  String get inventoryOcrAiTimeout;
+
+  /// No description provided for @inventoryOcrAiUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI service is temporarily unavailable. Your image is still available to retry.'**
+  String get inventoryOcrAiUnavailable;
+
+  /// No description provided for @inventoryOcrAiRateLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI service is busy. Please wait a moment and retry.'**
+  String get inventoryOcrAiRateLimit;
+
+  /// No description provided for @inventoryOcrContentFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'This image cannot be analyzed. Please choose another image.'**
+  String get inventoryOcrContentFiltered;
+
+  /// No description provided for @inventoryOcrInvalidOutput.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI could not produce a usable result from this image. Please choose another image.'**
+  String get inventoryOcrInvalidOutput;
+
+  /// No description provided for @inventoryOcrScanInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'The previous image is still being processed. Please wait a few seconds.'**
+  String get inventoryOcrScanInProgress;
+
+  /// No description provided for @inventoryOcrNoHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Join or create a household before scanning inventory.'**
+  String get inventoryOcrNoHousehold;
+
+  /// No description provided for @inventoryOcrResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan results ({count})'**
+  String inventoryOcrResultTitle(int count);
+
+  /// No description provided for @inventoryOcrConfirmAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm all'**
+  String get inventoryOcrConfirmAll;
+
+  /// No description provided for @inventoryOcrEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'AI did not recognize any items in this image'**
+  String get inventoryOcrEmpty;
+
+  /// No description provided for @inventoryOcrRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Take another photo'**
+  String get inventoryOcrRetake;
+
+  /// No description provided for @inventoryOcrNeedsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs review'**
+  String get inventoryOcrNeedsReview;
+
+  /// No description provided for @inventoryOcrDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in inventory'**
+  String get inventoryOcrDuplicate;
+
+  /// No description provided for @inventoryOcrExpiryEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date} · AI estimate'**
+  String inventoryOcrExpiryEstimate(Object date);
+
+  /// No description provided for @inventoryOcrRawValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected from image: {quantity} {unit}'**
+  String inventoryOcrRawValue(Object quantity, Object unit);
+
+  /// No description provided for @inventoryOcrQuantityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter quantity'**
+  String get inventoryOcrQuantityHint;
+
+  /// No description provided for @inventoryOcrQuantityInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid quantity'**
+  String get inventoryOcrQuantityInvalid;
+
+  /// No description provided for @inventoryOcrCompleteFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid quantity and unit before saving'**
+  String get inventoryOcrCompleteFields;
+
+  /// No description provided for @inventoryOcrSaveItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this item'**
+  String get inventoryOcrSaveItem;
+
+  /// No description provided for @inventoryOcrSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get inventoryOcrSaved;
+
+  /// No description provided for @inventoryOcrSavingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving {saved}/{total}…'**
+  String inventoryOcrSavingProgress(int saved, int total);
+
+  /// No description provided for @inventoryOcrPartialFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items could not be saved — retry or skip them below'**
+  String inventoryOcrPartialFailure(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -1069,4 +1069,137 @@ class AppLocalizationsVi extends AppLocalizations {
   String recipeHouseholdFavorites(int count) {
     return '$count thành viên trong Nhà đã lưu';
   }
+
+  @override
+  String get inventoryOcrScanAction => 'Quét hoá đơn hoặc mặt hàng';
+
+  @override
+  String get inventoryOcrScanTitle => 'Quét ảnh thêm vào kho';
+
+  @override
+  String get inventoryOcrModeItem => 'Từng món';
+
+  @override
+  String get inventoryOcrModeReceipt => 'Hoá đơn / tủ lạnh';
+
+  @override
+  String get inventoryOcrFrameHint =>
+      'Đưa mặt hàng hoặc hoá đơn rõ nét vào trong khung';
+
+  @override
+  String get inventoryOcrItemHint =>
+      'Chụp rõ từng món để AI nhận diện chính xác nhất';
+
+  @override
+  String get inventoryOcrReceiptHint =>
+      'Chụp trọn hoá đơn hoặc tủ lạnh ở nơi đủ sáng';
+
+  @override
+  String get inventoryOcrTakePhoto => 'Chụp ảnh';
+
+  @override
+  String get inventoryOcrChooseGallery => 'Chọn từ thư viện';
+
+  @override
+  String get inventoryOcrChooseAnother => 'Chọn ảnh khác';
+
+  @override
+  String get inventoryOcrAnalyzing => 'Đang phân tích ảnh…';
+
+  @override
+  String get inventoryOcrPermissionDenied =>
+      'Chưa cấp quyền camera hoặc thư viện ảnh. Hãy mở Cài đặt để cấp quyền.';
+
+  @override
+  String get inventoryOcrImageTooLarge =>
+      'Ảnh vẫn lớn hơn 2 MB sau khi nén. Vui lòng chọn ảnh khác.';
+
+  @override
+  String get inventoryOcrImageInvalid =>
+      'Không đọc được ảnh này. Vui lòng chọn ảnh JPEG hoặc PNG hợp lệ.';
+
+  @override
+  String get inventoryOcrAiTimeout =>
+      'AI phản hồi quá lâu. Ảnh của bạn vẫn được giữ để thử lại.';
+
+  @override
+  String get inventoryOcrAiUnavailable =>
+      'Dịch vụ AI tạm thời chưa khả dụng. Ảnh của bạn vẫn được giữ để thử lại.';
+
+  @override
+  String get inventoryOcrAiRateLimit =>
+      'Dịch vụ AI đang bận. Vui lòng chờ một chút rồi thử lại.';
+
+  @override
+  String get inventoryOcrContentFiltered =>
+      'Ảnh này không phù hợp để phân tích. Vui lòng chọn ảnh khác.';
+
+  @override
+  String get inventoryOcrInvalidOutput =>
+      'AI không tạo được kết quả phù hợp từ ảnh này. Vui lòng chọn ảnh khác.';
+
+  @override
+  String get inventoryOcrScanInProgress =>
+      'Ảnh trước vẫn đang được xử lý — vui lòng đợi vài giây.';
+
+  @override
+  String get inventoryOcrNoHousehold =>
+      'Hãy tạo hoặc tham gia Nhà trước khi quét mặt hàng.';
+
+  @override
+  String inventoryOcrResultTitle(int count) {
+    return 'Kết quả quét ($count)';
+  }
+
+  @override
+  String get inventoryOcrConfirmAll => 'Xác nhận tất cả';
+
+  @override
+  String get inventoryOcrEmpty =>
+      'AI không nhận diện được mặt hàng nào trong ảnh này';
+
+  @override
+  String get inventoryOcrRetake => 'Chụp lại';
+
+  @override
+  String get inventoryOcrNeedsReview => 'Cần kiểm tra';
+
+  @override
+  String get inventoryOcrDuplicate => 'Đã có trong tồn kho';
+
+  @override
+  String inventoryOcrExpiryEstimate(Object date) {
+    return 'HSD $date · AI ước lượng';
+  }
+
+  @override
+  String inventoryOcrRawValue(Object quantity, Object unit) {
+    return 'AI đọc từ ảnh: $quantity $unit';
+  }
+
+  @override
+  String get inventoryOcrQuantityHint => 'Nhập số lượng';
+
+  @override
+  String get inventoryOcrQuantityInvalid => 'Nhập số lượng hợp lệ';
+
+  @override
+  String get inventoryOcrCompleteFields =>
+      'Nhập đủ số lượng và đơn vị hợp lệ trước khi lưu';
+
+  @override
+  String get inventoryOcrSaveItem => 'Lưu mặt hàng này';
+
+  @override
+  String get inventoryOcrSaved => 'Đã lưu';
+
+  @override
+  String inventoryOcrSavingProgress(int saved, int total) {
+    return 'Đang lưu $saved/$total…';
+  }
+
+  @override
+  String inventoryOcrPartialFailure(int count) {
+    return '$count mặt hàng chưa lưu được — thử lại hoặc bỏ qua bên dưới';
+  }
 }

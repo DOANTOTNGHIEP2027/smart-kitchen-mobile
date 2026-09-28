@@ -1079,4 +1079,137 @@ class AppLocalizationsEn extends AppLocalizations {
   String recipeHouseholdFavorites(int count) {
     return 'Saved by $count household members';
   }
+
+  @override
+  String get inventoryOcrScanAction => 'Scan receipt or items';
+
+  @override
+  String get inventoryOcrScanTitle => 'Scan items into inventory';
+
+  @override
+  String get inventoryOcrModeItem => 'Single item';
+
+  @override
+  String get inventoryOcrModeReceipt => 'Receipt / fridge';
+
+  @override
+  String get inventoryOcrFrameHint =>
+      'Place the item or receipt clearly inside the frame';
+
+  @override
+  String get inventoryOcrItemHint =>
+      'Photograph one item clearly for the most accurate result';
+
+  @override
+  String get inventoryOcrReceiptHint =>
+      'Keep the full receipt or fridge contents visible and well lit';
+
+  @override
+  String get inventoryOcrTakePhoto => 'Take photo';
+
+  @override
+  String get inventoryOcrChooseGallery => 'Choose from gallery';
+
+  @override
+  String get inventoryOcrChooseAnother => 'Choose another image';
+
+  @override
+  String get inventoryOcrAnalyzing => 'Analyzing image…';
+
+  @override
+  String get inventoryOcrPermissionDenied =>
+      'Camera or photo access has not been granted. Open Settings to allow access.';
+
+  @override
+  String get inventoryOcrImageTooLarge =>
+      'The image is still over 2 MB after compression. Please choose another image.';
+
+  @override
+  String get inventoryOcrImageInvalid =>
+      'This image could not be read. Please choose a valid JPEG or PNG image.';
+
+  @override
+  String get inventoryOcrAiTimeout =>
+      'The AI took too long to respond. Your image is still available to retry.';
+
+  @override
+  String get inventoryOcrAiUnavailable =>
+      'The AI service is temporarily unavailable. Your image is still available to retry.';
+
+  @override
+  String get inventoryOcrAiRateLimit =>
+      'The AI service is busy. Please wait a moment and retry.';
+
+  @override
+  String get inventoryOcrContentFiltered =>
+      'This image cannot be analyzed. Please choose another image.';
+
+  @override
+  String get inventoryOcrInvalidOutput =>
+      'The AI could not produce a usable result from this image. Please choose another image.';
+
+  @override
+  String get inventoryOcrScanInProgress =>
+      'The previous image is still being processed. Please wait a few seconds.';
+
+  @override
+  String get inventoryOcrNoHousehold =>
+      'Join or create a household before scanning inventory.';
+
+  @override
+  String inventoryOcrResultTitle(int count) {
+    return 'Scan results ($count)';
+  }
+
+  @override
+  String get inventoryOcrConfirmAll => 'Confirm all';
+
+  @override
+  String get inventoryOcrEmpty =>
+      'AI did not recognize any items in this image';
+
+  @override
+  String get inventoryOcrRetake => 'Take another photo';
+
+  @override
+  String get inventoryOcrNeedsReview => 'Needs review';
+
+  @override
+  String get inventoryOcrDuplicate => 'Already in inventory';
+
+  @override
+  String inventoryOcrExpiryEstimate(Object date) {
+    return 'Expires $date · AI estimate';
+  }
+
+  @override
+  String inventoryOcrRawValue(Object quantity, Object unit) {
+    return 'Detected from image: $quantity $unit';
+  }
+
+  @override
+  String get inventoryOcrQuantityHint => 'Enter quantity';
+
+  @override
+  String get inventoryOcrQuantityInvalid => 'Enter a valid quantity';
+
+  @override
+  String get inventoryOcrCompleteFields =>
+      'Enter a valid quantity and unit before saving';
+
+  @override
+  String get inventoryOcrSaveItem => 'Save this item';
+
+  @override
+  String get inventoryOcrSaved => 'Saved';
+
+  @override
+  String inventoryOcrSavingProgress(int saved, int total) {
+    return 'Saving $saved/$total…';
+  }
+
+  @override
+  String inventoryOcrPartialFailure(int count) {
+    return '$count items could not be saved — retry or skip them below';
+  }
 }
