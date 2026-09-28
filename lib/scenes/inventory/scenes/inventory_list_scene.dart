@@ -9,6 +9,7 @@ import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_loading_view.dart';
 import '../../../widgets/states/app_empty_view.dart';
+import '../inventory_routes.dart';
 import '../stores/inventory_store.dart';
 import '../widgets/inventory_item_tile.dart';
 
@@ -44,6 +45,11 @@ class _InventoryListSceneState extends State<InventoryListScene> {
       title: context.l10n.inventoryTitle,
       actions: <Widget>[
         IconButton(
+          tooltip: context.l10n.inventoryOcrScanAction,
+          icon: const Icon(Icons.document_scanner_outlined),
+          onPressed: () => Get.toNamed(InventoryRoutes.scan),
+        ),
+        IconButton(
           tooltip: context.l10n.add,
           icon: const Icon(Icons.add),
           onPressed: () => Get.toNamed('/inventory/add'),
@@ -57,8 +63,8 @@ class _InventoryListSceneState extends State<InventoryListScene> {
               return Material(
                 color: Colors.amber.shade100,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: <Widget>[
                       Expanded(child: Text(context.l10n.inventorySyncFailed)),
@@ -135,9 +141,8 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                 final filtered = store.filteredItems;
                 if (filtered.isEmpty) {
                   // Phân biệt 2 loại empty (FE-5 §14)
-                  final isEmptyDueToFilters =
-                      store.searchQuery.isNotEmpty ||
-                          store.selectedCategory != null;
+                  final isEmptyDueToFilters = store.searchQuery.isNotEmpty ||
+                      store.selectedCategory != null;
                   if (isEmptyDueToFilters) {
                     return AppEmptyView(
                       icon: Icons.search_off,
@@ -157,6 +162,13 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                           label: context.l10n.inventoryAddItem,
                           icon: Icons.add,
                           onPressed: () => Get.toNamed('/inventory/add'),
+                        ),
+                        const SizedBox(height: 8),
+                        AppButton(
+                          label: context.l10n.inventoryOcrScanAction,
+                          icon: Icons.document_scanner_outlined,
+                          variant: AppButtonVariant.outline,
+                          onPressed: () => Get.toNamed(InventoryRoutes.scan),
                         ),
                       ],
                     ),

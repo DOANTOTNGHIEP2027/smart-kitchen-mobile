@@ -251,4 +251,3 @@ class _StubProfileApi implements ProfileApi {
     throw UnimplementedError();
   }
 }
-
