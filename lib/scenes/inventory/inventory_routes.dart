@@ -4,6 +4,7 @@ import '../../routing/route_guards.dart';
 import 'scenes/inventory_form_scene.dart';
 import 'scenes/inventory_list_binding.dart';
 import 'scenes/inventory_list_scene.dart';
+import 'scenes/inventory_history_scene.dart';
 import 'ocr/scenes/camera_scan_scene.dart';
 import 'ocr/scenes/ocr_binding.dart';
 import 'ocr/scenes/ocr_result_scene.dart';
@@ -15,6 +16,7 @@ abstract class InventoryRoutes {
   static const String scan = '/inventory/scan';
   static const String scanReview = '/inventory/scan/review';
   static const String edit = '/inventory/:id/edit';
+  static const String history = '/inventory/:id/history';
 }
 
 /// [GetPage] của inventory module, để AppPages nối vào. Bám pattern
@@ -49,6 +51,12 @@ final List<GetPage<dynamic>> inventoryPages = <GetPage<dynamic>>[
     name: InventoryRoutes.edit,
     page: () => const InventoryFormScene(),
     binding: InventoryFormBinding(),
+    middlewares: <GetMiddleware>[AuthGuard()],
+  ),
+  GetPage<void>(
+    name: InventoryRoutes.history,
+    page: () => const InventoryHistoryScene(),
+    binding: InventoryHistoryBinding(),
     middlewares: <GetMiddleware>[AuthGuard()],
   ),
 ];

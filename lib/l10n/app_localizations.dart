@@ -2097,6 +2097,36 @@ abstract class AppLocalizations {
   /// **'Saved by {count} household members'**
   String recipeHouseholdFavorites(int count);
 
+  String get inventoryHistoryTitle;
+  String get inventoryHistoryOpen;
+  String inventoryHistoryCurrentQuantity(Object quantity, Object unit);
+  String get inventoryHistoryLoadFailed;
+  String get inventoryHistoryEmpty;
+  String get inventoryHistoryLoadMore;
+  String inventoryHistoryRemaining(Object quantity);
+  String get inventoryHistoryReasonBought;
+  String get inventoryHistoryReasonCooked;
+  String get inventoryHistoryReasonExpired;
+  String get inventoryHistoryReasonWaste;
+  String get inventoryHistoryReasonCorrected;
+  String get inventoryWasteTitle;
+  String get inventoryWasteSubtitle;
+  String get inventoryWasteOverbought;
+  String get inventoryWasteForgotten;
+  String get inventoryWasteSpoiledEarly;
+  String get inventoryWasteUntagged;
+  String get notificationInventoryUpdated;
+  String get notificationInventoryAlreadyUsed;
+  String get notificationInventoryAlreadyDiscarded;
+  String get notificationInventoryAlreadyProcessed;
+  String get notificationInventoryGone;
+  String get notificationInventoryReadonly;
+  String get notificationNoNetwork;
+  String get notificationActionFailed;
+  String get notificationActionCookToday;
+  String get notificationActionMarkUsed;
+  String get notificationActionDiscard;
+
   /// No description provided for @inventoryOcrScanAction.
   ///
   /// In en, this message translates to:

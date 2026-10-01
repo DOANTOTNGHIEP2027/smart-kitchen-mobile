@@ -47,8 +47,7 @@ void main() {
           ),
       ),
     );
-    session.currentUser =
-        const UserSummary(id: 'u1', fullName: 'Tester');
+    session.currentUser = const UserSummary(id: 'u1', fullName: 'Tester');
     session.applyHouseholdContext(householdId: 'h1', role: 'MEMBER');
   });
 
@@ -108,8 +107,8 @@ void main() {
 
   group('save CREATE — optimistic + remap', () {
     test('online success → remapAndMarkSynced với id server', () async {
-      api.onCreate = (_) async => (await seedItem(id: 'server-uuid'))
-          .copyWith(version: 1);
+      api.onCreate =
+          (_) async => (await seedItem(id: 'server-uuid')).copyWith(version: 1);
 
       final store = createStore();
       final ok = await store.save(name: 'Cà chua', quantity: 500, unit: 'g');
@@ -152,25 +151,102 @@ void main() {
       expect(row!.syncStatus, SyncStatus.pendingCreate);
       final queue = await dao.queuedOperations('h1');
       expect(queue, hasLength(1),
-          reason: 'pending CREATE phải sống trong SQLite, không chỉ là nhãn UI');
+          reason:
+              'pending CREATE phải sống trong SQLite, không chỉ là nhãn UI');
       expect(queue.single.operation, 'CREATE');
     });
   });
 
   group('save EDIT — rollback đúng snapshot', () {
+    test('giảm số lượng gửi reason/wasteCause đúng contract', () async {
+      final previous = await seedItem(id: 'i1', version: 2);
+      Map<String, dynamic>? sent;
+      api.onUpdate = (_, __, payload) async {
+        sent = Map<String, dynamic>.from(payload);
+        return previous.copyWith(quantity: 300, version: 3);
+      };
+
+      final ok = await editStore('i1').save(
+        name: previous.name,
+        quantity: 300,
+        unit: 'g',
+        reason: 'WASTE',
+        wasteCause: 'OVERBOUGHT',
+      );
+
+      expect(ok, isTrue);
+      expect(sent!['reason'], 'WASTE');
+      expect(sent!['wasteCause'], 'OVERBOUGHT');
+    });
+
+    test('BE cũ từ chối wasteCause → retry một lần và vẫn giữ reason',
+        () async {
+      final previous = await seedItem(id: 'i1', version: 2);
+      final calls = <Map<String, dynamic>>[];
+      api.onUpdate = (_, __, payload) async {
+        calls.add(Map<String, dynamic>.from(payload));
+        if (calls.length == 1) {
+          throw ValidationException(
+            'ERR_VALIDATION_FAILED',
+            'unknown field',
+            fieldErrors: const <String, String>{
+              'wasteCause': 'unsupported',
+            },
+          );
+        }
+        return previous.copyWith(quantity: 300, version: 3);
+      };
+
+      final ok = await editStore('i1').save(
+        name: previous.name,
+        quantity: 300,
+        unit: 'g',
+        reason: 'WASTE',
+        wasteCause: 'FORGOTTEN',
+      );
+
+      expect(ok, isTrue);
+      expect(calls, hasLength(2));
+      expect(calls.last['reason'], 'WASTE');
+      expect(calls.last.containsKey('wasteCause'), isFalse);
+    });
+
     test('offline edit → coalesce thành UPDATE trong durable queue', () async {
       await seedItem(id: 'i1', version: 4);
       connectivity.set(false);
 
       final store = editStore('i1');
-      expect(await store.save(name: 'Lần một', quantity: 100, unit: 'g'), isTrue);
-      expect(await store.save(name: 'Lần hai', quantity: 200, unit: 'g'), isTrue);
+      expect(
+          await store.save(name: 'Lần một', quantity: 100, unit: 'g'), isTrue);
+      expect(
+          await store.save(name: 'Lần hai', quantity: 200, unit: 'g'), isTrue);
 
       final queue = await dao.queuedOperations('h1');
       expect(queue, hasLength(1));
       expect(queue.single.operation, 'UPDATE');
       expect(queue.single.baseVersion, 4);
       expect((await dao.getById('i1'))!.name, 'Lần hai');
+    });
+
+    test('offline edit giữ metadata waste trong durable queue', () async {
+      await seedItem(id: 'i1', version: 4);
+      connectivity.set(false);
+
+      await editStore('i1').save(
+        name: 'Cà chua',
+        quantity: 200,
+        unit: 'g',
+        reason: 'EXPIRED',
+        wasteCause: 'FORGOTTEN',
+      );
+
+      final queue = await dao.queuedOperations('h1');
+      final metadata = inventoryMutationMetadataFromQueue(
+        queue.single.deleteReason,
+        operation: queue.single.operation,
+      );
+      expect(metadata.reason, 'EXPIRED');
+      expect(metadata.wasteCause, 'FORGOTTEN');
     });
     test('online success → markSynced với server version mới', () async {
       final previous = await seedItem(id: 'i1', version: 1);
@@ -184,7 +260,8 @@ void main() {
       };
 
       final store = editStore('i1');
-      final ok = await store.save(name: 'Cà chua cherry', quantity: 200, unit: 'g');
+      final ok =
+          await store.save(name: 'Cà chua cherry', quantity: 200, unit: 'g');
 
       expect(ok, isTrue);
       final got = await dao.getById('i1');
@@ -194,8 +271,7 @@ void main() {
       expect(got.syncStatus, SyncStatus.synced);
     });
 
-    test(
-        'rollback về đúng snapshot, không cleared field — Phase 0 US 2.1 AC',
+    test('rollback về đúng snapshot, không cleared field — Phase 0 US 2.1 AC',
         () async {
       // Seed item với nhiều field có giá trị để kiểm rollback không trả null
       await seedItem(id: 'i1', version: 5);
@@ -229,7 +305,8 @@ void main() {
           );
 
       final store = editStore('i1');
-      final ok = await store.save(name: 'Cà chua của tôi', quantity: 200, unit: 'g');
+      final ok =
+          await store.save(name: 'Cà chua của tôi', quantity: 200, unit: 'g');
 
       expect(ok, isFalse, reason: 'conflict path — save trả false');
       expect(store.saveError, isNull,
@@ -243,8 +320,8 @@ void main() {
     test('404 ERR_INVENTORY_NOT_FOUND → xoá row local, không rollback',
         () async {
       await seedItem(id: 'i1');
-      api.onUpdateError = BusinessException(
-          'ERR_INVENTORY_NOT_FOUND', 'not found');
+      api.onUpdateError =
+          BusinessException('ERR_INVENTORY_NOT_FOUND', 'not found');
 
       final store = editStore('i1');
       final ok = await store.save(name: 'Đổi', quantity: 1, unit: 'g');
@@ -257,6 +334,19 @@ void main() {
   });
 
   group('delete — optimistic hide', () {
+    test('delete WASTE truyền wasteCause tới API', () async {
+      await seedItem(id: 'i1');
+      api.onDelete = (_, __, ___) async {};
+
+      final ok = await editStore('i1').delete(
+        reason: 'WASTE',
+        wasteCause: 'SPOILED_EARLY',
+      );
+
+      expect(ok, isTrue);
+      expect(api.lastDeleteWasteCause, 'SPOILED_EARLY');
+    });
+
     test('online success → deleteItem cứng', () async {
       await seedItem(id: 'i1');
       api.onDelete = (_, __, ___) async {};
@@ -270,8 +360,8 @@ void main() {
 
     test('404 trên delete → vẫn coi thành công (item đã không còn)', () async {
       await seedItem(id: 'i1');
-      api.onDeleteError = BusinessException(
-          'ERR_INVENTORY_NOT_FOUND', 'not found');
+      api.onDeleteError =
+          BusinessException('ERR_INVENTORY_NOT_FOUND', 'not found');
 
       final store = editStore('i1');
       final ok = await store.delete(reason: 'WASTE');
@@ -284,8 +374,8 @@ void main() {
       await seedItem(id: 'i1', version: 3);
       api.onDeleteError =
           BusinessException('ERR_INVENTORY_VERSION_CONFLICT', 'conflict');
-      api.onGetById = (id) async =>
-          (await dao.getById(id))!.copyWith(version: 4);
+      api.onGetById =
+          (id) async => (await dao.getById(id))!.copyWith(version: 4);
 
       final store = editStore('i1');
       final ok = await store.delete(reason: 'WASTE');

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../../data/db/app_database.dart';
@@ -33,8 +35,9 @@ class InventoryDao {
         (t) => OrderingTerm(expression: t.syncStatus.equals('SYNCED')),
         (u) => OrderingTerm.desc(u.createdAt),
       ]);
-    return query.watch().map((rows) =>
-        rows.map(inventoryItemFromRow).toList(growable: false));
+    return query
+        .watch()
+        .map((rows) => rows.map(inventoryItemFromRow).toList(growable: false));
   }
 
   Future<InventoryItemModel?> getById(String id) async {
@@ -55,8 +58,7 @@ class InventoryDao {
   Future<void> remapAndMarkSynced(
       String tempId, InventoryItemModel serverItem) {
     return _db.transaction(() async {
-      await (_db.delete(_db.inventoryItems)
-            ..where((t) => t.id.equals(tempId)))
+      await (_db.delete(_db.inventoryItems)..where((t) => t.id.equals(tempId)))
           .go();
       await upsertItem(serverItem.copyWith(syncStatus: SyncStatus.synced));
     });
@@ -68,23 +70,21 @@ class InventoryDao {
   }
 
   Future<void> markPendingDelete(String id) {
-    return (_db.update(_db.inventoryItems)
-          ..where((t) => t.id.equals(id)))
-        .write(const InventoryItemsCompanion(syncStatus: Value('PENDING_DELETE')));
+    return (_db.update(_db.inventoryItems)..where((t) => t.id.equals(id)))
+        .write(
+            const InventoryItemsCompanion(syncStatus: Value('PENDING_DELETE')));
   }
 
   /// Cập nhật syncStatus cho một row (KHÔNG ghi đè các field khác) —
   /// dùng khi server gửi 409 conflict và ta cần set CONFLICT giữ nguyên state
   /// optimistic của mình để dựng dialog.
   Future<void> updateSyncStatus(String id, SyncStatus status) {
-    return (_db.update(_db.inventoryItems)
-          ..where((t) => t.id.equals(id)))
+    return (_db.update(_db.inventoryItems)..where((t) => t.id.equals(id)))
         .write(InventoryItemsCompanion(syncStatus: Value(_toString(status))));
   }
 
   Future<void> deleteItem(String id) {
-    return (_db.delete(_db.inventoryItems)..where((t) => t.id.equals(id)))
-        .go();
+    return (_db.delete(_db.inventoryItems)..where((t) => t.id.equals(id))).go();
   }
 
   /// Đưa CREATE vào durable queue. Snapshot payload được lấy từ item local lúc
@@ -108,15 +108,17 @@ class InventoryDao {
   Future<void> enqueueUpdate(
     InventoryItemModel item, {
     required int baseVersion,
+    String? reason,
+    String? wasteCause,
   }) async {
     final existing = await _queuedForItem(item.householdId, item.id);
     if (existing?.operation == 'CREATE') return;
     if (existing != null) {
       await (_db.update(_db.inventorySyncQueue)
             ..where((t) => t.id.equals(existing.id)))
-          .write(const InventorySyncQueueCompanion(
-        operation: Value('UPDATE'),
-        deleteReason: Value(null),
+          .write(InventorySyncQueueCompanion(
+        operation: const Value('UPDATE'),
+        deleteReason: Value(_encodeMutationMetadata(reason, wasteCause)),
       ));
       return;
     }
@@ -126,6 +128,7 @@ class InventoryDao {
             itemId: item.id,
             operation: 'UPDATE',
             baseVersion: baseVersion,
+            deleteReason: Value(_encodeMutationMetadata(reason, wasteCause)),
             createdAt: DateTime.now().toUtc(),
           ),
         );
@@ -136,6 +139,7 @@ class InventoryDao {
   Future<bool> enqueueDelete(
     InventoryItemModel item, {
     required String reason,
+    String? wasteCause,
   }) async {
     final existing = await _queuedForItem(item.householdId, item.id);
     if (existing?.operation == 'CREATE') {
@@ -148,7 +152,7 @@ class InventoryDao {
             ..where((t) => t.id.equals(existing.id)))
           .write(InventorySyncQueueCompanion(
         operation: const Value('DELETE'),
-        deleteReason: Value(reason),
+        deleteReason: Value(_encodeMutationMetadata(reason, wasteCause)),
       ));
       return false;
     }
@@ -158,7 +162,7 @@ class InventoryDao {
             itemId: item.id,
             operation: 'DELETE',
             baseVersion: item.version,
-            deleteReason: Value(reason),
+            deleteReason: Value(_encodeMutationMetadata(reason, wasteCause)),
             createdAt: DateTime.now().toUtc(),
           ),
         );
@@ -182,7 +186,8 @@ class InventoryDao {
     String itemId,
   ) {
     final query = _db.select(_db.inventorySyncQueue)
-      ..where((t) => t.householdId.equals(householdId) & t.itemId.equals(itemId));
+      ..where(
+          (t) => t.householdId.equals(householdId) & t.itemId.equals(itemId));
     return query.getSingleOrNull();
   }
 
@@ -200,4 +205,40 @@ class InventoryDao {
         return 'CONFLICT';
     }
   }
+}
+
+class InventoryMutationMetadata {
+  const InventoryMutationMetadata({this.reason, this.wasteCause});
+
+  final String? reason;
+  final String? wasteCause;
+}
+
+InventoryMutationMetadata inventoryMutationMetadataFromQueue(
+  String? value, {
+  required String operation,
+}) {
+  if (value == null || value.isEmpty) {
+    return InventoryMutationMetadata(
+      reason: operation == 'DELETE' ? 'CORRECTED' : null,
+    );
+  }
+  try {
+    final json = Map<String, dynamic>.from(jsonDecode(value) as Map);
+    return InventoryMutationMetadata(
+      reason: json['reason'] as String?,
+      wasteCause: json['wasteCause'] as String?,
+    );
+  } catch (_) {
+    // Queue schema cũ lưu thẳng delete reason trong cột này.
+    return InventoryMutationMetadata(reason: value);
+  }
+}
+
+String? _encodeMutationMetadata(String? reason, String? wasteCause) {
+  if (reason == null && wasteCause == null) return null;
+  return jsonEncode(<String, dynamic>{
+    if (reason != null) 'reason': reason,
+    if (wasteCause != null) 'wasteCause': wasteCause,
+  });
 }

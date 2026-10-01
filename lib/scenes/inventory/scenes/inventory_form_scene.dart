@@ -11,11 +11,13 @@ import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../domain/inventory_item.dart';
+import '../inventory_routes.dart';
 import '../domain/unit_option.dart';
 import '../stores/inventory_form_store.dart';
 import '../widgets/conflict_dialog.dart';
 import '../widgets/delete_confirm_dialog.dart';
 import '../widgets/unit_picker.dart';
+import '../widgets/waste_cause_sheet.dart';
 
 /// Form thêm/sửa inventory (FE-5 §14 InventoryFormScene).
 ///
@@ -35,6 +37,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   late final TextEditingController _lowStockCtrl;
   late final TextEditingController _noteCtrl;
   late final ReactionDisposer _conflictReactionDisposer;
+  InventoryItemModel? _initialItem;
 
   UnitOption? _unit;
   DateTime? _expiryDate;
@@ -47,11 +50,14 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     store = Get.find<InventoryFormStore>();
     final args = Get.arguments;
     final item = args is InventoryItemModel ? args : null;
+    _initialItem = item;
     _nameCtrl = TextEditingController(text: item?.name ?? '');
     _quantityCtrl = TextEditingController(
-        text: item == null ? '' : (item.displayQuantity ?? item.quantity).toString());
-    _lowStockCtrl = TextEditingController(
-        text: item?.lowStockThreshold?.toString() ?? '');
+        text: item == null
+            ? ''
+            : (item.displayQuantity ?? item.quantity).toString());
+    _lowStockCtrl =
+        TextEditingController(text: item?.lowStockThreshold?.toString() ?? '');
     _noteCtrl = TextEditingController(text: item?.note ?? '');
     if (item?.displayUnit != null) {
       _unit = unitOptions.firstWhere(
@@ -87,7 +93,9 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   Widget build(BuildContext context) {
     final isEdit = store.mode == InventoryFormMode.edit;
     return AppScaffold(
-      title: isEdit ? context.l10n.inventoryEditItem : context.l10n.inventoryAddItem,
+      title: isEdit
+          ? context.l10n.inventoryEditItem
+          : context.l10n.inventoryAddItem,
       body: Observer(
         builder: (_) {
           if (store.isSaving) {
@@ -124,8 +132,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                           labelText: context.l10n.inventoryQuantity,
                           prefixIcon: const Icon(Icons.scale_outlined),
                         ),
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         textInputAction: TextInputAction.next,
                       ),
                     ),
@@ -134,8 +142,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                       flex: 2,
                       child: InkWell(
                         onTap: () async {
-                          final selected = await showUnitPicker(context,
-                              selected: _unit);
+                          final selected =
+                              await showUnitPicker(context, selected: _unit);
                           if (selected != null) {
                             setState(() => _unit = selected);
                           }
@@ -169,7 +177,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                       context: context,
                       initialDate: _expiryDate ?? DateTime.now(),
                       firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+                      lastDate:
+                          DateTime.now().add(const Duration(days: 365 * 3)),
                     );
                     if (picked != null) {
                       setState(() => _expiryDate = picked);
@@ -198,17 +207,29 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                 const SizedBox(height: AppDimens.lg),
                 Observer(
                   builder: (_) => AppButton(
-                    label: isEdit ? context.l10n.saveChanges : context.l10n.inventoryAddToInventory,
+                    label: isEdit
+                        ? context.l10n.saveChanges
+                        : context.l10n.inventoryAddToInventory,
                     isLoading: store.isSaving,
                     onPressed: store.isSaving ? null : _onSave,
                   ),
                 ),
                 if (isEdit) ...<Widget>[
                   const SizedBox(height: AppDimens.md),
+                  AppButton(
+                    label: context.l10n.inventoryHistoryOpen,
+                    icon: Icons.history_rounded,
+                    variant: AppButtonVariant.outline,
+                    onPressed: () => Get.toNamed(
+                      InventoryRoutes.history
+                          .replaceFirst(':id', store.itemId!),
+                      arguments: Get.arguments,
+                    ),
+                  ),
+                  const SizedBox(height: AppDimens.sm),
                   TextButton.icon(
                     onPressed: store.isSaving ? null : _onDelete,
-                    icon: const Icon(Icons.delete_outline,
-                        color: Colors.red),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
                     label: Text(context.l10n.inventoryDeleteItem,
                         style: const TextStyle(color: Colors.red)),
                   ),
@@ -241,14 +262,30 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
           .showSnackBar(SnackBar(content: Text(validation)));
       return;
     }
+    final quantity = double.parse(_quantityCtrl.text.trim());
+    WasteReasonChoice wasteChoice = const WasteReasonChoice.skipped();
+    final initial = _initialItem;
+    if (store.mode == InventoryFormMode.edit &&
+        initial != null &&
+        initial.displayUnit == _unit!.value &&
+        initial.displayQuantity != null &&
+        quantity < initial.displayQuantity!) {
+      wasteChoice = await showWasteCauseSheet(
+        context,
+        endpoint: WasteEndpoint.put,
+      );
+      if (!mounted) return;
+    }
     final lowStock = double.tryParse(_lowStockCtrl.text.trim());
     final ok = await store.save(
       name: _nameCtrl.text,
-      quantity: double.parse(_quantityCtrl.text.trim()),
+      quantity: quantity,
       unit: _unit!.value,
       lowStockThreshold: lowStock,
       expiryDate: _expiryDate,
       note: _noteCtrl.text,
+      reason: wasteChoice.reason,
+      wasteCause: wasteChoice.wasteCause,
     );
     if (!mounted) return;
     if (ok) {
@@ -264,7 +301,19 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   Future<void> _onDelete() async {
     final choice = await showDeleteConfirmDialog(context);
     if (choice == null) return;
-    final ok = await store.delete(reason: choice.wire);
+    if (!mounted) return;
+    WasteReasonChoice wasteChoice = const WasteReasonChoice.skipped();
+    if (choice.reason == DeleteReason.waste) {
+      wasteChoice = await showWasteCauseSheet(
+        context,
+        endpoint: WasteEndpoint.delete,
+      );
+      if (!mounted) return;
+    }
+    final ok = await store.delete(
+      reason: choice.wire,
+      wasteCause: wasteChoice.wasteCause,
+    );
     if (!mounted) return;
     if (ok) {
       Get.back();
