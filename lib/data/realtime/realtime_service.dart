@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../app/env_config.dart';
@@ -19,9 +20,10 @@ enum WsConnectionState {
 /// Service quản lý vòng đời WebSocket STOMP cho FE-3 (#49).
 ///
 /// Trách nhiệm:
-/// - Kết nối raw WS tới `{wsBaseUrl}/ws` (context-path `/api` không có trong
-///   WS URL vì WebSocketConfig.java đăng ký tại `/ws`, servlet context `/api`
-///   chỉ áp dụng cho HTTP).
+/// - Kết nối raw WS tới `{wsBaseUrl}/ws`. `wsBaseUrl` đã gồm context-path `/api`
+///   nên endpoint thật là `{host}/api/ws` (xem `redis-cache-ws-baseline.md` §6:
+///   Spring Boot tiền tố `server.servlet.context-path=/api` vào mọi mapping kể
+///   cả WebSocket — WebSocketConfig.java chỉ đăng ký tại `/ws`).
 /// - Gửi STOMP CONNECT với Bearer token trong native header.
 /// - Subscribe các topic của household.
 /// - Reconnect tự động với exponential backoff khi mất kết nối.
@@ -30,7 +32,7 @@ enum WsConnectionState {
 /// - Không biết gì về nghiệp vụ inventory/vote/shopping — chỉ là transport.
 ///
 /// **Luồng kết nối (bám redis-cache-ws-baseline.md §3.2):**
-/// 1. HTTP GET /ws  Upgrade: websocket  (NOT mang Authorization header)
+/// 1. HTTP GET /api/ws  Upgrade: websocket  (NOT mang Authorization header)
 /// 2. STOMP CONNECT native-header Authorization: Bearer `<access_token>`
 /// 3. Server trả CONNECTED
 /// 4. Client SUBSCRIBE /topic/household/{id}/inventory (và vote, shopping)
@@ -319,18 +321,29 @@ class RealtimeService {
     return value;
   }
 
-  /// Build WS URL từ API base URL: `http://host:8080` → `ws://host:8080`.
-  /// Context-path `/api` KHÔNG thêm vào đây — WebSocketConfig đăng ký `/ws`
-  /// ở servlet root, không phải `/api/ws` (xem `WebSocketConfig.java:47`).
+  /// Build WS base URL từ API base URL: `http://host:8080` → `ws://host:8080/api`.
   ///
-  /// Tuy nhiên thực tế Spring Boot có `server.servlet.context-path=/api` nên
-  /// endpoint thật là `ws://host:8080/api/ws` (Spring tự tiền tố context-path
-  /// vào mọi mapping kể cả WS). Xem `redis-cache-ws-baseline.md` §2: "Endpoint
-  /// thật (đã tính context-path): ws://{host}:8080/api/ws".
+  /// Endpoint thật là `ws://{host}:8080/api/ws` — BẮT BUỘC đủ context-path `/api`
+  /// (Spring Boot tự tiền tố `server.servlet.context-path=/api` vào mọi mapping,
+  /// kể cả `/ws` do `WebSocketConfig.java` đăng ký). Xem
+  /// `docs/design/backend-server/redis-cache-ws-baseline.md` §6: "URL `ws://{host}:8080/api/ws`
+  /// — **có** `/api`". `_connect()` sau đó nối thêm `/ws` để ra endpoint hoàn chỉnh.
+  ///
+  /// [EnvConfig.apiBaseUrl] thường là `http://host:8080` (không kém `/api`); nếu gặp
+  /// base đã có sẵn `/api` thì không thêm lần thứ hai.
   static String _defaultWsBaseUrl() {
-    final api = EnvConfig.apiBaseUrl;
-    return api
-        .replaceFirst(RegExp(r'^https?'), 'ws')
-        .replaceFirst(RegExp(r'/api$'), '');
+    return wsBaseUrlFrom(EnvConfig.apiBaseUrl);
+  }
+
+  /// Biến đổi API base URL sang WS base URL gồm đủ context-path `/api`.
+  ///
+  /// - `http://host:8080`   → `ws://host:8080/api`
+  /// - `https://host:8080/  → `ws://host:8080/api`
+  /// - `http://host:8080/api` (đã có sẵn) → `ws://host:8080/api` (không thêm lần 2)
+  @visibleForTesting
+  static String wsBaseUrlFrom(String apiBaseUrl) {
+    var ws = apiBaseUrl.replaceFirst(RegExp(r'^https?'), 'ws');
+    final base = ws.replaceFirst(RegExp(r'/$'), '');
+    return base.endsWith('/api') ? base : '$base/api';
   }
 }
