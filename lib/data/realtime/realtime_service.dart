@@ -199,13 +199,21 @@ class RealtimeService {
   }
 
   void _handleStompMessage(StompMessage frame) {
-    final envelope = WsEventEnvelope.tryParse(frame.body);
+    var envelope = WsEventEnvelope.tryParse(frame.body);
     if (envelope == null) {
-      developer.log(
-        'RealtimeService: không parse được WS event body từ ${frame.destination}',
-        name: 'RealtimeService',
-      );
-      return;
+      // Destination `/vote` mang payload PHẲNG (không bọc envelope) — thiết kế
+      // meal-plan-voting-ws-events.md §"Envelope & Event Schema". Bọc vào
+      // envelope để đi cùng pipeline dedupe + forward như `/inventory`.
+      if (frame.destination.endsWith('/vote')) {
+        envelope = WsEventEnvelope.tryParseFlat(frame.body);
+      }
+      if (envelope == null) {
+        developer.log(
+          'RealtimeService: không parse được WS event body từ ${frame.destination}',
+          name: 'RealtimeService',
+        );
+        return;
+      }
     }
 
     // Dedupe theo eventId (at-least-once từ backend)
