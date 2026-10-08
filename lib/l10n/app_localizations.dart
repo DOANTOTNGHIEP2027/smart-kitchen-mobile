@@ -2312,6 +2312,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} items could not be saved — retry or skip them below'**
   String inventoryOcrPartialFailure(int count);
+
+  /// No description provided for @mealLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal Log'**
+  String get mealLogTitle;
+
+  /// No description provided for @mealLogToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get mealLogToday;
+
+  /// No description provided for @mealLogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No meal logged today yet'**
+  String get mealLogEmpty;
+
+  /// No description provided for @mealLogLogMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a meal'**
+  String get mealLogLogMeal;
+
+  /// No description provided for @mealLogSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get mealLogSaving;
+
+  /// No description provided for @mealLogSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save'**
+  String get mealLogSaveFailed;
+
+  /// No description provided for @mealLogRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get mealLogRetry;
+
+  /// No description provided for @mealLogDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get mealLogDelete;
+
+  /// No description provided for @mealLogNeedsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs review'**
+  String get mealLogNeedsReview;
+
+  /// No description provided for @mealLogNoEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'No estimate'**
+  String get mealLogNoEstimate;
+
+  /// No description provided for @mealLogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get mealLogConfirm;
+
+  /// No description provided for @mealLogConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get mealLogConfirmed;
+
+  /// No description provided for @mealLogCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'{calories} kcal'**
+  String mealLogCalories(double calories);
+
+  /// No description provided for @mealLogGoalRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} kcal left today'**
+  String mealLogGoalRemaining(int remaining);
+
+  /// No description provided for @mealLogSetCalorieGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Set calorie goal'**
+  String get mealLogSetCalorieGoal;
+
+  /// No description provided for @mealLogMealType.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal type'**
+  String get mealLogMealType;
+
+  /// No description provided for @mealLogBreakfast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast'**
+  String get mealLogBreakfast;
+
+  /// No description provided for @mealLogLunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch'**
+  String get mealLogLunch;
+
+  /// No description provided for @mealLogDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner'**
+  String get mealLogDinner;
+
+  /// No description provided for @mealLogSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Snack'**
+  String get mealLogSnack;
+
+  /// No description provided for @mealLogDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you eat? (optional)'**
+  String get mealLogDescriptionHint;
+
+  /// No description provided for @mealLogAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get mealLogAddPhoto;
+
+  /// No description provided for @mealLogPhotoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo is still too large after compression — choose another'**
+  String get mealLogPhotoTooLarge;
+
+  /// No description provided for @mealLogChooseAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another photo'**
+  String get mealLogChooseAnother;
+
+  /// No description provided for @mealLogCameraPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera/library permission was denied. Enable it in settings to add a photo.'**
+  String get mealLogCameraPermissionDenied;
+
+  /// No description provided for @mealLogPhotoInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the photo. Choose a different one.'**
+  String get mealLogPhotoInvalid;
+
+  /// No description provided for @mealLogConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm calories'**
+  String get mealLogConfirmTitle;
+
+  /// No description provided for @mealLogConfirmAsIs.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept as estimated'**
+  String get mealLogConfirmAsIs;
+
+  /// No description provided for @mealLogEnterCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter calories'**
+  String get mealLogEnterCalories;
+
+  /// No description provided for @mealLogCaloriesInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value between 0 and 10000'**
+  String get mealLogCaloriesInvalid;
+
+  /// No description provided for @mealLogCaloriesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter calories first'**
+  String get mealLogCaloriesRequired;
+
+  /// No description provided for @insightsTitleCalorie.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories'**
+  String get insightsTitleCalorie;
+
+  /// No description provided for @insightsTitleMacro.
+  ///
+  /// In en, this message translates to:
+  /// **'Macro'**
+  String get insightsTitleMacro;
+
+  /// No description provided for @insightsTitleAdherence.
+  ///
+  /// In en, this message translates to:
+  /// **'Adherence'**
+  String get insightsTitleAdherence;
+
+  /// No description provided for @insightsMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Month {month}/{year}'**
+  String insightsMonthLabel(Object month, Object year);
+
+  /// No description provided for @insightsEmptyDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'No meals logged in this month yet'**
+  String get insightsEmptyDiary;
+
+  /// No description provided for @insightsEmptyAdherence.
+  ///
+  /// In en, this message translates to:
+  /// **'The household has no adherence data yet'**
+  String get insightsEmptyAdherence;
+
+  /// No description provided for @insightsSetCalorieGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Set calorie goal'**
+  String get insightsSetCalorieGoal;
+
+  /// No description provided for @insightsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get insightsRetry;
+
+  /// No description provided for @insightsLast7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get insightsLast7Days;
+
+  /// No description provided for @insightsAvgCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg {calories} kcal/day'**
+  String insightsAvgCalories(Object calories);
+
+  /// No description provided for @insightsLoggedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} meals logged'**
+  String insightsLoggedCount(Object count);
+
+  /// No description provided for @insightsStreakText.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} weeks in a row · Best {best}'**
+  String insightsStreakText(Object best, Object current);
+
+  /// No description provided for @insightsNoWeekData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data for this week'**
+  String get insightsNoWeekData;
+
+  /// No description provided for @insightsAdherenceStart.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% — from {day}/{month}'**
+  String insightsAdherenceStart(Object day, Object month, Object percent);
+
+  /// No description provided for @insightsKcalPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{calories} kcal'**
+  String insightsKcalPerDay(Object calories);
+
+  /// No description provided for @insightsHistoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition trends'**
+  String get insightsHistoryTooltip;
+
+  /// No description provided for @insightsCalorieTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'{day}/{month} — {calories} kcal'**
+  String insightsCalorieTooltip(Object calories, Object day, Object month);
+
+  /// No description provided for @recapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Recap'**
+  String get recapTitle;
+
+  /// No description provided for @recapNoHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a household to view Weekly Recap'**
+  String get recapNoHousehold;
+
+  /// No description provided for @recapEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recap yet for this week — the first recap will arrive on Monday morning of next week.'**
+  String get recapEmpty;
+
+  /// No description provided for @recapError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load data'**
+  String get recapError;
+
+  /// No description provided for @recapHeroFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'No personalized insight for you this week yet. Keep logging meals to get a more detailed insight next week!'**
+  String get recapHeroFallback;
+
+  /// No description provided for @recapStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} weeks'**
+  String recapStreak(Object current);
+
+  /// No description provided for @recapStreakBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best {best}'**
+  String recapStreakBest(Object best);
+
+  /// No description provided for @recapMealsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} meals logged'**
+  String recapMealsLogged(Object count);
+
+  /// No description provided for @recapAvgCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'{calories} kcal/day'**
+  String recapAvgCalories(Object calories);
+
+  /// No description provided for @recapAdherenceCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal plan adherence — different from personal calorie compliance below'**
+  String get recapAdherenceCaption;
+
+  /// No description provided for @recapEmptyInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'No personalized insight yet for this week.'**
+  String get recapEmptyInsights;
+
+  /// No description provided for @recapNutrientGap.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch out: {nutrient}'**
+  String recapNutrientGap(Object nutrient);
+
+  /// No description provided for @recapShare.
+  ///
+  /// In en, this message translates to:
+  /// **'My household\'s Weekly Recap on Smart Kitchen!'**
+  String get recapShare;
+
+  /// No description provided for @recapShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not share the image, please try again later'**
+  String get recapShareFailed;
+
+  /// No description provided for @recapShareTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Share recap'**
+  String get recapShareTooltip;
+
+  /// No description provided for @recapStreakError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load streak'**
+  String get recapStreakError;
+
+  /// No description provided for @recapStreakRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry streak'**
+  String get recapStreakRetry;
 }
 
 class _AppLocalizationsDelegate

@@ -55,9 +55,22 @@ dependencies:
   # FE-3 — Connectivity để detect online/offline và kích hoạt sync.
   connectivity_plus: ^7.1.1
 
+  # Epic 9 (#94) — AppCachedImage: disk-cache ảnh mạng (≈100MB/7 ngày/LRU),
+  # lazy-load + memCacheWidth/Height chống decode full-res. Kết hợp flutter_cache_manager.
+  cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
+
   # FE-6 — WakeLock giữ màn hình sáng suốt buổi nấu (yêu cầu #81).
   # Ngoài §6.1 D-05 — được duyệt qua §0.2 (ifetime duy nhất thêm dependency).
   wakelock_plus: ^1.2.0
+
+  # Insight #87 — biểu đồ calo/macro/adherence (nutrition-trend-history.md Q3 —
+  # fl_chart không có version chốt trước đây trong repo, thêm theo §6.1 D-05).
+  fl_chart: ^0.70.2
+
+  # Insight #86 — Weekly Recap: chia sẻ ảnh PNG đã capture (weekly-recap-screen.md
+  # §9.5, D7). path_provider (temp dir) đã duyệt ở D-05.
+  share_plus: ^10.0.0
 
 dev_dependencies:
   flutter_test:

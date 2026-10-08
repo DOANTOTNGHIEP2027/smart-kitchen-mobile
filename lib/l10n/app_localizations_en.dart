@@ -1212,4 +1212,235 @@ class AppLocalizationsEn extends AppLocalizations {
   String inventoryOcrPartialFailure(int count) {
     return '$count items could not be saved — retry or skip them below';
   }
+
+  @override
+  String get mealLogTitle => 'Meal Log';
+
+  @override
+  String get mealLogToday => 'Today';
+
+  @override
+  String get mealLogEmpty => 'No meal logged today yet';
+
+  @override
+  String get mealLogLogMeal => 'Log a meal';
+
+  @override
+  String get mealLogSaving => 'Saving…';
+
+  @override
+  String get mealLogSaveFailed => 'Failed to save';
+
+  @override
+  String get mealLogRetry => 'Retry';
+
+  @override
+  String get mealLogDelete => 'Delete';
+
+  @override
+  String get mealLogNeedsReview => 'Needs review';
+
+  @override
+  String get mealLogNoEstimate => 'No estimate';
+
+  @override
+  String get mealLogConfirm => 'Confirm';
+
+  @override
+  String get mealLogConfirmed => 'Confirmed';
+
+  @override
+  String mealLogCalories(double calories) {
+    return '$calories kcal';
+  }
+
+  @override
+  String mealLogGoalRemaining(int remaining) {
+    return '$remaining kcal left today';
+  }
+
+  @override
+  String get mealLogSetCalorieGoal => 'Set calorie goal';
+
+  @override
+  String get mealLogMealType => 'Meal type';
+
+  @override
+  String get mealLogBreakfast => 'Breakfast';
+
+  @override
+  String get mealLogLunch => 'Lunch';
+
+  @override
+  String get mealLogDinner => 'Dinner';
+
+  @override
+  String get mealLogSnack => 'Snack';
+
+  @override
+  String get mealLogDescriptionHint => 'What did you eat? (optional)';
+
+  @override
+  String get mealLogAddPhoto => 'Add photo';
+
+  @override
+  String get mealLogPhotoTooLarge =>
+      'Photo is still too large after compression — choose another';
+
+  @override
+  String get mealLogChooseAnother => 'Choose another photo';
+
+  @override
+  String get mealLogCameraPermissionDenied =>
+      'Camera/library permission was denied. Enable it in settings to add a photo.';
+
+  @override
+  String get mealLogPhotoInvalid =>
+      'Could not read the photo. Choose a different one.';
+
+  @override
+  String get mealLogConfirmTitle => 'Confirm calories';
+
+  @override
+  String get mealLogConfirmAsIs => 'Accept as estimated';
+
+  @override
+  String get mealLogEnterCalories => 'Enter calories';
+
+  @override
+  String get mealLogCaloriesInvalid => 'Enter a value between 0 and 10000';
+
+  @override
+  String get mealLogCaloriesRequired => 'Enter calories first';
+
+  @override
+  String get insightsTitleCalorie => 'Calories';
+
+  @override
+  String get insightsTitleMacro => 'Macro';
+
+  @override
+  String get insightsTitleAdherence => 'Adherence';
+
+  @override
+  String insightsMonthLabel(Object month, Object year) {
+    return 'Month $month/$year';
+  }
+
+  @override
+  String get insightsEmptyDiary => 'No meals logged in this month yet';
+
+  @override
+  String get insightsEmptyAdherence =>
+      'The household has no adherence data yet';
+
+  @override
+  String get insightsSetCalorieGoal => 'Set calorie goal';
+
+  @override
+  String get insightsRetry => 'Retry';
+
+  @override
+  String get insightsLast7Days => 'Last 7 days';
+
+  @override
+  String insightsAvgCalories(Object calories) {
+    return 'Avg $calories kcal/day';
+  }
+
+  @override
+  String insightsLoggedCount(Object count) {
+    return '$count meals logged';
+  }
+
+  @override
+  String insightsStreakText(Object best, Object current) {
+    return '$current weeks in a row · Best $best';
+  }
+
+  @override
+  String get insightsNoWeekData => 'No data for this week';
+
+  @override
+  String insightsAdherenceStart(Object day, Object month, Object percent) {
+    return '$percent% — from $day/$month';
+  }
+
+  @override
+  String insightsKcalPerDay(Object calories) {
+    return '$calories kcal';
+  }
+
+  @override
+  String get insightsHistoryTooltip => 'Nutrition trends';
+
+  @override
+  String insightsCalorieTooltip(Object calories, Object day, Object month) {
+    return '$day/$month — $calories kcal';
+  }
+
+  @override
+  String get recapTitle => 'Weekly Recap';
+
+  @override
+  String get recapNoHousehold => 'Join a household to view Weekly Recap';
+
+  @override
+  String get recapEmpty =>
+      'No recap yet for this week — the first recap will arrive on Monday morning of next week.';
+
+  @override
+  String get recapError => 'Could not load data';
+
+  @override
+  String get recapHeroFallback =>
+      'No personalized insight for you this week yet. Keep logging meals to get a more detailed insight next week!';
+
+  @override
+  String recapStreak(Object current) {
+    return '$current weeks';
+  }
+
+  @override
+  String recapStreakBest(Object best) {
+    return 'Best $best';
+  }
+
+  @override
+  String recapMealsLogged(Object count) {
+    return '$count meals logged';
+  }
+
+  @override
+  String recapAvgCalories(Object calories) {
+    return '$calories kcal/day';
+  }
+
+  @override
+  String get recapAdherenceCaption =>
+      'Meal plan adherence — different from personal calorie compliance below';
+
+  @override
+  String get recapEmptyInsights => 'No personalized insight yet for this week.';
+
+  @override
+  String recapNutrientGap(Object nutrient) {
+    return 'Watch out: $nutrient';
+  }
+
+  @override
+  String get recapShare => 'My household\'s Weekly Recap on Smart Kitchen!';
+
+  @override
+  String get recapShareFailed =>
+      'Could not share the image, please try again later';
+
+  @override
+  String get recapShareTooltip => 'Share recap';
+
+  @override
+  String get recapStreakError => 'Could not load streak';
+
+  @override
+  String get recapStreakRetry => 'Retry streak';
 }

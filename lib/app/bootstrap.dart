@@ -11,6 +11,7 @@ import '../data/auth/google_auth_gateway.dart';
 import '../data/db/app_database.dart';
 import '../data/db/read_cache_dao.dart';
 import '../data/network/dio_client.dart';
+import '../data/network/cache/connectivity_signal.dart';
 import '../demo/demo_backend_adapter.dart';
 import '../domain/auth/auth_refresh_usecase.dart';
 import '../domain/auth/auth_revoke_usecase.dart';
@@ -113,6 +114,15 @@ Future<void> bootstrap() async {
   final connectivityService = ConnectivityService();
   await connectivityService.init();
   Get.put<ConnectivityService>(connectivityService, permanent: true);
+
+  // Task 4 (image caching): Signal phát tán trạng thái offline/online dùng chung
+  // cho mọi AppCachedImage — app xem mạng online cho tới khi callback xác nhận
+  // offline (tránh ấn xoá cache không cần thiết khi mạng thực chất chỉ chập chờn).
+  // Dùng CÙNG instance Connectivity với ConnectivityService để không trùng
+  // listener/tiêu thụ thêm resource (fix connectivity dupe khi review Task 4).
+  final connectivitySignal = ConnectivitySignal(connectivityService.instance);
+  await connectivitySignal.init();
+  Get.put<ConnectivitySignal>(connectivitySignal, permanent: true);
 
   // Demo không được cố mở WebSocket tới backend thật. RealtimeService vẫn là
   // no-op stream để mọi feature có thể đăng ký listener như production.

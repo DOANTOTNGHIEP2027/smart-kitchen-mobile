@@ -1202,4 +1202,234 @@ class AppLocalizationsVi extends AppLocalizations {
   String inventoryOcrPartialFailure(int count) {
     return '$count mặt hàng chưa lưu được — thử lại hoặc bỏ qua bên dưới';
   }
+
+  @override
+  String get mealLogTitle => 'Nhật ký bữa ăn';
+
+  @override
+  String get mealLogToday => 'Hôm nay';
+
+  @override
+  String get mealLogEmpty => 'Chưa có nhật ký nào hôm nay';
+
+  @override
+  String get mealLogLogMeal => 'Ghi bữa ăn';
+
+  @override
+  String get mealLogSaving => 'Đang lưu…';
+
+  @override
+  String get mealLogSaveFailed => 'Lưu thất bại';
+
+  @override
+  String get mealLogRetry => 'Thử lại';
+
+  @override
+  String get mealLogDelete => 'Xoá';
+
+  @override
+  String get mealLogNeedsReview => 'Cần xác nhận';
+
+  @override
+  String get mealLogNoEstimate => 'Chưa có ước tính';
+
+  @override
+  String get mealLogConfirm => 'Xác nhận';
+
+  @override
+  String get mealLogConfirmed => 'Đã xác nhận';
+
+  @override
+  String mealLogCalories(double calories) {
+    return '$calories kcal';
+  }
+
+  @override
+  String mealLogGoalRemaining(int remaining) {
+    return 'Còn lại $remaining kcal hôm nay';
+  }
+
+  @override
+  String get mealLogSetCalorieGoal => 'Đặt mục tiêu calo';
+
+  @override
+  String get mealLogMealType => 'Loại bữa ăn';
+
+  @override
+  String get mealLogBreakfast => 'Bữa sáng';
+
+  @override
+  String get mealLogLunch => 'Bữa trưa';
+
+  @override
+  String get mealLogDinner => 'Bữa tối';
+
+  @override
+  String get mealLogSnack => 'Ăn vặt';
+
+  @override
+  String get mealLogDescriptionHint => 'Bạn đã ăn gì? (không bắt buộc)';
+
+  @override
+  String get mealLogAddPhoto => 'Thêm ảnh';
+
+  @override
+  String get mealLogPhotoTooLarge =>
+      'Ảnh vẫn còn quá lớn sau khi nén — vui lòng chọn ảnh khác';
+
+  @override
+  String get mealLogChooseAnother => 'Chọn ảnh khác';
+
+  @override
+  String get mealLogCameraPermissionDenied =>
+      'Quyền camera/thư viện bị từ chối. Hãy bật trong cài đặt để thêm ảnh.';
+
+  @override
+  String get mealLogPhotoInvalid => 'Không đọc được ảnh. Hãy chọn ảnh khác.';
+
+  @override
+  String get mealLogConfirmTitle => 'Xác nhận calo';
+
+  @override
+  String get mealLogConfirmAsIs => 'Chấp nhận như AI ước tính';
+
+  @override
+  String get mealLogEnterCalories => 'Nhập lượng calo';
+
+  @override
+  String get mealLogCaloriesInvalid => 'Nhập giá trị từ 0 đến 10000';
+
+  @override
+  String get mealLogCaloriesRequired => 'Vui lòng nhập calo trước';
+
+  @override
+  String get insightsTitleCalorie => 'Calo';
+
+  @override
+  String get insightsTitleMacro => 'Macro';
+
+  @override
+  String get insightsTitleAdherence => 'Mức Độ Tuân Thủ';
+
+  @override
+  String insightsMonthLabel(Object month, Object year) {
+    return 'Tháng $month/$year';
+  }
+
+  @override
+  String get insightsEmptyDiary =>
+      'Chưa có bữa nào được ghi log trong tháng này';
+
+  @override
+  String get insightsEmptyAdherence => 'Household chưa có dữ liệu tuân thủ nào';
+
+  @override
+  String get insightsSetCalorieGoal => 'Đặt mục tiêu calo';
+
+  @override
+  String get insightsRetry => 'Thử lại';
+
+  @override
+  String get insightsLast7Days => '7 ngày gần nhất';
+
+  @override
+  String insightsAvgCalories(Object calories) {
+    return 'TB $calories kcal/ngày';
+  }
+
+  @override
+  String insightsLoggedCount(Object count) {
+    return '$count bữa đã ghi';
+  }
+
+  @override
+  String insightsStreakText(Object best, Object current) {
+    return '$current tuần liên tiếp · Kỷ lục $best';
+  }
+
+  @override
+  String get insightsNoWeekData => 'Chưa có dữ liệu tuần';
+
+  @override
+  String insightsAdherenceStart(Object day, Object month, Object percent) {
+    return '$percent% — từ $day/$month';
+  }
+
+  @override
+  String insightsKcalPerDay(Object calories) {
+    return '$calories kcal';
+  }
+
+  @override
+  String get insightsHistoryTooltip => 'Xu hướng dinh dưỡng';
+
+  @override
+  String insightsCalorieTooltip(Object calories, Object day, Object month) {
+    return '$day/$month — $calories kcal';
+  }
+
+  @override
+  String get recapTitle => 'Weekly Recap';
+
+  @override
+  String get recapNoHousehold => 'Tham gia một hộ gia đình để xem Weekly Recap';
+
+  @override
+  String get recapEmpty =>
+      'Chưa có recap nào cho tuần này — recap đầu tiên sẽ có vào sáng Thứ Hai tuần sau.';
+
+  @override
+  String get recapError => 'Không tải được dữ liệu';
+
+  @override
+  String get recapHeroFallback =>
+      'Chưa có insight cá nhân hoá cho bạn tuần này. Tiếp tục ghi log bữa ăn để tuần sau có insight chi tiết hơn!';
+
+  @override
+  String recapStreak(Object current) {
+    return '$current tuần';
+  }
+
+  @override
+  String recapStreakBest(Object best) {
+    return 'Kỷ lục $best';
+  }
+
+  @override
+  String recapMealsLogged(Object count) {
+    return '$count bữa đã ghi';
+  }
+
+  @override
+  String recapAvgCalories(Object calories) {
+    return '$calories kcal/ngày';
+  }
+
+  @override
+  String get recapAdherenceCaption =>
+      'Bám sát kế hoạch bữa ăn — khác với % tuân thủ calo cá nhân bên dưới';
+
+  @override
+  String get recapEmptyInsights =>
+      'Chưa có insight cá nhân hoá nào cho tuần này.';
+
+  @override
+  String recapNutrientGap(Object nutrient) {
+    return 'Cần chú ý: $nutrient';
+  }
+
+  @override
+  String get recapShare => 'Weekly Recap của nhà tôi trên Smart Kitchen!';
+
+  @override
+  String get recapShareFailed => 'Không thể chia sẻ ảnh, thử lại sau';
+
+  @override
+  String get recapShareTooltip => 'Chia sẻ recap';
+
+  @override
+  String get recapStreakError => 'Không tải được streak';
+
+  @override
+  String get recapStreakRetry => 'Thử lại streak';
 }
