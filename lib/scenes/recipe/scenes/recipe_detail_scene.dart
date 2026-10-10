@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../widgets/app_cached_image.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_state_view.dart';
@@ -183,12 +184,12 @@ class _DetailArtwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final placeholder = DecoratedBox(
+    const placeholder = DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+        borderRadius: BorderRadius.all(Radius.circular(AppDimens.radiusLg)),
       ),
-      child: const Center(
+      child: Center(
         child: Icon(
           Icons.restaurant_menu_rounded,
           size: 64,
@@ -204,10 +205,14 @@ class _DetailArtwork extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
         child: imageUrl == null || imageUrl.isEmpty
             ? placeholder
-            : Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => placeholder,
+            : AppCachedImage(
+                url: imageUrl,
+                width: double.infinity,
+                height: double.infinity,
+                shape: AppCachedImageShape.rectangle,
+                borderRadius: BorderRadius.zero,
+                placeholderIcon: Icons.restaurant_menu_rounded,
+                errorIcon: Icons.wifi_off_rounded,
               ),
       ),
     );

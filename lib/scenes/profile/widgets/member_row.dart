@@ -4,6 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../widgets/app_cached_image.dart';
 import '../../../widgets/cards/app_card.dart';
 import '../domain/household_member.dart';
 
@@ -32,15 +33,12 @@ class MemberRow extends StatelessWidget {
         padding: EdgeInsets.zero,
         onTap: onTap,
         child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: AppColors.primaryLight,
-            backgroundImage: avatar == null
-                ? null
-                : NetworkImage(avatar) as ImageProvider<Object>,
-            radius: 20,
-            child: avatar == null
-                ? const Icon(Icons.person, color: AppColors.primary)
-                : null,
+          leading: AppCachedImage(
+            url: avatar,
+            width: 40,
+            height: 40,
+            shape: AppCachedImageShape.circle,
+            placeholderIcon: Icons.person,
           ),
           title: Text(member.fullName, style: AppTextStyles.bodyMedium),
           subtitle: member.provider == 'GUEST'

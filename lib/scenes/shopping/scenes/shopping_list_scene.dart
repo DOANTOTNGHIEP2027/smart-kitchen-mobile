@@ -19,15 +19,14 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
     return AppScaffold(title: context.l10n.navShopping, actions: <Widget>[IconButton(onPressed: store.sync, icon: const Icon(Icons.refresh))], body: Observer(builder: (_) {
       if (store.isLoading) return const Center(child: CircularProgressIndicator());
       if (store.items.isEmpty) return AppEmptyView(icon: Icons.shopping_cart_outlined, message: context.l10n.stateEmptyDefault);
-      return ListView(children: <Widget>[..._section(context, store.pending, false, store), if (store.completed.isNotEmpty) ..._section(context, store.completed, true, store)]);
+      final rows = <_SectionModel>[
+        _SectionModel(items: store.pending, completed: false),
+        if (store.completed.isNotEmpty) _SectionModel(items: store.completed, completed: true),
+      ];
+      return _ShoppingList(rows: rows, store: store);
     }), floatingActionButton: FloatingActionButton(heroTag: 'shopping-list-fab', onPressed: () => _add(context, store), child: const Icon(Icons.add)));
   }
-  List<Widget> _section(BuildContext context, List<ShoppingItem> items, bool completed, ShoppingStore store) => items.map((item) => ListTile(
-    leading: Checkbox(value: completed, onChanged: item.canToggle ? (_) => store.toggle(item) : null),
-    title: Text(item.name, style: completed ? const TextStyle(decoration: TextDecoration.lineThrough) : null),
-    subtitle: item.isPendingSync ? const Icon(Icons.sync, size: 16, color: AppColors.warning) : null,
-    trailing: Text('${item.displayQuantity} ${item.displayUnit}'),
-  )).toList();
+
   Future<void> _add(BuildContext context, ShoppingStore store) async {
     final name = TextEditingController(); final quantity = TextEditingController(text: '1'); String unit = unitOptions.first.value;
     await showModalBottomSheet<void>(context: context, isScrollControlled: true, builder: (_) => Padding(padding: EdgeInsets.fromLTRB(AppDimens.md, AppDimens.md, AppDimens.md, MediaQuery.of(context).viewInsets.bottom + AppDimens.md), child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
@@ -36,5 +35,55 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
       DropdownButton<String>(value: unit, isExpanded: true, items: unitOptions.map((o) => DropdownMenuItem(value: o.value, child: Text(o.label))).toList(), onChanged: (v) { if (v != null) unit = v; }),
       FilledButton(onPressed: () async { await store.add(name.text, double.tryParse(quantity.text) ?? 0, unit); if (context.mounted) Navigator.pop(context); }, child: Text(context.l10n.add)),
     ])));
+  }
+}
+
+/// Một nhóm item (pending/completed) trong danh sách mua sắm.
+class _SectionModel {
+  _SectionModel({required this.items, required this.completed});
+  final List<ShoppingItem> items;
+  final bool completed;
+}
+
+/// Danh sách mua sắm lazy-render — dùng `ListView.builder` (Guard #6: danh sách
+/// item theo household không giới hạn, không được dùng literal `children:`).
+class _ShoppingList extends StatelessWidget {
+  const _ShoppingList({required this.rows, required this.store});
+  final List<_SectionModel> rows;
+  final ShoppingStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = rows.fold<int>(0, (sum, r) => sum + r.items.length);
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: AppDimens.xxl),
+      itemCount: total,
+      itemBuilder: (context, index) {
+        var cursor = 0;
+        for (final section in rows) {
+          if (index < cursor + section.items.length) {
+            return _row(context, section.items[index - cursor], section.completed);
+          }
+          cursor += section.items.length;
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _row(BuildContext context, ShoppingItem item, bool completed) {
+    return ListTile(
+      leading: Checkbox(
+        value: completed,
+        onChanged: item.canToggle ? (_) => store.toggle(item) : null,
+      ),
+      title: Text(item.name,
+          style: completed
+              ? const TextStyle(decoration: TextDecoration.lineThrough)
+              : null),
+      subtitle:
+          item.isPendingSync ? const Icon(Icons.sync, size: 16, color: AppColors.warning) : null,
+      trailing: Text('${item.displayQuantity} ${item.displayUnit}'),
+    );
   }
 }

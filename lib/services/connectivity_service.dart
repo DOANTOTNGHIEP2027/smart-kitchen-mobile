@@ -19,6 +19,10 @@ class ConnectivityService {
   StreamSubscription<List<ConnectivityResult>>? _sub;
   bool _wasOffline = false;
 
+  /// Instance `Connectivity` dùng chung — tránh tạo thêm listener trùng
+  /// (ConnectivitySignal trong image-caching tái sử dụng instance này).
+  Connectivity get instance => _connectivity;
+
   final _restoredController = StreamController<void>.broadcast();
 
   /// Stream phát một lần mỗi khi mạng được khôi phục (từ offline → online).

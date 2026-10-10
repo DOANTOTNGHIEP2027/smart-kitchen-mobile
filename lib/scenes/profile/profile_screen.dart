@@ -8,6 +8,7 @@ import '../../constants/app_text_styles.dart';
 import '../../routing/app_routes.dart';
 import '../../stores/session_store.dart';
 import '../../utils/l10n_x.dart';
+import '../../widgets/app_cached_image.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
@@ -54,21 +55,24 @@ class ProfileScreen extends StatelessWidget {
             AppCard(
               child: Column(
                 children: <Widget>[
-                  CircleAvatar(
-                    radius: 44,
-                    backgroundColor: AppColors.primaryLight,
-                    backgroundImage: avatar == null
-                        ? null
-                        : NetworkImage(avatar) as ImageProvider<Object>,
-                    child: avatar == null
-                        ? Text(initial,
-                            style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary))
-                        : null,
-                  ),
-                  const SizedBox(height: AppDimens.md),
+                    avatar == null || avatar.isEmpty
+                        ? CircleAvatar(
+                            radius: 44,
+                            backgroundColor: AppColors.primaryLight,
+                            child: Text(initial,
+                                style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary)),
+                          )
+                        : AppCachedImage(
+                            url: avatar,
+                            width: 88,
+                            height: 88,
+                            shape: AppCachedImageShape.circle,
+                            placeholderIcon: Icons.person,
+                          ),
+                    const SizedBox(height: AppDimens.md),
                   Text(user.displayName, style: AppTextStyles.titleMedium),
                   const SizedBox(height: AppDimens.xs),
                   Text(

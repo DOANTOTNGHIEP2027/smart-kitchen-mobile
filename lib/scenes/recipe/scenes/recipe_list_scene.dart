@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../routing/app_routes.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../widgets/app_cached_image.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
@@ -388,22 +389,40 @@ class _RecipeArtwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = recipe.thumbnailUrl;
-    const fallback = DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: <Color>[AppColors.primaryGradientStart, AppColors.primary],
-        ),
-      ),
-      child: Center(
-        child: Icon(Icons.restaurant_menu_rounded, color: AppColors.textOnPrimary),
-      ),
-    );
-    if (imageUrl == null || imageUrl.isEmpty) return fallback;
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return const _RecipeArtworkFallback();
+    }
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimens.radiusMd)),
-      child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback),
+      borderRadius:
+          const BorderRadius.vertical(top: Radius.circular(AppDimens.radiusMd)),
+      child: AppCachedImage(
+        url: imageUrl,
+        width: double.infinity,
+        height: double.infinity,
+        shape: AppCachedImageShape.rectangle,
+        borderRadius: BorderRadius.zero,
+        placeholderIcon: Icons.restaurant_menu_rounded,
+        errorIcon: Icons.wifi_off_rounded,
+      ),
     );
   }
+}
+
+class _RecipeArtworkFallback extends StatelessWidget {
+  const _RecipeArtworkFallback();
+
+  @override
+  Widget build(BuildContext context) => const DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: <Color>[AppColors.primaryGradientStart, AppColors.primary],
+          ),
+        ),
+        child: Center(
+          child: Icon(
+              Icons.restaurant_menu_rounded, color: AppColors.textOnPrimary),
+        ),
+      );
 }
 
 class _Badge extends StatelessWidget {
