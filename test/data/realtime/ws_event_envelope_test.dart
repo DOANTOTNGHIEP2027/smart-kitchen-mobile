@@ -54,4 +54,40 @@ void main() {
       expect(WsEventEnvelope.tryParse(raw), isNull);
     });
   });
+
+  group('WsEventEnvelope.tryParseFlat (payload phẳng của /vote)', () {
+    test('bọc payload phẳng vào data và suy eventId/eventType/householdId', () {
+      // Giống frame thật VoteWsPublisher.backend gửi qua `household:%s:vote`.
+      const raw = '{'
+          '"type":"member_voted",'
+          '"sessionId":"5f1f6e70-0000-4000-8000-000000000001",'
+          '"timestamp":"2026-10-08T10:00:00.000Z",'
+          '"householdId":"hh-abc",'
+          '"dishId":"dish-1",'
+          '"voter":{"id":"u-1","fullName":"Bé Na"},'
+          '"tally":{"dish-1":2},'
+          '"totalMembers":3'
+          '}';
+      final env = WsEventEnvelope.tryParseFlat(raw);
+      expect(env, isNotNull);
+      expect(env!.eventType, 'member_voted');
+      expect(env.eventId, contains('member_voted'));
+      expect(env.householdId, 'hh-abc');
+      expect(env.occurredAt.isUtc, isTrue);
+      final data = env.data as Map<String, dynamic>;
+      expect(data['type'], 'member_voted'); // consumer đọc raw['type']
+      expect(data['dishId'], 'dish-1');
+      expect(data['totalMembers'], 3);
+    });
+
+    test('trả null khi payload phẳng thiếu type/householdId', () {
+      const raw = '{"sessionId":"s-1","dishId":"d-1"}';
+      expect(WsEventEnvelope.tryParseFlat(raw), isNull);
+    });
+
+    test('trả null khi không phải JSON object', () {
+      expect(WsEventEnvelope.tryParseFlat('[]'), isNull);
+      expect(WsEventEnvelope.tryParseFlat('not-json'), isNull);
+    });
+  });
 }

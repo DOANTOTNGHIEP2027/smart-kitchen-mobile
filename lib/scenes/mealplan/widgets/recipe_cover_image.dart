@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../widgets/app_cached_image.dart';
 
 /// Ảnh minh hoạ công thức cho phần gợi ý/vote.
 ///
@@ -58,36 +59,19 @@ class RecipeCoverImage extends StatelessWidget {
           borderRadius: radius,
           child: imageUrl == null
               ? _RecipeImageFallback(recipeName: recipeName)
-              : Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      _RecipeImageFallback(recipeName: recipeName),
-                  loadingBuilder: (_, child, progress) {
-                    if (progress == null) return child;
-                    return const _RecipeImageLoading();
-                  },
+              : AppCachedImage(
+                  url: imageUrl,
+                  width: double.infinity,
+                  height: double.infinity,
+                  shape: AppCachedImageShape.rectangle,
+                  borderRadius: BorderRadius.zero,
+                  placeholderIcon: Icons.restaurant_menu_outlined,
+                  errorIcon: Icons.wifi_off_rounded,
                 ),
         ),
       ),
     );
   }
-}
-
-class _RecipeImageLoading extends StatelessWidget {
-  const _RecipeImageLoading();
-
-  @override
-  Widget build(BuildContext context) => const ColoredBox(
-        color: AppColors.primaryLight,
-        child: Center(
-          child: SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
 }
 
 class _RecipeImageFallback extends StatelessWidget {

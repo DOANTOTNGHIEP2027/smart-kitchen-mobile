@@ -56,4 +56,43 @@ class WsEventEnvelope {
       return null;
     }
   }
+
+  /// Parse payload **phẳng** của destination `/vote` (thiết kế
+  /// `meal-plan-voting-ws-events.md` §"Envelope & Event Schema" — KHÔNG bọc
+  /// envelope `{eventId,eventType,data}` như destination `/inventory`).
+  ///
+  /// Backend gửi JSON dạng `{type, sessionId, timestamp, householdId, slotId, dishId, ...}`.
+  /// Ta bọc toàn bộ map vào [data] (và lấy [eventId]/[eventType]/[householdId]/
+  /// [occurredAt] từ các field chung) để event đi cùng một pipeline dedupe +
+  /// forward như `/inventory`; consumer đọc thẳng `envelope.data['type']`.
+  static WsEventEnvelope? tryParseFlat(String rawJson) {
+    try {
+      final map = jsonDecode(rawJson);
+      if (map is! Map<String, dynamic>) return null;
+      final type = map['type'];
+      final householdId = map['householdId'];
+      if (type is! String || householdId is! String) return null;
+      final sessionId = map['sessionId']?.toString();
+      final timestamp = map['timestamp']?.toString();
+      final occurredAt = _tryParseInstant(timestamp) ?? DateTime.now().toUtc();
+      return WsEventEnvelope(
+        eventId: '$type:$sessionId:$timestamp',
+        eventType: type,
+        householdId: householdId,
+        occurredAt: occurredAt,
+        data: map,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static DateTime? _tryParseInstant(String? s) {
+    if (s == null) return null;
+    try {
+      return DateTime.parse(s);
+    } catch (_) {
+      return null;
+    }
+  }
 }
