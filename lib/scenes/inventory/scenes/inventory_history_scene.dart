@@ -3,6 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -14,6 +15,8 @@ import '../domain/inventory_item.dart';
 import '../domain/inventory_transaction.dart';
 import '../stores/inventory_history_store.dart';
 
+/// Lịch sử xuất nhập tồn kho — phong cách Tasty:
+/// Thẻ thông tin mặt hàng thoáng đãng, timeline giao dịch rõ ràng với mã màu trực quan.
 class InventoryHistoryScene extends StatefulWidget {
   const InventoryHistoryScene({super.key});
 
@@ -61,11 +64,12 @@ class _InventoryHistorySceneState extends State<InventoryHistoryScene> {
                       );
                     }
                     return RefreshIndicator(
+                      color: AppColors.sage,
                       onRefresh: () => store.load(refresh: true),
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(
                           AppDimens.md,
-                          AppDimens.sm,
+                          AppDimens.xs,
                           AppDimens.md,
                           AppDimens.xl,
                         ),
@@ -111,23 +115,43 @@ class _ItemSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final quantity = item.displayQuantity ?? item.quantity;
     final unit = item.displayUnit ?? item.unit;
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(
         AppDimens.md,
         AppDimens.md,
         AppDimens.md,
-        AppDimens.sm,
+        AppDimens.xs,
       ),
       padding: const EdgeInsets.all(AppDimens.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.inventory_2_outlined),
-          const SizedBox(width: AppDimens.sm),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.sageLight,
+              borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+            ),
+            child: const Icon(
+              Icons.inventory_2_outlined,
+              color: AppColors.sage,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: AppDimens.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,13 +160,38 @@ class _ItemSummary extends StatelessWidget {
                   item.name,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
                       ),
                 ),
-                Text(context.l10n.inventoryHistoryCurrentQuantity(
-                  _formatNumber(quantity),
-                  unit,
-                )),
+                const SizedBox(height: 2),
+                Text(
+                  context.l10n.inventoryHistoryCurrentQuantity(
+                    _formatNumber(quantity),
+                    unit,
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                ),
               ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimens.sm,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.sageLight,
+              borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+            ),
+            child: Text(
+              '${_formatNumber(quantity)} $unit',
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                color: AppColors.sageDark,
+              ),
             ),
           ),
         ],
@@ -164,41 +213,118 @@ class _TransactionTile extends StatelessWidget {
     final date = DateFormat.yMd(Localizations.localeOf(context).toString())
         .add_Hm()
         .format(transaction.createdAt.toLocal());
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppDimens.sm),
-      child: ListTile(
-        leading: CircleAvatar(
-          child: Icon(_iconFor(transaction.reason), size: 20),
-        ),
-        title: Text(_reasonLabel(context, transaction.reason)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+
+    final isPositive = delta > 0;
+    final reasonColor = _colorForReason(transaction.reason);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppDimens.xs),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 6,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Text(date),
-            if (transaction.wasteCause != null)
-              Text(_wasteCauseLabel(context, transaction.wasteCause!)),
-            if (transaction.note?.trim().isNotEmpty == true)
-              Text(transaction.note!.trim()),
-          ],
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
-            Text(
-              deltaText,
-              style: TextStyle(
-                color: delta < 0
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w700,
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: reasonColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _iconFor(transaction.reason),
+                size: 20,
+                color: reasonColor,
               ),
             ),
-            Text(
-              context.l10n.inventoryHistoryRemaining(
-                _formatNumber(transaction.quantityAfter),
+            const SizedBox(width: AppDimens.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    _reasonLabel(context, transaction.reason),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    date,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                        ),
+                  ),
+                  if (transaction.wasteCause != null) ...<Widget>[
+                    const SizedBox(height: 2),
+                    Text(
+                      _wasteCauseLabel(context, transaction.wasteCause!),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.error,
+                            fontSize: 11,
+                          ),
+                    ),
+                  ],
+                  if (transaction.note?.trim().isNotEmpty == true) ...<Widget>[
+                    const SizedBox(height: 2),
+                    Text(
+                      transaction.note!.trim(),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                            fontStyle: FontStyle.italic,
+                          ),
+                    ),
+                  ],
+                ],
               ),
-              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isPositive
+                        ? AppColors.sageLight
+                        : AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    deltaText,
+                    style: TextStyle(
+                      color: isPositive ? AppColors.sageDark : AppColors.error,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  context.l10n.inventoryHistoryRemaining(
+                    _formatNumber(transaction.quantityAfter),
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                ),
+              ],
             ),
           ],
         ),
@@ -206,16 +332,40 @@ class _TransactionTile extends StatelessWidget {
     );
   }
 
-  IconData _iconFor(String reason) => switch (reason) {
-        'BOUGHT' => Icons.add_shopping_cart_outlined,
-        'COOKED' => Icons.restaurant_outlined,
-        'EXPIRED' => Icons.event_busy_outlined,
-        'WASTE' => Icons.delete_outline,
-        _ => Icons.edit_outlined,
-      };
+  Color _colorForReason(String reason) {
+    switch (reason) {
+      case 'BOUGHT':
+      case 'RESTOCKED':
+        return AppColors.sage;
+      case 'COOKED':
+        return const Color(0xFF0284C7);
+      case 'WASTE':
+      case 'EXPIRED':
+        return AppColors.error;
+      case 'CORRECTED':
+      default:
+        return const Color(0xFFD97706);
+    }
+  }
+
+  IconData _iconFor(String reason) {
+    switch (reason) {
+      case 'BOUGHT':
+      case 'RESTOCKED':
+        return Icons.add_shopping_cart_rounded;
+      case 'COOKED':
+        return Icons.restaurant_rounded;
+      case 'WASTE':
+      case 'EXPIRED':
+        return Icons.delete_outline_rounded;
+      case 'CORRECTED':
+      default:
+        return Icons.edit_note_rounded;
+    }
+  }
 
   String _reasonLabel(BuildContext context, String reason) => switch (reason) {
-        'BOUGHT' => context.l10n.inventoryHistoryReasonBought,
+        'BOUGHT' || 'RESTOCKED' => context.l10n.inventoryHistoryReasonBought,
         'COOKED' => context.l10n.inventoryHistoryReasonCooked,
         'EXPIRED' => context.l10n.inventoryHistoryReasonExpired,
         'WASTE' => context.l10n.inventoryHistoryReasonWaste,
@@ -226,15 +376,14 @@ class _TransactionTile extends StatelessWidget {
       switch (cause) {
         'OVERBOUGHT' => context.l10n.inventoryWasteOverbought,
         'FORGOTTEN' => context.l10n.inventoryWasteForgotten,
-        'SPOILED_EARLY' => context.l10n.inventoryWasteSpoiledEarly,
+        'SPOILED_EARLY' || 'SPOILED' => context.l10n.inventoryWasteSpoiledEarly,
         _ => context.l10n.inventoryWasteUntagged,
       };
 }
 
 String _formatNumber(double value) {
-  if (value == value.roundToDouble()) return value.toInt().toString();
-  return value
-      .toStringAsFixed(2)
-      .replaceFirst(RegExp(r'0+$'), '')
-      .replaceFirst(RegExp(r'\.$'), '');
+  if (value == value.roundToDouble()) {
+    return value.toInt().toString();
+  }
+  return value.toStringAsFixed(1);
 }

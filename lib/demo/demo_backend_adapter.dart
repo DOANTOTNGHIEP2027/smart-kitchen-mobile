@@ -22,7 +22,9 @@ import 'fixtures/demo_fixtures.dart';
 /// - Mã mời hợp lệ: `DEMO1234`. `EXPIRED1` → hết hạn. `RACED123` → bị dùng mất.
 /// - Mã mời do chính demo tạo ra khi tạo Nhà cũng dùng được ngay.
 class DemoBackendAdapter implements HttpClientAdapter {
-  DemoBackendAdapter();
+  DemoBackendAdapter() {
+    _initTransactions();
+  }
 
   static const String validInviteCode = 'DEMO1234';
   static const String expiredInviteCode = 'EXPIRED1';
@@ -60,10 +62,38 @@ class DemoBackendAdapter implements HttpClientAdapter {
   final Map<String, int?> _recipeRatings = <String, int?>{};
   final Map<String, DateTime> _recipeFavoritedAt = <String, DateTime>{};
   late Map<String, dynamic> _healthProfile = DemoFixtures.healthProfile();
-  var _inventorySequence = 4;
+
+  final List<Map<String, dynamic>> _shoppingItems = DemoFixtures.shoppingItems()
+      .map((item) => Map<String, dynamic>.from(item))
+      .toList(growable: true);
+  var _shopSequence = 5;
+  late Map<String, dynamic> _budget = DemoFixtures.budget();
+
+  final List<Map<String, dynamic>> _dependents = DemoFixtures.dependents()
+      .map((d) => Map<String, dynamic>.from(d))
+      .toList(growable: true);
+  var _depSequence = 2;
+
+  var _inventorySequence = 9;
   var _dishSequence = 1;
   var _voteSequence = 1;
   var _cookingSequence = 1;
+
+  void _initTransactions() {
+    for (final item in _inventory) {
+      final itemId = item['id'] as String;
+      final quantity = (item['quantity'] as num).toDouble();
+      _inventoryTransactions[itemId] = <Map<String, dynamic>>[
+        _transaction(
+          item,
+          reason: 'BOUGHT',
+          delta: quantity,
+          quantityAfter: quantity,
+          createdAt: '2026-10-14T08:00:00.000Z',
+        ),
+      ];
+    }
+  }
 
   @override
   Future<ResponseBody> fetch(
@@ -312,6 +342,69 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (cookingSession != null && method == 'GET') {
       return _getCookingSession(cookingSession.group(1)!);
     }
+
+    // ── Shopping (Demo Mode) ─────────────────────────────────────────
+    if (path == '/api/v1/shopping' && method == 'GET') {
+      return _listShopping();
+    }
+    if (path == '/api/v1/shopping/items' && method == 'POST') {
+      return _createShoppingItem(body);
+    }
+    final shoppingCompleteMatch =
+        RegExp(r'^/api/v1/shopping/items/([^/]+)/complete$').firstMatch(path);
+    if (shoppingCompleteMatch != null && method == 'POST') {
+      return _completeShoppingItem(shoppingCompleteMatch.group(1)!, body);
+    }
+    final shoppingDeleteMatch =
+        RegExp(r'^/api/v1/shopping/items/([^/]+)$').firstMatch(path);
+    if (shoppingDeleteMatch != null && method == 'DELETE') {
+      return _deleteShoppingItem(shoppingDeleteMatch.group(1)!);
+    }
+
+    // ── Budget (Demo Mode) ───────────────────────────────────────────
+    if (path == '/api/v1/households/me/budget') {
+      if (method == 'GET') return _ok(200, _budget);
+      if (method == 'PATCH') {
+        _budget = <String, dynamic>{
+          ..._budget,
+          ...body,
+          'updatedAt': DateTime.now().toUtc().toIso8601String(),
+        };
+        return _ok(200, _budget);
+      }
+    }
+
+    // ── Dependents (Demo Mode) ───────────────────────────────────────
+    if (path == '/api/v1/dependents') {
+      if (method == 'GET') return _ok(200, _dependents);
+      if (method == 'POST') return _createDependent(body);
+    }
+    final depGuardianMatch =
+        RegExp(r'^/api/v1/dependents/([^/]+)/guardian$').firstMatch(path);
+    if (depGuardianMatch != null && method == 'PATCH') {
+      return _changeDependentGuardian(depGuardianMatch.group(1)!, body);
+    }
+    final depHealthProfileMatch =
+        RegExp(r'^/api/v1/dependents/([^/]+)/health-profile$').firstMatch(path);
+    if (depHealthProfileMatch != null) {
+      if (method == 'GET') {
+        return _getDependentHealthProfile(depHealthProfileMatch.group(1)!);
+      }
+      if (method == 'PUT') {
+        return _upsertDependentHealthProfile(
+            depHealthProfileMatch.group(1)!, body);
+      }
+    }
+    final depAllergensMatch =
+        RegExp(r'^/api/v1/dependents/([^/]+)/allergens$').firstMatch(path);
+    if (depAllergensMatch != null && method == 'PUT') {
+      return _replaceDependentAllergens(depAllergensMatch.group(1)!, body);
+    }
+    final depMatch = RegExp(r'^/api/v1/dependents/([^/]+)$').firstMatch(path);
+    if (depMatch != null && method == 'GET') {
+      return _getDependent(depMatch.group(1)!);
+    }
+
     return null;
   }
 
@@ -321,6 +414,11 @@ class DemoBackendAdapter implements HttpClientAdapter {
     'demo-recipe-ca-kho',
     'demo-recipe-canh-chua',
     'demo-recipe-com-ga',
+    'demo-recipe-thit-chay',
+    'demo-recipe-dau-hu',
+    'demo-recipe-muc-chien',
+    'demo-recipe-ech-xao',
+    'demo-recipe-canh-muc',
   ];
 
   ResponseBody _listRecipes(RequestOptions options) {
@@ -420,9 +518,26 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final ingredients = (raw['ingredients'] as List<dynamic>)
         .map((name) => <String, dynamic>{'name': name})
         .toList(growable: false);
-    final dietTypes = recipeId == 'demo-recipe-com-ga'
-        ? <String>['NONE']
-        : <String>['NONE', 'PESCATARIAN'];
+    final dietTypes = switch (recipeId) {
+      'demo-recipe-thit-chay' || 'demo-recipe-dau-hu' => <String>[
+          'NONE',
+          'VEGETARIAN'
+        ],
+      'demo-recipe-ca-kho' ||
+      'demo-recipe-canh-chua' ||
+      'demo-recipe-canh-muc' ||
+      'demo-recipe-muc-chien' =>
+        <String>['NONE', 'PESCATARIAN'],
+      _ => <String>['NONE'],
+    };
+    final difficulty = switch (recipeId) {
+      'demo-recipe-dau-hu' ||
+      'demo-recipe-canh-muc' ||
+      'demo-recipe-com-ga' =>
+        'EASY',
+      'demo-recipe-ech-xao' => 'HARD',
+      _ => 'MEDIUM',
+    };
     return <String, dynamic>{
       'id': raw['id'],
       'householdId': null,
@@ -432,8 +547,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'prepTimeMinutes': raw['prepTimeMinutes'],
       'cookTimeMinutes': raw['prepTimeMinutes'],
       'serves': 4,
-      'difficulty': recipeId == 'demo-recipe-com-ga' ? 'EASY' : 'MEDIUM',
-      'thumbnailUrl': null,
+      'difficulty': difficulty,
+      'thumbnailUrl': raw['thumbnailUrl'],
       'ingredients': ingredients,
       'steps': steps,
       'nutrition': <String, dynamic>{'calories': raw['calories']},
@@ -1315,6 +1430,155 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'provider': _provider,
     });
     return '$header.$payload.demo-signature';
+  }
+
+  // ── Shopping Handlers ────────────────────────────────────────────
+
+  ResponseBody _listShopping() {
+    final byCategory = <String, List<Map<String, dynamic>>>{};
+    for (final item in _shoppingItems) {
+      final cat = item['category'] as String? ?? 'Khác';
+      byCategory
+          .putIfAbsent(cat, () => <Map<String, dynamic>>[])
+          .add(_copyMap(item));
+    }
+    final groups = byCategory.entries
+        .map((e) => <String, dynamic>{'category': e.key, 'items': e.value})
+        .toList(growable: false);
+    return _ok(200, <String, dynamic>{
+      'itemsByCategory': groups,
+    });
+  }
+
+  ResponseBody _createShoppingItem(Map<String, dynamic> body) {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final quantity = (body['quantity'] as num?)?.toDouble() ?? 1.0;
+    final unit = body['unit'] as String? ?? 'CÁI';
+    final item = <String, dynamic>{
+      'id': 'demo-shop-${_shopSequence++}',
+      'shoppingListId': null,
+      'name': body['name'] as String? ?? 'Món mới',
+      'quantity': quantity,
+      'unit': unit,
+      'displayQuantity': quantity,
+      'displayUnit': unit,
+      'category': body['category'] as String?,
+      'status': 'PENDING',
+      'source': 'MANUAL',
+      'version': 1,
+      'createdBy': _userId,
+      'createdAt': now,
+      'updatedAt': now,
+    };
+    _shoppingItems.add(item);
+    return _ok(201, item);
+  }
+
+  ResponseBody _completeShoppingItem(String id, Map<String, dynamic> body) {
+    final index = _shoppingItems.indexWhere((item) => item['id'] == id);
+    if (index < 0) {
+      return _error(
+          404, 'ERR_SHOPPING_NOT_FOUND', 'Không tìm thấy mục mua sắm.');
+    }
+    final item = _shoppingItems[index];
+    final currentStatus = item['status'] as String? ?? 'PENDING';
+    final newStatus = currentStatus == 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+    final updated = <String, dynamic>{
+      ...item,
+      'status': newStatus,
+      'version': (item['version'] as int? ?? 1) + 1,
+      'updatedAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    _shoppingItems[index] = updated;
+    return _ok(200, updated);
+  }
+
+  ResponseBody _deleteShoppingItem(String id) {
+    final index = _shoppingItems.indexWhere((item) => item['id'] == id);
+    if (index >= 0) {
+      _shoppingItems.removeAt(index);
+    }
+    return _ok(200, <String, dynamic>{'success': true});
+  }
+
+  // ── Dependent Handlers ───────────────────────────────────────────
+
+  ResponseBody _createDependent(Map<String, dynamic> body) {
+    final newDep = <String, dynamic>{
+      'id': 'demo-dep-${_depSequence++}',
+      'guardianUserId': _userId,
+      'guardianActive': true,
+      'displayName': body['displayName'] as String? ?? 'Thành viên nhỏ',
+      'dateOfBirth': body['dateOfBirth'] as String? ?? '2021-01-01',
+      'dietType': 'NONE',
+      'allergens': <Map<String, dynamic>>[],
+    };
+    _dependents.add(newDep);
+    return _ok(201, newDep);
+  }
+
+  ResponseBody _getDependent(String id) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep == null) {
+      return _error(
+          404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ người phụ thuộc.');
+    }
+    return _ok(200, dep);
+  }
+
+  ResponseBody _changeDependentGuardian(String id, Map<String, dynamic> body) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep == null) {
+      return _error(404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ.');
+    }
+    dep['guardianUserId'] = body['guardianUserId'];
+    return _ok(200, dep);
+  }
+
+  ResponseBody _getDependentHealthProfile(String id) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep == null) {
+      return _error(404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ.');
+    }
+    return _ok(200, <String, dynamic>{
+      'dependentId': id,
+      'targetDailyCalories': 1400,
+      'dietType': dep['dietType'] ?? 'NONE',
+      'heightCm': 110.0,
+      'weightKg': 20.0,
+      'allergens': dep['allergens'] ?? <dynamic>[],
+    });
+  }
+
+  ResponseBody _upsertDependentHealthProfile(
+      String id, Map<String, dynamic> body) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep != null) {
+      dep['dietType'] = body['dietType'] ?? dep['dietType'];
+    }
+    return _ok(200, <String, dynamic>{
+      'dependentId': id,
+      'targetDailyCalories': body['targetDailyCalories'] ?? 1400,
+      'dietType': body['dietType'] ?? 'NONE',
+      'heightCm': body['heightCm'] ?? 110.0,
+      'weightKg': body['weightKg'] ?? 20.0,
+      'allergens': dep?['allergens'] ?? <dynamic>[],
+    });
+  }
+
+  ResponseBody _replaceDependentAllergens(
+      String id, Map<String, dynamic> body) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep == null) {
+      return _error(404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ.');
+    }
+    final allergenIds =
+        (body['allergenIds'] as List<dynamic>?)?.cast<int>() ?? <int>[];
+    final matched = DemoFixtures.allergens
+        .where((a) => allergenIds.contains(a['id']))
+        .toList();
+    dep['allergens'] = matched;
+    return _ok(200, matched);
   }
 
   ResponseBody _ok(int status, Object? data) => _json(status, {

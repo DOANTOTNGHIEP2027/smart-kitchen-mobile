@@ -1082,68 +1082,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inventoryHistoryTitle => 'Inventory history';
+
   @override
   String get inventoryHistoryOpen => 'View change history';
+
   @override
-  String inventoryHistoryCurrentQuantity(Object quantity, Object unit) =>
-      'Currently $quantity $unit';
+  String inventoryHistoryCurrentQuantity(Object quantity, Object unit) {
+    return 'Currently $quantity $unit';
+  }
+
   @override
   String get inventoryHistoryLoadFailed => 'Unable to load inventory history.';
+
   @override
   String get inventoryHistoryEmpty =>
       'No changes have been recorded for this item yet.';
+
   @override
   String get inventoryHistoryLoadMore => 'Load more';
+
   @override
-  String inventoryHistoryRemaining(Object quantity) => 'Left $quantity';
+  String inventoryHistoryRemaining(Object quantity) {
+    return 'Left $quantity';
+  }
+
   @override
   String get inventoryHistoryReasonBought => 'Added to inventory';
+
   @override
   String get inventoryHistoryReasonCooked => 'Used';
+
   @override
   String get inventoryHistoryReasonExpired => 'Expired';
+
   @override
   String get inventoryHistoryReasonWaste => 'Discarded';
+
   @override
   String get inventoryHistoryReasonCorrected => 'Data correction';
+
   @override
   String get inventoryWasteTitle => 'Why was this food discarded?';
+
   @override
   String get inventoryWasteSubtitle =>
       'Choose one reason to help your household reduce waste.';
+
   @override
   String get inventoryWasteOverbought => 'Bought too much';
+
   @override
   String get inventoryWasteForgotten => 'Forgotten until expired';
+
   @override
   String get inventoryWasteSpoiledEarly => 'Spoiled before expiry';
+
   @override
   String get inventoryWasteUntagged => 'Cause not recorded';
+
   @override
   String get notificationInventoryUpdated => 'Inventory updated';
+
   @override
   String get notificationInventoryAlreadyUsed =>
       'This item was already marked as used';
+
   @override
   String get notificationInventoryAlreadyDiscarded =>
       'This item was already discarded';
+
   @override
   String get notificationInventoryAlreadyProcessed =>
       'This item was already processed';
+
   @override
   String get notificationInventoryGone => 'This item is no longer in inventory';
+
   @override
   String get notificationInventoryReadonly =>
       'Your account has view-only access';
+
   @override
   String get notificationNoNetwork => 'No connection — try again';
+
   @override
   String get notificationActionFailed =>
       'The notification action could not be completed';
+
   @override
   String get notificationActionCookToday => 'Cook today';
+
   @override
   String get notificationActionMarkUsed => 'Used';
+
   @override
   String get notificationActionDiscard => 'Discard';
 

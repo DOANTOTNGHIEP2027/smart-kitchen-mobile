@@ -183,22 +183,22 @@ class _DetailArtwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final placeholder = DecoratedBox(
+    final placeholder = Container(
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: AppColors.sageLight,
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
       ),
       child: const Center(
         child: Icon(
           Icons.restaurant_menu_rounded,
           size: 64,
-          color: AppColors.primaryDark,
+          color: AppColors.sage,
         ),
       ),
     );
     final imageUrl = recipe.thumbnailUrl;
     return SizedBox(
-      height: 210,
+      height: 220,
       width: double.infinity,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
@@ -272,17 +272,54 @@ class _Ingredients extends StatelessWidget {
     if (values == null || values.isEmpty) {
       return const SizedBox.shrink();
     }
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 6,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
       child: Column(
         children: values
             .map(
               (ingredient) => ListTile(
-                leading: const Icon(Icons.check_circle_outline_rounded),
-                title: Text(ingredient.name),
-                subtitle: ingredient.note == null ? null : Text(ingredient.note!),
+                leading: const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.sage,
+                  size: 20,
+                ),
+                title: Text(
+                  ingredient.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle:
+                    ingredient.note == null ? null : Text(ingredient.note!),
                 trailing: ingredient.quantity == null
                     ? null
-                    : Text(_quantity(ingredient.quantity!, ingredient.unit)),
+                    : Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.sageLight,
+                          borderRadius:
+                              BorderRadius.circular(AppDimens.radiusSm),
+                        ),
+                        child: Text(
+                          _quantity(ingredient.quantity!, ingredient.unit),
+                          style: const TextStyle(
+                            color: AppColors.sageDark,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
               ),
             )
             .toList(growable: false),
@@ -300,16 +337,70 @@ class _Steps extends StatelessWidget {
   Widget build(BuildContext context) {
     final values = steps;
     if (values == null || values.isEmpty) return const SizedBox.shrink();
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 6,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
       child: Column(
         children: values
             .map(
               (step) => ListTile(
-                leading: CircleAvatar(child: Text('${step.stepNumber}')),
-                title: Text(step.instruction),
+                leading: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.sageLight,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${step.stepNumber}',
+                      style: const TextStyle(
+                        color: AppColors.sageDark,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                title: Text(
+                  step.instruction,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    height: 1.35,
+                  ),
+                ),
                 subtitle: step.durationMinutes == null
                     ? null
-                    : Text(context.l10n.cookingSuggestedDuration(step.durationMinutes!)),
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: <Widget>[
+                            const Icon(
+                              Icons.access_time_rounded,
+                              size: 13,
+                              color: AppColors.sage,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              context.l10n.cookingSuggestedDuration(
+                                  step.durationMinutes!),
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
               ),
             )
             .toList(growable: false),

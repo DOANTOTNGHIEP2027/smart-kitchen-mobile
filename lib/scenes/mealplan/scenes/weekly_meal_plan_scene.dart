@@ -15,9 +15,9 @@ import '../stores/meal_plan_store.dart';
 import '../widgets/recipe_cover_image.dart';
 import 'meal_slot_editor_scene.dart';
 
-/// Lưới lịch bữa ăn tuần (FE-7 §12, 7 ngày × 3 bữa).
-///
-/// 4 trạng thái: loading / empty (household không có plan) / error / success.
+/// Lưới lịch bữa ăn tuần (FE-7 §12, 7 ngày × 3 bữa) — Phong cách Tasty:
+/// Sáng sủa, thoáng đãng, các thẻ bữa ăn solid-color với shadow nhẹ,
+/// chỉ báo ngày chọn màu sage-green thanh lịch.
 class WeeklyMealPlanScene extends StatefulWidget {
   const WeeklyMealPlanScene({super.key});
 
@@ -101,80 +101,99 @@ class _WeekCalendar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Observer(
         builder: (_) => ListView(
-      padding: const EdgeInsets.fromLTRB(
-          AppDimens.md, AppDimens.md, AppDimens.md, AppDimens.xl),
-      children: <Widget>[
-        _WeekNavigation(
-          label: _weekLabel(context, store.currentWeekStart),
-          onPrevious: () => onNavigateWeek(-1),
-          onNext: () => onNavigateWeek(1),
-        ),
-        const SizedBox(height: AppDimens.md),
-        if (store.pendingVoteCount > 0) _PendingVoteBanner(count: store.pendingVoteCount),
-        if (store.pendingVoteCount > 0) const SizedBox(height: AppDimens.md),
-        Container(
-          padding: const EdgeInsets.all(AppDimens.sm),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-            border: Border.all(
-              color: AppColors.textSecondary.withValues(alpha: 0.32),
-              width: 1.2,
+          padding: const EdgeInsets.fromLTRB(
+            AppDimens.md,
+            AppDimens.sm,
+            AppDimens.md,
+            AppDimens.xl,
+          ),
+          children: <Widget>[
+            // Week navigation header
+            _WeekNavigation(
+              label: _weekLabel(context, store.currentWeekStart),
+              onPrevious: () => onNavigateWeek(-1),
+              onNext: () => onNavigateWeek(1),
             ),
-          ),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: 7,
-            itemBuilder: (_, index) {
-              final date = store.currentWeekStart.add(Duration(days: index));
-              return _CalendarDay(
-                date: date,
-                label: _weekdayLabels(context)[index],
-                selected: _isSameDay(date, selectedDate),
-                hasDishes: _hasDishes(store, date),
-                onTap: () => onDateSelected(date),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: AppDimens.xl),
-        Text(
-          context.l10n.mealPlanDaySchedule(
-            selectedDate.day,
-            selectedDate.month,
-          ),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w800,
+            const SizedBox(height: AppDimens.sm),
+
+            if (store.pendingVoteCount > 0) ...<Widget>[
+              _PendingVoteBanner(count: store.pendingVoteCount),
+              const SizedBox(height: AppDimens.sm),
+            ],
+
+            // 7 Days Calendar Strip
+            Container(
+              padding: const EdgeInsets.all(AppDimens.sm),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+                boxShadow: const <BoxShadow>[
+                  BoxShadow(
+                    color: Color(0x08000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-        ),
-        const SizedBox(height: AppDimens.sm),
-        ...const <_MealPeriod>[
-          _MealPeriod('BREAKFAST', Icons.wb_sunny_outlined),
-          _MealPeriod('LUNCH', Icons.light_mode_outlined),
-          _MealPeriod('DINNER', Icons.nightlight_round),
-        ].map(
-          (period) => Padding(
-            padding: const EdgeInsets.only(bottom: AppDimens.sm),
-            child: _MealScheduleCard(
-              store: store,
-              date: selectedDate,
-              period: period,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7,
+                  childAspectRatio: 0.82,
+                ),
+                itemCount: 7,
+                itemBuilder: (_, index) {
+                  final date =
+                      store.currentWeekStart.add(Duration(days: index));
+                  return _CalendarDay(
+                    date: date,
+                    label: _weekdayLabels(context)[index],
+                    selected: _isSameDay(date, selectedDate),
+                    hasDishes: _hasDishes(store, date),
+                    onTap: () => onDateSelected(date),
+                  );
+                },
+              ),
             ),
-          ),
-        ),
-      ],
+            const SizedBox(height: AppDimens.lg),
+
+            // Day schedule title
+            Text(
+              context.l10n.mealPlanDaySchedule(
+                selectedDate.day,
+                selectedDate.month,
+              ),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: AppDimens.sm),
+
+            // 3 Meals cards
+            ...const <_MealPeriod>[
+              _MealPeriod('BREAKFAST', Icons.wb_sunny_outlined),
+              _MealPeriod('LUNCH', Icons.light_mode_outlined),
+              _MealPeriod('DINNER', Icons.nightlight_round),
+            ].map(
+              (period) => Padding(
+                padding: const EdgeInsets.only(bottom: AppDimens.sm),
+                child: _MealScheduleCard(
+                  store: store,
+                  date: selectedDate,
+                  period: period,
+                ),
+              ),
+            ),
+          ],
         ),
       );
 
   static bool _hasDishes(MealPlanStore store, DateTime date) =>
       const <String>['BREAKFAST', 'LUNCH', 'DINNER'].any(
-        (meal) => store.slots[_slotKey(date, meal)]?.dishes.isNotEmpty ?? false,
+        (meal) =>
+            store.slots[_slotKey(date, meal)]?.dishes.isNotEmpty ?? false,
       );
 
   static bool _isSameDay(DateTime a, DateTime b) =>
@@ -217,22 +236,36 @@ class _WeekNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-          border: Border.all(
-            color: AppColors.textSecondary.withValues(alpha: 0.32),
-            width: 1.2,
-          ),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: Color(0x06000000),
+              blurRadius: 6,
+              offset: Offset(0, 1),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            IconButton(icon: const Icon(Icons.chevron_left), onPressed: onPrevious),
-            Text(label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
-            IconButton(icon: const Icon(Icons.chevron_right), onPressed: onNext),
+            IconButton(
+              icon: const Icon(Icons.chevron_left_rounded),
+              onPressed: onPrevious,
+            ),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right_rounded),
+              onPressed: onNext,
+            ),
           ],
         ),
       );
@@ -263,32 +296,38 @@ class _CalendarDay extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              color: selected ? AppColors.primary : Colors.transparent,
+              color: selected ? AppColors.sage : Colors.transparent,
               borderRadius: BorderRadius.circular(AppDimens.radiusSm),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Text(label,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: selected
-                            ? AppColors.textOnPrimary.withValues(alpha: 0.8)
-                            : AppColors.textSecondary,
-                        fontWeight: FontWeight.w700)),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: selected
+                        ? Colors.white.withValues(alpha: 0.85)
+                        : AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text('${date.day}',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: selected
-                            ? AppColors.textOnPrimary
-                            : AppColors.textPrimary,
-                        fontWeight: FontWeight.w800)),
+                Text(
+                  '${date.day}',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: selected ? Colors.white : AppColors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 3),
                 Container(
                   width: 5,
                   height: 5,
                   decoration: BoxDecoration(
                     color: hasDishes
-                        ? (selected ? AppColors.textOnPrimary : AppColors.primary)
+                        ? (selected ? Colors.white : AppColors.sage)
                         : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
@@ -308,21 +347,27 @@ class _PendingVoteBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.md, vertical: AppDimens.sm),
+          horizontal: AppDimens.md,
+          vertical: AppDimens.sm,
+        ),
         decoration: BoxDecoration(
-          color: AppColors.secondary.withValues(alpha: 0.12),
+          color: AppColors.sageLight,
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+          border: Border.all(color: AppColors.sageBorder),
         ),
         child: Row(
           children: <Widget>[
-            const Icon(Icons.how_to_vote_outlined,
-                color: AppColors.secondary, size: 20),
+            const Icon(
+              Icons.how_to_vote_rounded,
+              color: AppColors.sageDark,
+              size: 20,
+            ),
             const SizedBox(width: AppDimens.sm),
             Expanded(
               child: Text(
                 context.l10n.mealPlanOpenVotes(count),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textPrimary,
+                      color: AppColors.sageDark,
                       fontWeight: FontWeight.w700,
                     ),
               ),
@@ -363,60 +408,106 @@ class _MealScheduleCard extends StatelessWidget {
     final slotId = slot?.id;
     final canEdit = slotId?.isNotEmpty == true;
     final periodLabel = period.labelOf(context);
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-      child: InkWell(
-        onTap: canEdit
-            ? () => Get.to<void>(
-                  () => MealSlotEditorScene(
-                    slotId: slotId!,
-                    mealLabel: periodLabel,
-                    dateLabel:
-                        context.l10n.mealPlanDateShort(date.day, date.month),
-                  ),
-                )
-            : null,
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-        child: Container(
-          padding: const EdgeInsets.all(AppDimens.md),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-            border: Border.all(
-              color: AppColors.textSecondary.withValues(alpha: 0.32),
-              width: 1.2,
-            ),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 6,
+            offset: Offset(0, 1),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Icon(period.icon, color: AppColors.primaryDark, size: 20),
-                  const SizedBox(width: AppDimens.sm),
-                  Text(periodLabel,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w800)),
-                  const Spacer(),
-                  Icon(Icons.chevron_right_rounded,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        child: InkWell(
+          onTap: canEdit
+              ? () => Get.to<void>(
+                    () => MealSlotEditorScene(
+                      slotId: slotId!,
+                      mealLabel: periodLabel,
+                      dateLabel:
+                          context.l10n.mealPlanDateShort(date.day, date.month),
+                    ),
+                  )
+              : null,
+          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+          child: Padding(
+            padding: const EdgeInsets.all(AppDimens.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.sageLight,
+                        borderRadius:
+                            BorderRadius.circular(AppDimens.radiusSm),
+                      ),
+                      child: Icon(
+                        period.icon,
+                        color: AppColors.sage,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: AppDimens.sm),
+                    Text(
+                      periodLabel,
+                      style:
+                          Theme.of(context).textTheme.titleSmall?.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.chevron_right_rounded,
                       color: canEdit
                           ? AppColors.textSecondary
-                          : AppColors.textDisabled),
-                ],
-              ),
-              const SizedBox(height: AppDimens.sm),
-              if (slot == null || slot.dishes.isEmpty)
-                Text(context.l10n.mealPlanTapToAdd,
-                    style: Theme.of(context).textTheme.bodyMedium)
-              else
-                ...slot.dishes.map(
-                  (dish) => _ScheduledDishCard(
-                    dish: dish,
-                    onDelete: () => store.removeDish(slotId!, dish.id),
-                  ),
+                          : AppColors.textDisabled,
+                      size: 20,
+                    ),
+                  ],
                 ),
-            ],
+                const SizedBox(height: AppDimens.sm),
+                if (slot == null || slot.dishes.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.add_circle_outline_rounded,
+                          size: 16,
+                          color: AppColors.sage.withValues(alpha: 0.8),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          context.l10n.mealPlanTapToAdd,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.sage,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ...slot.dishes.map(
+                    (dish) => _ScheduledDishCard(
+                      dish: dish,
+                      onDelete: () => store.removeDish(slotId!, dish.id),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -440,39 +531,96 @@ class _ScheduledDishCard extends StatelessWidget {
       );
     }
     final minutes = RecipeCoverImage.demoPrepTimeMinutes(recipe.recipeId);
-    return Padding(
-      padding: const EdgeInsets.only(top: AppDimens.xs),
+
+    return Container(
+      margin: const EdgeInsets.only(top: AppDimens.xs),
+      padding: const EdgeInsets.all(AppDimens.xs),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+      ),
       child: Row(
         children: <Widget>[
-          RecipeCoverImage(
-            recipeId: recipe.recipeId,
-            recipeName: recipe.recipeName,
-            width: 58,
-            height: 58,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+            child: RecipeCoverImage(
+              recipeId: recipe.recipeId,
+              recipeName: recipe.recipeName,
+              width: 52,
+              height: 52,
+            ),
           ),
           const SizedBox(width: AppDimens.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(recipe.recipeName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                Text(
+                  recipe.recipeName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w700)),
-                if (minutes != null)
-                  Text(context.l10n.homeRecipeMinutes(minutes),
-                      style: Theme.of(context).textTheme.bodySmall),
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: <Widget>[
+                    if (minutes != null) ...<Widget>[
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 11,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        context.l10n.homeRecipeMinutes(minutes),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    _dishStatusChip(dish.status),
+                  ],
+                ),
               ],
             ),
           ),
           IconButton(
             onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline_rounded),
+            icon: const Icon(Icons.delete_outline_rounded, size: 20),
             color: AppColors.error,
+            tooltip: 'Xoá món',
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _dishStatusChip(DishUiStatus status) {
+    final (label, color) = switch (status) {
+      DishUiStatus.confirmed => ('Đã chốt', AppColors.sage),
+      DishUiStatus.voting => ('Bình chọn', const Color(0xFF0284C7)),
+      DishUiStatus.suggested => ('Gợi ý', const Color(0xFFD97706)),
+      DishUiStatus.empty => ('Chưa chọn', AppColors.textSecondary),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
       ),
     );
   }

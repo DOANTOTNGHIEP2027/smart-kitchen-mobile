@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 
 import '../../routing/route_guards.dart';
 import 'allergen_select_screen.dart';
+import 'dependent_form_screen.dart';
+import 'dependent_list_screen.dart';
 import 'edit_profile_screen.dart';
 import 'family_screen.dart';
 import 'health_profile_screen.dart';
@@ -16,6 +18,8 @@ abstract class ProfileFamilyRoutes {
   static const String profileAllergens = '/profile/allergens';
   static const String family = '/family';
   static const String memberDetail = '/family/:userId';
+  static const String dependents = '/dependents';
+  static const String dependentAdd = '/dependents/add';
 }
 
 final List<GetPage<dynamic>> profileFamilyPages = <GetPage<dynamic>>[
@@ -53,6 +57,16 @@ final List<GetPage<dynamic>> profileFamilyPages = <GetPage<dynamic>>[
     name: ProfileFamilyRoutes.memberDetail,
     page: () => const MemberDetailScreen(),
     binding: FamilyBinding(),
+    middlewares: <GetMiddleware>[AuthGuard()],
+  ),
+  GetPage<void>(
+    name: ProfileFamilyRoutes.dependents,
+    page: () => const DependentListScreen(),
+    middlewares: <GetMiddleware>[AuthGuard()],
+  ),
+  GetPage<void>(
+    name: ProfileFamilyRoutes.dependentAdd,
+    page: () => const DependentFormScreen(),
     middlewares: <GetMiddleware>[AuthGuard()],
   ),
 ];

@@ -240,27 +240,74 @@ class _RecipeTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(AppDimens.md, AppDimens.sm, AppDimens.md, 0),
+        padding: const EdgeInsets.fromLTRB(
+          AppDimens.md,
+          AppDimens.sm,
+          AppDimens.md,
+          0,
+        ),
         child: Row(
           children: <Widget>[
             Expanded(
-              child: ChoiceChip(
-                label: Text(context.l10n.recipesAll),
+              child: _TabButton(
+                label: context.l10n.recipesAll,
                 selected: store.tab == RecipeListTab.all,
-                onSelected: (_) => store.setTab(RecipeListTab.all),
+                onTap: () => store.setTab(RecipeListTab.all),
               ),
             ),
             const SizedBox(width: AppDimens.sm),
             Expanded(
-              child: ChoiceChip(
-                label: Text(context.l10n.recipesFavorites),
+              child: _TabButton(
+                label: context.l10n.recipesFavorites,
                 selected: store.tab == RecipeListTab.favorites,
-                onSelected: (_) => store.setTab(RecipeListTab.favorites),
+                onTap: () => store.setTab(RecipeListTab.favorites),
               ),
             ),
           ],
         ),
       );
+}
+
+class _TabButton extends StatelessWidget {
+  const _TabButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AppColors.sage : AppColors.surface,
+      borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+            border: Border.all(
+              color: selected ? AppColors.sage : AppColors.border,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? Colors.white : AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _SearchBox extends StatelessWidget {
@@ -270,12 +317,31 @@ class _SearchBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(AppDimens.md),
+        padding: const EdgeInsets.fromLTRB(
+          AppDimens.md,
+          AppDimens.sm,
+          AppDimens.md,
+          0,
+        ),
         child: TextField(
           onChanged: store.setSearchQuery,
           decoration: InputDecoration(
             hintText: context.l10n.recipesSearch,
-            prefixIcon: const Icon(Icons.search_rounded),
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              color: AppColors.textSecondary,
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: AppDimens.sm,
+              horizontal: AppDimens.md,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
       );
@@ -295,17 +361,24 @@ class _RecipeCard extends StatelessWidget {
   final VoidCallback onToggleFavorite;
 
   @override
-  Widget build(BuildContext context) => Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-        child: InkWell(
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-          onTap: onOpen,
-          child: Ink(
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
             ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+            onTap: onOpen,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -316,22 +389,34 @@ class _RecipeCard extends StatelessWidget {
                       Positioned(
                         top: AppDimens.xs,
                         right: AppDimens.xs,
-                        child: IconButton.filledTonal(
-                          onPressed: isFavoritePending ? null : onToggleFavorite,
-                          icon: isFavoritePending
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Icon(
-                                  recipe.favorite.myFavorite
-                                      ? Icons.favorite_rounded
-                                      : Icons.favorite_border_rounded,
-                                  color: recipe.favorite.myFavorite
-                                      ? AppColors.error
-                                      : AppColors.textPrimary,
-                                ),
+                        child: Material(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: isFavoritePending ? null : onToggleFavorite,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: isFavoritePending
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.sage,
+                                      ),
+                                    )
+                                  : Icon(
+                                      recipe.favorite.myFavorite
+                                          ? Icons.favorite_rounded
+                                          : Icons.favorite_border_rounded,
+                                      size: 18,
+                                      color: recipe.favorite.myFavorite
+                                          ? AppColors.error
+                                          : AppColors.textSecondary,
+                                    ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -351,23 +436,39 @@ class _RecipeCard extends StatelessWidget {
                               fontWeight: FontWeight.w800,
                             ),
                       ),
-                      const SizedBox(height: AppDimens.xs),
+                      const SizedBox(height: 2),
                       Text(
                         _meta(context, recipe),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
+                            ),
                       ),
-                      const SizedBox(height: AppDimens.xs),
+                      const SizedBox(height: 4),
                       Wrap(
-                        spacing: AppDimens.xs,
-                        runSpacing: AppDimens.xs,
+                        spacing: 4,
+                        runSpacing: 4,
                         children: <Widget>[
                           if (recipe.difficulty != null)
-                            _Badge(label: _difficultyLabel(context, recipe.difficulty!)),
-                          ...recipe.dietTypes.take(2).map((diet) => _Badge(label: _dietLabel(context, diet))),
+                            _Badge(
+                              label: _difficultyLabel(
+                                  context, recipe.difficulty!),
+                            ),
+                          for (final diet in recipe.dietTypes.take(1))
+                            _Badge(
+                              label: _dietLabel(context, diet),
+                              color: AppColors.sageLight,
+                              textColor: AppColors.sageDark,
+                            ),
                           if (recipe.favorite.avgRating != null)
-                            _Badge(label: '★ ${recipe.favorite.avgRating!.toStringAsFixed(1)}'),
+                            _Badge(
+                              label:
+                                  '★ ${recipe.favorite.avgRating!.toStringAsFixed(1)}',
+                              color: const Color(0xFFFFF7E0),
+                              textColor: const Color(0xFFD97706),
+                            ),
                         ],
                       ),
                     ],
@@ -388,37 +489,59 @@ class _RecipeArtwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = recipe.thumbnailUrl;
-    const fallback = DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: <Color>[AppColors.primaryGradientStart, AppColors.primary],
+    final fallback = Container(
+      color: AppColors.sageLight,
+      child: const Center(
+        child: Icon(
+          Icons.restaurant_rounded,
+          color: AppColors.sage,
+          size: 32,
         ),
-      ),
-      child: Center(
-        child: Icon(Icons.restaurant_menu_rounded, color: AppColors.textOnPrimary),
       ),
     );
     if (imageUrl == null || imageUrl.isEmpty) return fallback;
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimens.radiusMd)),
-      child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback),
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(AppDimens.radiusMd),
+      ),
+      child: Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => fallback,
+      ),
     );
   }
 }
 
 class _Badge extends StatelessWidget {
-  const _Badge({required this.label});
+  const _Badge({
+    required this.label,
+    this.color,
+    this.textColor,
+  });
 
   final String label;
+  final Color? color;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppDimens.xs, vertical: 2),
-        decoration: BoxDecoration(
-          color: AppColors.secondaryFill,
-          borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 6,
+          vertical: 2,
         ),
-        child: Text(label, style: Theme.of(context).textTheme.labelSmall),
+        decoration: BoxDecoration(
+          color: color ?? AppColors.secondaryFill,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: textColor ?? AppColors.textSecondary,
+          ),
+        ),
       );
 }
 

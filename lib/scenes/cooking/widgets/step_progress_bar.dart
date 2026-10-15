@@ -4,7 +4,8 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 
-/// Thanh tiến trình bước hiện tại / tổng số bước (FE-6 §7.3).
+/// Thanh tiến trình bước nấu ăn (FE-6 §7.3) — phong cách Tasty:
+/// Segmented pill bars cho từng bước, màu sage-green hiện đại, trực quan.
 class StepProgressBar extends StatelessWidget {
   const StepProgressBar({
     super.key,
@@ -19,15 +20,20 @@ class StepProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = totalSteps <= 0 ? 0.0 : (viewedStep / totalSteps);
     final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimens.md),
-      padding: const EdgeInsets.all(AppDimens.sm),
+      padding: const EdgeInsets.all(AppDimens.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -37,23 +43,51 @@ class StepProgressBar extends StatelessWidget {
             children: <Widget>[
               Text(
                 context.l10n.cookingStepProgress(viewedStep, totalSteps),
-                style: theme.textTheme.titleSmall,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
               ),
               if (viewedStep != currentStep)
-                Text(
-                  context.l10n.cookingStepReviewing(currentStep),
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: AppColors.warning),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    context.l10n.cookingStepReviewing(currentStep),
+                    style: const TextStyle(
+                      color: AppColors.warning,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
             ],
           ),
-          const SizedBox(height: AppDimens.xs),
-          LinearProgressIndicator(
-            value: progress.clamp(0.0, 1.0),
-            minHeight: 8,
-            backgroundColor: AppColors.border,
-            valueColor:
-                AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+          const SizedBox(height: AppDimens.sm),
+          // Segmented progress pills
+          Row(
+            children: List.generate(totalSteps, (index) {
+              final stepNum = index + 1;
+              final isCompletedOrCurrent = stepNum <= viewedStep;
+              return Expanded(
+                child: Container(
+                  height: 6,
+                  margin: EdgeInsets.only(
+                    right: index == totalSteps - 1 ? 0 : 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isCompletedOrCurrent
+                        ? AppColors.sage
+                        : AppColors.background,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              );
+            }),
           ),
         ],
       ),

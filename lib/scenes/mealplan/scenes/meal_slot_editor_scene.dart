@@ -6,17 +6,12 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
-import '../../../widgets/buttons/app_button.dart';
 import '../domain/meal_plan_slot.dart';
 import '../stores/meal_plan_store.dart';
 import '../widgets/recipe_cover_image.dart';
 import 'meal_plan_routes.dart';
 
-/// Chỉnh một bữa của ngày đã chọn trong lịch tuần.
-///
-/// Luồng thêm món dùng cùng state/API có sẵn: tạo dish rỗng, mở vote để lấy ba
-/// candidate, rồi mở màn chọn suggestion. Khi chọn thành công, store cập nhật
-/// slot và màn này tự vẽ card recipe đã xác nhận.
+/// Chỉnh một bữa của ngày đã chọn trong lịch tuần — Phong cách Tasty.
 class MealSlotEditorScene extends StatefulWidget {
   const MealSlotEditorScene({
     super.key,
@@ -99,7 +94,9 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
               const SizedBox(height: AppDimens.xs),
               Text(
                 widget.dateLabel,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
               ),
               const SizedBox(height: AppDimens.lg),
               ...dishes.map(
@@ -114,10 +111,32 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                   ),
                 ),
               ),
-              AppButton(
-                label: context.l10n.mealPlanAddDish,
-                icon: Icons.add_rounded,
-                isLoading: _isAdding,
+              const SizedBox(height: AppDimens.sm),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.sage,
+                  padding: const EdgeInsets.symmetric(vertical: AppDimens.md),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+                  ),
+                ),
+                icon: _isAdding
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.add_rounded),
+                label: Text(
+                  context.l10n.mealPlanAddDish,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
                 onPressed: _isAdding ? null : _addDish,
               ),
             ],
@@ -151,20 +170,26 @@ class _EditableDishCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-        border: Border.all(
-          color: AppColors.textSecondary.withValues(alpha: 0.32),
-          width: 1.2,
-        ),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 6,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Row(
         children: <Widget>[
-          RecipeCoverImage(
-            recipeId: recipe.recipeId,
-            recipeName: recipe.recipeName,
-            width: 76,
-            height: 76,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+            child: RecipeCoverImage(
+              recipeId: recipe.recipeId,
+              recipeName: recipe.recipeName,
+              width: 72,
+              height: 72,
+            ),
           ),
-          const SizedBox(width: AppDimens.sm),
+          const SizedBox(width: AppDimens.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,9 +207,12 @@ class _EditableDishCard extends StatelessWidget {
                   const SizedBox(height: AppDimens.xs),
                   Row(
                     children: <Widget>[
-                      const Icon(Icons.timer_outlined,
-                          size: 16, color: AppColors.primaryDark),
-                      const SizedBox(width: AppDimens.xs),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 14,
+                        color: AppColors.sage,
+                      ),
+                      const SizedBox(width: 4),
                       Text(
                         context.l10n.homeRecipeMinutes(minutes),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -201,6 +229,7 @@ class _EditableDishCard extends StatelessWidget {
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline_rounded),
             color: AppColors.error,
+            tooltip: 'Xoá món',
           ),
         ],
       ),
@@ -218,15 +247,32 @@ class _PendingDishCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(AppDimens.md),
         decoration: BoxDecoration(
-          color: AppColors.secondaryFill,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-          border: Border.all(color: AppColors.border),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: Color(0x06000000),
+              blurRadius: 6,
+              offset: Offset(0, 1),
+            ),
+          ],
         ),
         child: Row(
           children: <Widget>[
-            const Icon(Icons.restaurant_menu_outlined,
-                color: AppColors.primaryDark),
-            const SizedBox(width: AppDimens.sm),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: AppColors.sageLight,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.restaurant_menu_rounded,
+                color: AppColors.sage,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: AppDimens.md),
             Expanded(
               child: Text(
                 context.l10n.mealPlanDishUnselected,
@@ -237,10 +283,13 @@ class _PendingDishCard extends StatelessWidget {
               ),
             ),
             if (onChoose != null)
-              IconButton(
+              IconButton.filledTonal(
                 onPressed: onChoose,
-                icon: const Icon(Icons.arrow_forward_rounded),
-                color: AppColors.primaryDark,
+                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.sageLight,
+                  foregroundColor: AppColors.sageDark,
+                ),
               ),
             IconButton(
               onPressed: onDelete,

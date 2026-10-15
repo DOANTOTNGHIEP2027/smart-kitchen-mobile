@@ -33,13 +33,13 @@ class MemberRow extends StatelessWidget {
         onTap: onTap,
         child: ListTile(
           leading: CircleAvatar(
-            backgroundColor: AppColors.primaryLight,
+            backgroundColor: AppColors.sageLight,
             backgroundImage: avatar == null
                 ? null
                 : NetworkImage(avatar) as ImageProvider<Object>,
             radius: 20,
             child: avatar == null
-                ? const Icon(Icons.person, color: AppColors.primary)
+                ? const Icon(Icons.person, color: AppColors.sage)
                 : null,
           ),
           title: Text(member.fullName, style: AppTextStyles.bodyMedium),
@@ -80,7 +80,7 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppDimens.sm, vertical: 2),
       decoration: BoxDecoration(
-        color: filled ? AppColors.primary : Colors.transparent,
+        color: filled ? AppColors.sage : Colors.transparent,
         borderRadius: BorderRadius.circular(AppDimens.radiusSm),
         border: filled ? null : Border.all(color: AppColors.border, width: 1),
       ),

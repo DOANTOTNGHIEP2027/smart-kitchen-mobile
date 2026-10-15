@@ -2097,34 +2097,178 @@ abstract class AppLocalizations {
   /// **'Saved by {count} household members'**
   String recipeHouseholdFavorites(int count);
 
+  /// No description provided for @inventoryHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory history'**
   String get inventoryHistoryTitle;
+
+  /// No description provided for @inventoryHistoryOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'View change history'**
   String get inventoryHistoryOpen;
+
+  /// No description provided for @inventoryHistoryCurrentQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently {quantity} {unit}'**
   String inventoryHistoryCurrentQuantity(Object quantity, Object unit);
+
+  /// No description provided for @inventoryHistoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load inventory history.'**
   String get inventoryHistoryLoadFailed;
+
+  /// No description provided for @inventoryHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes have been recorded for this item yet.'**
   String get inventoryHistoryEmpty;
+
+  /// No description provided for @inventoryHistoryLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
   String get inventoryHistoryLoadMore;
+
+  /// No description provided for @inventoryHistoryRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Left {quantity}'**
   String inventoryHistoryRemaining(Object quantity);
+
+  /// No description provided for @inventoryHistoryReasonBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to inventory'**
   String get inventoryHistoryReasonBought;
+
+  /// No description provided for @inventoryHistoryReasonCooked.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
   String get inventoryHistoryReasonCooked;
+
+  /// No description provided for @inventoryHistoryReasonExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
   String get inventoryHistoryReasonExpired;
+
+  /// No description provided for @inventoryHistoryReasonWaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Discarded'**
   String get inventoryHistoryReasonWaste;
+
+  /// No description provided for @inventoryHistoryReasonCorrected.
+  ///
+  /// In en, this message translates to:
+  /// **'Data correction'**
   String get inventoryHistoryReasonCorrected;
+
+  /// No description provided for @inventoryWasteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why was this food discarded?'**
   String get inventoryWasteTitle;
+
+  /// No description provided for @inventoryWasteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one reason to help your household reduce waste.'**
   String get inventoryWasteSubtitle;
+
+  /// No description provided for @inventoryWasteOverbought.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought too much'**
   String get inventoryWasteOverbought;
+
+  /// No description provided for @inventoryWasteForgotten.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgotten until expired'**
   String get inventoryWasteForgotten;
+
+  /// No description provided for @inventoryWasteSpoiledEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'Spoiled before expiry'**
   String get inventoryWasteSpoiledEarly;
+
+  /// No description provided for @inventoryWasteUntagged.
+  ///
+  /// In en, this message translates to:
+  /// **'Cause not recorded'**
   String get inventoryWasteUntagged;
+
+  /// No description provided for @notificationInventoryUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory updated'**
   String get notificationInventoryUpdated;
+
+  /// No description provided for @notificationInventoryAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'This item was already marked as used'**
   String get notificationInventoryAlreadyUsed;
+
+  /// No description provided for @notificationInventoryAlreadyDiscarded.
+  ///
+  /// In en, this message translates to:
+  /// **'This item was already discarded'**
   String get notificationInventoryAlreadyDiscarded;
+
+  /// No description provided for @notificationInventoryAlreadyProcessed.
+  ///
+  /// In en, this message translates to:
+  /// **'This item was already processed'**
   String get notificationInventoryAlreadyProcessed;
+
+  /// No description provided for @notificationInventoryGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is no longer in inventory'**
   String get notificationInventoryGone;
+
+  /// No description provided for @notificationInventoryReadonly.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has view-only access'**
   String get notificationInventoryReadonly;
+
+  /// No description provided for @notificationNoNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection — try again'**
   String get notificationNoNetwork;
+
+  /// No description provided for @notificationActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The notification action could not be completed'**
   String get notificationActionFailed;
+
+  /// No description provided for @notificationActionCookToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Cook today'**
   String get notificationActionCookToday;
+
+  /// No description provided for @notificationActionMarkUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
   String get notificationActionMarkUsed;
+
+  /// No description provided for @notificationActionDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
   String get notificationActionDiscard;
 
   /// No description provided for @inventoryOcrScanAction.

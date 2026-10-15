@@ -1072,66 +1072,97 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get inventoryHistoryTitle => 'Lịch sử kho';
+
   @override
   String get inventoryHistoryOpen => 'Xem lịch sử thay đổi';
+
   @override
-  String inventoryHistoryCurrentQuantity(Object quantity, Object unit) =>
-      'Hiện còn $quantity $unit';
+  String inventoryHistoryCurrentQuantity(Object quantity, Object unit) {
+    return 'Hiện còn $quantity $unit';
+  }
+
   @override
   String get inventoryHistoryLoadFailed => 'Không tải được lịch sử kho.';
+
   @override
   String get inventoryHistoryEmpty =>
       'Mặt hàng này chưa có thay đổi nào được ghi lại.';
+
   @override
   String get inventoryHistoryLoadMore => 'Xem thêm';
+
   @override
-  String inventoryHistoryRemaining(Object quantity) => 'Còn $quantity';
+  String inventoryHistoryRemaining(Object quantity) {
+    return 'Còn $quantity';
+  }
+
   @override
   String get inventoryHistoryReasonBought => 'Nhập vào kho';
+
   @override
   String get inventoryHistoryReasonCooked => 'Đã sử dụng';
+
   @override
   String get inventoryHistoryReasonExpired => 'Đã hết hạn';
+
   @override
   String get inventoryHistoryReasonWaste => 'Đã bỏ đi';
+
   @override
   String get inventoryHistoryReasonCorrected => 'Điều chỉnh số liệu';
+
   @override
   String get inventoryWasteTitle => 'Vì sao thực phẩm bị bỏ đi?';
+
   @override
   String get inventoryWasteSubtitle =>
       'Chọn một lý do để giúp gia đình giảm lãng phí.';
+
   @override
   String get inventoryWasteOverbought => 'Mua dư, dùng không hết';
+
   @override
   String get inventoryWasteForgotten => 'Quên trong tủ, đã quá hạn';
+
   @override
   String get inventoryWasteSpoiledEarly => 'Hỏng trước hạn';
+
   @override
   String get inventoryWasteUntagged => 'Chưa ghi nguyên nhân';
+
   @override
   String get notificationInventoryUpdated => 'Đã cập nhật kho';
+
   @override
   String get notificationInventoryAlreadyUsed =>
       'Món này đã được đánh dấu đã dùng';
+
   @override
   String get notificationInventoryAlreadyDiscarded => 'Món này đã được bỏ đi';
+
   @override
   String get notificationInventoryAlreadyProcessed => 'Món này đã được xử lý';
+
   @override
   String get notificationInventoryGone => 'Món này không còn trong kho';
+
   @override
   String get notificationInventoryReadonly =>
       'Tài khoản của bạn chỉ có quyền xem';
+
   @override
   String get notificationNoNetwork => 'Không có mạng — hãy thử lại';
+
   @override
   String get notificationActionFailed =>
       'Không thực hiện được thao tác từ thông báo';
+
   @override
   String get notificationActionCookToday => 'Nấu hôm nay';
+
   @override
   String get notificationActionMarkUsed => 'Đã dùng';
+
   @override
   String get notificationActionDiscard => 'Bỏ đi';
 
