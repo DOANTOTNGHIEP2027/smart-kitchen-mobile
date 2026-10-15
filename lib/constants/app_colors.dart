@@ -39,4 +39,11 @@ abstract class AppColors {
 
   // Bóng nút primary theo mock: `rgba(255,122,64,0.32)` (~ 0x52 alpha).
   static const Color primaryShadow = Color(0x52FF7A45);
+
+  // Sage green tokens (Tasty-inspired UI style: bright, airy, clean, modern)
+  static const Color sage = Color(0xFF4A7C59);
+  static const Color sageDark = Color(0xFF385E43);
+  static const Color sageLight = Color(0xFFEFF6F0);
+  static const Color sageBorder = Color(0xFFCFE2D3);
+  static const Color sageSurface = Color(0xFFF7FAF8);
 }

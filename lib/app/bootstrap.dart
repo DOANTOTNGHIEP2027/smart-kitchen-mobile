@@ -25,6 +25,7 @@ import '../scenes/profile/api/health_api.dart';
 import '../scenes/profile/api/profile_api.dart';
 import '../scenes/inventory/data/inventory_api.dart';
 import '../scenes/inventory/data/inventory_dao.dart';
+import '../scenes/inventory/stores/inventory_store.dart';
 import '../scenes/cooking/data/cooking_session_api.dart';
 import '../scenes/cooking/data/recipe_api.dart';
 import '../scenes/recipe/data/recipe_catalog_api.dart';
@@ -32,6 +33,7 @@ import '../scenes/mealplan/data/meal_plan_api.dart';
 import '../scenes/mealplan/data/vote_api.dart';
 import '../data/notification/device_api.dart';
 import '../data/notification/notification_service.dart';
+import '../data/notification/quick_action_api.dart';
 import '../data/realtime/realtime_service.dart';
 import '../services/connectivity_service.dart';
 import '../stores/realtime_store.dart';
@@ -133,10 +135,17 @@ Future<void> bootstrap() async {
   Get.put<RealtimeService>(realtimeService, permanent: true);
 
   Get.put<DeviceApi>(DeviceApiImpl(dioClient), permanent: true);
+  Get.put<QuickActionApi>(QuickActionApiImpl(dioClient), permanent: true);
 
   final notificationService = NotificationService(
     deviceApi: Get.find<DeviceApi>(),
+    quickActionApi: Get.find<QuickActionApi>(),
     isAuthenticated: () => sessionStore.isAuthenticated,
+    onInventoryChanged: () async {
+      if (Get.isRegistered<InventoryStore>()) {
+        await Get.find<InventoryStore>().syncFromServer();
+      }
+    },
   );
   Get.put<NotificationService>(notificationService, permanent: true);
 

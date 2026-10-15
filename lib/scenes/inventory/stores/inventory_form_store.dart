@@ -28,7 +28,13 @@ enum ConflictResolution { keepMine, useServer }
 /// Hộp thoại xung đột 409 — 2 column "của tôi" vs "trên server" (D11 — body
 /// 409 không mang state, phải GET lại để dựng dialog).
 class InventoryConflict {
-  const InventoryConflict({required this.local, required this.server});
+  const InventoryConflict({
+    required this.local,
+    required this.server,
+    this.reason,
+    this.wasteCause,
+    this.isDelete = false,
+  });
 
   /// Snapshot người dùng vừa cố lưu (đã được ghi optimistic vào DB tạm thời,
   /// hoặc bản `previous` nếu là DELETE).
@@ -36,6 +42,9 @@ class InventoryConflict {
 
   /// State thật từ server, lấy bằng `GET /inventory-items/{id}`.
   final InventoryItemModel server;
+  final String? reason;
+  final String? wasteCause;
+  final bool isDelete;
 }
 
 /// Form add/edit inventory + optimistic write/rollback/conflict (FE-5 §10).
@@ -69,8 +78,7 @@ class InventoryFormStore {
   final String Function() _localIdGen;
 
   final Observable<bool> _isSaving = Observable<bool>(false);
-  final Observable<ApiException?> _saveError =
-      Observable<ApiException?>(null);
+  final Observable<ApiException?> _saveError = Observable<ApiException?>(null);
   final Observable<InventoryConflict?> _conflict =
       Observable<InventoryConflict?>(null);
 
@@ -121,6 +129,8 @@ class InventoryFormStore {
     double? lowStockThreshold,
     DateTime? expiryDate,
     String? note,
+    String? reason,
+    String? wasteCause,
   }) async {
     if (_isSaving.value) return false;
     runInAction(() {
@@ -134,9 +144,11 @@ class InventoryFormStore {
       'quantity': quantity,
       'unit': unit,
       'lowStockThreshold': lowStockThreshold,
-      'expiryDate':
-          expiryDate?.toUtc().toIso8601String().split('T').first,
+      'expiryDate': expiryDate?.toUtc().toIso8601String().split('T').first,
       'note': note?.trim().isEmpty == true ? null : note?.trim(),
+      if (mode == InventoryFormMode.edit && reason != null) 'reason': reason,
+      if (mode == InventoryFormMode.edit && wasteCause != null)
+        'wasteCause': wasteCause,
     };
 
     final isOnline = await _isOnline();
@@ -158,7 +170,8 @@ class InventoryFormStore {
           expiryDate: expiryDate,
           note: note?.trim().isEmpty == true ? null : note?.trim(),
           version: 0,
-          isLowStock: lowStockThreshold != null && quantity <= lowStockThreshold,
+          isLowStock:
+              lowStockThreshold != null && quantity <= lowStockThreshold,
           isExpiringSoon: expiryDate != null &&
               !expiryDate.isAfter(now.add(const Duration(days: 3))),
           createdBy: _session.currentUser?.id ?? 'unknown',
@@ -230,13 +243,19 @@ class InventoryFormStore {
       await _dao.upsertItem(optimistic);
 
       if (!isOnline) {
-        await _dao.enqueueUpdate(optimistic, baseVersion: previous.version);
+        await _dao.enqueueUpdate(
+          optimistic,
+          baseVersion: previous.version,
+          reason: reason,
+          wasteCause: wasteCause,
+        );
         runInAction(() => _isSaving.value = false);
         return true;
       }
 
       try {
-        final serverItem = await _api.update(
+        final serverItem = await updateInventoryWithWasteFallback(
+          _api,
           id,
           version: previous.version,
           payload: payload,
@@ -251,7 +270,12 @@ class InventoryFormStore {
         if (e.code == 'ERR_INVENTORY_VERSION_CONFLICT') {
           // PhASE 0 US 2.1 AC 2: dialog + auto refetch, không văng lỗi đỏ.
           await _dao.updateSyncStatus(id, SyncStatus.conflict);
-          await _buildConflict(local: optimistic, itemId: id);
+          await _buildConflict(
+            local: optimistic,
+            itemId: id,
+            reason: reason,
+            wasteCause: wasteCause,
+          );
           runInAction(() => _isSaving.value = false);
           return false;
         }
@@ -272,7 +296,12 @@ class InventoryFormStore {
         });
         return false;
       } on NetworkException {
-        await _dao.enqueueUpdate(optimistic, baseVersion: previous.version);
+        await _dao.enqueueUpdate(
+          optimistic,
+          baseVersion: previous.version,
+          reason: reason,
+          wasteCause: wasteCause,
+        );
         runInAction(() => _isSaving.value = false);
         return true;
       } on ApiException catch (e) {
@@ -285,8 +314,7 @@ class InventoryFormStore {
       }
     } catch (e) {
       runInAction(() {
-        _saveError.value =
-            ServerException('ERR_UNKNOWN', e.toString());
+        _saveError.value = ServerException('ERR_UNKNOWN', e.toString());
         _isSaving.value = false;
       });
       return false;
@@ -295,7 +323,7 @@ class InventoryFormStore {
 
   /// Xoá item (FE-5 §10 `delete`). `reason` bắt buộc: 'COOKED' | 'WASTE' |
   /// 'CORRECTED' (Decision D8 + fix M12).
-  Future<bool> delete({required String reason}) async {
+  Future<bool> delete({required String reason, String? wasteCause}) async {
     if (_isSaving.value) return false;
     runInAction(() {
       _isSaving.value = true;
@@ -319,16 +347,22 @@ class InventoryFormStore {
     final isOnline = await _isOnline();
 
     if (!isOnline) {
-      await _dao.enqueueDelete(previous, reason: reason);
+      await _dao.enqueueDelete(
+        previous,
+        reason: reason,
+        wasteCause: wasteCause,
+      );
       runInAction(() => _isSaving.value = false);
       return true;
     }
 
     try {
-      await _api.delete(
+      await deleteInventoryWithWasteFallback(
+        _api,
         id,
         version: previous.version,
         reason: reason,
+        wasteCause: wasteCause,
       );
       await _dao.deleteItem(id);
       runInAction(() {
@@ -339,7 +373,13 @@ class InventoryFormStore {
     } on BusinessException catch (e) {
       if (e.code == 'ERR_INVENTORY_VERSION_CONFLICT') {
         await _dao.updateSyncStatus(id, SyncStatus.conflict);
-        await _buildConflict(local: previous, itemId: id);
+        await _buildConflict(
+          local: previous,
+          itemId: id,
+          reason: reason,
+          wasteCause: wasteCause,
+          isDelete: true,
+        );
         runInAction(() => _isSaving.value = false);
         return false;
       }
@@ -359,7 +399,11 @@ class InventoryFormStore {
       });
       return false;
     } on NetworkException {
-      await _dao.enqueueDelete(previous, reason: reason);
+      await _dao.enqueueDelete(
+        previous,
+        reason: reason,
+        wasteCause: wasteCause,
+      );
       runInAction(() => _isSaving.value = false);
       return true;
     } on ApiException catch (e) {
@@ -371,8 +415,7 @@ class InventoryFormStore {
       return false;
     } catch (e) {
       runInAction(() {
-        _saveError.value =
-            ServerException('ERR_UNKNOWN', e.toString());
+        _saveError.value = ServerException('ERR_UNKNOWN', e.toString());
         _isSaving.value = false;
       });
       return false;
@@ -386,10 +429,21 @@ class InventoryFormStore {
     if (c == null) return false;
 
     if (resolution == ConflictResolution.useServer) {
-      await _dao.upsertItem(
-          c.server.copyWith(syncStatus: SyncStatus.synced));
+      await _dao.upsertItem(c.server.copyWith(syncStatus: SyncStatus.synced));
       runInAction(() => _conflict.value = null);
       return true;
+    }
+
+    // Luôn bắt đầu lại từ version server mới nhất; nếu không, lần retry giữ
+    // của tôi sẽ gửi lại baseVersion cũ và xung đột vô hạn.
+    await _dao.upsertItem(c.server.copyWith(syncStatus: SyncStatus.synced));
+    if (c.isDelete) {
+      final ok = await delete(
+        reason: c.reason ?? 'CORRECTED',
+        wasteCause: c.wasteCause,
+      );
+      if (ok) runInAction(() => _conflict.value = null);
+      return ok;
     }
 
     // keepMine — retry save
@@ -401,6 +455,8 @@ class InventoryFormStore {
       lowStockThreshold: c.local.lowStockThreshold,
       expiryDate: c.local.expiryDate,
       note: c.local.note,
+      reason: c.reason,
+      wasteCause: c.wasteCause,
     );
     if (ok) {
       runInAction(() => _conflict.value = null);
@@ -417,11 +473,19 @@ class InventoryFormStore {
   Future<void> _buildConflict({
     required InventoryItemModel local,
     required String itemId,
+    String? reason,
+    String? wasteCause,
+    bool isDelete = false,
   }) async {
     try {
       final server = await _api.getById(itemId);
-      runInAction(() => _conflict.value =
-          InventoryConflict(local: local, server: server));
+      runInAction(() => _conflict.value = InventoryConflict(
+            local: local,
+            server: server,
+            reason: reason,
+            wasteCause: wasteCause,
+            isDelete: isDelete,
+          ));
     } on ApiException catch (e) {
       runInAction(() => _saveError.value = e);
     }

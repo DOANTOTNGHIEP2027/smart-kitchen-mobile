@@ -7,6 +7,7 @@ import 'package:smart_kitchen_mobile/stores/session_store.dart';
 import '../data/inventory_api.dart';
 import '../data/inventory_dao.dart';
 import '../stores/inventory_form_store.dart';
+import '../stores/inventory_history_store.dart';
 import '../stores/inventory_store.dart';
 
 /// Binding cho `InventoryListScene` (FE-5 §13).
@@ -56,8 +57,7 @@ class InventoryFormBinding extends Bindings {
   @override
   void dependencies() {
     final id = Get.parameters['id'];
-    final mode =
-        id == null ? InventoryFormMode.create : InventoryFormMode.edit;
+    final mode = id == null ? InventoryFormMode.create : InventoryFormMode.edit;
     Get.lazyPut<InventoryFormStore>(
       () => InventoryFormStore(
         mode: mode,
@@ -66,6 +66,18 @@ class InventoryFormBinding extends Bindings {
         api: Get.find<InventoryApi>(),
         connectivity: Get.find<ConnectivityService>(),
         sessionStore: Get.find<SessionStore>(),
+      ),
+    );
+  }
+}
+
+class InventoryHistoryBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<InventoryHistoryStore>(
+      () => InventoryHistoryStore(
+        itemId: Get.parameters['id']!,
+        api: Get.find<InventoryApi>(),
       ),
     );
   }

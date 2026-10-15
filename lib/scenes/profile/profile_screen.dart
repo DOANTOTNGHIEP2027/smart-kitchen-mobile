@@ -55,24 +55,27 @@ class ProfileScreen extends StatelessWidget {
             AppCard(
               child: Column(
                 children: <Widget>[
-                    avatar == null || avatar.isEmpty
-                        ? CircleAvatar(
-                            radius: 44,
-                            backgroundColor: AppColors.primaryLight,
-                            child: Text(initial,
-                                style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primary)),
-                          )
-                        : AppCachedImage(
-                            url: avatar,
-                            width: 88,
-                            height: 88,
-                            shape: AppCachedImageShape.circle,
-                            placeholderIcon: Icons.person,
+                  avatar == null || avatar.isEmpty
+                      ? CircleAvatar(
+                          radius: 44,
+                          backgroundColor: AppColors.sageLight,
+                          child: Text(
+                            initial,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.sage,
+                            ),
                           ),
-                    const SizedBox(height: AppDimens.md),
+                        )
+                      : AppCachedImage(
+                          url: avatar,
+                          width: 88,
+                          height: 88,
+                          shape: AppCachedImageShape.circle,
+                          placeholderIcon: Icons.person,
+                        ),
+                  const SizedBox(height: AppDimens.md),
                   Text(user.displayName, style: AppTextStyles.titleMedium),
                   const SizedBox(height: AppDimens.xs),
                   Text(
@@ -101,6 +104,13 @@ class ProfileScreen extends StatelessWidget {
               iconColor: const Color(0xFFE85F2A),
               title: context.l10n.healthProfileTitle,
               onPressed: () => Get.toNamed(AppRoutes.profileHealth),
+            ),
+            const SizedBox(height: AppDimens.sm),
+            _ProfileNavigationTile(
+              icon: Icons.child_care_rounded,
+              iconColor: AppColors.sage,
+              title: 'Hồ sơ người phụ thuộc',
+              onPressed: () => Get.toNamed(AppRoutes.dependents),
             ),
             const SizedBox(height: AppDimens.sm),
             _ProfileNavigationTile(

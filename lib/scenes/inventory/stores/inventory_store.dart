@@ -48,11 +48,9 @@ class InventoryStore {
   final ObservableList<InventoryItemModel> _items =
       ObservableList<InventoryItemModel>();
   final Observable<String> _searchQuery = Observable<String>('');
-  final Observable<String?> _selectedCategory =
-      Observable<String?>(null);
+  final Observable<String?> _selectedCategory = Observable<String?>(null);
   final Observable<bool> _isSyncing = Observable<bool>(false);
-  final Observable<ApiException?> _syncError =
-      Observable<ApiException?>(null);
+  final Observable<ApiException?> _syncError = Observable<ApiException?>(null);
 
   /// Bounded LRU cho event id (at-least-once delivery từ BE — §9.3).
   final Set<String> _seenEventIds = <String>{};
@@ -72,8 +70,7 @@ class InventoryStore {
     final q = _searchQuery.value.toLowerCase();
     final cat = _selectedCategory.value;
     return _items.where((i) {
-      final matchesSearch =
-          q.isEmpty || i.name.toLowerCase().contains(q);
+      final matchesSearch = q.isEmpty || i.name.toLowerCase().contains(q);
       final matchesCategory = cat == null || i.category == cat;
       return matchesSearch && matchesCategory;
     }).toList(growable: false);
@@ -122,8 +119,7 @@ class InventoryStore {
 
   // ── Actions ───────────────────────────────────────────────────────────────
 
-  void setSearchQuery(String q) =>
-      runInAction(() => _searchQuery.value = q);
+  void setSearchQuery(String q) => runInAction(() => _searchQuery.value = q);
 
   void setCategory(String? cat) =>
       runInAction(() => _selectedCategory.value = cat);
@@ -151,8 +147,7 @@ class InventoryStore {
         final result = await _api.list(page: page, size: 100);
         for (final serverItem in result.items) {
           final local = await _dao.getById(serverItem.id);
-          if (local == null ||
-              local.syncStatus == SyncStatus.synced) {
+          if (local == null || local.syncStatus == SyncStatus.synced) {
             await _dao.upsertItem(serverItem);
           }
           seenIds.add(serverItem.id);
@@ -173,8 +168,8 @@ class InventoryStore {
       // Bất ngờ — log và làm như mọi ApiException.
       developer.log('syncFromServer lỗi ngoài dự kiến: $e',
           name: 'InventoryStore');
-      runInAction(() => _syncError.value =
-          ServerException('ERR_UNKNOWN', e.toString()));
+      runInAction(() =>
+          _syncError.value = ServerException('ERR_UNKNOWN', e.toString()));
     } finally {
       runInAction(() => _isSyncing.value = false);
     }
@@ -196,6 +191,10 @@ class InventoryStore {
           await _dao.removeQueuedOperation(operation.id);
           continue;
         }
+        final metadata = inventoryMutationMetadataFromQueue(
+          operation.deleteReason,
+          operation: operation.operation,
+        );
         try {
           switch (operation.operation) {
             case 'CREATE':
@@ -203,18 +202,28 @@ class InventoryStore {
               await _dao.remapAndMarkSynced(local.id, serverItem);
               break;
             case 'UPDATE':
-              final serverItem = await _api.update(
+              final payload = _payloadFor(local);
+              if (metadata.reason != null) {
+                payload['reason'] = metadata.reason;
+              }
+              if (metadata.wasteCause != null) {
+                payload['wasteCause'] = metadata.wasteCause;
+              }
+              final serverItem = await updateInventoryWithWasteFallback(
+                _api,
                 local.id,
                 version: operation.baseVersion,
-                payload: _payloadFor(local),
+                payload: payload,
               );
               await _dao.markSynced(local.id, serverItem);
               break;
             case 'DELETE':
-              await _api.delete(
+              await deleteInventoryWithWasteFallback(
+                _api,
                 local.id,
                 version: operation.baseVersion,
-                reason: operation.deleteReason ?? 'CORRECTED',
+                reason: metadata.reason ?? 'CORRECTED',
+                wasteCause: metadata.wasteCause,
               );
               await _dao.deleteItem(local.id);
               break;
@@ -315,21 +324,16 @@ class InventoryStore {
   }) async {
     final local = await _dao.getById(remote.id);
     final isOwnEcho = actorId == _session.currentUser?.id;
-    if (local != null &&
-        local.syncStatus != SyncStatus.synced &&
-        !isOwnEcho) {
+    if (local != null && local.syncStatus != SyncStatus.synced && !isOwnEcho) {
       return; // guard D12 — không ghi đè optimistic row đang pending
     }
-    await _dao.upsertItem(
-        remote.copyWith(syncStatus: SyncStatus.synced));
+    await _dao.upsertItem(remote.copyWith(syncStatus: SyncStatus.synced));
   }
 
   Future<void> _applyRemoteDelete(String id, {String? actorId}) async {
     final local = await _dao.getById(id);
     final isOwnEcho = actorId == _session.currentUser?.id;
-    if (local != null &&
-        local.syncStatus != SyncStatus.synced &&
-        !isOwnEcho) {
+    if (local != null && local.syncStatus != SyncStatus.synced && !isOwnEcho) {
       return; // cùng guard
     }
     await _dao.deleteItem(id);

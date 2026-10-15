@@ -32,7 +32,7 @@ abstract final class DemoFixtures {
           quantity: 0.6,
           unit: 'KG',
           category: 'Thịt cá',
-          expiryDate: '2026-09-22',
+          expiryDate: '2026-10-22',
           lowStockThreshold: 0.3,
         ),
         _inventoryItem(
@@ -41,7 +41,7 @@ abstract final class DemoFixtures {
           quantity: 4,
           unit: 'QUẢ',
           category: 'Rau củ',
-          expiryDate: '2026-09-24',
+          expiryDate: '2026-10-24',
           lowStockThreshold: 2,
         ),
         _inventoryItem(
@@ -52,6 +52,137 @@ abstract final class DemoFixtures {
           category: 'Thực phẩm khô',
           lowStockThreshold: 0.5,
         ),
+        _inventoryItem(
+          id: 'demo-inventory-trung-ga',
+          name: 'Trứng gà',
+          quantity: 10,
+          unit: 'QUẢ',
+          category: 'Trứng sữa',
+          expiryDate: '2026-10-25',
+          lowStockThreshold: 4,
+        ),
+        _inventoryItem(
+          id: 'demo-inventory-hanh-la',
+          name: 'Hành lá',
+          quantity: 0.1,
+          unit: 'KG',
+          category: 'Rau củ',
+          expiryDate: '2026-10-18',
+          lowStockThreshold: 0.05,
+        ),
+        _inventoryItem(
+          id: 'demo-inventory-nuoc-mam',
+          name: 'Nước mắm',
+          quantity: 0.5,
+          unit: 'L',
+          category: 'Gia vị',
+          lowStockThreshold: 0.2,
+        ),
+        _inventoryItem(
+          id: 'demo-inventory-thit-bo',
+          name: 'Thịt bò',
+          quantity: 0.5,
+          unit: 'KG',
+          category: 'Thịt cá',
+          expiryDate: '2026-10-20',
+          lowStockThreshold: 0.2,
+        ),
+        _inventoryItem(
+          id: 'demo-inventory-dau-hu',
+          name: 'Đậu hũ',
+          quantity: 4,
+          unit: 'MIẾNG',
+          category: 'Thực phẩm khô',
+          expiryDate: '2026-10-19',
+          lowStockThreshold: 2,
+        ),
+      ];
+
+  static List<Map<String, dynamic>> shoppingItems() => <Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': 'demo-shop-001',
+          'shoppingListId': null,
+          'name': 'Nước dừa',
+          'quantity': 200.0,
+          'unit': 'ML',
+          'displayQuantity': 200.0,
+          'displayUnit': 'ML',
+          'category': 'Gia vị',
+          'status': 'PENDING',
+          'source': 'AUTO',
+          'version': 1,
+          'createdBy': ownerId,
+          'createdAt': '2026-10-14T08:00:00.000Z',
+          'updatedAt': '2026-10-14T08:00:00.000Z',
+        },
+        <String, dynamic>{
+          'id': 'demo-shop-002',
+          'shoppingListId': null,
+          'name': 'Me chua',
+          'quantity': 30.0,
+          'unit': 'G',
+          'displayQuantity': 30.0,
+          'displayUnit': 'G',
+          'category': 'Rau củ',
+          'status': 'PENDING',
+          'source': 'AUTO',
+          'version': 1,
+          'createdBy': ownerId,
+          'createdAt': '2026-10-14T08:05:00.000Z',
+          'updatedAt': '2026-10-14T08:05:00.000Z',
+        },
+        <String, dynamic>{
+          'id': 'demo-shop-003',
+          'shoppingListId': null,
+          'name': 'Ức gà',
+          'quantity': 400.0,
+          'unit': 'G',
+          'displayQuantity': 400.0,
+          'displayUnit': 'G',
+          'category': 'Thịt cá',
+          'status': 'COMPLETED',
+          'source': 'MANUAL',
+          'version': 1,
+          'createdBy': ownerId,
+          'createdAt': '2026-10-13T09:00:00.000Z',
+          'updatedAt': '2026-10-14T10:00:00.000Z',
+        },
+        <String, dynamic>{
+          'id': 'demo-shop-004',
+          'shoppingListId': null,
+          'name': 'Trứng gà',
+          'quantity': 6.0,
+          'unit': 'QUẢ',
+          'displayQuantity': 6.0,
+          'displayUnit': 'QUẢ',
+          'category': 'Trứng sữa',
+          'status': 'PENDING',
+          'source': 'MANUAL',
+          'version': 1,
+          'createdBy': ownerId,
+          'createdAt': '2026-10-15T07:00:00.000Z',
+          'updatedAt': '2026-10-15T07:00:00.000Z',
+        },
+      ];
+
+  static Map<String, dynamic> budget() => <String, dynamic>{
+        'householdId': householdId,
+        'monthlyBudget': 3000000.0,
+        'currentMonthSpent': 850000.0,
+        'currency': 'VND',
+        'updatedAt': '2026-10-01T00:00:00.000Z',
+      };
+
+  static List<Map<String, dynamic>> dependents() => <Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': 'demo-dep-0001',
+          'guardianUserId': ownerId,
+          'guardianActive': true,
+          'displayName': 'Bé An',
+          'dateOfBirth': '2020-05-15',
+          'dietType': 'NONE',
+          'allergens': <Map<String, dynamic>>[allergens[2]],
+        },
       ];
 
   static List<Map<String, dynamic>> suggestions() =>
@@ -135,6 +266,8 @@ abstract final class DemoFixtures {
         'calories': 430,
         'tags': <String>['Món Việt', 'Món kho'],
         'guideUrl': 'https://cookpad.com/vn/cong-thuc/25367356',
+        'thumbnailUrl':
+            'https://img-global.cpcdn.com/recipes/3214d0fc638cc726/1200x630cq80/photo.jpg',
         'steps': <Map<String, dynamic>>[
           <String, dynamic>{
             'step_number': 1,
@@ -168,6 +301,8 @@ abstract final class DemoFixtures {
         'calories': 280,
         'tags': <String>['Món Việt', 'Canh'],
         'guideUrl': 'https://cookpad.com/vn/cong-thuc/26161349',
+        'thumbnailUrl':
+            'https://img-global.cpcdn.com/recipes/4f2b81d272096273/1200x630cq80/photo.jpg',
         'steps': <Map<String, dynamic>>[
           <String, dynamic>{
             'step_number': 1,
@@ -201,6 +336,8 @@ abstract final class DemoFixtures {
         'calories': 520,
         'tags': <String>['Món Việt', 'Nhanh gọn'],
         'guideUrl': 'https://cookpad.com/vn/cong-thuc/25641161',
+        'thumbnailUrl':
+            'https://img-global.cpcdn.com/recipes/8ac54a782da2d5ce/1200x630cq80/photo.jpg',
         'steps': <Map<String, dynamic>>[
           <String, dynamic>{
             'step_number': 1,
@@ -219,6 +356,201 @@ abstract final class DemoFixtures {
           },
         ],
       },
+      'demo-recipe-thit-chay': <String, dynamic>{
+        'id': 'demo-recipe-thit-chay',
+        'recipeName': 'Món chay: Thịt chiên chua ngọt',
+        'description':
+            'Món chay thanh đạm, thơm ngon dễ làm với sốt chua ngọt đậm đà.',
+        'ingredients': <String>[
+          'Thịt chay',
+          'Ớt chuông xanh',
+          'Ớt chuông đỏ',
+          'Dưa leo',
+          'Tương cà',
+          'Dầu ăn',
+        ],
+        'prepTimeMinutes': 20,
+        'calories': 310,
+        'tags': <String>['Món chay', 'Chua ngọt'],
+        'guideUrl': 'https://cookpad.com/vn/cong-thuc/26503706',
+        'thumbnailUrl':
+            'https://img-global.cpcdn.com/recipes/a5f75709052152b7/1200x630cq80/photo.jpg',
+        'steps': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'step_number': 1,
+            'instruction':
+                'Thịt chay chiên sơ trước hoặc chiên nồi chiên không dầu 200 độ 8-10 phút.',
+            'duration_minutes': 8,
+          },
+          <String, dynamic>{
+            'step_number': 2,
+            'instruction': 'Làm nóng dầu, cho sốt tương cà đường chanh xào sệt.',
+            'duration_minutes': 5,
+          },
+          <String, dynamic>{
+            'step_number': 3,
+            'instruction':
+                'Cho ớt chuông, dưa leo và thịt chay vào đảo đều thấm sốt, rắc mè rang.',
+            'duration_minutes': 7,
+          },
+        ],
+      },
+      'demo-recipe-dau-hu': <String, dynamic>{
+        'id': 'demo-recipe-dau-hu',
+        'recipeName': 'Đậu hũ sốt nước mắm',
+        'description':
+            'Đậu hũ chiên giòn sốt nước mắm tỏi ớt thơm lừng, rất hao cơm.',
+        'ingredients': <String>[
+          'Đậu hũ chiên',
+          'Tỏi băm',
+          'Hành lá',
+          'Nước mắm tỏi ớt',
+          'Tương ớt',
+        ],
+        'prepTimeMinutes': 15,
+        'calories': 260,
+        'tags': <String>['Món Việt', 'Nhanh gọn', 'Món chay'],
+        'guideUrl': 'https://cookpad.com/vn/cong-thuc/25768325',
+        'thumbnailUrl':
+            'https://img-global.cpcdn.com/recipes/3214d0fc638cc726/1200x630cq80/photo.jpg',
+        'steps': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'step_number': 1,
+            'instruction': 'Đậu hũ cắt lát, chiên vàng giòn hai mặt.',
+            'duration_minutes': 7,
+          },
+          <String, dynamic>{
+            'step_number': 2,
+            'instruction':
+                'Phi thơm tỏi băm, cho nước mắm tỏi ớt và tương ớt vào nấu sôi nhẹ.',
+            'duration_minutes': 3,
+          },
+          <String, dynamic>{
+            'step_number': 3,
+            'instruction':
+                'Cho đậu hũ vào đảo đều cho thấm sốt, rắc hành lá và mè trắng.',
+            'duration_minutes': 5,
+          },
+        ],
+      },
+      'demo-recipe-muc-chien': <String, dynamic>{
+        'id': 'demo-recipe-muc-chien',
+        'recipeName': 'Mực chiên giòn sốt chua ngọt',
+        'description':
+            'Mực chiên giòn rụm kết hợp với sốt cà chua thanh dịu và hành tây ngọt mềm.',
+        'ingredients': <String>[
+          'Mực tẩm bột',
+          'Hành tây',
+          'Cà chua',
+          'Hành lá',
+          'Gia vị',
+        ],
+        'prepTimeMinutes': 25,
+        'calories': 380,
+        'tags': <String>['Hải sản', 'Món chiên'],
+        'guideUrl': 'https://cookpad.com/vn/cong-thuc/25190148',
+        'thumbnailUrl':
+            'https://img-global.cpcdn.com/recipes/8ac54a782da2d5ce/1200x630cq80/photo.jpg',
+        'steps': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'step_number': 1,
+            'instruction':
+                'Mực chiên vàng hai mặt, vớt ra để ráo dầu. Cà chua cắt múi cau.',
+            'duration_minutes': 10,
+          },
+          <String, dynamic>{
+            'step_number': 2,
+            'instruction':
+                'Phi thơm đầu hành, xào cà chua rồi cho mực vào đảo cùng sốt chua ngọt.',
+            'duration_minutes': 8,
+          },
+          <String, dynamic>{
+            'step_number': 3,
+            'instruction':
+                'Thêm hành tây xào vừa chín tới, rắc hành lá cắt khúc và hạt tiêu.',
+            'duration_minutes': 7,
+          },
+        ],
+      },
+      'demo-recipe-ech-xao': <String, dynamic>{
+        'id': 'demo-recipe-ech-xao',
+        'recipeName': 'Ếch xào sả ớt',
+        'description':
+            'Thịt ếch dai ngọt xào sả ớt nghệ cay nồng đậm vị dân dã.',
+        'ingredients': <String>[
+          'Thịt ếch',
+          'Sả băm',
+          'Ớt cay',
+          'Tỏi',
+          'Nước mắm',
+          'Nghệ',
+        ],
+        'prepTimeMinutes': 30,
+        'calories': 350,
+        'tags': <String>['Món Việt', 'Đậm đà'],
+        'guideUrl': 'https://cookpad.com/vn/cong-thuc/26456606',
+        'thumbnailUrl':
+            'https://img-global.cpcdn.com/recipes/31a3f80d22e4e54e/1200x630cq80/photo.jpg',
+        'steps': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'step_number': 1,
+            'instruction':
+                'Ếch làm sạch, cắt miếng vừa ăn, ướp nước mắm khoảng 15 phút.',
+            'duration_minutes': 10,
+          },
+          <String, dynamic>{
+            'step_number': 2,
+            'instruction': 'Chiên sơ thịt ếch cho hơi vàng rồi vớt ra.',
+            'duration_minutes': 10,
+          },
+          <String, dynamic>{
+            'step_number': 3,
+            'instruction':
+                'Phi thơm sả, ớt, tỏi, nghệ rồi cho ếch vào đảo đều ngấm gia vị.',
+            'duration_minutes': 10,
+          },
+        ],
+      },
+      'demo-recipe-canh-muc': <String, dynamic>{
+        'id': 'demo-recipe-canh-muc',
+        'recipeName': 'Canh Mực Nấu Lá É',
+        'description':
+            'Canh mực thanh mát mang đậm vị miền Trung, mực giòn ngọt cùng hương lá é thơm nồng đặc trưng.',
+        'ingredients': <String>[
+          'Mực sữa',
+          'Lá é',
+          'Cà chua',
+          'Thơm',
+          'Nước mắm',
+          'Hành tím',
+        ],
+        'prepTimeMinutes': 20,
+        'calories': 220,
+        'tags': <String>['Canh', 'Hải sản', 'Món Việt'],
+        'guideUrl': 'https://cookpad.com/vn/cong-thuc/24944014',
+        'thumbnailUrl':
+            'https://img-global.cpcdn.com/recipes/4f2b81d272096273/1200x630cq80/photo.jpg',
+        'steps': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'step_number': 1,
+            'instruction':
+                'Mực rửa sạch, cắt vừa ăn. Cà chua cắt múi cau, thơm cắt lát mỏng.',
+            'duration_minutes': 5,
+          },
+          <String, dynamic>{
+            'step_number': 2,
+            'instruction':
+                'Đun sôi nước, cho cà chua và thơm vào tạo vị chua thanh dịu.',
+            'duration_minutes': 8,
+          },
+          <String, dynamic>{
+            'step_number': 3,
+            'instruction':
+                'Thả mực vào nấu sôi chín tới, tắt bếp rồi cho lá é vò nhẹ vào.',
+            'duration_minutes': 7,
+          },
+        ],
+      },
     };
     return Map<String, dynamic>.from(
       recipes[recipeId] ?? recipes['demo-recipe-ca-kho']!,
@@ -232,11 +564,62 @@ abstract final class DemoFixtures {
       final date = monday.add(Duration(days: day));
       final dateText = _dateOnly(date);
       for (final mealTime in <String>['BREAKFAST', 'LUNCH', 'DINNER']) {
+        final dishes = <Map<String, dynamic>>[];
+        if (day == 0 && mealTime == 'LUNCH') {
+          dishes.add(<String, dynamic>{
+            'id': 'demo-dish-1',
+            'slotId': 'demo-slot-$dateText-LUNCH',
+            'sortOrder': 0,
+            'status': 'CONFIRMED',
+            'recipe': <String, dynamic>{
+              'recipeId': 'demo-recipe-ca-kho',
+              'recipeName': 'Cá lóc kho tộ',
+              'source': 'GENERATED',
+            },
+          });
+        } else if (day == 0 && mealTime == 'DINNER') {
+          dishes.add(<String, dynamic>{
+            'id': 'demo-dish-2',
+            'slotId': 'demo-slot-$dateText-DINNER',
+            'sortOrder': 0,
+            'status': 'CONFIRMED',
+            'recipe': <String, dynamic>{
+              'recipeId': 'demo-recipe-canh-chua',
+              'recipeName': 'Canh chua cá lóc',
+              'source': 'KB',
+            },
+          });
+        } else if (day == 1 && mealTime == 'LUNCH') {
+          dishes.add(<String, dynamic>{
+            'id': 'demo-dish-3',
+            'slotId': 'demo-slot-$dateText-LUNCH',
+            'sortOrder': 0,
+            'status': 'VOTING',
+            'recipe': <String, dynamic>{
+              'recipeId': 'demo-recipe-com-ga',
+              'recipeName': 'Cơm gà áp chảo',
+              'source': 'KB',
+            },
+          });
+        } else if (day == 2 && mealTime == 'DINNER') {
+          dishes.add(<String, dynamic>{
+            'id': 'demo-dish-4',
+            'slotId': 'demo-slot-$dateText-DINNER',
+            'sortOrder': 0,
+            'status': 'SUGGESTED',
+            'recipe': <String, dynamic>{
+              'recipeId': 'demo-recipe-ech-xao',
+              'recipeName': 'Ếch xào sả ớt',
+              'source': 'AI',
+            },
+          });
+        }
+
         slots.add(<String, dynamic>{
           'id': 'demo-slot-$dateText-$mealTime',
           'slotDate': dateText,
           'mealTime': mealTime,
-          'dishes': <Map<String, dynamic>>[],
+          'dishes': dishes,
         });
       }
     }

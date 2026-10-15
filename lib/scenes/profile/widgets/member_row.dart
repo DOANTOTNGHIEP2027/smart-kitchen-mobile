@@ -78,7 +78,7 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppDimens.sm, vertical: 2),
       decoration: BoxDecoration(
-        color: filled ? AppColors.primary : Colors.transparent,
+        color: filled ? AppColors.sage : Colors.transparent,
         borderRadius: BorderRadius.circular(AppDimens.radiusSm),
         border: filled ? null : Border.all(color: AppColors.border, width: 1),
       ),

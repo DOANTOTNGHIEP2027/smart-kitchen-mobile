@@ -25,6 +25,9 @@ abstract class AppRoutes {
   static const String profileAllergens = '/profile/allergens';
   static const String family = '/family';
   static const String memberDetail = '/family/:userId';
+  static const String dependents = '/dependents';
+  static const String dependentAdd = '/dependents/add';
+  static const String dependentDetail = '/dependents/:id';
 
   // Inventory (FE-5 #56 #58)
   static const String inventory = '/inventory';

@@ -5,6 +5,7 @@ import '../../../data/network/api_response.dart';
 import '../../../data/network/dio_client.dart';
 import '../domain/inventory_item.dart';
 import '../domain/inventory_mapper.dart';
+import '../domain/inventory_transaction.dart';
 
 /// Một trang danh sách inventory từ `GET /inventory-items`.
 class InventoryListPage {
@@ -17,6 +18,22 @@ class InventoryListPage {
   });
 
   final List<InventoryItemModel> items;
+  final int page;
+  final int size;
+  final int totalElements;
+  final int totalPages;
+}
+
+class InventoryTransactionPage {
+  const InventoryTransactionPage({
+    required this.items,
+    required this.page,
+    required this.size,
+    required this.totalElements,
+    required this.totalPages,
+  });
+
+  final List<InventoryTransactionModel> items;
   final int page;
   final int size;
   final int totalElements;
@@ -45,6 +62,11 @@ abstract interface class InventoryApi {
   });
   Future<InventoryItemModel> getById(String id);
   Future<InventoryListPage> list({int page = 0, int size = 100});
+  Future<InventoryTransactionPage> transactions(
+    String id, {
+    int page = 0,
+    int size = 20,
+  });
 }
 
 class InventoryApiImpl implements InventoryApi {
@@ -134,6 +156,40 @@ class InventoryApiImpl implements InventoryApi {
     });
   }
 
+  @override
+  Future<InventoryTransactionPage> transactions(
+    String id, {
+    int page = 0,
+    int size = 20,
+  }) {
+    return _unwrap(() async {
+      final res = await _client.dio.get<Map<String, dynamic>>(
+        '/api/v1/inventory-items/$id/transactions',
+        queryParameters: <String, dynamic>{'page': page, 'size': size},
+      );
+      final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
+        res.data ?? const <String, dynamic>{},
+        (Object? value) => Map<String, dynamic>.from(value! as Map),
+      );
+      if (!envelope.success || envelope.data == null) {
+        throw ServerException('ERR_UNKNOWN', 'Invalid success envelope');
+      }
+      final data = envelope.data!;
+      final items = (data['items'] as List<dynamic>? ?? const <dynamic>[])
+          .map((Object? value) => inventoryTransactionFromJson(
+                Map<String, dynamic>.from(value! as Map),
+              ))
+          .toList(growable: false);
+      return InventoryTransactionPage(
+        items: items,
+        page: (data['page'] as num?)?.toInt() ?? page,
+        size: (data['size'] as num?)?.toInt() ?? size,
+        totalElements: (data['totalElements'] as num?)?.toInt() ?? items.length,
+        totalPages: (data['totalPages'] as num?)?.toInt() ?? 0,
+      );
+    });
+  }
+
   /// Bọc call Dio để convert [DioException] → [ApiException] TRƯỚC khi ném ra
   /// ngoài. `ErrorMappingInterceptor` đã gắn `ApiException` vào `err.error`
   /// — ta có việc là đọc nó ra và ném tiếp với đúng kiểu.
@@ -155,5 +211,48 @@ class InventoryApiImpl implements InventoryApi {
       throw ServerException('ERR_UNKNOWN', 'Invalid success envelope');
     }
     return inventoryItemFromJson(envelope.data!);
+  }
+}
+
+bool isWasteCauseCompatibilityError(ApiException error) {
+  return error.code == 'ERR_VALIDATION_FAILED' &&
+      error.fieldErrors?.containsKey('wasteCause') == true;
+}
+
+Future<InventoryItemModel> updateInventoryWithWasteFallback(
+  InventoryApi api,
+  String id, {
+  required int version,
+  required Map<String, dynamic> payload,
+}) async {
+  try {
+    return await api.update(id, version: version, payload: payload);
+  } on ApiException catch (error) {
+    if (!payload.containsKey('wasteCause') ||
+        !isWasteCauseCompatibilityError(error)) {
+      rethrow;
+    }
+    final fallback = Map<String, dynamic>.from(payload)..remove('wasteCause');
+    return api.update(id, version: version, payload: fallback);
+  }
+}
+
+Future<void> deleteInventoryWithWasteFallback(
+  InventoryApi api,
+  String id, {
+  required int version,
+  required String reason,
+  String? wasteCause,
+}) async {
+  try {
+    await api.delete(
+      id,
+      version: version,
+      reason: reason,
+      wasteCause: wasteCause,
+    );
+  } on ApiException catch (error) {
+    if (wasteCause == null || !isWasteCauseCompatibilityError(error)) rethrow;
+    await api.delete(id, version: version, reason: reason);
   }
 }

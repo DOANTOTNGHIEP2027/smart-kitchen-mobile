@@ -22,7 +22,9 @@ import 'fixtures/demo_fixtures.dart';
 /// - Mã mời hợp lệ: `DEMO1234`. `EXPIRED1` → hết hạn. `RACED123` → bị dùng mất.
 /// - Mã mời do chính demo tạo ra khi tạo Nhà cũng dùng được ngay.
 class DemoBackendAdapter implements HttpClientAdapter {
-  DemoBackendAdapter();
+  DemoBackendAdapter() {
+    _initTransactions();
+  }
 
   static const String validInviteCode = 'DEMO1234';
   static const String expiredInviteCode = 'EXPIRED1';
@@ -47,6 +49,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
   final List<Map<String, dynamic>> _inventory = DemoFixtures.inventory()
       .map((item) => Map<String, dynamic>.from(item))
       .toList(growable: true);
+  final Map<String, List<Map<String, dynamic>>> _inventoryTransactions =
+      <String, List<Map<String, dynamic>>>{};
+  final Map<String, String> _processedInventory = <String, String>{};
   final Map<String, Map<String, dynamic>> _plans =
       <String, Map<String, dynamic>>{};
   final Map<String, Map<String, dynamic>> _votes =
@@ -57,10 +62,38 @@ class DemoBackendAdapter implements HttpClientAdapter {
   final Map<String, int?> _recipeRatings = <String, int?>{};
   final Map<String, DateTime> _recipeFavoritedAt = <String, DateTime>{};
   late Map<String, dynamic> _healthProfile = DemoFixtures.healthProfile();
-  var _inventorySequence = 4;
+
+  final List<Map<String, dynamic>> _shoppingItems = DemoFixtures.shoppingItems()
+      .map((item) => Map<String, dynamic>.from(item))
+      .toList(growable: true);
+  var _shopSequence = 5;
+  late Map<String, dynamic> _budget = DemoFixtures.budget();
+
+  final List<Map<String, dynamic>> _dependents = DemoFixtures.dependents()
+      .map((d) => Map<String, dynamic>.from(d))
+      .toList(growable: true);
+  var _depSequence = 2;
+
+  var _inventorySequence = 9;
   var _dishSequence = 1;
   var _voteSequence = 1;
   var _cookingSequence = 1;
+
+  void _initTransactions() {
+    for (final item in _inventory) {
+      final itemId = item['id'] as String;
+      final quantity = (item['quantity'] as num).toDouble();
+      _inventoryTransactions[itemId] = <Map<String, dynamic>>[
+        _transaction(
+          item,
+          reason: 'BOUGHT',
+          delta: quantity,
+          quantityAfter: quantity,
+          createdAt: '2026-10-14T08:00:00.000Z',
+        ),
+      ];
+    }
+  }
 
   @override
   Future<ResponseBody> fetch(
@@ -127,11 +160,14 @@ class DemoBackendAdapter implements HttpClientAdapter {
       return _ok(201, <String, dynamic>{
         'code': validInviteCode,
         'link': 'smartkitchen://join/$validInviteCode',
-        'expiresAt': DateTime.now().toUtc().add(const Duration(days: 3)).toIso8601String(),
+        'expiresAt': DateTime.now()
+            .toUtc()
+            .add(const Duration(days: 3))
+            .toIso8601String(),
       });
     }
-    final healthSummary = RegExp(r'^/api/v1/users/([^/]+)/health-summary$')
-        .firstMatch(path);
+    final healthSummary =
+        RegExp(r'^/api/v1/users/([^/]+)/health-summary$').firstMatch(path);
     if (healthSummary != null && method == 'GET') {
       return _ok(200, <String, dynamic>{
         'userId': healthSummary.group(1),
@@ -144,7 +180,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
       return switch (method) {
         'GET' => _listInventory(options),
         'POST' => _createInventory(body),
-        _ => _error(405, 'ERR_DEMO_METHOD', 'Phương thức này chưa được hỗ trợ trong bản demo.'),
+        _ => _error(405, 'ERR_DEMO_METHOD',
+            'Phương thức này chưa được hỗ trợ trong bản demo.'),
       };
     }
     if (path == '/api/v1/inventory-items/scan' && method == 'POST') {
@@ -193,14 +230,30 @@ class DemoBackendAdapter implements HttpClientAdapter {
         ],
       });
     }
-    final inventoryMatch = RegExp(r'^/api/v1/inventory-items/([^/]+)$')
-        .firstMatch(path);
+    final transactionMatch =
+        RegExp(r'^/api/v1/inventory-items/([^/]+)/transactions$')
+            .firstMatch(path);
+    if (transactionMatch != null && method == 'GET') {
+      return _listInventoryTransactions(
+        transactionMatch.group(1)!,
+        options,
+      );
+    }
+    final quickActionMatch =
+        RegExp(r'^/api/v1/inventory-items/([^/]+)/quick-action$')
+            .firstMatch(path);
+    if (quickActionMatch != null && method == 'POST') {
+      return _inventoryQuickAction(quickActionMatch.group(1)!, body);
+    }
+    final inventoryMatch =
+        RegExp(r'^/api/v1/inventory-items/([^/]+)$').firstMatch(path);
     if (inventoryMatch != null) {
       return switch (method) {
         'GET' => _getInventory(inventoryMatch.group(1)!),
         'PUT' => _updateInventory(inventoryMatch.group(1)!, body),
         'DELETE' => _deleteInventory(inventoryMatch.group(1)!, body),
-        _ => _error(405, 'ERR_DEMO_METHOD', 'Phương thức này chưa được hỗ trợ trong bản demo.'),
+        _ => _error(405, 'ERR_DEMO_METHOD',
+            'Phương thức này chưa được hỗ trợ trong bản demo.'),
       };
     }
 
@@ -284,11 +337,74 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (cookingAbandon != null && method == 'POST') {
       return _abandonCooking(cookingAbandon.group(1)!);
     }
-    final cookingSession = RegExp(r'^/api/v1/cooking/sessions/([^/]+)$')
-        .firstMatch(path);
+    final cookingSession =
+        RegExp(r'^/api/v1/cooking/sessions/([^/]+)$').firstMatch(path);
     if (cookingSession != null && method == 'GET') {
       return _getCookingSession(cookingSession.group(1)!);
     }
+
+    // ── Shopping (Demo Mode) ─────────────────────────────────────────
+    if (path == '/api/v1/shopping' && method == 'GET') {
+      return _listShopping();
+    }
+    if (path == '/api/v1/shopping/items' && method == 'POST') {
+      return _createShoppingItem(body);
+    }
+    final shoppingCompleteMatch =
+        RegExp(r'^/api/v1/shopping/items/([^/]+)/complete$').firstMatch(path);
+    if (shoppingCompleteMatch != null && method == 'POST') {
+      return _completeShoppingItem(shoppingCompleteMatch.group(1)!, body);
+    }
+    final shoppingDeleteMatch =
+        RegExp(r'^/api/v1/shopping/items/([^/]+)$').firstMatch(path);
+    if (shoppingDeleteMatch != null && method == 'DELETE') {
+      return _deleteShoppingItem(shoppingDeleteMatch.group(1)!);
+    }
+
+    // ── Budget (Demo Mode) ───────────────────────────────────────────
+    if (path == '/api/v1/households/me/budget') {
+      if (method == 'GET') return _ok(200, _budget);
+      if (method == 'PATCH') {
+        _budget = <String, dynamic>{
+          ..._budget,
+          ...body,
+          'updatedAt': DateTime.now().toUtc().toIso8601String(),
+        };
+        return _ok(200, _budget);
+      }
+    }
+
+    // ── Dependents (Demo Mode) ───────────────────────────────────────
+    if (path == '/api/v1/dependents') {
+      if (method == 'GET') return _ok(200, _dependents);
+      if (method == 'POST') return _createDependent(body);
+    }
+    final depGuardianMatch =
+        RegExp(r'^/api/v1/dependents/([^/]+)/guardian$').firstMatch(path);
+    if (depGuardianMatch != null && method == 'PATCH') {
+      return _changeDependentGuardian(depGuardianMatch.group(1)!, body);
+    }
+    final depHealthProfileMatch =
+        RegExp(r'^/api/v1/dependents/([^/]+)/health-profile$').firstMatch(path);
+    if (depHealthProfileMatch != null) {
+      if (method == 'GET') {
+        return _getDependentHealthProfile(depHealthProfileMatch.group(1)!);
+      }
+      if (method == 'PUT') {
+        return _upsertDependentHealthProfile(
+            depHealthProfileMatch.group(1)!, body);
+      }
+    }
+    final depAllergensMatch =
+        RegExp(r'^/api/v1/dependents/([^/]+)/allergens$').firstMatch(path);
+    if (depAllergensMatch != null && method == 'PUT') {
+      return _replaceDependentAllergens(depAllergensMatch.group(1)!, body);
+    }
+    final depMatch = RegExp(r'^/api/v1/dependents/([^/]+)$').firstMatch(path);
+    if (depMatch != null && method == 'GET') {
+      return _getDependent(depMatch.group(1)!);
+    }
+
     return null;
   }
 
@@ -298,6 +414,11 @@ class DemoBackendAdapter implements HttpClientAdapter {
     'demo-recipe-ca-kho',
     'demo-recipe-canh-chua',
     'demo-recipe-com-ga',
+    'demo-recipe-thit-chay',
+    'demo-recipe-dau-hu',
+    'demo-recipe-muc-chien',
+    'demo-recipe-ech-xao',
+    'demo-recipe-canh-muc',
   ];
 
   ResponseBody _listRecipes(RequestOptions options) {
@@ -306,18 +427,15 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final dietType = query['dietType'] as String?;
     final difficulty = query['difficulty'] as String?;
     final maxPrepTime = int.tryParse('${query['maxPrepTime'] ?? ''}');
-    final matches = _recipeIds
-        .map(_recipeResponse)
-        .where((recipe) {
-          final name = recipe['name'] as String;
-          final diets = (recipe['dietTypes'] as List<dynamic>).cast<String>();
-          return (search.isEmpty || name.toLowerCase().contains(search)) &&
-              (dietType == null || diets.contains(dietType)) &&
-              (difficulty == null || recipe['difficulty'] == difficulty) &&
-              (maxPrepTime == null ||
-                  (recipe['prepTimeMinutes'] as int? ?? 0) <= maxPrepTime);
-        })
-        .toList(growable: false);
+    final matches = _recipeIds.map(_recipeResponse).where((recipe) {
+      final name = recipe['name'] as String;
+      final diets = (recipe['dietTypes'] as List<dynamic>).cast<String>();
+      return (search.isEmpty || name.toLowerCase().contains(search)) &&
+          (dietType == null || diets.contains(dietType)) &&
+          (difficulty == null || recipe['difficulty'] == difficulty) &&
+          (maxPrepTime == null ||
+              (recipe['prepTimeMinutes'] as int? ?? 0) <= maxPrepTime);
+    }).toList(growable: false);
     return _ok(200, _recipePage(matches, options));
   }
 
@@ -347,7 +465,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (action == 'favorite') {
       final value = body['isFavorite'];
       if (value is! bool) {
-        return _error(400, 'ERR_VALIDATION_FAILED', 'Giá trị yêu thích không hợp lệ.');
+        return _error(
+            400, 'ERR_VALIDATION_FAILED', 'Giá trị yêu thích không hợp lệ.');
       }
       _recipeFavorites[recipeId] = value;
       if (value) {
@@ -374,7 +493,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final start = page * size;
     final end = start + size > all.length ? all.length : start + size;
     return <String, dynamic>{
-      'items': start >= all.length ? <Map<String, dynamic>>[] : all.sublist(start, end),
+      'items': start >= all.length
+          ? <Map<String, dynamic>>[]
+          : all.sublist(start, end),
       'page': page,
       'size': size,
       'totalElements': all.length,
@@ -397,9 +518,26 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final ingredients = (raw['ingredients'] as List<dynamic>)
         .map((name) => <String, dynamic>{'name': name})
         .toList(growable: false);
-    final dietTypes = recipeId == 'demo-recipe-com-ga'
-        ? <String>['NONE']
-        : <String>['NONE', 'PESCATARIAN'];
+    final dietTypes = switch (recipeId) {
+      'demo-recipe-thit-chay' || 'demo-recipe-dau-hu' => <String>[
+          'NONE',
+          'VEGETARIAN'
+        ],
+      'demo-recipe-ca-kho' ||
+      'demo-recipe-canh-chua' ||
+      'demo-recipe-canh-muc' ||
+      'demo-recipe-muc-chien' =>
+        <String>['NONE', 'PESCATARIAN'],
+      _ => <String>['NONE'],
+    };
+    final difficulty = switch (recipeId) {
+      'demo-recipe-dau-hu' ||
+      'demo-recipe-canh-muc' ||
+      'demo-recipe-com-ga' =>
+        'EASY',
+      'demo-recipe-ech-xao' => 'HARD',
+      _ => 'MEDIUM',
+    };
     return <String, dynamic>{
       'id': raw['id'],
       'householdId': null,
@@ -409,8 +547,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'prepTimeMinutes': raw['prepTimeMinutes'],
       'cookTimeMinutes': raw['prepTimeMinutes'],
       'serves': 4,
-      'difficulty': recipeId == 'demo-recipe-com-ga' ? 'EASY' : 'MEDIUM',
-      'thumbnailUrl': null,
+      'difficulty': difficulty,
+      'thumbnailUrl': raw['thumbnailUrl'],
       'ingredients': ingredients,
       'steps': steps,
       'nutrition': <String, dynamic>{'calories': raw['calories']},
@@ -468,7 +606,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   ResponseBody _sendOtp() {
     _otpSends++;
     if (_otpSends > 3) {
-      return _error(429, 'ERR_AUTH_OTP_LIMIT', 'Bạn đã yêu cầu OTP quá nhiều lần.');
+      return _error(
+          429, 'ERR_AUTH_OTP_LIMIT', 'Bạn đã yêu cầu OTP quá nhiều lần.');
     }
     return _ok(200, <String, dynamic>{
       'message': 'Nếu email này đã đăng ký, OTP đã được gửi',
@@ -477,7 +616,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
 
   ResponseBody _verifyOtp(Map<String, dynamic> body) {
     if ((body['otp'] as String? ?? '') != correctOtp) {
-      return _error(400, 'ERR_AUTH_OTP_INVALID', 'Mã OTP không đúng hoặc đã hết hạn.');
+      return _error(
+          400, 'ERR_AUTH_OTP_INVALID', 'Mã OTP không đúng hoặc đã hết hạn.');
     }
     _otpSends = 0;
     _email = body['email'] as String? ?? _email;
@@ -486,7 +626,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
 
   ResponseBody _login(Map<String, dynamic> body) {
     if (_failedLogins >= 3) {
-      return _error(429, 'ERR_AUTH_RATE_LIMIT', 'Bạn đã nhập sai quá nhiều lần. Hãy thử lại sau.');
+      return _error(429, 'ERR_AUTH_RATE_LIMIT',
+          'Bạn đã nhập sai quá nhiều lần. Hãy thử lại sau.');
     }
     if ((body['password'] as String? ?? '') != correctPassword) {
       _failedLogins++;
@@ -508,7 +649,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   /// nên không cần refresh (S8.10).
   ResponseBody _qrJoin(Map<String, dynamic> body) {
     final code = (body['inviteCode'] as String? ?? '').toUpperCase();
-    final failure = _inviteFailure(code, invalidCode: 'ERR_AUTH_INVITE_INVALID');
+    final failure =
+        _inviteFailure(code, invalidCode: 'ERR_AUTH_INVITE_INVALID');
     if (failure != null) return failure;
 
     _usedInviteCodes.add(code);
@@ -666,11 +808,16 @@ class DemoBackendAdapter implements HttpClientAdapter {
 
   ResponseBody _listInventory(RequestOptions options) {
     final page = int.tryParse('${options.queryParameters['page'] ?? 0}') ?? 0;
-    final size = int.tryParse('${options.queryParameters['size'] ?? 100}') ?? 100;
+    final size =
+        int.tryParse('${options.queryParameters['size'] ?? 100}') ?? 100;
     final start = page * size;
     final items = start >= _inventory.length
         ? const <Map<String, dynamic>>[]
-        : _inventory.skip(start).take(size).map(_copyMap).toList(growable: false);
+        : _inventory
+            .skip(start)
+            .take(size)
+            .map(_copyMap)
+            .toList(growable: false);
     return _ok(200, <String, dynamic>{
       'items': items,
       'page': page,
@@ -683,7 +830,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   ResponseBody _getInventory(String id) {
     final item = _inventory.where((item) => item['id'] == id).firstOrNull;
     return item == null
-        ? _error(404, 'ERR_INVENTORY_NOT_FOUND', 'Không tìm thấy mặt hàng trong kho.')
+        ? _error(404, 'ERR_INVENTORY_NOT_FOUND',
+            'Không tìm thấy mặt hàng trong kho.')
         : _ok(200, item);
   }
 
@@ -711,13 +859,20 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'updatedAt': now,
     };
     _inventory.add(item);
+    _recordInventoryTransaction(
+      item,
+      reason: 'BOUGHT',
+      delta: quantity,
+      quantityAfter: quantity,
+    );
     return _ok(201, item);
   }
 
   ResponseBody _updateInventory(String id, Map<String, dynamic> body) {
     final index = _inventory.indexWhere((item) => item['id'] == id);
     if (index < 0) {
-      return _error(404, 'ERR_INVENTORY_NOT_FOUND', 'Không tìm thấy mặt hàng trong kho.');
+      return _error(
+          404, 'ERR_INVENTORY_NOT_FOUND', 'Không tìm thấy mặt hàng trong kho.');
     }
     final previous = _inventory[index];
     final expectedVersion = (body['version'] as num?)?.toInt();
@@ -744,13 +899,21 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'updatedAt': DateTime.now().toUtc().toIso8601String(),
     };
     _inventory[index] = updated;
+    _recordInventoryTransaction(
+      updated,
+      reason: body['reason'] as String? ?? 'CORRECTED',
+      delta: quantity - (previous['quantity'] as num).toDouble(),
+      quantityAfter: quantity,
+      wasteCause: body['wasteCause'] as String?,
+    );
     return _ok(200, updated);
   }
 
   ResponseBody _deleteInventory(String id, Map<String, dynamic> body) {
     final index = _inventory.indexWhere((item) => item['id'] == id);
     if (index < 0) {
-      return _error(404, 'ERR_INVENTORY_NOT_FOUND', 'Mặt hàng này đã không còn trong kho.');
+      return _error(404, 'ERR_INVENTORY_NOT_FOUND',
+          'Mặt hàng này đã không còn trong kho.');
     }
     final expectedVersion = (body['version'] as num?)?.toInt();
     if (expectedVersion != _inventory[index]['version']) {
@@ -760,8 +923,131 @@ class DemoBackendAdapter implements HttpClientAdapter {
         'Mặt hàng đã được thay đổi ở nơi khác. Hãy tải lại và thử lại.',
       );
     }
-    _inventory.removeAt(index);
-    return _empty(204);
+    final item = _inventory.removeAt(index);
+    _recordInventoryTransaction(
+      item,
+      reason: body['reason'] as String? ?? 'CORRECTED',
+      delta: -(item['quantity'] as num).toDouble(),
+      quantityAfter: 0,
+      wasteCause: body['wasteCause'] as String?,
+    );
+    _processedInventory[id] = body['reason'] as String? ?? 'CORRECTED';
+    return _okEmpty(200);
+  }
+
+  ResponseBody _listInventoryTransactions(
+    String id,
+    RequestOptions options,
+  ) {
+    final item = _inventory.where((value) => value['id'] == id).firstOrNull;
+    if (item == null) {
+      return _error(
+          404, 'ERR_INVENTORY_NOT_FOUND', 'Không tìm thấy mặt hàng trong kho.');
+    }
+    final history = _inventoryTransactions.putIfAbsent(id, () {
+      return <Map<String, dynamic>>[
+        _transaction(
+          item,
+          reason: 'BOUGHT',
+          delta: (item['quantity'] as num).toDouble(),
+          quantityAfter: (item['quantity'] as num).toDouble(),
+          createdAt: item['createdAt'] as String,
+        ),
+      ];
+    });
+    final page = int.tryParse('${options.queryParameters['page'] ?? 0}') ?? 0;
+    final size = int.tryParse('${options.queryParameters['size'] ?? 20}') ?? 20;
+    final start = page * size;
+    final items = start >= history.length
+        ? const <Map<String, dynamic>>[]
+        : history.skip(start).take(size).map(_copyMap).toList(growable: false);
+    return _ok(200, <String, dynamic>{
+      'items': items,
+      'page': page,
+      'size': size,
+      'totalElements': history.length,
+      'totalPages': history.isEmpty ? 0 : (history.length / size).ceil(),
+    });
+  }
+
+  ResponseBody _inventoryQuickAction(String id, Map<String, dynamic> body) {
+    final action = body['action'] as String?;
+    if (action != 'MARK_USED' && action != 'DISCARD') {
+      return _error(400, 'ERR_VALIDATION_FAILED', 'Thao tác không hợp lệ.');
+    }
+    final index = _inventory.indexWhere((item) => item['id'] == id);
+    if (index < 0) {
+      final previousReason = _processedInventory[id];
+      if (previousReason == null) {
+        return _error(404, 'ERR_INVENTORY_NOT_FOUND',
+            'Mặt hàng này đã không còn trong kho.');
+      }
+      return _ok(200, <String, dynamic>{
+        'itemId': id,
+        'itemName': 'Mặt hàng',
+        'action': action,
+        'applied': false,
+        'transactionReason': previousReason,
+      });
+    }
+    final item = _inventory.removeAt(index);
+    final reason = action == 'MARK_USED' ? 'COOKED' : 'WASTE';
+    _recordInventoryTransaction(
+      item,
+      reason: reason,
+      delta: -(item['quantity'] as num).toDouble(),
+      quantityAfter: 0,
+    );
+    _processedInventory[id] = reason;
+    return _ok(200, <String, dynamic>{
+      'itemId': id,
+      'itemName': item['name'],
+      'action': action,
+      'applied': true,
+      'transactionReason': reason,
+    });
+  }
+
+  void _recordInventoryTransaction(
+    Map<String, dynamic> item, {
+    required String reason,
+    required double delta,
+    required double quantityAfter,
+    String? wasteCause,
+  }) {
+    final transaction = _transaction(
+      item,
+      reason: reason,
+      delta: delta,
+      quantityAfter: quantityAfter,
+      wasteCause: wasteCause,
+      createdAt: DateTime.now().toUtc().toIso8601String(),
+    );
+    _inventoryTransactions
+        .putIfAbsent(item['id'] as String, () => <Map<String, dynamic>>[])
+        .insert(0, transaction);
+  }
+
+  Map<String, dynamic> _transaction(
+    Map<String, dynamic> item, {
+    required String reason,
+    required double delta,
+    required double quantityAfter,
+    required String createdAt,
+    String? wasteCause,
+  }) {
+    return <String, dynamic>{
+      'id': 'demo-tx-${DateTime.now().microsecondsSinceEpoch}-$reason',
+      'inventoryItemId': item['id'],
+      'actorId': _userId,
+      'reason': reason,
+      'quantityDelta': delta,
+      'unit': item['unit'],
+      'quantityAfter': quantityAfter,
+      'note': null,
+      'wasteCause': wasteCause,
+      'createdAt': createdAt,
+    };
   }
 
   // ── Meal plan / vote ─────────────────────────────────────────────
@@ -782,7 +1068,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   }) {
     final plan = _plans[planId];
     if (plan == null) {
-      return _error(404, 'ERR_PLAN_NOT_FOUND', 'Không tìm thấy kế hoạch bữa ăn.');
+      return _error(
+          404, 'ERR_PLAN_NOT_FOUND', 'Không tìm thấy kế hoạch bữa ăn.');
     }
     final slot = _slotOf(plan, slotId);
     if (slot == null) {
@@ -802,13 +1089,15 @@ class DemoBackendAdapter implements HttpClientAdapter {
     }
     final dish = _dishOf(slot, dishId);
     if (dish == null) {
-      return _error(404, 'ERR_DISH_NOT_FOUND', 'Không tìm thấy món trong khung bữa ăn.');
+      return _error(
+          404, 'ERR_DISH_NOT_FOUND', 'Không tìm thấy món trong khung bữa ăn.');
     }
     if (method == 'PUT') {
       final recipeId = body['recipeId'] as String?;
       final recipeName = body['recipeName'] as String?;
       if (recipeId == null || recipeName == null) {
-        return _error(400, 'ERR_PLAN_INPUT', 'Cần chọn một món ăn trước khi xác nhận.');
+        return _error(
+            400, 'ERR_PLAN_INPUT', 'Cần chọn một món ăn trước khi xác nhận.');
       }
       dish
         ..['status'] = 'CONFIRMED'
@@ -826,7 +1115,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
       _votes.remove(dishId);
       return _empty(204);
     }
-    return _error(405, 'ERR_DEMO_METHOD', 'Phương thức này chưa được hỗ trợ trong bản demo.');
+    return _error(405, 'ERR_DEMO_METHOD',
+        'Phương thức này chưa được hỗ trợ trong bản demo.');
   }
 
   ResponseBody _routeVote({
@@ -841,16 +1131,22 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final slot = plan == null ? null : _slotOf(plan, slotId);
     final dish = slot == null ? null : _dishOf(slot, dishId);
     if (dish == null) {
-      return _error(404, 'ERR_DISH_NOT_FOUND', 'Không tìm thấy món để mở bình chọn.');
+      return _error(
+          404, 'ERR_DISH_NOT_FOUND', 'Không tìm thấy món để mở bình chọn.');
     }
     if (action == 'open' && method == 'POST') {
       if (_votes.containsKey(dishId)) {
-        return _error(409, 'ERR_PLAN_002', 'Phiên bình chọn cho món này đang mở.');
+        return _error(
+            409, 'ERR_PLAN_002', 'Phiên bình chọn cho món này đang mở.');
       }
       final session = <String, dynamic>{
         'sessionId': 'demo-vote-${_voteSequence++}',
-        'deadlineAt': DateTime.now().toUtc().add(const Duration(hours: 24)).toIso8601String(),
-        'suggestions': DemoFixtures.suggestions().map(_copyMap).toList(growable: false),
+        'deadlineAt': DateTime.now()
+            .toUtc()
+            .add(const Duration(hours: 24))
+            .toIso8601String(),
+        'suggestions':
+            DemoFixtures.suggestions().map(_copyMap).toList(growable: false),
         'counts': <String, int>{},
         'myVote': null,
         'closed': false,
@@ -865,27 +1161,34 @@ class DemoBackendAdapter implements HttpClientAdapter {
     }
     final session = _votes[dishId];
     if (session == null) {
-      return _error(404, 'ERR_VOTE_NOT_FOUND', 'Chưa có phiên bình chọn cho món này.');
+      return _error(
+          404, 'ERR_VOTE_NOT_FOUND', 'Chưa có phiên bình chọn cho món này.');
     }
     if (action == null && method == 'POST') {
       final recipeId = body['recipeId'] as String?;
       final suggestions = session['suggestions'] as List<dynamic>;
       final exists = suggestions.any(
-        (suggestion) => (suggestion as Map<String, dynamic>)['recipeId'] == recipeId,
+        (suggestion) =>
+            (suggestion as Map<String, dynamic>)['recipeId'] == recipeId,
       );
       if (recipeId == null || !exists) {
-        return _error(400, 'ERR_VOTE_CANDIDATE', 'Lựa chọn món ăn không hợp lệ.');
+        return _error(
+            400, 'ERR_VOTE_CANDIDATE', 'Lựa chọn món ăn không hợp lệ.');
       }
       final counts = session['counts'] as Map<String, int>;
       final oldVote = session['myVote'] as String?;
-      if (oldVote != null && oldVote != recipeId && (counts[oldVote] ?? 0) > 0) {
+      if (oldVote != null &&
+          oldVote != recipeId &&
+          (counts[oldVote] ?? 0) > 0) {
         counts[oldVote] = counts[oldVote]! - 1;
       }
       if (oldVote != recipeId) counts[recipeId] = (counts[recipeId] ?? 0) + 1;
       session['myVote'] = recipeId;
       return _ok(200, _voteResult(session));
     }
-    if (action == 'result' && method == 'GET') return _ok(200, _voteResult(session));
+    if (action == 'result' && method == 'GET') {
+      return _ok(200, _voteResult(session));
+    }
     if (action == 'close' && method == 'POST') {
       final winner = _winnerOf(session);
       final suggestion = (session['suggestions'] as List<dynamic>)
@@ -905,7 +1208,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
         'winnerRecipeId': winner,
       });
     }
-    return _error(405, 'ERR_DEMO_METHOD', 'Phương thức này chưa được hỗ trợ trong bản demo.');
+    return _error(405, 'ERR_DEMO_METHOD',
+        'Phương thức này chưa được hỗ trợ trong bản demo.');
   }
 
   Map<String, dynamic> _voteResult(Map<String, dynamic> session) {
@@ -926,8 +1230,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   }
 
   String _winnerOf(Map<String, dynamic> session) {
-    final suggestions = (session['suggestions'] as List<dynamic>)
-        .cast<Map<String, dynamic>>();
+    final suggestions =
+        (session['suggestions'] as List<dynamic>).cast<Map<String, dynamic>>();
     final counts = session['counts'] as Map<String, int>;
     var winner = suggestions.first['recipeId'] as String;
     var maxVotes = -1;
@@ -947,7 +1251,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   ResponseBody _startCooking(Map<String, dynamic> body) {
     final recipeId = body['recipeId'] as String?;
     if (recipeId == null) {
-      return _error(400, 'ERR_COOKING_INPUT', 'Cần chọn công thức trước khi bắt đầu nấu.');
+      return _error(400, 'ERR_COOKING_INPUT',
+          'Cần chọn công thức trước khi bắt đầu nấu.');
     }
     final recipe = DemoFixtures.recipe(recipeId);
     final session = <String, dynamic>{
@@ -969,7 +1274,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   ResponseBody _advanceCooking(String sessionId, Map<String, dynamic> body) {
     final session = _cookingSessions[sessionId];
     if (session == null) {
-      return _error(404, 'ERR_COOKING_NOT_FOUND', 'Không tìm thấy phiên nấu ăn.');
+      return _error(
+          404, 'ERR_COOKING_NOT_FOUND', 'Không tìm thấy phiên nấu ăn.');
     }
     final requestedStep = (body['step'] as num?)?.toInt();
     if (requestedStep == null ||
@@ -984,7 +1290,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   ResponseBody _completeCooking(String sessionId) {
     final session = _cookingSessions[sessionId];
     if (session == null) {
-      return _error(404, 'ERR_COOKING_NOT_FOUND', 'Không tìm thấy phiên nấu ăn.');
+      return _error(
+          404, 'ERR_COOKING_NOT_FOUND', 'Không tìm thấy phiên nấu ăn.');
     }
     session
       ..['status'] = 'COMPLETED'
@@ -996,7 +1303,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   ResponseBody _abandonCooking(String sessionId) {
     final session = _cookingSessions[sessionId];
     if (session == null) {
-      return _error(404, 'ERR_COOKING_NOT_FOUND', 'Không tìm thấy phiên nấu ăn.');
+      return _error(
+          404, 'ERR_COOKING_NOT_FOUND', 'Không tìm thấy phiên nấu ăn.');
     }
     session
       ..['status'] = 'ABANDONED'
@@ -1043,7 +1351,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
 
   Map<String, dynamic>? _dishOf(Map<String, dynamic> slot, String? dishId) {
     if (dishId == null) return null;
-    final dishes = (slot['dishes'] as List<dynamic>).cast<Map<String, dynamic>>();
+    final dishes =
+        (slot['dishes'] as List<dynamic>).cast<Map<String, dynamic>>();
     return dishes.where((dish) => dish['id'] == dishId).firstOrNull;
   }
 
@@ -1053,7 +1362,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   bool _isExpiringSoon(String? rawDate) {
     if (rawDate == null) return false;
     final date = DateTime.tryParse(rawDate);
-    return date != null && !date.isAfter(DateTime.now().add(const Duration(days: 3)));
+    return date != null &&
+        !date.isAfter(DateTime.now().add(const Duration(days: 3)));
   }
 
   String _currentWeekStart() {
@@ -1120,6 +1430,155 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'provider': _provider,
     });
     return '$header.$payload.demo-signature';
+  }
+
+  // ── Shopping Handlers ────────────────────────────────────────────
+
+  ResponseBody _listShopping() {
+    final byCategory = <String, List<Map<String, dynamic>>>{};
+    for (final item in _shoppingItems) {
+      final cat = item['category'] as String? ?? 'Khác';
+      byCategory
+          .putIfAbsent(cat, () => <Map<String, dynamic>>[])
+          .add(_copyMap(item));
+    }
+    final groups = byCategory.entries
+        .map((e) => <String, dynamic>{'category': e.key, 'items': e.value})
+        .toList(growable: false);
+    return _ok(200, <String, dynamic>{
+      'itemsByCategory': groups,
+    });
+  }
+
+  ResponseBody _createShoppingItem(Map<String, dynamic> body) {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final quantity = (body['quantity'] as num?)?.toDouble() ?? 1.0;
+    final unit = body['unit'] as String? ?? 'CÁI';
+    final item = <String, dynamic>{
+      'id': 'demo-shop-${_shopSequence++}',
+      'shoppingListId': null,
+      'name': body['name'] as String? ?? 'Món mới',
+      'quantity': quantity,
+      'unit': unit,
+      'displayQuantity': quantity,
+      'displayUnit': unit,
+      'category': body['category'] as String?,
+      'status': 'PENDING',
+      'source': 'MANUAL',
+      'version': 1,
+      'createdBy': _userId,
+      'createdAt': now,
+      'updatedAt': now,
+    };
+    _shoppingItems.add(item);
+    return _ok(201, item);
+  }
+
+  ResponseBody _completeShoppingItem(String id, Map<String, dynamic> body) {
+    final index = _shoppingItems.indexWhere((item) => item['id'] == id);
+    if (index < 0) {
+      return _error(
+          404, 'ERR_SHOPPING_NOT_FOUND', 'Không tìm thấy mục mua sắm.');
+    }
+    final item = _shoppingItems[index];
+    final currentStatus = item['status'] as String? ?? 'PENDING';
+    final newStatus = currentStatus == 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+    final updated = <String, dynamic>{
+      ...item,
+      'status': newStatus,
+      'version': (item['version'] as int? ?? 1) + 1,
+      'updatedAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    _shoppingItems[index] = updated;
+    return _ok(200, updated);
+  }
+
+  ResponseBody _deleteShoppingItem(String id) {
+    final index = _shoppingItems.indexWhere((item) => item['id'] == id);
+    if (index >= 0) {
+      _shoppingItems.removeAt(index);
+    }
+    return _ok(200, <String, dynamic>{'success': true});
+  }
+
+  // ── Dependent Handlers ───────────────────────────────────────────
+
+  ResponseBody _createDependent(Map<String, dynamic> body) {
+    final newDep = <String, dynamic>{
+      'id': 'demo-dep-${_depSequence++}',
+      'guardianUserId': _userId,
+      'guardianActive': true,
+      'displayName': body['displayName'] as String? ?? 'Thành viên nhỏ',
+      'dateOfBirth': body['dateOfBirth'] as String? ?? '2021-01-01',
+      'dietType': 'NONE',
+      'allergens': <Map<String, dynamic>>[],
+    };
+    _dependents.add(newDep);
+    return _ok(201, newDep);
+  }
+
+  ResponseBody _getDependent(String id) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep == null) {
+      return _error(
+          404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ người phụ thuộc.');
+    }
+    return _ok(200, dep);
+  }
+
+  ResponseBody _changeDependentGuardian(String id, Map<String, dynamic> body) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep == null) {
+      return _error(404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ.');
+    }
+    dep['guardianUserId'] = body['guardianUserId'];
+    return _ok(200, dep);
+  }
+
+  ResponseBody _getDependentHealthProfile(String id) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep == null) {
+      return _error(404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ.');
+    }
+    return _ok(200, <String, dynamic>{
+      'dependentId': id,
+      'targetDailyCalories': 1400,
+      'dietType': dep['dietType'] ?? 'NONE',
+      'heightCm': 110.0,
+      'weightKg': 20.0,
+      'allergens': dep['allergens'] ?? <dynamic>[],
+    });
+  }
+
+  ResponseBody _upsertDependentHealthProfile(
+      String id, Map<String, dynamic> body) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep != null) {
+      dep['dietType'] = body['dietType'] ?? dep['dietType'];
+    }
+    return _ok(200, <String, dynamic>{
+      'dependentId': id,
+      'targetDailyCalories': body['targetDailyCalories'] ?? 1400,
+      'dietType': body['dietType'] ?? 'NONE',
+      'heightCm': body['heightCm'] ?? 110.0,
+      'weightKg': body['weightKg'] ?? 20.0,
+      'allergens': dep?['allergens'] ?? <dynamic>[],
+    });
+  }
+
+  ResponseBody _replaceDependentAllergens(
+      String id, Map<String, dynamic> body) {
+    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
+    if (dep == null) {
+      return _error(404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ.');
+    }
+    final allergenIds =
+        (body['allergenIds'] as List<dynamic>?)?.cast<int>() ?? <int>[];
+    final matched = DemoFixtures.allergens
+        .where((a) => allergenIds.contains(a['id']))
+        .toList();
+    dep['allergens'] = matched;
+    return _ok(200, matched);
   }
 
   ResponseBody _ok(int status, Object? data) => _json(status, {

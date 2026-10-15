@@ -268,7 +268,7 @@ class _ActiveStepView extends StatelessWidget {
                             Text(
                               context.l10n.cookingStepLabel(store.viewedStep),
                               style: theme.textTheme.labelLarge?.copyWith(
-                                  color: AppColors.primaryDark,
+                                  color: AppColors.sage,
                                   fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: AppDimens.sm),

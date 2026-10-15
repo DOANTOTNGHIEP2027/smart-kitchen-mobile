@@ -10,6 +10,7 @@ abstract class AppDimens {
   static const double radiusSm = 8;
   static const double radiusMd = 12;
   static const double radiusLg = 20;
+  static const double radiusXl = 24;
 
   static const double buttonHeight = 48;
   static const double buttonSpinner = 20;
