@@ -46,7 +46,25 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
           icon: const Icon(Icons.refresh_rounded),
         ),
       ],
-      body: Observer(
+      body: Column(
+        children: <Widget>[
+          // #55: thao tác thêm bị server từ chối vì cùng key nhưng khác nội
+          // dung (offline-sync-contract.md §5) — báo người dùng.
+          Observer(
+            builder: (_) => store.error?.code == 'ERR_IDEMPOTENCY_KEY_REUSED'
+                ? Material(
+                    color: Colors.amber.shade100,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimens.md,
+                        vertical: AppDimens.sm,
+                      ),
+                      child: Text(context.l10n.syncIdempotencyKeyReused),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          Expanded(child: Observer(
         builder: (_) {
           if (store.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -221,6 +239,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
             ],
           );
         },
+      )),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'shopping-list-fab',

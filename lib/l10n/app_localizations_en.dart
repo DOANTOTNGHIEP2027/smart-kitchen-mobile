@@ -764,6 +764,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unavailable => 'Unavailable';
 
   @override
+  String get syncIdempotencyKeyReused =>
+      'An add action was already sent with different content — please check the list again.';
+
+  @override
   String get inventorySyncFailed => 'Could not sync — showing saved data.';
 
   @override

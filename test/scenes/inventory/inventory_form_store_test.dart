@@ -119,6 +119,8 @@ void main() {
       expect(await dao.getById('server-uuid'), isNotNull);
       final got = await dao.getById('server-uuid');
       expect(got!.syncStatus, SyncStatus.synced);
+      // #55: id tạm là idempotency key — queue phát lại dùng đúng id này.
+      expect(api.createIdempotencyKeys, <String?>['local-test']);
     });
 
     test('online fail → rollback: xoá temp row, saveError set', () async {

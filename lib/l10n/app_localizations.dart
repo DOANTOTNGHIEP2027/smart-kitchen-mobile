@@ -1509,6 +1509,12 @@ abstract class AppLocalizations {
   /// **'Unavailable'**
   String get unavailable;
 
+  /// No description provided for @syncIdempotencyKeyReused.
+  ///
+  /// In en, this message translates to:
+  /// **'An add action was already sent with different content — please check the list again.'**
+  String get syncIdempotencyKeyReused;
+
   /// No description provided for @inventorySyncFailed.
   ///
   /// In en, this message translates to:

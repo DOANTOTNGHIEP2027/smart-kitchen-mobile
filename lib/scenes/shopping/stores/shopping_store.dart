@@ -41,7 +41,8 @@ class ShoppingStore {
     final local = ShoppingItem(id: 'local-${now.microsecondsSinceEpoch}-${Random().nextInt(1 << 20)}', householdId: householdId, name: name.trim(), quantity: quantity, unit: unit, displayQuantity: quantity, displayUnit: unit, category: category?.trim().isEmpty == true ? null : category?.trim(), status: ShoppingItemStatus.pending, source: ShoppingItemSource.manual, version: 0, createdBy: _session.currentUser?.id, createdAt: now, updatedAt: now, syncStatus: ShoppingSyncStatus.pendingCreate);
     await _dao.upsert(local);
     if (!await _online()) { await _dao.enqueueCreate(local); return true; }
-    try { await _dao.remap(local.id, await _api.create(shoppingCreatePayload(local), householdId)); return true; }
+    // #55: id tạm là idempotency key — lần phát lại từ queue dùng đúng id này.
+    try { await _dao.remap(local.id, await _api.create(shoppingCreatePayload(local), householdId, idempotencyKey: local.id)); return true; }
     on NetworkException { await _dao.enqueueCreate(local); return true; }
     on ApiException catch (e) { await _dao.delete(local.id); runInAction(() => _error.value = e); return false; }
   }
@@ -78,7 +79,7 @@ class ShoppingStore {
           if (entry.operation == 'CREATE') {
             await _dao.remap(
               item.id,
-              await _api.create(shoppingCreatePayload(item), householdId),
+              await _api.create(shoppingCreatePayload(item), householdId, idempotencyKey: item.id),
             );
           } else {
             await _dao.upsert(
@@ -87,6 +88,16 @@ class ShoppingStore {
             );
           }
           await _dao.removeQueue(entry.id);
+        } on BusinessException catch (e) {
+          // #55: cùng key nhưng nội dung khác — không tự retry, báo người dùng.
+          // Bản đã tạo ở lần gửi đầu sẽ về qua list ở bước sync kế tiếp.
+          if (e.code == 'ERR_IDEMPOTENCY_KEY_REUSED') {
+            runInAction(() => _error.value = e);
+            await _dao.removeQueue(entry.id);
+            await _dao.delete(item.id);
+            continue;
+          }
+          break;
         } on ApiException {
           break;
         }

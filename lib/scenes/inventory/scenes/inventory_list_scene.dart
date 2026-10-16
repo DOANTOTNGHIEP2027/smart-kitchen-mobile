@@ -64,7 +64,13 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                     child: Row(
                       children: <Widget>[
                         Expanded(
-                            child: Text(context.l10n.inventorySyncFailed)),
+                          child: Text(
+                            store.syncError!.code ==
+                                    'ERR_IDEMPOTENCY_KEY_REUSED'
+                                ? context.l10n.syncIdempotencyKeyReused
+                                : context.l10n.inventorySyncFailed,
+                          ),
+                        ),
                         TextButton(
                           onPressed: () => store.syncFromServer(),
                           child: Text(context.l10n.retry),

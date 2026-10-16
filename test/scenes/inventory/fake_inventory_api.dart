@@ -21,8 +21,15 @@ class FakeInventoryApi implements InventoryApi {
   Object? onListError;
   Object? onTransactionsError;
 
+  /// Idempotency key nhận được ở các lần gọi [create], theo thứ tự (#55).
+  final List<String?> createIdempotencyKeys = <String?>[];
+
   @override
-  Future<InventoryItemModel> create(Map<String, dynamic> payload) async {
+  Future<InventoryItemModel> create(
+    Map<String, dynamic> payload, {
+    String? idempotencyKey,
+  }) async {
+    createIdempotencyKeys.add(idempotencyKey);
     if (onCreateError != null) throw onCreateError!;
     if (onCreate != null) return onCreate!(payload);
     throw UnimplementedError();
