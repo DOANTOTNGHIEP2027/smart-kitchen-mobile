@@ -757,6 +757,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get unavailable => 'Chưa khả dụng';
 
   @override
+  String get syncIdempotencyKeyReused =>
+      'Thao tác thêm này đã được gửi với nội dung khác — vui lòng kiểm tra lại danh sách.';
+
+  @override
   String get inventorySyncFailed =>
       'Không đồng bộ được — hiển thị dữ liệu đã lưu.';
 

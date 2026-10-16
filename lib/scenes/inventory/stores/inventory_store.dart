@@ -198,7 +198,12 @@ class InventoryStore {
         try {
           switch (operation.operation) {
             case 'CREATE':
-              final serverItem = await _api.create(_payloadFor(local));
+              // #55: id tạm của row PENDING_CREATE là idempotency key — cùng
+              // key mà form đã gửi lần đầu, nên timeout rồi phát lại không tạo trùng.
+              final serverItem = await _api.create(
+                _payloadFor(local),
+                idempotencyKey: local.id,
+              );
               await _dao.remapAndMarkSynced(local.id, serverItem);
               break;
             case 'UPDATE':
@@ -242,6 +247,16 @@ class InventoryStore {
             await _dao.updateSyncStatus(local.id, SyncStatus.conflict);
             await _dao.removeQueuedOperation(operation.id);
             continue;
+          }
+          // #55: request trước cùng key còn đang xử lý ở server — lỗi tạm,
+          // giữ queue và dừng như lỗi mạng, lần drain sau gửi lại.
+          if (e.code == 'ERR_IDEMPOTENCY_IN_PROGRESS') {
+            break;
+          }
+          // #55: cùng key nhưng nội dung khác — không tự retry, báo người dùng
+          // (offline-sync-contract.md §5). Rơi xuống nhánh chung bên dưới.
+          if (e.code == 'ERR_IDEMPOTENCY_KEY_REUSED') {
+            runInAction(() => _syncError.value = e);
           }
           // Lỗi nghiệp vụ khác không thể tự retry; giữ item được đánh dấu để
           // người dùng chỉnh lại, đồng thời bỏ queue tránh vòng lặp vô hạn.

@@ -390,6 +390,46 @@ void main() {
       expect(await dao.getById('local-1'), isNull);
       expect((await dao.getById('server-1'))!.syncStatus, SyncStatus.synced);
       expect(await dao.queuedOperations('h1'), isEmpty);
+      // #55: phát lại CREATE gửi id tạm làm X-Idempotency-Key.
+      expect(api.createIdempotencyKeys, <String?>['local-1']);
+    });
+
+    test('#55: ERR_IDEMPOTENCY_IN_PROGRESS → giữ queue, chờ lần drain sau',
+        () async {
+      final local = serverItem(id: 'local-3').copyWith(
+        version: 0,
+        syncStatus: SyncStatus.pendingCreate,
+      );
+      await dao.upsertItem(local);
+      await dao.enqueueCreate(local);
+      api.onCreateError = BusinessException(
+          'ERR_IDEMPOTENCY_IN_PROGRESS', 'still processing');
+
+      await store.drainSyncQueue();
+
+      expect(await dao.queuedOperations('h1'), hasLength(1));
+      expect((await dao.getById('local-3'))!.syncStatus,
+          SyncStatus.pendingCreate);
+      expect(store.syncError, isNull);
+    });
+
+    test('#55: ERR_IDEMPOTENCY_KEY_REUSED → báo người dùng, không tự retry',
+        () async {
+      final local = serverItem(id: 'local-4').copyWith(
+        version: 0,
+        syncStatus: SyncStatus.pendingCreate,
+      );
+      await dao.upsertItem(local);
+      await dao.enqueueCreate(local);
+      api.onCreateError =
+          BusinessException('ERR_IDEMPOTENCY_KEY_REUSED', 'reused');
+
+      await store.drainSyncQueue();
+
+      expect(store.syncError?.code, 'ERR_IDEMPOTENCY_KEY_REUSED');
+      expect(await dao.queuedOperations('h1'), isEmpty);
+      expect(
+          (await dao.getById('local-4'))!.syncStatus, SyncStatus.conflict);
     });
 
     test('mạng khôi phục → tự drain queue', () async {

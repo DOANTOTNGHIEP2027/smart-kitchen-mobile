@@ -8,7 +8,8 @@ import 'shopping_mapper.dart';
 
 abstract interface class ShoppingApi {
   Future<List<ShoppingItem>> list(String householdId);
-  Future<ShoppingItem> create(Map<String, dynamic> payload, String householdId);
+  /// [idempotencyKey]: header `X-Idempotency-Key` (#55, offline-sync-contract.md §5).
+  Future<ShoppingItem> create(Map<String, dynamic> payload, String householdId, {String? idempotencyKey});
   Future<ShoppingItem> toggle(String id, int version, String householdId);
 }
 
@@ -26,8 +27,9 @@ class ShoppingApiImpl implements ShoppingApi {
   });
 
   @override
-  Future<ShoppingItem> create(Map<String, dynamic> payload, String householdId) => _unwrap(() async {
-    final response = await _client.dio.post<Map<String, dynamic>>('/api/v1/shopping/items', data: payload);
+  Future<ShoppingItem> create(Map<String, dynamic> payload, String householdId, {String? idempotencyKey}) => _unwrap(() async {
+    final response = await _client.dio.post<Map<String, dynamic>>('/api/v1/shopping/items', data: payload,
+        options: idempotencyKey == null ? null : Options(headers: <String, dynamic>{'X-Idempotency-Key': idempotencyKey}));
     return shoppingItemFromJson(_data(response.data), householdId);
   });
 

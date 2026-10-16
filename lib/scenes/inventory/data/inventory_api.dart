@@ -48,7 +48,12 @@ class InventoryTransactionPage {
 /// ở [InventoryFormStore] không bao giờ match — rollback/conflict dialog
 /// không chạy. Đây là Fix CRITICAL-1 của review.
 abstract interface class InventoryApi {
-  Future<InventoryItemModel> create(Map<String, dynamic> payload);
+  /// [idempotencyKey] (#55, offline-sync-contract.md §5): gửi ở header
+  /// `X-Idempotency-Key` để lần phát lại sau timeout không tạo bản trùng.
+  Future<InventoryItemModel> create(
+    Map<String, dynamic> payload, {
+    String? idempotencyKey,
+  });
   Future<InventoryItemModel> update(
     String id, {
     required int version,
@@ -75,11 +80,19 @@ class InventoryApiImpl implements InventoryApi {
   final DioClient _client;
 
   @override
-  Future<InventoryItemModel> create(Map<String, dynamic> payload) {
+  Future<InventoryItemModel> create(
+    Map<String, dynamic> payload, {
+    String? idempotencyKey,
+  }) {
     return _unwrap(() async {
       final res = await _client.dio.post<Map<String, dynamic>>(
         '/api/v1/inventory-items',
         data: payload,
+        options: idempotencyKey == null
+            ? null
+            : Options(headers: <String, dynamic>{
+                'X-Idempotency-Key': idempotencyKey,
+              }),
       );
       return _parseItem(res.data);
     });

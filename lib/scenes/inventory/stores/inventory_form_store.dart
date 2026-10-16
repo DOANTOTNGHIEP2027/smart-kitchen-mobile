@@ -188,7 +188,10 @@ class InventoryFormStore {
           return true;
         }
         try {
-          final serverItem = await _api.create(payload);
+          // #55: key = id tạm — lần phát lại từ queue (sau NetworkException)
+          // dùng đúng id này nên server nhận ra là cùng một thao tác.
+          final serverItem =
+              await _api.create(payload, idempotencyKey: tempId);
           // Remap: temp id không đổi được (PK) — xoá row temp + insert server
           await _dao.remapAndMarkSynced(tempId, serverItem);
           runInAction(() => _isSaving.value = false);
