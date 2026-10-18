@@ -1545,4 +1545,150 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recapStreakRetry => 'Retry streak';
+
+  @override
+  String get planningSlotConfigTitle => 'Meal times';
+
+  @override
+  String get planningSlotConfigTooltip => 'Configure meal times';
+
+  @override
+  String get planningSlotEveryDay => 'Every day';
+
+  @override
+  String get planningSlotByDay => 'Extra meals for one day';
+
+  @override
+  String get planningSlotByDayHint =>
+      'Meals here are ADDED on top of \"Every day\", they don\'t replace it.';
+
+  @override
+  String get planningSlotDefaultBanner =>
+      'Your household uses the 3 default meals (07:00 / 12:00 / 18:00). Edit below to customise.';
+
+  @override
+  String get planningSlotNotRetroactive =>
+      'Changes only apply to meals created from now on — existing weekly plans are not affected.';
+
+  @override
+  String get planningSlotAdd => 'Add meal';
+
+  @override
+  String get planningSlotEmptyDay => 'No extra meals for this day.';
+
+  @override
+  String get planningSlotSave => 'Save';
+
+  @override
+  String get planningSlotSaved => 'Meal times saved';
+
+  @override
+  String get planningSlotSaveFailed => 'Could not save meal times.';
+
+  @override
+  String get planningSlotErrorEmpty => 'Keep at least one meal.';
+
+  @override
+  String get planningSlotErrorTooMany => 'At most 10 meals per household.';
+
+  @override
+  String get planningSlotErrorDuplicate =>
+      'Two meals have the same type in one day group.';
+
+  @override
+  String get planningSlotErrorBlankLabel => 'Meal name must not be empty.';
+
+  @override
+  String get planningSlotFormAddTitle => 'Add meal';
+
+  @override
+  String get planningSlotFormEditTitle => 'Edit meal';
+
+  @override
+  String get planningSlotFormType => 'Meal type';
+
+  @override
+  String get planningSlotFormLabel => 'Meal name';
+
+  @override
+  String get planningSlotFormTime => 'Time';
+
+  @override
+  String get planningSlotTypeBreakfast => 'Breakfast';
+
+  @override
+  String get planningSlotTypeLunch => 'Lunch';
+
+  @override
+  String get planningSlotTypeDinner => 'Dinner';
+
+  @override
+  String get planningSlotTypeSnack => 'Snack';
+
+  @override
+  String get planningSlotTypeCustom => 'Custom';
+
+  @override
+  String get planningSlotEdit => 'Edit';
+
+  @override
+  String get planningSlotDelete => 'Delete';
+
+  @override
+  String get planningCancel => 'Cancel';
+
+  @override
+  String get planningConfirm => 'Confirm';
+
+  @override
+  String get planningGuestTitle => 'Guest diners';
+
+  @override
+  String get planningGuestTooltip => 'Guest diners this week';
+
+  @override
+  String get planningGuestScopeBanner =>
+      'Temporary guests — they apply to this week\'s meal plan only and are not saved to the family profile. For people who eat with you regularly, use Dependants in the family profile.';
+
+  @override
+  String get planningGuestEmpty => 'No guests for this week yet.';
+
+  @override
+  String get planningGuestAdd => 'Add guest';
+
+  @override
+  String get planningGuestUnnamed => 'Unnamed guest';
+
+  @override
+  String get planningGuestNoAllergen => 'No allergies';
+
+  @override
+  String get planningGuestNameOptional => 'Guest name (optional)';
+
+  @override
+  String get planningGuestAllergens => 'Allergies';
+
+  @override
+  String get planningGuestCatalogFailed => 'Could not load the allergen list.';
+
+  @override
+  String get planningGuestEditAllergens => 'Edit allergies';
+
+  @override
+  String get planningGuestDelete => 'Remove guest';
+
+  @override
+  String get planningGuestDeleteConfirm =>
+      'Remove this guest from this week\'s plan?';
+
+  @override
+  String get planningGuestRemovedHint =>
+      'Guest removed. Dishes blocked earlier are NOT unblocked automatically — generate new suggestions if you want to try again.';
+
+  @override
+  String get planningGuestUpdated =>
+      'Updated. AI suggestions for this week may have changed.';
+
+  @override
+  String get planningGuestSave => 'Save';
 }

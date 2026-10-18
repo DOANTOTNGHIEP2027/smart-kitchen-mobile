@@ -2882,6 +2882,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry streak'**
   String get recapStreakRetry;
+
+  /// No description provided for @planningSlotConfigTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal times'**
+  String get planningSlotConfigTitle;
+
+  /// No description provided for @planningSlotConfigTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure meal times'**
+  String get planningSlotConfigTooltip;
+
+  /// No description provided for @planningSlotEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get planningSlotEveryDay;
+
+  /// No description provided for @planningSlotByDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra meals for one day'**
+  String get planningSlotByDay;
+
+  /// No description provided for @planningSlotByDayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals here are ADDED on top of \"Every day\", they don\'t replace it.'**
+  String get planningSlotByDayHint;
+
+  /// No description provided for @planningSlotDefaultBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Your household uses the 3 default meals (07:00 / 12:00 / 18:00). Edit below to customise.'**
+  String get planningSlotDefaultBanner;
+
+  /// No description provided for @planningSlotNotRetroactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes only apply to meals created from now on — existing weekly plans are not affected.'**
+  String get planningSlotNotRetroactive;
+
+  /// No description provided for @planningSlotAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add meal'**
+  String get planningSlotAdd;
+
+  /// No description provided for @planningSlotEmptyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No extra meals for this day.'**
+  String get planningSlotEmptyDay;
+
+  /// No description provided for @planningSlotSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get planningSlotSave;
+
+  /// No description provided for @planningSlotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal times saved'**
+  String get planningSlotSaved;
+
+  /// No description provided for @planningSlotSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save meal times.'**
+  String get planningSlotSaveFailed;
+
+  /// No description provided for @planningSlotErrorEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep at least one meal.'**
+  String get planningSlotErrorEmpty;
+
+  /// No description provided for @planningSlotErrorTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'At most 10 meals per household.'**
+  String get planningSlotErrorTooMany;
+
+  /// No description provided for @planningSlotErrorDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Two meals have the same type in one day group.'**
+  String get planningSlotErrorDuplicate;
+
+  /// No description provided for @planningSlotErrorBlankLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal name must not be empty.'**
+  String get planningSlotErrorBlankLabel;
+
+  /// No description provided for @planningSlotFormAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add meal'**
+  String get planningSlotFormAddTitle;
+
+  /// No description provided for @planningSlotFormEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit meal'**
+  String get planningSlotFormEditTitle;
+
+  /// No description provided for @planningSlotFormType.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal type'**
+  String get planningSlotFormType;
+
+  /// No description provided for @planningSlotFormLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal name'**
+  String get planningSlotFormLabel;
+
+  /// No description provided for @planningSlotFormTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get planningSlotFormTime;
+
+  /// No description provided for @planningSlotTypeBreakfast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast'**
+  String get planningSlotTypeBreakfast;
+
+  /// No description provided for @planningSlotTypeLunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch'**
+  String get planningSlotTypeLunch;
+
+  /// No description provided for @planningSlotTypeDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner'**
+  String get planningSlotTypeDinner;
+
+  /// No description provided for @planningSlotTypeSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Snack'**
+  String get planningSlotTypeSnack;
+
+  /// No description provided for @planningSlotTypeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get planningSlotTypeCustom;
+
+  /// No description provided for @planningSlotEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get planningSlotEdit;
+
+  /// No description provided for @planningSlotDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get planningSlotDelete;
+
+  /// No description provided for @planningCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get planningCancel;
+
+  /// No description provided for @planningConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get planningConfirm;
+
+  /// No description provided for @planningGuestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest diners'**
+  String get planningGuestTitle;
+
+  /// No description provided for @planningGuestTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest diners this week'**
+  String get planningGuestTooltip;
+
+  /// No description provided for @planningGuestScopeBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary guests — they apply to this week\'s meal plan only and are not saved to the family profile. For people who eat with you regularly, use Dependants in the family profile.'**
+  String get planningGuestScopeBanner;
+
+  /// No description provided for @planningGuestEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No guests for this week yet.'**
+  String get planningGuestEmpty;
+
+  /// No description provided for @planningGuestAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add guest'**
+  String get planningGuestAdd;
+
+  /// No description provided for @planningGuestUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed guest'**
+  String get planningGuestUnnamed;
+
+  /// No description provided for @planningGuestNoAllergen.
+  ///
+  /// In en, this message translates to:
+  /// **'No allergies'**
+  String get planningGuestNoAllergen;
+
+  /// No description provided for @planningGuestNameOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest name (optional)'**
+  String get planningGuestNameOptional;
+
+  /// No description provided for @planningGuestAllergens.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies'**
+  String get planningGuestAllergens;
+
+  /// No description provided for @planningGuestCatalogFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the allergen list.'**
+  String get planningGuestCatalogFailed;
+
+  /// No description provided for @planningGuestEditAllergens.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit allergies'**
+  String get planningGuestEditAllergens;
+
+  /// No description provided for @planningGuestDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove guest'**
+  String get planningGuestDelete;
+
+  /// No description provided for @planningGuestDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this guest from this week\'s plan?'**
+  String get planningGuestDeleteConfirm;
+
+  /// No description provided for @planningGuestRemovedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest removed. Dishes blocked earlier are NOT unblocked automatically — generate new suggestions if you want to try again.'**
+  String get planningGuestRemovedHint;
+
+  /// No description provided for @planningGuestUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated. AI suggestions for this week may have changed.'**
+  String get planningGuestUpdated;
+
+  /// No description provided for @planningGuestSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get planningGuestSave;
 }
 
 class _AppLocalizationsDelegate

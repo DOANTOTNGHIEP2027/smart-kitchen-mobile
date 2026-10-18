@@ -1532,4 +1532,149 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get recapStreakRetry => 'Thử lại streak';
+
+  @override
+  String get planningSlotConfigTitle => 'Khung giờ bữa ăn';
+
+  @override
+  String get planningSlotConfigTooltip => 'Cấu hình khung giờ bữa';
+
+  @override
+  String get planningSlotEveryDay => 'Mọi ngày';
+
+  @override
+  String get planningSlotByDay => 'Bữa riêng theo ngày';
+
+  @override
+  String get planningSlotByDayHint =>
+      'Bữa ở đây được CỘNG THÊM vào nhóm \"Mọi ngày\", không thay thế.';
+
+  @override
+  String get planningSlotDefaultBanner =>
+      'Gia đình đang dùng 3 bữa mặc định (07:00 / 12:00 / 18:00). Chỉnh bên dưới để tuỳ biến.';
+
+  @override
+  String get planningSlotNotRetroactive =>
+      'Thay đổi chỉ áp dụng cho các bữa được tạo từ bây giờ — không ảnh hưởng lịch tuần đã có.';
+
+  @override
+  String get planningSlotAdd => 'Thêm bữa';
+
+  @override
+  String get planningSlotEmptyDay => 'Ngày này chưa có bữa riêng.';
+
+  @override
+  String get planningSlotSave => 'Lưu';
+
+  @override
+  String get planningSlotSaved => 'Đã lưu cấu hình bữa ăn';
+
+  @override
+  String get planningSlotSaveFailed => 'Không lưu được cấu hình bữa ăn.';
+
+  @override
+  String get planningSlotErrorEmpty => 'Cần giữ ít nhất 1 bữa.';
+
+  @override
+  String get planningSlotErrorTooMany => 'Tối đa 10 bữa cho mỗi gia đình.';
+
+  @override
+  String get planningSlotErrorDuplicate =>
+      'Có 2 bữa trùng loại trong cùng nhóm ngày.';
+
+  @override
+  String get planningSlotErrorBlankLabel => 'Tên bữa không được để trống.';
+
+  @override
+  String get planningSlotFormAddTitle => 'Thêm bữa';
+
+  @override
+  String get planningSlotFormEditTitle => 'Sửa bữa';
+
+  @override
+  String get planningSlotFormType => 'Loại bữa';
+
+  @override
+  String get planningSlotFormLabel => 'Tên bữa';
+
+  @override
+  String get planningSlotFormTime => 'Giờ';
+
+  @override
+  String get planningSlotTypeBreakfast => 'Bữa sáng';
+
+  @override
+  String get planningSlotTypeLunch => 'Bữa trưa';
+
+  @override
+  String get planningSlotTypeDinner => 'Bữa tối';
+
+  @override
+  String get planningSlotTypeSnack => 'Bữa phụ';
+
+  @override
+  String get planningSlotTypeCustom => 'Tự đặt tên';
+
+  @override
+  String get planningSlotEdit => 'Sửa';
+
+  @override
+  String get planningSlotDelete => 'Xoá';
+
+  @override
+  String get planningCancel => 'Huỷ';
+
+  @override
+  String get planningConfirm => 'Xác nhận';
+
+  @override
+  String get planningGuestTitle => 'Khách ăn cùng';
+
+  @override
+  String get planningGuestTooltip => 'Khách ăn cùng tuần này';
+
+  @override
+  String get planningGuestScopeBanner =>
+      'Khách ăn tạm thời — chỉ áp dụng cho kế hoạch tuần này, không lưu vào hồ sơ gia đình. Người ăn thường xuyên (con nhỏ, ông bà sống cùng) thì dùng mục Thành viên phụ thuộc trong hồ sơ gia đình.';
+
+  @override
+  String get planningGuestEmpty => 'Tuần này chưa có khách nào.';
+
+  @override
+  String get planningGuestAdd => 'Thêm khách';
+
+  @override
+  String get planningGuestUnnamed => 'Khách chưa đặt tên';
+
+  @override
+  String get planningGuestNoAllergen => 'Không dị ứng';
+
+  @override
+  String get planningGuestNameOptional => 'Tên khách (không bắt buộc)';
+
+  @override
+  String get planningGuestAllergens => 'Dị ứng';
+
+  @override
+  String get planningGuestCatalogFailed => 'Không tải được danh mục dị ứng.';
+
+  @override
+  String get planningGuestEditAllergens => 'Sửa dị ứng';
+
+  @override
+  String get planningGuestDelete => 'Xoá khách';
+
+  @override
+  String get planningGuestDeleteConfirm => 'Xoá khách này khỏi kế hoạch tuần?';
+
+  @override
+  String get planningGuestRemovedHint =>
+      'Đã xoá khách. Các món đã bị chặn trước đó KHÔNG tự mở lại — hãy sinh gợi ý mới nếu muốn thử lại.';
+
+  @override
+  String get planningGuestUpdated =>
+      'Đã cập nhật. Gợi ý AI của tuần này có thể đã thay đổi.';
+
+  @override
+  String get planningGuestSave => 'Lưu';
 }
