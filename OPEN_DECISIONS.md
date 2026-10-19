@@ -113,3 +113,17 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Làm trong task dọn profile/budget; (4) và Guard #16 sửa ở repo ai-native.
 - **Cần người quyết lại không:** Có — cập nhật Guard #16 theo quyết định parse ở trên.
+
+### OD-14 · Recap lãng phí & chi tiêu (weekly-recap §17, #133) — lệch thiết kế theo BE thật
+- **Ngày:** 2026-10-19 · **Task:** #133 recap · **Nhánh:** `feature/133_recap-spend-waste`
+- **Tình huống:** (1) `WeeklyRecapResponse` BE trả camelCase (`wasteItemCount`, `spendByCategory`, `spendTrend[].weekStart`…) — thiết kế §17.2 viết snake_case. (2) `HouseholdTier.fromApi` đổi sang không phân biệt hoa/thường để claim 'premium' ra `lockedNeutral` đúng Guard #20/FIX MEDIUM-A4 (ảnh hưởng nhẹ tier-gate: chỉ là hint). (3) 10 field mới của `WeeklyRecapSummary` có giá trị mặc định (0/null/unknown) để payload cũ và các test cũ không vỡ. (4) Sparkline: đường ngân sách vẽ theo ngân sách tuần gần nhất có giá trị; tuần `spendTotal == null` là cột rỗng viền đứt.
+- **Đã chọn:** Code theo BE thật. · **Theo:** §6.2 luật 1 + §6.0 quy tắc 3.
+- **Đảo ngược thế nào:** —
+- **Cần người quyết lại không:** Không.
+
+### OD-15 · Recap lãng phí & chi tiêu — 8 finding LOW còn lại sau 3 vòng review (gom vào task dọn riêng)
+- **Ngày:** 2026-10-19 · **Task:** #133 recap · **Nhánh:** `feature/133_recap-spend-waste`
+- **Tình huống:** (1) `_fetchStreak` chỉ bắt ApiException — payload streak méo làm streak kẹt loading. (2) Nên đưa chuyển lỗi parse xuống `RecapApi._unwrap` thay vì ở Store. (3) catch-all không log stack trace. (4) `canSetBudget`/`spendDetailGate` đọc role/tier không qua observable → không rebuild khi claim đổi giữa chừng. (5) Quay về từ nâng cấp → `fetchAll` hiện skeleton, mất vị trí cuộn. (6) Nhánh `ratio > 1` trong `SpendSection.colorFor` là code chết. (7) Nhãn tuần sparkline `fontSize: 10` cứng, không qua AppTextStyles. (8) Assert `BudgetPeriod.fromApi('monthly')` lạc chỗ; ngưỡng màu 0.8 chưa có test riêng. Ghi chú tài liệu: §17.4 ghi `TierGateRoutes` (không tồn tại) — code dùng `ProfileFamilyRoutes.tierUpgrade`; mock-up state 11 tô cam ở đúng 80% trong khi văn bản ghi `<= 0.8` xanh.
+- **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Làm trong task dọn recap; 2 ghi chú tài liệu sửa ở repo ai-native.
+- **Cần người quyết lại không:** Không.

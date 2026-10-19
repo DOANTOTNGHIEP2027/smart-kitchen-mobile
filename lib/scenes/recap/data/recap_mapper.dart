@@ -1,4 +1,6 @@
+import '../../../domain/shared/budget_period.dart';
 import '../domain/household_streak.dart';
+import '../domain/waste_spend.dart';
 import '../domain/recap_badge.dart';
 import '../domain/weekly_recap_summary.dart';
 
@@ -28,6 +30,28 @@ class RecapMapper {
         suggestedFocus: json['suggestedFocus'] as String?,
         isStale: json['isStale'] as bool,
         computedAt: DateTime.parse(json['computedAt'] as String),
+        // #133 — `?? 0` cho INTEGER: payload cũ chưa có key vẫn rơi đúng
+        // empty-state thay vì lỗi parse cả màn hình.
+        wasteItemCount: (json['wasteItemCount'] as num?)?.toInt() ?? 0,
+        wasteCauseBreakdown: WasteCauseBreakdown.fromJson(
+            json['wasteCauseBreakdown'] as Map<String, dynamic>?),
+        spendTotal: (json['spendTotal'] as num?)?.toDouble(),
+        spendItemCount: (json['spendItemCount'] as num?)?.toInt() ?? 0,
+        shoppingCompletedItemCount:
+            (json['shoppingCompletedItemCount'] as num?)?.toInt() ?? 0,
+        budgetAmount: (json['budgetAmount'] as num?)?.toDouble(),
+        budgetPeriod: BudgetPeriod.fromApi(json['budgetPeriod'] as String?),
+        budgetWeeklyAmount: (json['budgetWeeklyAmount'] as num?)?.toDouble(),
+        // PHÂN BIỆT null (BE gate / key vắng) với {} (rỗng thật) — Guard #14.
+        spendByCategory: json['spendByCategory'] == null
+            ? null
+            : (json['spendByCategory'] as Map<String, dynamic>).map(
+                (k, v) => MapEntry<String, double>(k, (v as num).toDouble())),
+        spendTrend: json['spendTrend'] == null
+            ? null
+            : (json['spendTrend'] as List<dynamic>)
+                .map((e) => SpendTrendPoint.fromJson(e as Map<String, dynamic>))
+                .toList(),
       );
 
   static MemberWeeklyInsight _memberFromJson(Map<String, dynamic> json) =>

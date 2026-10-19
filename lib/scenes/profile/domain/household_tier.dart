@@ -7,7 +7,9 @@ enum HouseholdTier {
   /// Claim thiếu/lạ — fail-safe về giới hạn THẤP NHẤT, không fail-open (Guard 2).
   unknown;
 
-  static HouseholdTier fromApi(String? raw) => switch (raw) {
+  /// Chuẩn hoá hoa/thường — claim 'premium' không được rơi về unknown rồi bị
+  /// mời nâng cấp nhầm (weekly-recap Guard #20).
+  static HouseholdTier fromApi(String? raw) => switch (raw?.toUpperCase()) {
         'FREE' => HouseholdTier.free,
         'PREMIUM' => HouseholdTier.premium,
         _ => HouseholdTier.unknown,

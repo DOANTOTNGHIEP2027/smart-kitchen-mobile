@@ -1,4 +1,6 @@
+import '../../../domain/shared/budget_period.dart';
 import 'recap_badge.dart';
+import 'waste_spend.dart';
 
 /// Insight cá nhân hoá theo từng thành viên đủ điều kiện AI tuần đó
 /// (weekly-insight-chain.md #85 §2.3 — pass-through VERBATIM từ AI, BE không
@@ -56,6 +58,16 @@ class WeeklyRecapSummary {
     required this.suggestedFocus,
     required this.isStale,
     required this.computedAt,
+    this.wasteItemCount = 0,
+    this.wasteCauseBreakdown = const WasteCauseBreakdown(),
+    this.spendTotal,
+    this.spendItemCount = 0,
+    this.shoppingCompletedItemCount = 0,
+    this.budgetAmount,
+    this.budgetPeriod = BudgetPeriod.unknown,
+    this.budgetWeeklyAmount,
+    this.spendByCategory,
+    this.spendTrend,
   });
 
   final String householdId;
@@ -87,4 +99,41 @@ class WeeklyRecapSummary {
   final bool isStale;
 
   final DateTime computedAt;
+
+  // ── Lãng phí & chi tiêu (#133, weekly-recap §17.1) — tính theo LỊCH TUẦN
+  // thật, khác cửa sổ rolling của các số ở trên (Guard #18). ──────────────
+
+  final int wasteItemCount;
+  final WasteCauseBreakdown wasteCauseBreakdown;
+
+  /// `null` = KHÔNG món nào được nhập giá — khác `0` (Guard #13).
+  final double? spendTotal;
+
+  /// Tử số độ phủ nhập giá.
+  final int spendItemCount;
+
+  /// Mẫu số độ phủ; `0` ⟹ ẩn hẳn dòng độ phủ (Guard #17).
+  final int shoppingCompletedItemCount;
+
+  /// Snapshot ngân sách lúc batch chạy; `null` = chưa đặt.
+  final double? budgetAmount;
+  final BudgetPeriod budgetPeriod;
+
+  /// Ngân sách BE đã QUY ĐỔI TUẦN — số dùng để so với [spendTotal]. FE không
+  /// tự chia lại.
+  final double? budgetWeeklyAmount;
+
+  /// `null` = BE ĐÃ GATE (không phải rỗng); `{}` = rỗng thật (Guard #14).
+  final Map<String, double>? spendByCategory;
+
+  /// `null` = BE đã gate.
+  final List<SpendTrendPoint>? spendTrend;
+
+  /// Tỉ lệ chi/ngân sách, giá trị GỐC (có thể > 1). `null` khi thiếu vế hoặc
+  /// ngân sách <= 0.
+  double? get spendRatio {
+    final s = spendTotal, b = budgetWeeklyAmount;
+    if (s == null || b == null || b <= 0) return null;
+    return s / b;
+  }
 }
