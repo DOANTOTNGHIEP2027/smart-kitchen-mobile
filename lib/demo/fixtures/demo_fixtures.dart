@@ -167,9 +167,10 @@ abstract final class DemoFixtures {
 
   static Map<String, dynamic> budget() => <String, dynamic>{
         'householdId': householdId,
-        'monthlyBudget': 3000000.0,
-        'currentMonthSpent': 850000.0,
+        'period': 'MONTHLY',
+        'amount': 3000000.0,
         'currency': 'VND',
+        'updatedBy': ownerId,
         'updatedAt': '2026-10-01T00:00:00.000Z',
       };
 

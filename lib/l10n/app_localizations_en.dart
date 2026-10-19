@@ -1956,4 +1956,66 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tierMemberViewerInfo =>
       'Role: View only (Remote Viewer) — no voting, no inventory edits, no member management.';
+
+  @override
+  String get budgetLoading => 'Loading budget…';
+
+  @override
+  String get budgetLoadFailed => 'Could not load the budget';
+
+  @override
+  String get budgetNotSet => 'No budget set for this household yet';
+
+  @override
+  String budgetCurrentWeekly(String amount) {
+    return 'Weekly budget: $amount';
+  }
+
+  @override
+  String budgetCurrentMonthly(String amount) {
+    return 'Monthly budget: $amount';
+  }
+
+  @override
+  String get budgetSet => 'Set budget';
+
+  @override
+  String get budgetEdit => 'Edit';
+
+  @override
+  String get budgetOwnerOnlyTooltip =>
+      'Only the household owner can set the budget';
+
+  @override
+  String get budgetLoadingTooltip => 'Loading the current budget…';
+
+  @override
+  String get budgetUpsell =>
+      'See spending by category & 8-week trend with Premium';
+
+  @override
+  String get budgetSheetTitle => 'Household budget';
+
+  @override
+  String get budgetPeriodWeek => 'Week';
+
+  @override
+  String get budgetPeriodMonth => 'Month';
+
+  @override
+  String get budgetAmountLabel => 'Amount';
+
+  @override
+  String get budgetAmountInvalid =>
+      'Enter an amount greater than 0 and at most 999,999,999,999';
+
+  @override
+  String get budgetNotRetroactive =>
+      'The budget applies to UPCOMING weeks. Recaps of weeks already summarised keep the budget at that time.';
+
+  @override
+  String get budgetSave => 'Save';
+
+  @override
+  String get budgetUpdated => 'Budget updated';
 }

@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 
 import '../../../data/network/api_response.dart';
 import '../../../data/network/dio_client.dart';
+import '../../../domain/shared/budget_period.dart';
+import '../domain/household_budget.dart';
 import '../domain/household_roster.dart';
 import '../domain/household_tier.dart';
 import '../domain/invite_result.dart';
@@ -19,6 +21,14 @@ abstract interface class FamilyApi {
 
   /// `PATCH /households/me/tier` — OWNER only, self-serve demo (KHÔNG billing).
   Future<TierUpdateResult> updateTier(HouseholdTier tier);
+
+  /// `GET /households/me/budget` — mọi thành viên. Chưa đặt → 200 field null.
+  Future<HouseholdBudget> getBudget();
+
+  /// `PATCH /households/me/budget` — OWNER only, upsert (KHÔNG có nhánh 404,
+  /// Guard #13). KHÔNG gửi `currency` — BE mặc định VND (Guard #15).
+  Future<HouseholdBudget> upsertBudget(
+      {required BudgetPeriod period, required double amount});
 }
 
 class FamilyApiImpl implements FamilyApi {
@@ -63,6 +73,23 @@ class FamilyApiImpl implements FamilyApi {
       data: <String, dynamic>{'tier': tier.toWire()},
     );
     return _unwrap(response, TierUpdateResult.fromJson);
+  }
+
+  @override
+  Future<HouseholdBudget> getBudget() async {
+    final response = await _client.dio
+        .get<Map<String, dynamic>>('/api/v1/households/me/budget');
+    return _unwrap(response, HouseholdBudget.fromJson);
+  }
+
+  @override
+  Future<HouseholdBudget> upsertBudget(
+      {required BudgetPeriod period, required double amount}) async {
+    final response = await _client.dio.patch<Map<String, dynamic>>(
+      '/api/v1/households/me/budget',
+      data: <String, dynamic>{'period': period.toWire(), 'amount': amount},
+    );
+    return _unwrap(response, HouseholdBudget.fromJson);
   }
 }
 

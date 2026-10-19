@@ -14,6 +14,7 @@ import 'profile_family_routes.dart';
 import 'stores/family_store.dart';
 import 'stores/form_status.dart';
 import 'widgets/change_role_sheet.dart';
+import 'widgets/household_budget_sheet.dart';
 import 'widgets/household_plan_strip.dart';
 import 'widgets/member_row.dart';
 import 'widgets/stale_data_banner.dart';
@@ -33,6 +34,8 @@ class _FamilyScreenState extends State<FamilyScreen> {
   void initState() {
     super.initState();
     store.loadRoster();
+    // Pipeline độc lập với roster (§19.3).
+    store.loadBudget();
   }
 
   @override
@@ -78,6 +81,18 @@ class _FamilyScreenState extends State<FamilyScreen> {
 
   void _openTierUpgrade() => Get.toNamed<void>(ProfileFamilyRoutes.tierUpgrade);
 
+  Future<void> _openBudgetSheet() async {
+    if (!store.canEditBudget) return;
+    // Sheet có thể bị vuốt đóng khi đang gửi (PopScope không chặn drag) →
+    // dispose bỏ qua clear; dọn lỗi cũ để lần mở sau không hiện banner cũ.
+    store.clearBudgetMutationStatus();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => HouseholdBudgetSheet(store: store),
+    );
+  }
+
   Future<void> _openChangeRole(HouseholdMember m) async {
     store.clearChangeRoleStatus();
     await showModalBottomSheet<void>(
@@ -114,7 +129,8 @@ class _FamilyScreenState extends State<FamilyScreen> {
           Expanded(
             child: Observer(
               builder: (_) => RefreshIndicator(
-                onRefresh: () => store.loadRoster(),
+                onRefresh: () => Future.wait(
+                    <Future<void>>[store.loadRoster(), store.loadBudget()]),
                 child: AppStateView<HouseholdRoster>(
                   state: store.rosterState,
                   onRetry: () => store.loadRoster(),
@@ -130,6 +146,7 @@ class _FamilyScreenState extends State<FamilyScreen> {
                           child: HouseholdPlanStrip(
                             store: store,
                             onChangePlan: _openTierUpgrade,
+                            onEditBudget: _openBudgetSheet,
                           ),
                         ),
                         ...roster.members.map(
