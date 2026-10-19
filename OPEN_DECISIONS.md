@@ -165,3 +165,17 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Task dọn hàng đợi shopping riêng.
 - **Cần người quyết lại không:** Không.
+
+### OD-21 · Gán người đi mua (#134, shopping-list-screen §9.5) — lệch thiết kế
+- **Ngày:** 2026-10-19 · **Task:** #134 · **Nhánh:** `feature/134_shopping-assignee`
+- **Tình huống:** (1) Thiết kế muốn chip assignee **disabled** khi offline; `ConnectivityService` chỉ có `isOnline()` async + stream 'có mạng lại', không có trạng thái online reactive → kiểm mạng lúc bấm, offline thì snackbar 'Cần mạng để giao việc' (store vẫn chặn lần 2). Chip vẫn disabled khi `isPendingSync` hoặc đang gửi (Guard #18). (2) Filter 'Của tôi' giữ ở state của scene (giống filter trạng thái hiện có) thay vì observable trong store; badge `assignedToMeCount` tính cục bộ trong store. (3) Áp blueprint B1: `FamilyBinding` đổi sang `fenix: true`; `ShoppingListBinding` lazyPut `FamilyStore` fenix + picker degrade khi chưa đăng ký. (4) Drift v6 thêm `assigned_to` (ALTER khi từ v4/v5). (5) `ERR_SHOP_ITEM_VERSION_CONFLICT` khi gán → sync lại + snackbar lỗi.
+- **Đã chọn:** Như trên. · **Theo:** §6.0 quy tắc 3.
+- **Đảo ngược thế nào:** Khi có observable online ở ConnectivityService, đổi sang disable chip + hint tĩnh.
+- **Cần người quyết lại không:** Không.
+
+### OD-22 · Gán người đi mua — finding LOW còn lại sau 3 vòng review
+- **Ngày:** 2026-10-19 · **Task:** #134 · **Nhánh:** `feature/134_shopping-assignee`
+- **Tình huống:** (1) Mất mạng sau khi mở picker → `assign()` trả false không lỗi, không snackbar 'Cần mạng'. (2) Chip disabled do `isPendingSync` nuốt tap im lặng — thiết kế §14 muốn hint 'Đang đồng bộ…'. (3) Dòng 'Tôi nhận' không lọc whitelist role — REMOTE_VIEWER tự gán sẽ ăn 400 + snackbar sai ngữ cảnh. (4) Chip 'Của tôi (0)' luôn hiện số, thiết kế chỉ hiện badge khi > 0. (5) Roster từ cache thiếu người → chip skeleton mãi, không đường nạp lại. (6) Điều kiện 'gán cho tôi' lặp ở scene + store (nên gom vào `ShoppingItem.isAssignedToMe`). (7) Thiếu test: 409 VERSION_CONFLICT khi gán, filter 'Của tôi' không đổi summary, mở picker từ /shopping không qua /family. **Ghi chú:** version guard của `sync()` chỉ áp cho món nhận PATCH gán trong lúc sync đang chạy (Demo Mode reset về v1 mỗi lần mở app nên guard chung theo version là sai).
+- **Đã chọn:** Hoãn — gom vào task dọn shopping. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Task dọn shopping riêng (gộp OD-20).
+- **Cần người quyết lại không:** Không.

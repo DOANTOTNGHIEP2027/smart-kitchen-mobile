@@ -4286,6 +4286,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This item was just updated by someone else — the price you entered was not saved. Untick and tick again to re-enter it.'**
   String get shoppingPriceNotSaved;
+
+  /// No description provided for @shoppingAssign.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign'**
+  String get shoppingAssign;
+
+  /// No description provided for @shoppingAssignedMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get shoppingAssignedMe;
+
+  /// No description provided for @shoppingAssigneeFormer.
+  ///
+  /// In en, this message translates to:
+  /// **'Former member'**
+  String get shoppingAssigneeFormer;
+
+  /// No description provided for @shoppingAssignNeedsNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'You need a connection to assign items'**
+  String get shoppingAssignNeedsNetwork;
+
+  /// No description provided for @shoppingAssigneeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This person can no longer be assigned — the member list was reloaded.'**
+  String get shoppingAssigneeInvalid;
+
+  /// No description provided for @shoppingAssignToMe.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll take it'**
+  String get shoppingAssignToMe;
+
+  /// No description provided for @shoppingUnassign.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassign'**
+  String get shoppingUnassign;
+
+  /// No description provided for @shoppingMineEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is assigned to you yet.'**
+  String get shoppingMineEmpty;
+
+  /// No description provided for @shoppingFilterMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine ({count})'**
+  String shoppingFilterMine(int count);
 }
 
 class _AppLocalizationsDelegate

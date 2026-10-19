@@ -2376,4 +2376,35 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get shoppingPriceNotSaved =>
       'This item was just updated by someone else — the price you entered was not saved. Untick and tick again to re-enter it.';
+
+  @override
+  String get shoppingAssign => 'Assign';
+
+  @override
+  String get shoppingAssignedMe => 'Me';
+
+  @override
+  String get shoppingAssigneeFormer => 'Former member';
+
+  @override
+  String get shoppingAssignNeedsNetwork =>
+      'You need a connection to assign items';
+
+  @override
+  String get shoppingAssigneeInvalid =>
+      'This person can no longer be assigned — the member list was reloaded.';
+
+  @override
+  String get shoppingAssignToMe => 'I\'ll take it';
+
+  @override
+  String get shoppingUnassign => 'Unassign';
+
+  @override
+  String get shoppingMineEmpty => 'Nothing is assigned to you yet.';
+
+  @override
+  String shoppingFilterMine(int count) {
+    return 'Mine ($count)';
+  }
 }

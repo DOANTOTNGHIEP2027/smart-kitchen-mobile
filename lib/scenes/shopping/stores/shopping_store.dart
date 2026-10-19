@@ -14,9 +14,11 @@ import '../data/shopping_mapper.dart';
 import '../domain/shopping_item.dart';
 
 class ShoppingStore {
-  ShoppingStore({required ShoppingDao dao, required ShoppingApi api, required ConnectivityService connectivity, required SessionStore session})
-      : _dao = dao, _api = api, _connectivity = connectivity, _session = session;
+  ShoppingStore({required ShoppingDao dao, required ShoppingApi api, required ConnectivityService connectivity, required SessionStore session, void Function()? onRosterStale})
+      : _dao = dao, _api = api, _connectivity = connectivity, _session = session, _onRosterStale = onRosterStale;
   final ShoppingDao _dao; final ShoppingApi _api; final ConnectivityService _connectivity; final SessionStore _session;
+  /// Gọi khi BE báo `ERR_SHOP_ASSIGNEE_INVALID` — roster cục bộ đã cũ (#134).
+  final void Function()? _onRosterStale;
   StreamSubscription<List<ShoppingItem>>? _itemsSub;
   StreamSubscription<void>? _connectivitySub;
   bool _draining = false;
@@ -24,12 +26,32 @@ class ShoppingStore {
   final Observable<bool> _loading = Observable(true);
   final Observable<ApiException?> _error = Observable(null);
   final Observable<bool> _priceNotSaved = Observable(false);
+  final ObservableSet<String> _assigningIds = ObservableSet<String>();
+  final Observable<ApiException?> _assignError = Observable(null);
+  /// Món nhận response PATCH gán trong lúc có `sync()` đang chạy — bản `list()`
+  /// của sync đó có thể chụp TRƯỚC PATCH, không được lùi row về. Không chặn
+  /// theo version cho MỌI món: server có thể trả version thấp hơn hợp lệ (Demo
+  /// Mode reset fixture khi mở lại app, DB reseed) — chặn chung kẹt row cũ mãi.
+  final Set<String> _assignedDuringSync = <String>{};
+  int _syncsRunning = 0;
   List<ShoppingItem> get items => List.unmodifiable(_items);
   bool get isLoading => _loading.value;
   ApiException? get error => _error.value;
   /// AM-TB-4 (§12): 1 toggle MANG GIÁ bị server từ chối vì món đã đổi ở nơi
   /// khác — giá vừa nhập chưa được lưu, phải báo người dùng.
   bool get priceNotSaved => _priceNotSaved.value;
+  /// Đang gửi PATCH gán cho món này — chặn bấm chồng.
+  bool isAssigning(String itemId) => _assigningIds.contains(itemId);
+  ApiException? get assignError => _assignError.value;
+
+  /// Badge "Của tôi": món CHƯA MUA giao cho chính mình — tính CỤC BỘ từ Drift,
+  /// không đọc `assignedToMeCount` của server (§9.5, Guard #16).
+  int get assignedToMeCount {
+    final me = _session.currentUser?.id;
+    if (me == null) return 0;
+    return _items.where((e) => e.assignedTo == me && e.status == ShoppingItemStatus.pending).length;
+  }
+
   List<ShoppingItem> get pending => _items.where((e) => e.status == ShoppingItemStatus.pending).toList();
   List<ShoppingItem> get completed => _items.where((e) => e.status == ShoppingItemStatus.completed).toList();
 
@@ -79,11 +101,51 @@ class ShoppingStore {
   static bool _isStaleToggle(ApiException e) =>
       e.code == 'ERR_SHOP_ITEM_VERSION_CONFLICT' || e.code == 'ERR_VALIDATION_FAILED';
 
+  /// Gán / bỏ gán (`assigneeId == null`) — ONLINE-ONLY, KHÔNG optimistic
+  /// (§9.5). Chỉ chạy trên row đã SYNCED (Guard #18): ghi đè row đang
+  /// PENDING_TOGGLE sẽ xoá mất lần tick của người dùng.
+  Future<bool> assign(ShoppingItem item, {required String? assigneeId}) async {
+    // Chiếm chỗ ĐỒNG BỘ trước mọi await — kiểm sau await thì 2 lần gọi sát
+    // nhau đều lọt qua, gửi 2 PATCH cùng version (lần sau ăn 409 giả).
+    if (_assigningIds.contains(item.id)) return false;
+    runInAction(() {
+      _assignError.value = null;
+      _assigningIds.add(item.id);
+    });
+    try {
+      final current = await _dao.getById(item.id);
+      if (current == null || current.syncStatus != ShoppingSyncStatus.synced) return false;
+      if (!await _online()) return false;
+      final server = await _api.assign(current.id, current.version, current.householdId, assigneeId: assigneeId);
+      // Guard #18 lần 3: row đã thành PENDING_* trong lúc PATCH bay — ghi đè
+      // sẽ xoá lần tick; để sync() kế tiếp hoà giải.
+      if ((await _dao.getById(item.id))?.syncStatus != ShoppingSyncStatus.synced) return true;
+      // Đánh dấu TRƯỚC khi ghi — vòng lặp của sync() có thể đọc row ngay sau upsert.
+      if (_syncsRunning > 0) _assignedDuringSync.add(item.id);
+      await _dao.upsert(server.copyWith(syncStatus: ShoppingSyncStatus.synced));
+      return true;
+    } on BusinessException catch (e) {
+      runInAction(() => _assignError.value = e);
+      if (e.code == 'ERR_SHOP_ASSIGNEE_INVALID') _onRosterStale?.call();
+      if (e.code == 'ERR_SHOP_ITEM_VERSION_CONFLICT') await sync();
+      return false;
+    } on ApiException catch (e) {
+      runInAction(() => _assignError.value = e);
+      return false;
+    } finally {
+      runInAction(() => _assigningIds.remove(item.id));
+    }
+  }
+
+  void clearAssignError() => runInAction(() => _assignError.value = null);
+
   Future<void> sync() async {
     final householdId = _session.householdId; if (householdId == null) return;
     await _drain(householdId);
-    try { for (final item in await _api.list(householdId)) { final local = await _dao.getById(item.id); if (local == null || !local.isPendingSync) await _dao.upsert(item); } }
+    _syncsRunning++;
+    try { for (final item in await _api.list(householdId)) { final local = await _dao.getById(item.id); if (local == null || (!local.isPendingSync && !(_assignedDuringSync.contains(item.id) && item.version < local.version))) await _dao.upsert(item); } }
     on ApiException catch (e) { runInAction(() => _error.value = e); }
+    finally { if (--_syncsRunning == 0) _assignedDuringSync.clear(); }
   }
   Future<void> _drain(String householdId) async {
     if (_draining) {

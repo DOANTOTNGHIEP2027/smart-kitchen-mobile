@@ -1592,6 +1592,12 @@ class $ShoppingListItemsTable extends ShoppingListItems
   late final GeneratedColumn<double> price = GeneratedColumn<double>(
       'price', aliasedName, true,
       type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _assignedToMeta =
+      const VerificationMeta('assignedTo');
+  @override
+  late final GeneratedColumn<String> assignedTo = GeneratedColumn<String>(
+      'assigned_to', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1610,7 +1616,8 @@ class $ShoppingListItemsTable extends ShoppingListItems
         createdAt,
         updatedAt,
         syncStatus,
-        price
+        price,
+        assignedTo
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1723,6 +1730,12 @@ class $ShoppingListItemsTable extends ShoppingListItems
       context.handle(
           _priceMeta, price.isAcceptableOrUnknown(data['price']!, _priceMeta));
     }
+    if (data.containsKey('assigned_to')) {
+      context.handle(
+          _assignedToMeta,
+          assignedTo.isAcceptableOrUnknown(
+              data['assigned_to']!, _assignedToMeta));
+    }
     return context;
   }
 
@@ -1766,6 +1779,8 @@ class $ShoppingListItemsTable extends ShoppingListItems
           .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
       price: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}price']),
+      assignedTo: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}assigned_to']),
     );
   }
 
@@ -1796,6 +1811,9 @@ class ShoppingListItem extends DataClass
 
   /// Giá VND người dùng nhập khi tick (#133) — `null` = chưa nhập (khác 0).
   final double? price;
+
+  /// UUID thành viên được giao mua (#134) — `null` = chưa giao.
+  final String? assignedTo;
   const ShoppingListItem(
       {required this.id,
       required this.householdId,
@@ -1813,7 +1831,8 @@ class ShoppingListItem extends DataClass
       required this.createdAt,
       required this.updatedAt,
       required this.syncStatus,
-      this.price});
+      this.price,
+      this.assignedTo});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1841,6 +1860,9 @@ class ShoppingListItem extends DataClass
     map['sync_status'] = Variable<String>(syncStatus);
     if (!nullToAbsent || price != null) {
       map['price'] = Variable<double>(price);
+    }
+    if (!nullToAbsent || assignedTo != null) {
+      map['assigned_to'] = Variable<String>(assignedTo);
     }
     return map;
   }
@@ -1871,6 +1893,9 @@ class ShoppingListItem extends DataClass
       syncStatus: Value(syncStatus),
       price:
           price == null && nullToAbsent ? const Value.absent() : Value(price),
+      assignedTo: assignedTo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assignedTo),
     );
   }
 
@@ -1895,6 +1920,7 @@ class ShoppingListItem extends DataClass
       updatedAt: serializer.fromJson<String>(json['updatedAt']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
       price: serializer.fromJson<double?>(json['price']),
+      assignedTo: serializer.fromJson<String?>(json['assignedTo']),
     );
   }
   @override
@@ -1918,6 +1944,7 @@ class ShoppingListItem extends DataClass
       'updatedAt': serializer.toJson<String>(updatedAt),
       'syncStatus': serializer.toJson<String>(syncStatus),
       'price': serializer.toJson<double?>(price),
+      'assignedTo': serializer.toJson<String?>(assignedTo),
     };
   }
 
@@ -1938,7 +1965,8 @@ class ShoppingListItem extends DataClass
           String? createdAt,
           String? updatedAt,
           String? syncStatus,
-          Value<double?> price = const Value.absent()}) =>
+          Value<double?> price = const Value.absent(),
+          Value<String?> assignedTo = const Value.absent()}) =>
       ShoppingListItem(
         id: id ?? this.id,
         householdId: householdId ?? this.householdId,
@@ -1958,6 +1986,7 @@ class ShoppingListItem extends DataClass
         updatedAt: updatedAt ?? this.updatedAt,
         syncStatus: syncStatus ?? this.syncStatus,
         price: price.present ? price.value : this.price,
+        assignedTo: assignedTo.present ? assignedTo.value : this.assignedTo,
       );
   ShoppingListItem copyWithCompanion(ShoppingListItemsCompanion data) {
     return ShoppingListItem(
@@ -1985,6 +2014,8 @@ class ShoppingListItem extends DataClass
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
       price: data.price.present ? data.price.value : this.price,
+      assignedTo:
+          data.assignedTo.present ? data.assignedTo.value : this.assignedTo,
     );
   }
 
@@ -2007,7 +2038,8 @@ class ShoppingListItem extends DataClass
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncStatus: $syncStatus, ')
-          ..write('price: $price')
+          ..write('price: $price, ')
+          ..write('assignedTo: $assignedTo')
           ..write(')'))
         .toString();
   }
@@ -2030,7 +2062,8 @@ class ShoppingListItem extends DataClass
       createdAt,
       updatedAt,
       syncStatus,
-      price);
+      price,
+      assignedTo);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2051,7 +2084,8 @@ class ShoppingListItem extends DataClass
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.syncStatus == this.syncStatus &&
-          other.price == this.price);
+          other.price == this.price &&
+          other.assignedTo == this.assignedTo);
 }
 
 class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
@@ -2072,6 +2106,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
   final Value<String> updatedAt;
   final Value<String> syncStatus;
   final Value<double?> price;
+  final Value<String?> assignedTo;
   final Value<int> rowid;
   const ShoppingListItemsCompanion({
     this.id = const Value.absent(),
@@ -2091,6 +2126,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     this.updatedAt = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.price = const Value.absent(),
+    this.assignedTo = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShoppingListItemsCompanion.insert({
@@ -2111,6 +2147,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     required String updatedAt,
     this.syncStatus = const Value.absent(),
     this.price = const Value.absent(),
+    this.assignedTo = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         householdId = Value(householdId),
@@ -2142,6 +2179,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     Expression<String>? updatedAt,
     Expression<String>? syncStatus,
     Expression<double>? price,
+    Expression<String>? assignedTo,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2162,6 +2200,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (price != null) 'price': price,
+      if (assignedTo != null) 'assigned_to': assignedTo,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2184,6 +2223,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
       Value<String>? updatedAt,
       Value<String>? syncStatus,
       Value<double?>? price,
+      Value<String?>? assignedTo,
       Value<int>? rowid}) {
     return ShoppingListItemsCompanion(
       id: id ?? this.id,
@@ -2203,6 +2243,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
       updatedAt: updatedAt ?? this.updatedAt,
       syncStatus: syncStatus ?? this.syncStatus,
       price: price ?? this.price,
+      assignedTo: assignedTo ?? this.assignedTo,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2261,6 +2302,9 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     if (price.present) {
       map['price'] = Variable<double>(price.value);
     }
+    if (assignedTo.present) {
+      map['assigned_to'] = Variable<String>(assignedTo.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2287,6 +2331,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
           ..write('updatedAt: $updatedAt, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('price: $price, ')
+          ..write('assignedTo: $assignedTo, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3442,6 +3487,7 @@ typedef $$ShoppingListItemsTableCreateCompanionBuilder
   required String updatedAt,
   Value<String> syncStatus,
   Value<double?> price,
+  Value<String?> assignedTo,
   Value<int> rowid,
 });
 typedef $$ShoppingListItemsTableUpdateCompanionBuilder
@@ -3463,6 +3509,7 @@ typedef $$ShoppingListItemsTableUpdateCompanionBuilder
   Value<String> updatedAt,
   Value<String> syncStatus,
   Value<double?> price,
+  Value<String?> assignedTo,
   Value<int> rowid,
 });
 
@@ -3527,6 +3574,9 @@ class $$ShoppingListItemsTableFilterComposer
 
   ColumnFilters<double> get price => $composableBuilder(
       column: $table.price, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get assignedTo => $composableBuilder(
+      column: $table.assignedTo, builder: (column) => ColumnFilters(column));
 }
 
 class $$ShoppingListItemsTableOrderingComposer
@@ -3590,6 +3640,9 @@ class $$ShoppingListItemsTableOrderingComposer
 
   ColumnOrderings<double> get price => $composableBuilder(
       column: $table.price, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get assignedTo => $composableBuilder(
+      column: $table.assignedTo, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ShoppingListItemsTableAnnotationComposer
@@ -3651,6 +3704,9 @@ class $$ShoppingListItemsTableAnnotationComposer
 
   GeneratedColumn<double> get price =>
       $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<String> get assignedTo => $composableBuilder(
+      column: $table.assignedTo, builder: (column) => column);
 }
 
 class $$ShoppingListItemsTableTableManager extends RootTableManager<
@@ -3698,6 +3754,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             Value<String> updatedAt = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<double?> price = const Value.absent(),
+            Value<String?> assignedTo = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ShoppingListItemsCompanion(
@@ -3718,6 +3775,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             updatedAt: updatedAt,
             syncStatus: syncStatus,
             price: price,
+            assignedTo: assignedTo,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -3738,6 +3796,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             required String updatedAt,
             Value<String> syncStatus = const Value.absent(),
             Value<double?> price = const Value.absent(),
+            Value<String?> assignedTo = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ShoppingListItemsCompanion.insert(
@@ -3758,6 +3817,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             updatedAt: updatedAt,
             syncStatus: syncStatus,
             price: price,
+            assignedTo: assignedTo,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

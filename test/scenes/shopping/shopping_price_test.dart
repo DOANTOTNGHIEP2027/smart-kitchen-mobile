@@ -56,6 +56,10 @@ class _FakeApi implements ShoppingApi {
       throw UnimplementedError();
 
   @override
+  Future<ShoppingItem> assign(String id, int version, String householdId, {required String? assigneeId}) =>
+      throw UnimplementedError();
+
+  @override
   Future<List<ShoppingItem>> list(String householdId) async => <ShoppingItem>[];
 }
 

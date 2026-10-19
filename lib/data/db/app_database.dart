@@ -23,6 +23,7 @@ part 'app_database.g.dart';
 /// - 4 (P1): thêm item và queue riêng cho Shopping offline-first.
 /// - 5 (#133): thêm cột `price` cho shopping_list_items. DB đi từ <4 tạo bảng
 ///   mới đã có cột này nên chỉ ALTER khi đi từ đúng v4.
+/// - 6 (#134): thêm cột `assigned_to` — ALTER khi đi từ v4 hoặc v5.
 @DriftDatabase(tables: <Type>[
   ReadCacheEntries,
   InventoryItems,
@@ -37,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -57,6 +58,10 @@ class AppDatabase extends _$AppDatabase {
           if (from == 4) {
             // #133 — giá khi tick hoàn thành món đi chợ.
             await m.addColumn(shoppingListItems, shoppingListItems.price);
+          }
+          if (from == 4 || from == 5) {
+            // #134 — người được giao mua.
+            await m.addColumn(shoppingListItems, shoppingListItems.assignedTo);
           }
         },
       );

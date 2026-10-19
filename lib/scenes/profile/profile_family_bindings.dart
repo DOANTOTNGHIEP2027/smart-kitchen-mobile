@@ -35,6 +35,9 @@ class FamilyBinding extends Bindings {
           Get.find<ReadCacheDao>(),
           Get.find<SessionStore>(),
         ),
+        // B1 (shopping-list-screen §9.6): sống qua điều hướng — /shopping dùng
+        // chung instance, pop /family không được xoá mất store.
+        fenix: true,
       );
     }
   }
