@@ -65,6 +65,12 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
           );
         }),
         IconButton(
+          key: const ValueKey<String>('meal-plan-repetition'),
+          tooltip: context.l10n.planningRepetitionTooltip,
+          icon: const Icon(Icons.bar_chart_rounded),
+          onPressed: () => Get.toNamed<void>(PlanningRoutes.repetitionSummary),
+        ),
+        IconButton(
           key: const ValueKey<String>('meal-plan-slot-config'),
           tooltip: context.l10n.planningSlotConfigTooltip,
           icon: const Icon(Icons.tune),

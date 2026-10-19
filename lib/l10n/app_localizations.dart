@@ -3146,6 +3146,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get planningGuestSave;
+
+  /// No description provided for @planningCandidateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified AI suggestions'**
+  String get planningCandidateTitle;
+
+  /// No description provided for @planningCandidateTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified AI suggestions'**
+  String get planningCandidateTooltip;
+
+  /// No description provided for @planningCandidateExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything below is a RAW suggestion from AI. The system then filters by allergies (mandatory) and ranks by diet, expiring food and variety — only the dish marked ⭐ is the FINAL pick confirmed by the algorithm.'**
+  String get planningCandidateExplainer;
+
+  /// No description provided for @planningCandidateEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No suggestions for this dish yet.'**
+  String get planningCandidateEmpty;
+
+  /// No description provided for @planningCandidateEmptyWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'No AI suggestions this week yet. Open a dish and pick suggestions to generate them.'**
+  String get planningCandidateEmptyWeek;
+
+  /// No description provided for @planningCandidateGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate AI suggestions'**
+  String get planningCandidateGenerate;
+
+  /// No description provided for @planningCandidateGenerateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not generate suggestions.'**
+  String get planningCandidateGenerateFailed;
+
+  /// No description provided for @planningCandidateAllBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'All suggestions are blocked by allergies. Try removing some guests from the constraints, or pick a dish manually.'**
+  String get planningCandidateAllBlocked;
+
+  /// No description provided for @planningCandidateAiLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'AI suggestion'**
+  String get planningCandidateAiLabel;
+
+  /// No description provided for @planningCandidateFinalPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Final pick — confirmed by the algorithm'**
+  String get planningCandidateFinalPick;
+
+  /// No description provided for @planningCandidatePassed.
+  ///
+  /// In en, this message translates to:
+  /// **'Passed safety checks — not the top pick'**
+  String get planningCandidatePassed;
+
+  /// No description provided for @planningCandidateBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded — {reason}'**
+  String planningCandidateBlocked(String reason);
+
+  /// No description provided for @planningCandidateUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies NOT verified — this suggestion was never checked by the safety filter'**
+  String get planningCandidateUnverified;
+
+  /// No description provided for @planningCandidateBlockedUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'unverified allergy'**
+  String get planningCandidateBlockedUnknown;
+
+  /// No description provided for @planningCandidateScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score {score}'**
+  String planningCandidateScore(String score);
+
+  /// No description provided for @planningCandidateBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Score breakdown'**
+  String get planningCandidateBreakdown;
+
+  /// No description provided for @planningCandidateWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'weight {weight}'**
+  String planningCandidateWeight(String weight);
+
+  /// No description provided for @planningCandidateNoBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'The engine returned no score breakdown.'**
+  String get planningCandidateNoBreakdown;
+
+  /// No description provided for @planningCandidateSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion session · {time}'**
+  String planningCandidateSession(String time);
+
+  /// No description provided for @planningFeatureInventoryCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients on hand'**
+  String get planningFeatureInventoryCoverage;
+
+  /// No description provided for @planningFeatureExpiryUrgency.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring food'**
+  String get planningFeatureExpiryUrgency;
+
+  /// No description provided for @planningFeatureRepetitionPenalty.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent repetition'**
+  String get planningFeatureRepetitionPenalty;
+
+  /// No description provided for @planningFeatureNutritionFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition fit'**
+  String get planningFeatureNutritionFit;
+
+  /// No description provided for @planningFeatureDietMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet match'**
+  String get planningFeatureDietMatch;
+
+  /// No description provided for @planningFeatureEffortFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Effort fit'**
+  String get planningFeatureEffortFit;
+
+  /// No description provided for @planningFeaturePreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Preference'**
+  String get planningFeaturePreference;
+
+  /// No description provided for @planningFeaturePrior.
+  ///
+  /// In en, this message translates to:
+  /// **'Base priority'**
+  String get planningFeaturePrior;
+
+  /// No description provided for @planningFeatureNutrientBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrient balance'**
+  String get planningFeatureNutrientBalance;
+
+  /// No description provided for @planningFeatureRiskPenalty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrient risk'**
+  String get planningFeatureRiskPenalty;
+
+  /// No description provided for @planningFeatureConstraintMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Constraint match'**
+  String get planningFeatureConstraintMatch;
+
+  /// No description provided for @planningFeatureGraphPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Knowledge-graph evidence'**
+  String get planningFeatureGraphPath;
+
+  /// No description provided for @planningRepetitionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeated dishes'**
+  String get planningRepetitionTitle;
+
+  /// No description provided for @planningRepetitionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeated dishes'**
+  String get planningRepetitionTooltip;
+
+  /// No description provided for @planningRepetitionWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String planningRepetitionWindow(int days);
+
+  /// No description provided for @planningRepetitionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dish repeated in the last {days} days 🎉'**
+  String planningRepetitionEmpty(int days);
+
+  /// No description provided for @planningRepetitionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} times'**
+  String planningRepetitionCount(int count);
 }
 
 class _AppLocalizationsDelegate

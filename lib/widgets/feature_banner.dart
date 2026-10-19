@@ -26,7 +26,7 @@ class FeatureBanner extends StatelessWidget {
           margin: margin,
           padding: const EdgeInsets.all(AppDimens.md),
           decoration: BoxDecoration(
-            color: isError ? const Color(0xFFFFEEEE) : AppColors.primaryLight,
+            color: isError ? AppColors.errorSurface : AppColors.primaryLight,
             borderRadius: BorderRadius.circular(AppDimens.radiusSm),
           ),
           child: Row(

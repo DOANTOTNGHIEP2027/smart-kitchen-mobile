@@ -70,3 +70,17 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Làm trong PR 2 hoặc task dọn planning.
 - **Cần người quyết lại không:** Không — người duyệt đã chốt hiện tên khách (2026-10-19).
+
+### OD-08 · #101 PR 2 — candidate theo KẾ HOẠCH TUẦN + gắn theo sessionId, khác thiết kế §5.3/§6/§7.3
+- **Ngày:** 2026-10-19 · **Task:** #101 PR 2 (slice 6–8) · **Nhánh:** `feature/101_candidate-repetition`
+- **Tình huống:** BE thật `GET /meal-plans/{mealPlanId}/candidates` coi `mealPlanId` là id `meal_plans` (tuần, như OD-06); `MealPlanCandidateResponse` KHÔNG có `dishId/slotId/mealDate/mealTime` mà có `sessionId`; field là `algorithmRecommended` (không `is`); `softScoreBreakdown` là map `feature_breakdown` snake_case của AI (inventory_coverage, expiry_urgency, repetition_penalty…, weights, contributions, profile_version), không phải `{dietScore, expiringScore, weights:{diet,expiry,repeat}}`. Phiên join qua 409 có sessionId sentinel `__unknown__`.
+- **Đã chọn:** Route `/meal-plan/plan/:planId/candidates?sessionId&slotId&dishId&noSession`. Biết sessionId thật → lọc 1 phiên; sentinel → hiện cả tuần nhóm theo phiên; món chưa mở phiên → rỗng + nút sinh. Sinh gợi ý dùng lại `MealPlanStore.openVoteSession` (không thêm `CandidateApi.generate`). Không có nút "Sinh gợi ý mới" khi đã có phiên (vote/open trả 409). Breakdown render động theo key, trọng số âm tô cảnh báo. · **Theo:** §6.2 luật 1 + §6.1 D-09.
+- **Đảo ngược thế nào:** Nếu BE thêm `dishId` vào response hoặc trả sessionId ở `vote/result`, lọc theo dishId và bỏ chế độ cả tuần.
+- **Cần người quyết lại không:** Có — thiết kế FE §5.3/§8.3 cần cập nhật theo shape thật; nên đề xuất BE trả `sessionId` ở `GET vote/result`.
+
+### OD-09 · #101 PR 2 — 6 finding LOW còn lại sau 3 vòng review (gom vào task dọn riêng)
+- **Ngày:** 2026-10-19 · **Task:** #101 PR 2 · **Nhánh:** `feature/101_candidate-repetition`
+- **Tình huống:** (1) Chưa có widget test cho `MealSlotEditorScene._openCandidates` (món CONFIRMED không sinh gợi ý) — thiếu harness MealPlanStore. (2) `blockedReason` BE trả tiếng Việt hardcode kèm `allergen_derivation=UNVERIFIED`, FE hiện nguyên văn — cần BE trả mã lý do. (3) `AppStateView` hiện `error.message` tiếng Anh với ERR_UNKNOWN — sửa ở widget dùng chung. (4) Thứ tự feature theo key JSONB không cố định. (5) `_unwrap` lặp ở 4 Api planning (2 kiểu khác nhau) — nên có helper chung. (6) Nút ✨ không phản hồi khi `currentPlanId == null`.
+- **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Làm trong task dọn planning; (2) cần phiên BE.
+- **Cần người quyết lại không:** Không.
