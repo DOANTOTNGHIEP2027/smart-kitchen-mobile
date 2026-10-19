@@ -2324,4 +2324,27 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get sessionExpiredError =>
       'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+
+  @override
+  String get shoppingPriceQuestion => 'Bạn trả bao nhiêu?';
+
+  @override
+  String get shoppingPriceOptional => 'Có thể bỏ qua';
+
+  @override
+  String get shoppingPriceLabel => 'Giá';
+
+  @override
+  String get shoppingPriceZeroHint =>
+      '0 ₫ nghĩa là miễn phí. Nếu không nhớ giá, hãy bấm Bỏ qua.';
+
+  @override
+  String get shoppingPriceSkip => 'Bỏ qua';
+
+  @override
+  String get shoppingPriceSave => 'Lưu';
+
+  @override
+  String get shoppingPriceNotSaved =>
+      'Món này vừa được người khác cập nhật — giá bạn nhập chưa được lưu. Bỏ tick rồi tick lại để nhập lại giá.';
 }

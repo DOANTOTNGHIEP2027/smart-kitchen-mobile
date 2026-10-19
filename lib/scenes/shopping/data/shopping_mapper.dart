@@ -24,6 +24,7 @@ ShoppingItem shoppingItemFromJson(Map<String, dynamic> json, String householdId)
       createdBy: json['createdBy'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      price: (json['price'] as num?)?.toDouble(),
     );
 
 ShoppingItem shoppingItemFromRow(ShoppingListItem row) => ShoppingItem(
@@ -49,6 +50,7 @@ ShoppingItem shoppingItemFromRow(ShoppingListItem row) => ShoppingItem(
         'PENDING_TOGGLE' => ShoppingSyncStatus.pendingToggle,
         _ => ShoppingSyncStatus.synced,
       },
+      price: row.price,
     );
 
 ShoppingListItemsCompanion shoppingItemToRow(ShoppingItem item) =>
@@ -73,6 +75,7 @@ ShoppingListItemsCompanion shoppingItemToRow(ShoppingItem item) =>
           : item.syncStatus == ShoppingSyncStatus.pendingToggle
               ? 'PENDING_TOGGLE'
               : 'SYNCED'),
+      price: Value(item.price),
     );
 
 Map<String, dynamic> shoppingCreatePayload(ShoppingItem item) => <String, dynamic>{

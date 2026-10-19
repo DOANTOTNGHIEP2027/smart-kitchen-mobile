@@ -5,10 +5,12 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/money_format.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../inventory/domain/unit_option.dart';
 import '../domain/shopping_item.dart';
 import '../stores/shopping_store.dart';
+import '../widgets/price_capture_sheet.dart';
 
 enum ShoppingFilter { all, pending, completed }
 
@@ -60,6 +62,23 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                         vertical: AppDimens.sm,
                       ),
                       child: Text(context.l10n.syncIdempotencyKeyReused),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          // AM-TB-4 (§12): toggle mang giá bị từ chối vì món đã đổi ở nơi khác
+          // — giá người dùng nhập đã mất, không được im lặng.
+          Observer(
+            builder: (_) => store.priceNotSaved
+                ? Material(
+                    key: const ValueKey<String>('shopping-price-not-saved'),
+                    color: Colors.amber.shade100,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimens.md,
+                        vertical: AppDimens.sm,
+                      ),
+                      child: Text(context.l10n.shoppingPriceNotSaved),
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -422,7 +441,9 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
         child: InkWell(
-          onTap: item.canToggle ? () => store.toggle(item) : null,
+          onTap: item.canToggle
+              ? () => toggleShoppingItemWithPrice(context, store, item)
+              : null,
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -501,6 +522,17 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                 ),
+                              ),
+                            ),
+                          // Có giá thì hiện; không giá thì KHÔNG nhắc gì (§9.4).
+                          if (isCompleted && item.price != null)
+                            Text(
+                              formatVnd(item.price!),
+                              key: ValueKey<String>('shopping-price-${item.id}'),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.sageDark,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           if (item.isPendingSync)

@@ -4244,6 +4244,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your session has expired. Please sign in again.'**
   String get sessionExpiredError;
+
+  /// No description provided for @shoppingPriceQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How much did you pay?'**
+  String get shoppingPriceQuestion;
+
+  /// No description provided for @shoppingPriceOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'You can skip this'**
+  String get shoppingPriceOptional;
+
+  /// No description provided for @shoppingPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get shoppingPriceLabel;
+
+  /// No description provided for @shoppingPriceZeroHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0 ₫ means free. If you don\'t know the price, tap Skip.'**
+  String get shoppingPriceZeroHint;
+
+  /// No description provided for @shoppingPriceSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get shoppingPriceSkip;
+
+  /// No description provided for @shoppingPriceSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get shoppingPriceSave;
+
+  /// No description provided for @shoppingPriceNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'This item was just updated by someone else — the price you entered was not saved. Untick and tick again to re-enter it.'**
+  String get shoppingPriceNotSaved;
 }
 
 class _AppLocalizationsDelegate

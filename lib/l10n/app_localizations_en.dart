@@ -2353,4 +2353,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sessionExpiredError =>
       'Your session has expired. Please sign in again.';
+
+  @override
+  String get shoppingPriceQuestion => 'How much did you pay?';
+
+  @override
+  String get shoppingPriceOptional => 'You can skip this';
+
+  @override
+  String get shoppingPriceLabel => 'Price';
+
+  @override
+  String get shoppingPriceZeroHint =>
+      '0 ₫ means free. If you don\'t know the price, tap Skip.';
+
+  @override
+  String get shoppingPriceSkip => 'Skip';
+
+  @override
+  String get shoppingPriceSave => 'Save';
+
+  @override
+  String get shoppingPriceNotSaved =>
+      'This item was just updated by someone else — the price you entered was not saved. Untick and tick again to re-enter it.';
 }

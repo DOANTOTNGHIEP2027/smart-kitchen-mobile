@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:mobx/mobx.dart';
 
+import '../../../data/db/app_database.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
@@ -21,9 +23,13 @@ class ShoppingStore {
   final ObservableList<ShoppingItem> _items = ObservableList<ShoppingItem>();
   final Observable<bool> _loading = Observable(true);
   final Observable<ApiException?> _error = Observable(null);
+  final Observable<bool> _priceNotSaved = Observable(false);
   List<ShoppingItem> get items => List.unmodifiable(_items);
   bool get isLoading => _loading.value;
   ApiException? get error => _error.value;
+  /// AM-TB-4 (§12): 1 toggle MANG GIÁ bị server từ chối vì món đã đổi ở nơi
+  /// khác — giá vừa nhập chưa được lưu, phải báo người dùng.
+  bool get priceNotSaved => _priceNotSaved.value;
   List<ShoppingItem> get pending => _items.where((e) => e.status == ShoppingItemStatus.pending).toList();
   List<ShoppingItem> get completed => _items.where((e) => e.status == ShoppingItemStatus.completed).toList();
 
@@ -47,15 +53,31 @@ class ShoppingStore {
     on ApiException catch (e) { await _dao.delete(local.id); runInAction(() => _error.value = e); return false; }
   }
 
-  Future<void> toggle(ShoppingItem item) async {
+  /// [price] chỉ có nghĩa ở chiều PENDING → COMPLETED (#133); chiều ngược bỏ
+  /// qua để không gửi `price` khi BE sẽ từ chối.
+  Future<void> toggle(ShoppingItem item, {double? price}) async {
     if (!item.canToggle) return;
-    final next = item.copyWith(status: item.status == ShoppingItemStatus.pending ? ShoppingItemStatus.completed : ShoppingItemStatus.pending, syncStatus: ShoppingSyncStatus.pendingToggle, updatedAt: DateTime.now());
+    runInAction(() => _priceNotSaved.value = false);
+    final completing = item.status == ShoppingItemStatus.pending;
+    final sentPrice = completing ? price : null;
+    final next = item.copyWith(status: completing ? ShoppingItemStatus.completed : ShoppingItemStatus.pending, syncStatus: ShoppingSyncStatus.pendingToggle, updatedAt: DateTime.now(), price: sentPrice);
     await _dao.upsert(next);
-    if (!await _online()) { await _dao.enqueueToggle(next, item); return; }
-    try { await _dao.upsert((await _api.toggle(item.id, item.version, item.householdId)).copyWith(syncStatus: ShoppingSyncStatus.synced)); }
-    on NetworkException { await _dao.enqueueToggle(next, item); }
-    on ApiException catch (e) { await _dao.upsert(item); runInAction(() => _error.value = e); }
+    // Row đang PENDING_TOGGLE = còn entry chờ gửi: phải đi qua hàng đợi (huỷ
+    // cặp), gọi thẳng API sẽ toggle server theo state CŨ — ngược chiều ý muốn.
+    if (item.syncStatus == ShoppingSyncStatus.pendingToggle || !await _online()) { await _dao.enqueueToggle(next, item, price: sentPrice); return; }
+    try { await _dao.upsert((await _api.toggle(item.id, item.version, item.householdId, price: sentPrice)).copyWith(syncStatus: ShoppingSyncStatus.synced)); }
+    on NetworkException { await _dao.enqueueToggle(next, item, price: sentPrice); }
+    on ApiException catch (e) {
+      await _dao.upsert(item); runInAction(() => _error.value = e);
+      if (_isStaleToggle(e)) { if (sentPrice != null) runInAction(() => _priceNotSaved.value = true); await sync(); }
+    }
   }
+
+  /// 409 version lệch, hoặc 400 vì BE kiểm "giá chỉ hợp lệ khi COMPLETED"
+  /// TRƯỚC version (món đã được tick ở nơi khác) ⇒ thao tác cũ hết đúng: bỏ +
+  /// refetch (D6), KHÔNG retry mãi.
+  static bool _isStaleToggle(ApiException e) =>
+      e.code == 'ERR_SHOP_ITEM_VERSION_CONFLICT' || e.code == 'ERR_VALIDATION_FAILED';
 
   Future<void> sync() async {
     final householdId = _session.householdId; if (householdId == null) return;
@@ -75,6 +97,9 @@ class ShoppingStore {
           await _dao.removeQueue(entry.id);
           continue;
         }
+        final queuedPrice = entry.operation == 'CREATE'
+            ? null
+            : ((jsonDecode(entry.payload) as Map<String, dynamic>)['price'] as num?)?.toDouble();
         try {
           if (entry.operation == 'CREATE') {
             await _dao.remap(
@@ -83,7 +108,8 @@ class ShoppingStore {
             );
           } else {
             await _dao.upsert(
-              (await _api.toggle(item.id, entry.baseVersion!, householdId))
+              (await _api.toggle(item.id, entry.baseVersion!, householdId,
+                      price: queuedPrice))
                   .copyWith(syncStatus: ShoppingSyncStatus.synced),
             );
           }
@@ -97,14 +123,25 @@ class ShoppingStore {
             await _dao.delete(item.id);
             continue;
           }
+          if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
           break;
-        } on ApiException {
+        } on ApiException catch (e) {
+          if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
           break;
         }
       }
     } finally {
       _draining = false;
     }
+  }
+  /// AM-TB-4: entry toggle bị từ chối vì món đã đổi → bỏ entry, đưa row về
+  /// SYNCED để `list()` ngay sau đó ghi đè bằng bản server; mất giá thì báo.
+  Future<bool> _dropStaleToggle(ShoppingSyncQueueEntry entry, ShoppingItem item, ApiException e, double? queuedPrice) async {
+    if (entry.operation == 'CREATE' || !_isStaleToggle(e)) return false;
+    await _dao.removeQueue(entry.id);
+    await _dao.upsert(item.copyWith(syncStatus: ShoppingSyncStatus.synced));
+    if (queuedPrice != null) runInAction(() => _priceNotSaved.value = true);
+    return true;
   }
   Future<bool> _online() async { try { return await _connectivity.isOnline(); } catch (_) { return true; } }
   Future<void> dispose() async { await _itemsSub?.cancel(); await _connectivitySub?.cancel(); }
