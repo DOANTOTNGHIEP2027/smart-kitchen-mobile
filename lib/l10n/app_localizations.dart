@@ -4358,6 +4358,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t add \"{name}\" — the server rejected it, so it was removed from the list. Please add it again.'**
   String shoppingAddRejected(String name);
+
+  /// No description provided for @aiOfflineModeBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Using offline mode — results may be simpler than usual'**
+  String get aiOfflineModeBanner;
+
+  /// No description provided for @aiOfflineEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline estimate'**
+  String get aiOfflineEstimate;
+
+  /// No description provided for @aiOfflineEstimateConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline estimate · {percent}%'**
+  String aiOfflineEstimateConfidence(int percent);
 }
 
 class _AppLocalizationsDelegate

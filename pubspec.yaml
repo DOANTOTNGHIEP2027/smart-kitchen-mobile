@@ -86,3 +86,6 @@ flutter:
   generate: true
   assets:
     - assets/images/
+    # On-device AI model packages (on-device-ai-runtime.md §5.1) — task nào
+    # chưa có thư mục ở đây thì ModelRegistry coi là "chỉ cloud".
+    - assets/models/rule_based_selection/v1/

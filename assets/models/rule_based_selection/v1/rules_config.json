@@ -1,0 +1,7 @@
+{
+  "_note": "PLACEHOLDER — trọng số chờ product chốt (on-device-ai-runtime open-questions Q1). Không phải trọng số engine cloud.",
+  "weights": {
+    "expiringPriority": 0.4,
+    "repetitionPenalty": 0.5
+  }
+}

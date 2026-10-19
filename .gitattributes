@@ -1,0 +1,3 @@
+# Asset model on-device được verify SHA-256 theo từng byte (ModelRegistry) —
+# cấm git đổi line ending (core.autocrlf=true trên Windows làm lệch checksum).
+assets/models/** -text

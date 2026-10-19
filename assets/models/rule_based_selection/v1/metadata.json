@@ -1,0 +1,8 @@
+{
+  "task": "rule_based_selection",
+  "modelVersion": 1,
+  "appMinVersion": "1.0.0",
+  "runtime": "rules-only",
+  "payloadFile": "rules_config.json",
+  "checksumSha256": "bb75cccfa65eeabb08920f541cf88a152ba1c4ef2d1c2c6ec655bef356168b07"
+}
