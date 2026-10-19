@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../utils/api_error_l10n.dart';
+import '../../utils/l10n_x.dart';
 import 'app_empty_view.dart';
 import 'app_error_view.dart';
 import 'app_loading_view.dart';
@@ -35,7 +37,9 @@ class AppStateView<T> extends StatelessWidget {
         LoadingState<T>() => const AppLoadingView(),
         EmptyState<T>() => AppEmptyView(message: emptyMessage, icon: emptyIcon),
         ErrorState<T>(:final error) =>
-          AppErrorView(message: error.message, onRetry: onRetry),
+          AppErrorView(
+              message: apiErrorMessage(context.l10n, error),
+              onRetry: onRetry),
         SuccessState<T>(:final data) => successBuilder(context, data),
       };
 }

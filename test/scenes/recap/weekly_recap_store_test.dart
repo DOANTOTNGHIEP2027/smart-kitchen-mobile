@@ -17,7 +17,7 @@ class FakeRecapApi implements RecapApi {
   WeeklyRecapSummary? summary;
   HouseholdStreak? streak;
   ApiException? weeklyError;
-  ApiException? streakError;
+  Object? streakError;
   int streakCalls = 0;
 
   WeeklyRecapSummary defaultSummary() => WeeklyRecapSummary(
@@ -169,6 +169,17 @@ void main() {
     await store.fetchAll();
 
     expect(store.status, RecapLoadStatus.ready); // phần chính không đổi
+    expect(store.streakStatus, RecapLoadStatus.error);
+    expect(store.streak, isNull);
+  });
+
+  test('streak lỗi không phải ApiException (parse) → vẫn error, không kẹt loading',
+      () async {
+    api.streakError = const FormatException('bad shape');
+    final store = WeeklyRecapStore(api, session);
+    await store.fetchAll();
+
+    expect(store.status, RecapLoadStatus.ready);
     expect(store.streakStatus, RecapLoadStatus.error);
     expect(store.streak, isNull);
   });

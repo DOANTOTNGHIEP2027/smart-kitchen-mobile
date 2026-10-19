@@ -2128,4 +2128,225 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recapSpendDetailNeutral => 'No detailed data for this week yet.';
+
+  @override
+  String get shoppingEmptyTitle => 'Your shopping list is empty';
+
+  @override
+  String get shoppingEmptyBody =>
+      'Add groceries you need, or plan this week\'s menu to build the list automatically.';
+
+  @override
+  String get shoppingAddNeeded => 'Add something to buy';
+
+  @override
+  String shoppingPendingCount(int count) {
+    return 'To buy ($count)';
+  }
+
+  @override
+  String shoppingCompletedCount(int count) {
+    return 'Bought ($count)';
+  }
+
+  @override
+  String shoppingFilterAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String get shoppingAllBought => 'Great! Everything has been bought.';
+
+  @override
+  String get shoppingNoneBought => 'Nothing has been marked as bought yet.';
+
+  @override
+  String get shoppingAddItem => 'Add item';
+
+  @override
+  String get shoppingProgressTitle => 'Shopping progress';
+
+  @override
+  String shoppingProgressDetail(int completed, int total, int percent) {
+    return '$completed / $total items done ($percent%)';
+  }
+
+  @override
+  String shoppingPendingBadge(int count) {
+    return '$count to buy';
+  }
+
+  @override
+  String get shoppingWeeklyMenuBadge => 'Weekly menu';
+
+  @override
+  String get shoppingAddSheetTitle => 'Add item to buy';
+
+  @override
+  String get shoppingNameHint => 'Food or ingredient name...';
+
+  @override
+  String get shoppingNameLabel => 'Item name';
+
+  @override
+  String get shoppingQuantityLabel => 'Quantity';
+
+  @override
+  String get shoppingUnitLabel => 'Unit';
+
+  @override
+  String get shoppingCategoryLabel => 'Category';
+
+  @override
+  String get shoppingAddToList => 'Add to list';
+
+  @override
+  String get dependentListTitle => 'Dependents';
+
+  @override
+  String get dependentAddProfile => 'Add profile';
+
+  @override
+  String get dependentLoadFailed => 'Could not load the dependents list.';
+
+  @override
+  String get dependentEmptyTitle => 'No dependents yet';
+
+  @override
+  String get dependentEmptyBody =>
+      'Add a profile for a young child or a dependent relative so the app can automatically handle allergies and suitable diets.';
+
+  @override
+  String get dependentAllergenInfo =>
+      'The app automatically excludes allergenic ingredients when suggesting menus for dependents.';
+
+  @override
+  String get dependentDefaultName => 'Little member';
+
+  @override
+  String dependentAgeAndBirth(int age, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: '$age years old',
+      one: '1 year old',
+    );
+    return '$_temp0 · Born $date';
+  }
+
+  @override
+  String dependentAllergenChip(String name) {
+    return 'Allergy: $name';
+  }
+
+  @override
+  String get dependentNoAllergens => 'No allergies';
+
+  @override
+  String get dependentProfileNav => 'Dependent profiles';
+
+  @override
+  String get dependentFormTitle => 'Add dependent';
+
+  @override
+  String get dependentNameRequired => 'Please enter the dependent\'s name';
+
+  @override
+  String get dependentSaveFailed =>
+      'Something went wrong while saving the profile';
+
+  @override
+  String get dependentBasicInfo => 'Basic information';
+
+  @override
+  String get dependentNameLabel => 'Full name or nickname *';
+
+  @override
+  String get dependentNameHint => 'E.g. Baby An, Grandpa...';
+
+  @override
+  String get dependentDateOfBirth => 'Date of birth';
+
+  @override
+  String get dependentDietSection => 'Diet';
+
+  @override
+  String get dependentDietHint =>
+      'Choose a special diet if this member has specific nutrition needs.';
+
+  @override
+  String get dependentDietNone => 'Regular';
+
+  @override
+  String get dependentDietVegetarian => 'Lacto-ovo vegetarian';
+
+  @override
+  String get dependentDietVegan => 'Vegan';
+
+  @override
+  String get dependentDietPescatarian => 'Pescatarian';
+
+  @override
+  String get dependentAllergenSection => 'Food allergies';
+
+  @override
+  String get dependentAllergenHint =>
+      'Tick the foods this member is allergic to so the app can warn you.';
+
+  @override
+  String get dependentSave => 'Save profile';
+
+  @override
+  String get inventoryStatTotal => 'Total items';
+
+  @override
+  String get inventoryStatExpiring => 'Expiring soon';
+
+  @override
+  String get inventoryStatLowStock => 'Running low';
+
+  @override
+  String get inventoryValidationNameEmpty => 'Name must not be empty';
+
+  @override
+  String get inventoryValidationQuantityEmpty => 'Quantity must not be empty';
+
+  @override
+  String get inventoryValidationQuantityNotNumber => 'Must be a number';
+
+  @override
+  String get inventoryValidationQuantityNotPositive =>
+      'Quantity must be greater than 0';
+
+  @override
+  String get inventoryValidationQuantityNegative =>
+      'Quantity must not be negative';
+
+  @override
+  String get inventoryValidationQuantityNotWhole =>
+      'For \"piece\" units, it must be a whole number';
+
+  @override
+  String get mealPlanStatusConfirmed => 'Confirmed';
+
+  @override
+  String get mealPlanStatusVoting => 'Voting';
+
+  @override
+  String get mealPlanStatusSuggested => 'Suggested';
+
+  @override
+  String get mealPlanStatusEmpty => 'Not chosen';
+
+  @override
+  String get familyRoleMember => 'Member';
+
+  @override
+  String tierUpdatedClaimStale(String tier) {
+    return 'Household plan updated to $tier. Sign in again if the screen still shows the old plan.';
+  }
+
+  @override
+  String get planningPlanNotReady =>
+      'The weekly plan is not loaded yet — please try again.';
 }

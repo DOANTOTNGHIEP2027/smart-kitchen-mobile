@@ -127,3 +127,18 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Làm trong task dọn recap; 2 ghi chú tài liệu sửa ở repo ai-native.
 - **Cần người quyết lại không:** Không.
+
+### OD-16 · Task dọn LOW (gom OD-05/07/09/11/13/15) — đã làm & còn lại
+- **Ngày:** 2026-10-19 · **Task:** dọn LOW FE · **Nhánh:** `chore/fe-cleanup-low-findings`
+- **Đã làm:** 61 key l10n cho chuỗi cứng (shopping, dependent, inventory list/validate, mealplan tooltip/status, meal log, badge MEMBER); helper `apiErrorMessage` (ERR_NETWORK/ERR_UNKNOWN → copy l10n) dùng ở `AppStateView` + các màn planning/tier/budget; toast đổi gói nói rõ khi claim chưa cập nhật; nút ✨ báo khi chưa có kế hoạch tuần; `_unwrap` planning thống nhất `e.apiException`; streak recap bắt mọi lỗi.
+- **Còn lại (cố ý):** nhãn `MealType` là dữ liệu (ghép vào description gửi BE); 'Thành viên' mặc định trong `UserSummary`; danh mục mua sắm là giá trị gửi BE; nhãn đơn vị `unit_option`; badge 'GUEST'; message `ERR_INVENTORY_NOT_FOUND` tạo ở FE store. **Phát hiện BE:** `meal_plan_slots` vẫn enum `MealTime` 3 bữa, `resolveEffectiveSlots` không được gọi → template bữa tự cấu hình (PR #30) chưa áp vào lịch tuần — cần phiên BE.
+- **Đã chọn:** Hoãn phần còn lại. · **Theo:** §6.0 quy tắc 3 + §6.1 D-09.
+- **Đảo ngược thế nào:** —
+- **Cần người quyết lại không:** Có — báo BE việc áp template bữa vào `meal_plan_slots`.
+
+### OD-17 · Task dọn LOW — finding còn lại sau 3 vòng review
+- **Ngày:** 2026-10-19 · **Task:** dọn LOW FE · **Nhánh:** `chore/fe-cleanup-low-findings`
+- **Tình huống:** (1) Tuổi người phụ thuộc tính bằng hiệu số năm → dư 1 tuổi khi chưa tới sinh nhật (lỗi cũ). (2) Ngày sinh ghép cứng d/m/y cho cả locale en. (3) Card nhật ký bữa hiện description thô còn tiền tố '[Bữa sáng]' (lỗi cũ). (4) `apiErrorMessage` chưa phủ `ERR_AUTH_UNKNOWN` ('Session expired'). (5) Tooltip 'Tải lại' → 'Làm mới' do dùng key chung. (6) `health_profile_screen` hiện tên field kỹ thuật từ `fieldErrors`. (7) ~10 màn ngoài diff còn hiện `error.message` thô: cooking_session_scene, calorie_confirm_sheet, monthly_history_scene, recipe_*, vote_session_scene, meal_suggestion_detail_scene, weekly_recap_scene.
+- **Đã chọn:** Hoãn — gom vào task dọn tiếp theo. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Áp `apiErrorMessage` cho các màn ở (7); sửa (1)(3) như bug riêng.
+- **Cần người quyết lại không:** Không.

@@ -2107,4 +2107,217 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get recapSpendDetailNeutral =>
       'Chưa có dữ liệu chi tiết cho tuần này.';
+
+  @override
+  String get shoppingEmptyTitle => 'Danh sách mua sắm trống';
+
+  @override
+  String get shoppingEmptyBody =>
+      'Thêm thực phẩm cần mua hoặc lên thực đơn tuần để tự động lên danh sách.';
+
+  @override
+  String get shoppingAddNeeded => 'Thêm đồ cần mua';
+
+  @override
+  String shoppingPendingCount(int count) {
+    return 'Cần mua ($count)';
+  }
+
+  @override
+  String shoppingCompletedCount(int count) {
+    return 'Đã mua ($count)';
+  }
+
+  @override
+  String shoppingFilterAll(int count) {
+    return 'Tất cả ($count)';
+  }
+
+  @override
+  String get shoppingAllBought => 'Tuyệt vời! Đã mua hết tất cả các món.';
+
+  @override
+  String get shoppingNoneBought => 'Chưa có món nào được đánh dấu đã mua.';
+
+  @override
+  String get shoppingAddItem => 'Thêm món';
+
+  @override
+  String get shoppingProgressTitle => 'Tiến độ đi chợ';
+
+  @override
+  String shoppingProgressDetail(int completed, int total, int percent) {
+    return '$completed / $total món đã hoàn thành ($percent%)';
+  }
+
+  @override
+  String shoppingPendingBadge(int count) {
+    return '$count cần mua';
+  }
+
+  @override
+  String get shoppingWeeklyMenuBadge => 'Thực đơn tuần';
+
+  @override
+  String get shoppingAddSheetTitle => 'Thêm món cần mua';
+
+  @override
+  String get shoppingNameHint => 'Tên thực phẩm, nguyên liệu...';
+
+  @override
+  String get shoppingNameLabel => 'Tên món';
+
+  @override
+  String get shoppingQuantityLabel => 'Số lượng';
+
+  @override
+  String get shoppingUnitLabel => 'Đơn vị';
+
+  @override
+  String get shoppingCategoryLabel => 'Phân loại';
+
+  @override
+  String get shoppingAddToList => 'Thêm vào danh sách';
+
+  @override
+  String get dependentListTitle => 'Người phụ thuộc';
+
+  @override
+  String get dependentAddProfile => 'Thêm hồ sơ';
+
+  @override
+  String get dependentLoadFailed => 'Không thể tải danh sách người phụ thuộc.';
+
+  @override
+  String get dependentEmptyTitle => 'Chưa có người phụ thuộc';
+
+  @override
+  String get dependentEmptyBody =>
+      'Thêm hồ sơ con nhỏ hoặc người thân phụ thuộc để hệ thống tự động kiểm soát dị ứng và chế độ dinh dưỡng phù hợp.';
+
+  @override
+  String get dependentAllergenInfo =>
+      'Hệ thống tự động loại trừ nguyên liệu gây dị ứng khi gợi ý thực đơn cho các thành viên phụ thuộc.';
+
+  @override
+  String get dependentDefaultName => 'Thành viên nhỏ';
+
+  @override
+  String dependentAgeAndBirth(int age, String date) {
+    return '$age tuổi · Sinh $date';
+  }
+
+  @override
+  String dependentAllergenChip(String name) {
+    return 'Dị ứng: $name';
+  }
+
+  @override
+  String get dependentNoAllergens => 'Không có dị ứng';
+
+  @override
+  String get dependentProfileNav => 'Hồ sơ người phụ thuộc';
+
+  @override
+  String get dependentFormTitle => 'Thêm người phụ thuộc';
+
+  @override
+  String get dependentNameRequired => 'Vui lòng nhập tên người phụ thuộc';
+
+  @override
+  String get dependentSaveFailed => 'Có lỗi xảy ra khi lưu hồ sơ';
+
+  @override
+  String get dependentBasicInfo => 'Thông tin cơ bản';
+
+  @override
+  String get dependentNameLabel => 'Họ và tên hoặc biệt danh *';
+
+  @override
+  String get dependentNameHint => 'Ví dụ: Bé An, Bé Miu, Ông nội...';
+
+  @override
+  String get dependentDateOfBirth => 'Ngày sinh';
+
+  @override
+  String get dependentDietSection => 'Chế độ ăn';
+
+  @override
+  String get dependentDietHint =>
+      'Chọn chế độ ăn đặc thù nếu thành viên có yêu cầu dinh dưỡng riêng.';
+
+  @override
+  String get dependentDietNone => 'Bình thường';
+
+  @override
+  String get dependentDietVegetarian => 'Ăn chay trứng sữa';
+
+  @override
+  String get dependentDietVegan => 'Ăn chay thuần';
+
+  @override
+  String get dependentDietPescatarian => 'Ăn cá & hải sản';
+
+  @override
+  String get dependentAllergenSection => 'Dị ứng thực phẩm';
+
+  @override
+  String get dependentAllergenHint =>
+      'Tích chọn các thực phẩm mà thành viên bị dị ứng để ứng dụng cảnh báo.';
+
+  @override
+  String get dependentSave => 'Lưu hồ sơ';
+
+  @override
+  String get inventoryStatTotal => 'Tổng mặt hàng';
+
+  @override
+  String get inventoryStatExpiring => 'Sắp hết hạn';
+
+  @override
+  String get inventoryStatLowStock => 'Sắp hết hàng';
+
+  @override
+  String get inventoryValidationNameEmpty => 'Tên không được để trống';
+
+  @override
+  String get inventoryValidationQuantityEmpty => 'Số lượng không được để trống';
+
+  @override
+  String get inventoryValidationQuantityNotNumber => 'Phải là số';
+
+  @override
+  String get inventoryValidationQuantityNotPositive =>
+      'Số lượng phải lớn hơn 0';
+
+  @override
+  String get inventoryValidationQuantityNegative => 'Số lượng không được âm';
+
+  @override
+  String get inventoryValidationQuantityNotWhole =>
+      'Với đơn vị \"quả/cái\", phải là số nguyên';
+
+  @override
+  String get mealPlanStatusConfirmed => 'Đã chốt';
+
+  @override
+  String get mealPlanStatusVoting => 'Bình chọn';
+
+  @override
+  String get mealPlanStatusSuggested => 'Gợi ý';
+
+  @override
+  String get mealPlanStatusEmpty => 'Chưa chọn';
+
+  @override
+  String get familyRoleMember => 'Thành viên';
+
+  @override
+  String tierUpdatedClaimStale(String tier) {
+    return 'Đã cập nhật gói household thành $tier. Nếu màn hình vẫn hiện gói cũ, hãy đăng nhập lại.';
+  }
+
+  @override
+  String get planningPlanNotReady =>
+      'Kế hoạch tuần chưa tải xong — vui lòng thử lại.';
 }

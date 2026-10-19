@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/cards/app_card.dart';
@@ -64,8 +65,9 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
             canPop: !busy,
             child: AlertDialog(
               title: Text(l10n.planningGuestDelete),
-              content: Text(_store.mutationError?.message ??
-                  l10n.planningGuestDeleteConfirm),
+              content: Text(_store.mutationError == null
+                  ? l10n.planningGuestDeleteConfirm
+                  : apiErrorMessage(l10n, _store.mutationError)),
               actions: <Widget>[
                 TextButton(
                   onPressed:
@@ -309,7 +311,7 @@ class _GuestDinerFormState extends State<_GuestDinerForm> {
               if (store.mutationError != null)
                 FeatureBanner(
                   key: const ValueKey<String>('guest-form-error'),
-                  message: store.mutationError!.message,
+                  message: apiErrorMessage(l10n, store.mutationError),
                   isError: true,
                   margin: const EdgeInsets.only(bottom: AppDimens.sm),
                 ),

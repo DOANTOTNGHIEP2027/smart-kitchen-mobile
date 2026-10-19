@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/cards/app_card.dart';
@@ -114,7 +115,8 @@ class _MealSlotConfigSceneState extends State<MealSlotConfigScene> {
         if (saveFailed)
           FeatureBanner(
             key: const ValueKey<String>('slot-save-error'),
-            message: _store.saveError?.message ?? l10n.planningSlotSaveFailed,
+            message: apiErrorMessage(l10n, _store.saveError,
+                fallback: l10n.planningSlotSaveFailed),
             isError: true,
             margin: const EdgeInsets.only(bottom: AppDimens.sm),
           ),

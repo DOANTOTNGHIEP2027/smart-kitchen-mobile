@@ -54,7 +54,7 @@ class MemberRow extends StatelessWidget {
               if (member.role == 'OWNER')
                 _Badge(label: context.l10n.householdOwner, filled: true)
               else if (member.role == 'MEMBER')
-                _Badge(label: member.role, filled: false)
+                _Badge(label: context.l10n.familyRoleMember, filled: false)
               else if (member.isRemoteViewer)
                 _Badge(label: context.l10n.tierRoleViewOnly, filled: false),
               if (isOwner && onChangeRole != null) ...<Widget>[

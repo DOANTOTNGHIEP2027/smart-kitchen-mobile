@@ -11,6 +11,7 @@ import '../../inventory/ocr/domain/ocr_scan_result.dart' show OcrImageSource;
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../domain/meal_type.dart';
+import 'meal_type_label.dart';
 
 /// Bottom sheet "ghi bữa ăn" (meal-log-screen §9).
 ///
@@ -157,12 +158,7 @@ class _MealLogBottomSheetState extends State<MealLogBottomSheet> {
     );
   }
 
-  String _chipLabel(MealType t) => switch (t) {
-        MealType.breakfast => context.l10n.mealLogBreakfast,
-        MealType.lunch => context.l10n.mealLogLunch,
-        MealType.dinner => context.l10n.mealLogDinner,
-        MealType.snack => context.l10n.mealLogSnack,
-      };
+  String _chipLabel(MealType t) => mealTypeLabel(context.l10n, t);
 
   Widget _photoSection(BuildContext context) {
     final bytes = _imageBytes;

@@ -128,7 +128,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: <Widget>[
                             _StatItem(
-                              label: 'Tổng mặt hàng',
+                              label: context.l10n.inventoryStatTotal,
                               value: '${allItems.length}',
                               icon: Icons.inventory_2_outlined,
                               color: AppColors.sage,
@@ -139,7 +139,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                               color: AppColors.border,
                             ),
                             _StatItem(
-                              label: 'Sắp hết hạn',
+                              label: context.l10n.inventoryStatExpiring,
                               value: '$expiringCount',
                               icon: Icons.access_time_rounded,
                               color: expiringCount > 0
@@ -152,7 +152,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                               color: AppColors.border,
                             ),
                             _StatItem(
-                              label: 'Sắp hết hàng',
+                              label: context.l10n.inventoryStatLowStock,
                               value: '$lowStockCount',
                               icon: Icons.trending_down_rounded,
                               color: lowStockCount > 0
@@ -301,9 +301,9 @@ class _InventoryListSceneState extends State<InventoryListScene> {
         elevation: 2,
         onPressed: () => Get.toNamed('/inventory/add'),
         icon: const Icon(Icons.add_rounded),
-        label: const Text(
-          'Thêm món',
-          style: TextStyle(fontWeight: FontWeight.w700),
+        label: Text(
+          context.l10n.inventoryAddItem,
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
     );

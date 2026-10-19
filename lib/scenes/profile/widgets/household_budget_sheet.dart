@@ -5,6 +5,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../domain/shared/budget_period.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/feature_banner.dart';
 import '../stores/family_store.dart';
@@ -168,7 +169,7 @@ class _HouseholdBudgetSheetState extends State<HouseholdBudgetSheet> {
                   key: const ValueKey<String>('budget-save-error'),
                   message: error.code == 'ERR_HH_004'
                       ? l10n.budgetOwnerOnlyTooltip
-                      : error.message,
+                      : apiErrorMessage(l10n, error),
                 ),
               ],
               const SizedBox(height: AppDimens.md),

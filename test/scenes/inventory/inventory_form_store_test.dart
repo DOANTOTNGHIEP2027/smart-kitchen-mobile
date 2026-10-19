@@ -398,7 +398,7 @@ void main() {
         mode: InventoryFormMode.create,
         mustBeWhole: false,
       );
-      expect(e, isNotNull);
+      expect(e, InventoryFormValidationError.quantityNotPositive);
     });
 
     test('quantity rỗng → lỗi', () {
@@ -407,7 +407,7 @@ void main() {
         mode: InventoryFormMode.create,
         mustBeWhole: false,
       );
-      expect(e, isNotNull);
+      expect(e, InventoryFormValidationError.quantityEmpty);
     });
 
     test('quantity không phải số → lỗi', () {
@@ -416,7 +416,7 @@ void main() {
         mode: InventoryFormMode.create,
         mustBeWhole: false,
       );
-      expect(e, isNotNull);
+      expect(e, InventoryFormValidationError.quantityNotNumber);
     });
 
     test('PIECE/UNIT phải là số nguyên', () {
@@ -425,7 +425,7 @@ void main() {
         mode: InventoryFormMode.create,
         mustBeWhole: true,
       );
-      expect(e, isNotNull);
+      expect(e, InventoryFormValidationError.quantityNotWhole);
     });
 
     test('EDIT cho phép quantity = 0 (đã dùng hết)', () {
@@ -443,12 +443,23 @@ void main() {
         mode: InventoryFormMode.create,
         mustBeWhole: false,
       );
-      expect(e, isNotNull);
+      expect(e, InventoryFormValidationError.quantityNotPositive);
+    });
+
+    test('EDIT chặn quantity âm', () {
+      final e = InventoryFormStore.validateQuantity(
+        '-1',
+        mode: InventoryFormMode.edit,
+        mustBeWhole: false,
+      );
+      expect(e, InventoryFormValidationError.quantityNegative);
     });
 
     test('name rỗng → lỗi', () {
-      expect(InventoryFormStore.validateName(''), isNotNull);
-      expect(InventoryFormStore.validateName('   '), isNotNull);
+      expect(InventoryFormStore.validateName(''),
+          InventoryFormValidationError.nameEmpty);
+      expect(InventoryFormStore.validateName('   '),
+          InventoryFormValidationError.nameEmpty);
       expect(InventoryFormStore.validateName('Cà chua'), isNull);
     });
   });

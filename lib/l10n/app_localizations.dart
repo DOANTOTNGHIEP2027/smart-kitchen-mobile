@@ -3860,6 +3860,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No detailed data for this week yet.'**
   String get recapSpendDetailNeutral;
+
+  /// No description provided for @shoppingEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your shopping list is empty'**
+  String get shoppingEmptyTitle;
+
+  /// No description provided for @shoppingEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add groceries you need, or plan this week\'s menu to build the list automatically.'**
+  String get shoppingEmptyBody;
+
+  /// No description provided for @shoppingAddNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Add something to buy'**
+  String get shoppingAddNeeded;
+
+  /// No description provided for @shoppingPendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'To buy ({count})'**
+  String shoppingPendingCount(int count);
+
+  /// No description provided for @shoppingCompletedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought ({count})'**
+  String shoppingCompletedCount(int count);
+
+  /// No description provided for @shoppingFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All ({count})'**
+  String shoppingFilterAll(int count);
+
+  /// No description provided for @shoppingAllBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Great! Everything has been bought.'**
+  String get shoppingAllBought;
+
+  /// No description provided for @shoppingNoneBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has been marked as bought yet.'**
+  String get shoppingNoneBought;
+
+  /// No description provided for @shoppingAddItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get shoppingAddItem;
+
+  /// No description provided for @shoppingProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping progress'**
+  String get shoppingProgressTitle;
+
+  /// No description provided for @shoppingProgressDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} / {total} items done ({percent}%)'**
+  String shoppingProgressDetail(int completed, int total, int percent);
+
+  /// No description provided for @shoppingPendingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} to buy'**
+  String shoppingPendingBadge(int count);
+
+  /// No description provided for @shoppingWeeklyMenuBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly menu'**
+  String get shoppingWeeklyMenuBadge;
+
+  /// No description provided for @shoppingAddSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item to buy'**
+  String get shoppingAddSheetTitle;
+
+  /// No description provided for @shoppingNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Food or ingredient name...'**
+  String get shoppingNameHint;
+
+  /// No description provided for @shoppingNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Item name'**
+  String get shoppingNameLabel;
+
+  /// No description provided for @shoppingQuantityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get shoppingQuantityLabel;
+
+  /// No description provided for @shoppingUnitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get shoppingUnitLabel;
+
+  /// No description provided for @shoppingCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get shoppingCategoryLabel;
+
+  /// No description provided for @shoppingAddToList.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to list'**
+  String get shoppingAddToList;
+
+  /// No description provided for @dependentListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dependents'**
+  String get dependentListTitle;
+
+  /// No description provided for @dependentAddProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add profile'**
+  String get dependentAddProfile;
+
+  /// No description provided for @dependentLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the dependents list.'**
+  String get dependentLoadFailed;
+
+  /// No description provided for @dependentEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No dependents yet'**
+  String get dependentEmptyTitle;
+
+  /// No description provided for @dependentEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a profile for a young child or a dependent relative so the app can automatically handle allergies and suitable diets.'**
+  String get dependentEmptyBody;
+
+  /// No description provided for @dependentAllergenInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'The app automatically excludes allergenic ingredients when suggesting menus for dependents.'**
+  String get dependentAllergenInfo;
+
+  /// No description provided for @dependentDefaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Little member'**
+  String get dependentDefaultName;
+
+  /// No description provided for @dependentAgeAndBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'{age, plural, =1{1 year old} other{{age} years old}} · Born {date}'**
+  String dependentAgeAndBirth(int age, String date);
+
+  /// No description provided for @dependentAllergenChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergy: {name}'**
+  String dependentAllergenChip(String name);
+
+  /// No description provided for @dependentNoAllergens.
+  ///
+  /// In en, this message translates to:
+  /// **'No allergies'**
+  String get dependentNoAllergens;
+
+  /// No description provided for @dependentProfileNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Dependent profiles'**
+  String get dependentProfileNav;
+
+  /// No description provided for @dependentFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add dependent'**
+  String get dependentFormTitle;
+
+  /// No description provided for @dependentNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the dependent\'s name'**
+  String get dependentNameRequired;
+
+  /// No description provided for @dependentSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while saving the profile'**
+  String get dependentSaveFailed;
+
+  /// No description provided for @dependentBasicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic information'**
+  String get dependentBasicInfo;
+
+  /// No description provided for @dependentNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name or nickname *'**
+  String get dependentNameLabel;
+
+  /// No description provided for @dependentNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'E.g. Baby An, Grandpa...'**
+  String get dependentNameHint;
+
+  /// No description provided for @dependentDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get dependentDateOfBirth;
+
+  /// No description provided for @dependentDietSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet'**
+  String get dependentDietSection;
+
+  /// No description provided for @dependentDietHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a special diet if this member has specific nutrition needs.'**
+  String get dependentDietHint;
+
+  /// No description provided for @dependentDietNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get dependentDietNone;
+
+  /// No description provided for @dependentDietVegetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Lacto-ovo vegetarian'**
+  String get dependentDietVegetarian;
+
+  /// No description provided for @dependentDietVegan.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegan'**
+  String get dependentDietVegan;
+
+  /// No description provided for @dependentDietPescatarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Pescatarian'**
+  String get dependentDietPescatarian;
+
+  /// No description provided for @dependentAllergenSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Food allergies'**
+  String get dependentAllergenSection;
+
+  /// No description provided for @dependentAllergenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the foods this member is allergic to so the app can warn you.'**
+  String get dependentAllergenHint;
+
+  /// No description provided for @dependentSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save profile'**
+  String get dependentSave;
+
+  /// No description provided for @inventoryStatTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total items'**
+  String get inventoryStatTotal;
+
+  /// No description provided for @inventoryStatExpiring.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring soon'**
+  String get inventoryStatExpiring;
+
+  /// No description provided for @inventoryStatLowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Running low'**
+  String get inventoryStatLowStock;
+
+  /// No description provided for @inventoryValidationNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Name must not be empty'**
+  String get inventoryValidationNameEmpty;
+
+  /// No description provided for @inventoryValidationQuantityEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity must not be empty'**
+  String get inventoryValidationQuantityEmpty;
+
+  /// No description provided for @inventoryValidationQuantityNotNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be a number'**
+  String get inventoryValidationQuantityNotNumber;
+
+  /// No description provided for @inventoryValidationQuantityNotPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity must be greater than 0'**
+  String get inventoryValidationQuantityNotPositive;
+
+  /// No description provided for @inventoryValidationQuantityNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity must not be negative'**
+  String get inventoryValidationQuantityNegative;
+
+  /// No description provided for @inventoryValidationQuantityNotWhole.
+  ///
+  /// In en, this message translates to:
+  /// **'For \"piece\" units, it must be a whole number'**
+  String get inventoryValidationQuantityNotWhole;
+
+  /// No description provided for @mealPlanStatusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get mealPlanStatusConfirmed;
+
+  /// No description provided for @mealPlanStatusVoting.
+  ///
+  /// In en, this message translates to:
+  /// **'Voting'**
+  String get mealPlanStatusVoting;
+
+  /// No description provided for @mealPlanStatusSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get mealPlanStatusSuggested;
+
+  /// No description provided for @mealPlanStatusEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not chosen'**
+  String get mealPlanStatusEmpty;
+
+  /// No description provided for @familyRoleMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get familyRoleMember;
+
+  /// No description provided for @tierUpdatedClaimStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Household plan updated to {tier}. Sign in again if the screen still shows the old plan.'**
+  String tierUpdatedClaimStale(String tier);
+
+  /// No description provided for @planningPlanNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'The weekly plan is not loaded yet — please try again.'**
+  String get planningPlanNotReady;
 }
 
 class _AppLocalizationsDelegate

@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../data/network/api_response.dart';
 import '../../../data/network/dio_client.dart';
+import '../../../utils/dio_exception_x.dart';
 import '../domain/guest_diner.dart';
 
 /// CRUD `/api/v1/meal-plans/{mealPlanId}/guest-diners` (#101,
@@ -82,7 +83,7 @@ class GuestDinerApi {
     try {
       return await call();
     } on DioException catch (e) {
-      throw e.error as ApiException? ??
+      throw e.apiException ??
           ServerException('ERR_UNKNOWN', 'Unexpected response');
     }
   }

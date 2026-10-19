@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../data/network/api_response.dart';
 import '../../../data/network/dio_client.dart';
+import '../../../utils/dio_exception_x.dart';
 import '../domain/meal_slot_template_item.dart';
 
 /// `GET`/`PUT /api/v1/households/me/meal-slots` (#101, `MealSlotController`).
@@ -51,7 +52,7 @@ class MealSlotApi {
     try {
       return await call();
     } on DioException catch (e) {
-      throw e.error as ApiException? ??
+      throw e.apiException ??
           ServerException('ERR_UNKNOWN', 'Unexpected response');
     }
   }

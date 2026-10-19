@@ -8,6 +8,7 @@ import 'package:mobx/mobx.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../domain/inventory_item.dart';
@@ -244,16 +245,31 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
 
   String? _validateForSave() {
     final nameErr = InventoryFormStore.validateName(_nameCtrl.text);
-    if (nameErr != null) return nameErr;
+    if (nameErr != null) return _validationMessage(nameErr);
     if (_unit == null) return context.l10n.inventoryUnitRequired;
     final qtyErr = InventoryFormStore.validateQuantity(
       _quantityCtrl.text,
       mode: store.mode,
       mustBeWhole: _unit!.isWholeNumber,
     );
-    if (qtyErr != null) return qtyErr;
+    if (qtyErr != null) return _validationMessage(qtyErr);
     return null;
   }
+
+  String _validationMessage(InventoryFormValidationError e) => switch (e) {
+        InventoryFormValidationError.nameEmpty =>
+          context.l10n.inventoryValidationNameEmpty,
+        InventoryFormValidationError.quantityEmpty =>
+          context.l10n.inventoryValidationQuantityEmpty,
+        InventoryFormValidationError.quantityNotNumber =>
+          context.l10n.inventoryValidationQuantityNotNumber,
+        InventoryFormValidationError.quantityNotPositive =>
+          context.l10n.inventoryValidationQuantityNotPositive,
+        InventoryFormValidationError.quantityNegative =>
+          context.l10n.inventoryValidationQuantityNegative,
+        InventoryFormValidationError.quantityNotWhole =>
+          context.l10n.inventoryValidationQuantityNotWhole,
+      };
 
   Future<void> _onSave() async {
     final validation = _validateForSave();
@@ -292,7 +308,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       Get.back();
     } else if (store.saveError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(store.saveError!.message)),
+        SnackBar(
+            content: Text(apiErrorMessage(context.l10n, store.saveError))),
       );
     }
     // Nếu conflict đã mở → dialog tự bật qua _onConflictChanged; không SnackBar.
@@ -319,7 +336,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       Get.back();
     } else if (store.saveError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(store.saveError!.message)),
+        SnackBar(
+            content: Text(apiErrorMessage(context.l10n, store.saveError))),
       );
     }
   }
@@ -360,7 +378,7 @@ class _SaveErrorBanner extends StatelessWidget {
         padding: const EdgeInsets.all(AppDimens.md),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text(error.message)),
+            Expanded(child: Text(apiErrorMessage(context.l10n, error))),
             TextButton(onPressed: onRetry, child: Text(context.l10n.dismiss)),
           ],
         ),

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../constants/app_dimens.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
+import '../../utils/api_error_l10n.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/states/app_state_view.dart';
@@ -74,7 +75,8 @@ class _FamilyScreenState extends State<FamilyScreen> {
     final removed = await store.removeMember(m.userId);
     if (!removed && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(store.mutationError?.message ?? '')),
+        SnackBar(
+            content: Text(apiErrorMessage(context.l10n, store.mutationError))),
       );
     }
   }
