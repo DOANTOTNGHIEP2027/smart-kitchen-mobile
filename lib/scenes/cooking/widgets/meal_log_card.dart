@@ -4,7 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../domain/meal_log_entry.dart';
-import '../domain/meal_type.dart';
+import 'meal_type_label.dart';
 import 'confidence_badge.dart';
 
 /// 1 item trong danh sách `todayLogs` (meal-log-screen §11.1 MealLogCard).
@@ -62,7 +62,7 @@ class MealLogCard extends StatelessWidget {
                 children: <Widget>[
                   if (entry.mealType != null) ...<Widget>[
                     Text(
-                      entry.mealType!.label,
+                      mealTypeLabel(context.l10n, entry.mealType!),
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,

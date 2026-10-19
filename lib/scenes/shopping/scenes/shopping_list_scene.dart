@@ -96,7 +96,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     ),
                     const SizedBox(height: AppDimens.md),
                     Text(
-                      'Danh sách mua sắm trống',
+                      context.l10n.shoppingEmptyTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
@@ -104,7 +104,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     ),
                     const SizedBox(height: AppDimens.xs),
                     Text(
-                      'Thêm thực phẩm cần mua hoặc lên thực đơn tuần để tự động lên danh sách.',
+                      context.l10n.shoppingEmptyBody,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
@@ -125,7 +125,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                       ),
                       onPressed: () => _showAddDialog(context, store),
                       icon: const Icon(Icons.add_rounded),
-                      label: const Text('Thêm đồ cần mua'),
+                      label: Text(context.l10n.shoppingAddNeeded),
                     ),
                   ],
                 ),
@@ -168,7 +168,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 if (pendingItems.isNotEmpty) ...<Widget>[
                   _buildSectionHeader(
                     context,
-                    'Cần mua (${pendingItems.length})',
+                    context.l10n.shoppingPendingCount(pendingItems.length),
                     Icons.radio_button_unchecked_rounded,
                   ),
                   const SizedBox(height: AppDimens.xs),
@@ -195,7 +195,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                           ),
                           const SizedBox(width: AppDimens.xs),
                           Text(
-                            'Đã mua (${completedItems.length})',
+                            context.l10n.shoppingCompletedCount(
+                                completedItems.length),
                             style: theme.textTheme.titleSmall?.copyWith(
                               color: AppColors.textSecondary,
                               fontWeight: FontWeight.w700,
@@ -218,8 +219,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     child: Center(
                       child: Text(
                         _filter == ShoppingFilter.pending
-                            ? 'Tuyệt vời! Đã mua hết tất cả các món.'
-                            : 'Chưa có món nào được đánh dấu đã mua.',
+                            ? context.l10n.shoppingAllBought
+                            : context.l10n.shoppingNoneBought,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -249,9 +250,9 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
         elevation: 2,
         onPressed: () => _showAddDialog(context, store),
         icon: const Icon(Icons.add_rounded),
-        label: const Text(
-          'Thêm món',
-          style: TextStyle(fontWeight: FontWeight.w700),
+        label: Text(
+          context.l10n.shoppingAddItem,
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -289,7 +290,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    'Tiến độ đi chợ',
+                    context.l10n.shoppingProgressTitle,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
@@ -297,7 +298,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '$completedCount / $total món đã hoàn thành ($percent%)',
+                    context.l10n.shoppingProgressDetail(
+                        completedCount, total, percent),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -314,7 +316,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                 ),
                 child: Text(
-                  '$pendingCount cần mua',
+                  context.l10n.shoppingPendingBadge(pendingCount),
                   style: const TextStyle(
                     color: AppColors.sage,
                     fontWeight: FontWeight.w700,
@@ -349,19 +351,20 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
       child: Row(
         children: <Widget>[
           _FilterChip(
-            label: 'Tất cả (${pendingCount + completedCount})',
+            label: context.l10n
+                .shoppingFilterAll(pendingCount + completedCount),
             isSelected: _filter == ShoppingFilter.all,
             onTap: () => setState(() => _filter = ShoppingFilter.all),
           ),
           const SizedBox(width: AppDimens.xs),
           _FilterChip(
-            label: 'Cần mua ($pendingCount)',
+            label: context.l10n.shoppingPendingCount(pendingCount),
             isSelected: _filter == ShoppingFilter.pending,
             onTap: () => setState(() => _filter = ShoppingFilter.pending),
           ),
           const SizedBox(width: AppDimens.xs),
           _FilterChip(
-            label: 'Đã mua ($completedCount)',
+            label: context.l10n.shoppingCompletedCount(completedCount),
             isSelected: _filter == ShoppingFilter.completed,
             onTap: () => setState(() => _filter = ShoppingFilter.completed),
           ),
@@ -491,9 +494,9 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                 color: AppColors.sageLight,
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Text(
-                                'Thực đơn tuần',
-                                style: TextStyle(
+                              child: Text(
+                                context.l10n.shoppingWeeklyMenuBadge,
+                                style: const TextStyle(
                                   color: AppColors.sage,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
@@ -597,7 +600,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
               ),
               const SizedBox(height: AppDimens.md),
               Text(
-                'Thêm món cần mua',
+                context.l10n.shoppingAddSheetTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
@@ -608,8 +611,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 controller: name,
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'Tên thực phẩm, nguyên liệu...',
-                  labelText: 'Tên món',
+                  hintText: context.l10n.shoppingNameHint,
+                  labelText: context.l10n.shoppingNameLabel,
                   prefixIcon: const Icon(Icons.edit_note_rounded),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppDimens.radiusMd),
@@ -627,7 +630,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                           const TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
                         hintText: '1',
-                        labelText: 'Số lượng',
+                        labelText: context.l10n.shoppingQuantityLabel,
                         prefixIcon: const Icon(Icons.numbers_rounded),
                         border: OutlineInputBorder(
                           borderRadius:
@@ -642,7 +645,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     child: DropdownButtonFormField<String>(
                       initialValue: unit,
                       decoration: InputDecoration(
-                        labelText: 'Đơn vị',
+                        labelText: context.l10n.shoppingUnitLabel,
                         border: OutlineInputBorder(
                           borderRadius:
                               BorderRadius.circular(AppDimens.radiusMd),
@@ -665,7 +668,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
               ),
               const SizedBox(height: AppDimens.sm),
               Text(
-                'Phân loại',
+                context.l10n.shoppingCategoryLabel,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -715,9 +718,9 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   await store.add(text, qty, unit, category: category);
                   if (context.mounted) Navigator.pop(bottomSheetContext);
                 },
-                child: const Text(
-                  'Thêm vào danh sách',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                child: Text(
+                  context.l10n.shoppingAddToList,
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                 ),
               ),
             ],

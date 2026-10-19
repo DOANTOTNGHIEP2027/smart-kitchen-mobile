@@ -9,6 +9,7 @@ import '../../constants/app_dimens.dart';
 import '../../l10n/app_localizations.dart';
 import '../../stores/session_store.dart';
 import '../../utils/l10n_x.dart';
+import '../../utils/api_error_l10n.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
@@ -90,10 +91,15 @@ class _TierUpgradeScreenState extends State<TierUpgradeScreen> {
     if (confirmed != true || !mounted) return;
     final ok = await _store.updateTier(target);
     if (!ok || !mounted) return;
-    // Dùng `target` (BE đã nhận), không đọc `_store.tier`: refreshClaims() có
-    // thể đã thất bại im lặng và claim vẫn là tier cũ (Guard 4).
+    // Nhãn lấy từ `target` (BE đã nhận), không từ `_store.tier`: refreshClaims()
+    // có thể đã thất bại im lặng và claim vẫn là tier cũ (Guard 4).
+    // Claim chưa đổi theo (refresh lỗi) → nói rõ thay vì để màn hình hiện gói
+    // cũ mà toast lại báo gói mới (người dùng dễ bấm đổi lần nữa).
+    final label = tierLabel(l10n, target);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(l10n.tierUpdated(tierLabel(l10n, target))),
+      content: Text(_store.tier == target
+          ? l10n.tierUpdated(label)
+          : l10n.tierUpdatedClaimStale(label)),
     ));
   }
 
@@ -225,7 +231,7 @@ class _TierUpgradeScreenState extends State<TierUpgradeScreen> {
           _store.tierUpdateError != null)
         FeatureBanner(
           key: const ValueKey<String>('tier-update-error'),
-          message: _store.tierUpdateError!.message,
+          message: apiErrorMessage(l10n, _store.tierUpdateError),
           margin: const EdgeInsets.only(bottom: AppDimens.md),
         ),
       AppButton(

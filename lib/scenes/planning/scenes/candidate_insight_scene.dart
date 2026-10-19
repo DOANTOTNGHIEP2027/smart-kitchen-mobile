@@ -7,6 +7,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/feature_banner.dart';
@@ -62,12 +63,8 @@ class _CandidateInsightSceneState extends State<CandidateInsightScene> {
               padding: const EdgeInsets.symmetric(horizontal: AppDimens.md),
               child: FeatureBanner(
                 key: const ValueKey<String>('candidate-generate-error'),
-                // ERR_UNKNOWN = lỗi không từ BE (vd. StateError) — message
-                // tiếng Anh nội bộ, thay bằng copy l10n.
-                message: _store.generateError?.code == 'ERR_UNKNOWN'
-                    ? l10n.planningCandidateGenerateFailed
-                    : (_store.generateError?.message ??
-                        l10n.planningCandidateGenerateFailed),
+                message: apiErrorMessage(l10n, _store.generateError,
+                    fallback: l10n.planningCandidateGenerateFailed),
                 margin: const EdgeInsets.only(bottom: AppDimens.sm),
               ),
             );

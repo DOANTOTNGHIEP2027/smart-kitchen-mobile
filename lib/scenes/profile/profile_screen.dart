@@ -109,7 +109,7 @@ class ProfileScreen extends StatelessWidget {
             _ProfileNavigationTile(
               icon: Icons.child_care_rounded,
               iconColor: AppColors.sage,
-              title: 'Hồ sơ người phụ thuộc',
+              title: context.l10n.dependentProfileNav,
               onPressed: () => Get.toNamed(AppRoutes.dependents),
             ),
             const SizedBox(height: AppDimens.sm),

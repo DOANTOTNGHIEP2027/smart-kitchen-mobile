@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
 import '../../data/network/dio_client.dart';
+import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/states/app_loading_view.dart';
 import 'dependent_form_screen.dart';
@@ -20,7 +21,7 @@ class DependentListScreen extends StatefulWidget {
 class _DependentListScreenState extends State<DependentListScreen> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _dependents = <Map<String, dynamic>>[];
-  String? _errorMessage;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -31,7 +32,7 @@ class _DependentListScreenState extends State<DependentListScreen> {
   Future<void> _loadDependents() async {
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _hasError = false;
     });
 
     try {
@@ -50,7 +51,7 @@ class _DependentListScreenState extends State<DependentListScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Không thể tải danh sách người phụ thuộc.';
+        _hasError = true;
         _isLoading = false;
       });
     }
@@ -61,10 +62,10 @@ class _DependentListScreenState extends State<DependentListScreen> {
     final theme = Theme.of(context);
 
     return AppScaffold(
-      title: 'Người phụ thuộc',
+      title: context.l10n.dependentListTitle,
       actions: <Widget>[
         IconButton(
-          tooltip: 'Tải lại',
+          tooltip: context.l10n.refresh,
           icon: const Icon(Icons.refresh_rounded),
           onPressed: _loadDependents,
         ),
@@ -80,9 +81,9 @@ class _DependentListScreenState extends State<DependentListScreen> {
           if (created == true) _loadDependents();
         },
         icon: const Icon(Icons.add_rounded),
-        label: const Text(
-          'Thêm hồ sơ',
-          style: TextStyle(fontWeight: FontWeight.w700),
+        label: Text(
+          context.l10n.dependentAddProfile,
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -91,7 +92,7 @@ class _DependentListScreenState extends State<DependentListScreen> {
   Widget _buildBody(ThemeData theme) {
     if (_isLoading) return const AppLoadingView();
 
-    if (_errorMessage != null) {
+    if (_hasError) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(AppDimens.lg),
@@ -104,12 +105,13 @@ class _DependentListScreenState extends State<DependentListScreen> {
                 color: AppColors.error,
               ),
               const SizedBox(height: AppDimens.md),
-              Text(_errorMessage!, style: theme.textTheme.bodyMedium),
+              Text(context.l10n.dependentLoadFailed,
+                  style: theme.textTheme.bodyMedium),
               const SizedBox(height: AppDimens.md),
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: AppColors.sage),
                 onPressed: _loadDependents,
-                child: const Text('Thử lại'),
+                child: Text(context.l10n.commonRetry),
               ),
             ],
           ),
@@ -139,7 +141,7 @@ class _DependentListScreenState extends State<DependentListScreen> {
               ),
               const SizedBox(height: AppDimens.md),
               Text(
-                'Chưa có người phụ thuộc',
+                context.l10n.dependentEmptyTitle,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
@@ -147,7 +149,7 @@ class _DependentListScreenState extends State<DependentListScreen> {
               ),
               const SizedBox(height: AppDimens.xs),
               Text(
-                'Thêm hồ sơ con nhỏ hoặc người thân phụ thuộc để hệ thống tự động kiểm soát dị ứng và chế độ dinh dưỡng phù hợp.',
+                context.l10n.dependentEmptyBody,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondary,
@@ -185,7 +187,7 @@ class _DependentListScreenState extends State<DependentListScreen> {
               const SizedBox(width: AppDimens.sm),
               Expanded(
                 child: Text(
-                  'Hệ thống tự động loại trừ nguyên liệu gây dị ứng khi gợi ý thực đơn cho các thành viên phụ thuộc.',
+                  context.l10n.dependentAllergenInfo,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.sageDark,
                     fontWeight: FontWeight.w600,
@@ -203,7 +205,8 @@ class _DependentListScreenState extends State<DependentListScreen> {
   }
 
   Widget _buildDependentCard(ThemeData theme, Map<String, dynamic> dep) {
-    final name = dep['displayName'] as String? ?? 'Thành viên nhỏ';
+    final name =
+        dep['displayName'] as String? ?? context.l10n.dependentDefaultName;
     final dob = dep['dateOfBirth'] as String?;
     final dietType = dep['dietType'] as String? ?? 'NONE';
     final allergens = dep['allergens'] as List<dynamic>? ?? const <dynamic>[];
@@ -214,7 +217,8 @@ class _DependentListScreenState extends State<DependentListScreen> {
         final birthDate = DateTime.parse(dob);
         final now = DateTime.now();
         final age = now.year - birthDate.year;
-        ageText = '$age tuổi · Sinh ${birthDate.day}/${birthDate.month}/${birthDate.year}';
+        ageText = context.l10n.dependentAgeAndBirth(age,
+            '${birthDate.day}/${birthDate.month}/${birthDate.year}');
       } catch (_) {
         ageText = dob;
       }
@@ -291,7 +295,7 @@ class _DependentListScreenState extends State<DependentListScreen> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              dietType,
+                              dependentDietLabel(context.l10n, dietType),
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -320,7 +324,8 @@ class _DependentListScreenState extends State<DependentListScreen> {
                                 ),
                                 const SizedBox(width: 3),
                                 Text(
-                                  'Dị ứng: ${aMap['name']}',
+                                  context.l10n
+                                      .dependentAllergenChip('${aMap['name']}'),
                                   style: const TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
@@ -341,9 +346,9 @@ class _DependentListScreenState extends State<DependentListScreen> {
                               color: AppColors.sageLight,
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              'Không có dị ứng',
-                              style: TextStyle(
+                            child: Text(
+                              context.l10n.dependentNoAllergens,
+                              style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.sage,

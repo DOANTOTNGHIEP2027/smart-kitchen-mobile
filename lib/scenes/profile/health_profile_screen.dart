@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../constants/app_dimens.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
+import '../../utils/api_error_l10n.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
@@ -103,7 +104,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                       children: <Widget>[
                         if (store.mutationError != null) ...<Widget>[
                           _InlineError(
-                            message: store.mutationError!.message,
+                            message: apiErrorMessage(
+                                context.l10n, store.mutationError),
                             fieldErrors: store.mutationError!.fieldErrors,
                           ),
                           const SizedBox(height: AppDimens.md),

@@ -71,7 +71,10 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
   void _openCandidates(MealPlanDish dish) {
     final store = Get.find<MealPlanStore>();
     final planId = store.currentPlanId;
-    if (planId == null) return;
+    if (planId == null) {
+      _showActionError(context.l10n.planningPlanNotReady);
+      return;
+    }
     final session = store.activeSessions[dish.id];
     // Món đã chốt không được mở phiên mới (cùng luật với `onChoose`) → không
     // truyền slotId/dishId để màn insight không hiện nút sinh gợi ý.
@@ -257,7 +260,7 @@ class _EditableDishCard extends StatelessWidget {
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline_rounded),
             color: AppColors.error,
-            tooltip: 'Xoá món',
+            tooltip: context.l10n.mealplanDeleteDish,
           ),
         ],
       ),

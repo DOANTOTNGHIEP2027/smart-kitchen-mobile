@@ -173,7 +173,8 @@ class WeeklyRecapStore {
         _streak.value = streak;
         _streakStatus.value = RecapLoadStatus.ready;
       });
-    } on ApiException {
+    } catch (_) {
+      // Gồm cả lỗi parse — streak không được kẹt ở loading.
       runInAction(() {
         _streak.value = null;
         _streakStatus.value = RecapLoadStatus.error;

@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../stores/session_store.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
@@ -90,8 +91,8 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
               return const AppLoadingView();
             case MealPlanLoadStatus.error:
               return AppErrorView(
-                message: store.loadError?.message ??
-                    context.l10n.mealPlanLoadFailed,
+                message: apiErrorMessage(context.l10n, store.loadError,
+                    fallback: context.l10n.mealPlanLoadFailed),
                 onRetry: () => store.loadWeekPlan(),
               );
             case MealPlanLoadStatus.ready:
@@ -613,7 +614,7 @@ class _ScheduledDishCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                     ],
-                    _dishStatusChip(dish.status),
+                    _dishStatusChip(context, dish.status),
                   ],
                 ),
               ],
@@ -623,19 +624,20 @@ class _ScheduledDishCard extends StatelessWidget {
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline_rounded, size: 20),
             color: AppColors.error,
-            tooltip: 'Xoá món',
+            tooltip: context.l10n.mealplanDeleteDish,
           ),
         ],
       ),
     );
   }
 
-  Widget _dishStatusChip(DishUiStatus status) {
+  Widget _dishStatusChip(BuildContext context, DishUiStatus status) {
+    final l10n = context.l10n;
     final (label, color) = switch (status) {
-      DishUiStatus.confirmed => ('Đã chốt', AppColors.sage),
-      DishUiStatus.voting => ('Bình chọn', const Color(0xFF0284C7)),
-      DishUiStatus.suggested => ('Gợi ý', const Color(0xFFD97706)),
-      DishUiStatus.empty => ('Chưa chọn', AppColors.textSecondary),
+      DishUiStatus.confirmed => (l10n.mealPlanStatusConfirmed, AppColors.sage),
+      DishUiStatus.voting => (l10n.mealPlanStatusVoting, const Color(0xFF0284C7)),
+      DishUiStatus.suggested => (l10n.mealPlanStatusSuggested, const Color(0xFFD97706)),
+      DishUiStatus.empty => (l10n.mealPlanStatusEmpty, AppColors.textSecondary),
     };
 
     return Container(

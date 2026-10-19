@@ -6,7 +6,20 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
 import '../../data/network/dio_client.dart';
 import '../../demo/fixtures/demo_fixtures.dart';
+import '../../l10n/app_localizations.dart';
+import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
+
+/// Nhãn hiển thị của `dietType` người phụ thuộc. Giá trị lạ (BE thêm loại
+/// mới) giữ nguyên mã thay vì đoán thành "Bình thường".
+String dependentDietLabel(AppLocalizations l10n, String value) =>
+    switch (value) {
+      'NONE' => l10n.dependentDietNone,
+      'VEGETARIAN' => l10n.dependentDietVegetarian,
+      'VEGAN' => l10n.dependentDietVegan,
+      'PESCATARIAN' => l10n.dependentDietPescatarian,
+      _ => value,
+    };
 
 /// Màn hình thêm / sửa hồ sơ người phụ thuộc.
 class DependentFormScreen extends StatefulWidget {
@@ -23,11 +36,11 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
   final Set<int> _selectedAllergens = <int>{};
   bool _isSaving = false;
 
-  final _dietOptions = const <Map<String, String>>[
-    {'value': 'NONE', 'label': 'Bình thường'},
-    {'value': 'VEGETARIAN', 'label': 'Ăn chay trứng sữa'},
-    {'value': 'VEGAN', 'label': 'Ăn chay thuần'},
-    {'value': 'PESCATARIAN', 'label': 'Ăn cá & hải sản'},
+  final _dietOptions = const <String>[
+    'NONE',
+    'VEGETARIAN',
+    'VEGAN',
+    'PESCATARIAN',
   ];
 
   Future<void> _selectDate() async {
@@ -55,7 +68,7 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập tên người phụ thuộc')),
+        SnackBar(content: Text(context.l10n.dependentNameRequired)),
       );
       return;
     }
@@ -103,7 +116,7 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Có lỗi xảy ra khi lưu hồ sơ')),
+          SnackBar(content: Text(context.l10n.dependentSaveFailed)),
         );
       }
     }
@@ -114,13 +127,13 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
     final theme = Theme.of(context);
 
     return AppScaffold(
-      title: 'Thêm người phụ thuộc',
+      title: context.l10n.dependentFormTitle,
       body: ListView(
         padding: const EdgeInsets.all(AppDimens.lg),
         children: <Widget>[
           // Header info
           Text(
-            'Thông tin cơ bản',
+            context.l10n.dependentBasicInfo,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -132,8 +145,8 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
           TextField(
             controller: _nameController,
             decoration: InputDecoration(
-              labelText: 'Họ và tên hoặc biệt danh *',
-              hintText: 'Ví dụ: Bé An, Bé Miu, Ông nội...',
+              labelText: context.l10n.dependentNameLabel,
+              hintText: context.l10n.dependentNameHint,
               prefixIcon: const Icon(Icons.person_outline_rounded),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppDimens.radiusMd),
@@ -148,7 +161,7 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
             borderRadius: BorderRadius.circular(AppDimens.radiusMd),
             child: InputDecorator(
               decoration: InputDecoration(
-                labelText: 'Ngày sinh',
+                labelText: context.l10n.dependentDateOfBirth,
                 prefixIcon: const Icon(Icons.cake_outlined),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimens.radiusMd),
@@ -164,7 +177,7 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
 
           // Diet type section
           Text(
-            'Chế độ ăn',
+            context.l10n.dependentDietSection,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -172,7 +185,7 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
           ),
           const SizedBox(height: AppDimens.xs),
           Text(
-            'Chọn chế độ ăn đặc thù nếu thành viên có yêu cầu dinh dưỡng riêng.',
+            context.l10n.dependentDietHint,
             style: theme.textTheme.bodySmall?.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -182,9 +195,9 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
             spacing: 8,
             runSpacing: 8,
             children: _dietOptions.map((opt) {
-              final selected = _dietType == opt['value'];
+              final selected = _dietType == opt;
               return ChoiceChip(
-                label: Text(opt['label']!),
+                label: Text(dependentDietLabel(context.l10n, opt)),
                 selected: selected,
                 selectedColor: AppColors.sageLight,
                 labelStyle: TextStyle(
@@ -192,7 +205,7 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
                 onSelected: (val) {
-                  if (val) setState(() => _dietType = opt['value']!);
+                  if (val) setState(() => _dietType = opt);
                 },
               );
             }).toList(),
@@ -201,7 +214,7 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
 
           // Allergens section
           Text(
-            'Dị ứng thực phẩm',
+            context.l10n.dependentAllergenSection,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -209,7 +222,7 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
           ),
           const SizedBox(height: AppDimens.xs),
           Text(
-            'Tích chọn các thực phẩm mà thành viên bị dị ứng để ứng dụng cảnh báo.',
+            context.l10n.dependentAllergenHint,
             style: theme.textTheme.bodySmall?.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -265,9 +278,9 @@ class _DependentFormScreenState extends State<DependentFormScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Text(
-                    'Lưu hồ sơ',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                : Text(
+                    context.l10n.dependentSave,
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                   ),
           ),
         ],

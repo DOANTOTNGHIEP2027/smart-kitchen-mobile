@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/feature_banner.dart';
 import '../domain/household_member.dart';
@@ -143,7 +144,7 @@ class _ChangeRoleSheetState extends State<ChangeRoleSheet> {
         if (failed && _store.changeRoleError != null)
           FeatureBanner(
             key: const ValueKey<String>('change-role-error'),
-            message: _store.changeRoleError!.message,
+            message: apiErrorMessage(l10n, _store.changeRoleError),
             margin: const EdgeInsets.only(bottom: AppDimens.sm),
           ),
         const SizedBox(height: AppDimens.sm),

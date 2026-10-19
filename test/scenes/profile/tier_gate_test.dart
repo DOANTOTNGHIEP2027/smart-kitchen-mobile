@@ -555,6 +555,25 @@ void main() {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
+      // Claim vẫn FREE → toast nói gói ĐÍCH + nhắc đăng nhập lại (không báo gói cũ).
+      expect(find.text('Đã cập nhật gói household thành Premium. Nếu màn hình vẫn hiện gói cũ, hãy đăng nhập lại.'), findsOneWidget);
+    });
+
+    testWidgets('TierUpgradeScreen: refresh claim OK → toast gói mới, không nhắc đăng nhập lại', (tester) async {
+      await tester.runAsync(() async {
+        final (st, _, s) = await store(tier: 'FREE');
+        Get.put<FamilyStore>(st);
+        Get.put<SessionStore>(s);
+      });
+      await tester.pumpAppWidget(const TierUpgradeScreen(), wrapInScaffold: false);
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey<String>('tier-change')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('tier-dialog-confirm')));
+      await tester.pumpAndSettle();
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
       expect(find.text('Đã cập nhật gói household thành Premium'), findsOneWidget);
     });
 

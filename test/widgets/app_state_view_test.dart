@@ -49,18 +49,27 @@ void main() {
     var retried = 0;
     await tester.pumpAppWidget(
       buildView(
-        ErrorState<String>(ServerException('ERR_INTERNAL', 'Server error')),
+        ErrorState<String>(BusinessException('ERR_HH_004', 'Chỉ chủ hộ')),
         onRetry: () => retried++,
       ),
     );
 
     expect(find.byType(AppErrorView), findsOneWidget);
-    expect(find.text('Server error'), findsOneWidget);
+    // Lỗi nghiệp vụ → giữ message BE.
+    expect(find.text('Chỉ chủ hộ'), findsOneWidget);
 
     await tester.tap(find.text('Thử lại'));
     await tester.pump();
 
     expect(retried, 1);
+
+    // 5xx không envelope (interceptor điền 'Server error') → copy l10n.
+    await tester.pumpAppWidget(
+      buildView(ErrorState<String>(ServerException('ERR_INTERNAL', 'Server error')),
+          onRetry: () {}),
+    );
+    expect(find.text('Server error'), findsNothing);
+    expect(find.text('Đã có lỗi xảy ra. Vui lòng thử lại'), findsOneWidget);
   });
 
   testWidgets('SuccessState → render successBuilder', (WidgetTester tester) async {

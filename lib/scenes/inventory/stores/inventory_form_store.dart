@@ -22,6 +22,17 @@ String _localId() {
 
 enum InventoryFormMode { create, edit }
 
+/// Mã lỗi validate form — Store không có BuildContext nên trả mã, scene map
+/// sang `context.l10n` (luật "Không hardcode text").
+enum InventoryFormValidationError {
+  nameEmpty,
+  quantityEmpty,
+  quantityNotNumber,
+  quantityNotPositive,
+  quantityNegative,
+  quantityNotWhole,
+}
+
 /// Lựa chọn resolve xung đột (FE-5 §10 InventoryConflict).
 enum ConflictResolution { keepMine, useServer }
 
@@ -88,31 +99,30 @@ class InventoryFormStore {
 
   // ── Validation helpers (FE-5 §10.1) ─────────────────────────────────────
 
-  /// Trả null nếu OK, ngược lại chuỗi lỗi (đã được i18n key thay bằng text
-  /// tiếng Việt trực tiếp vì convention l10n chưa hoàn thiện — xem file arb]).
-  static String? validateName(String? v) {
+  /// Trả null nếu OK, ngược lại mã lỗi — scene map sang text l10n.
+  static InventoryFormValidationError? validateName(String? v) {
     final s = v?.trim() ?? '';
-    if (s.isEmpty) return 'Tên không được để trống';
+    if (s.isEmpty) return InventoryFormValidationError.nameEmpty;
     return null;
   }
 
-  static String? validateQuantity(
+  static InventoryFormValidationError? validateQuantity(
     String? v, {
     required InventoryFormMode mode,
     required bool mustBeWhole,
   }) {
     final s = v?.trim() ?? '';
-    if (s.isEmpty) return 'Số lượng không được để trống';
+    if (s.isEmpty) return InventoryFormValidationError.quantityEmpty;
     final n = double.tryParse(s);
-    if (n == null) return 'Phải là số';
+    if (n == null) return InventoryFormValidationError.quantityNotNumber;
     if (mode == InventoryFormMode.create && n <= 0) {
-      return 'Số lượng phải lớn hơn 0';
+      return InventoryFormValidationError.quantityNotPositive;
     }
     if (mode == InventoryFormMode.edit && n < 0) {
-      return 'Số lượng không được âm'; // Phase 0 AC 4 — chặn số âm
+      return InventoryFormValidationError.quantityNegative; // Phase 0 AC 4 — chặn số âm
     }
     if (mustBeWhole && n != n.roundToDouble()) {
-      return 'Với đơn vị "quả/cái", phải là số nguyên';
+      return InventoryFormValidationError.quantityNotWhole;
     }
     return null;
   }
