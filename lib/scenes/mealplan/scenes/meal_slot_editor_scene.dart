@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../planning/scenes/planning_routes.dart';
 import '../domain/meal_plan_slot.dart';
 import '../stores/meal_plan_store.dart';
 import '../widgets/recipe_cover_image.dart';
@@ -65,6 +66,25 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
     }
   }
 
+  /// Mở "Gợi ý AI có kiểm chứng" của đúng món này (OD-08): biết id phiên thật
+  /// thì lọc theo phiên; món chưa từng mở phiên thì hiện rỗng + nút sinh.
+  void _openCandidates(MealPlanDish dish) {
+    final store = Get.find<MealPlanStore>();
+    final planId = store.currentPlanId;
+    if (planId == null) return;
+    final session = store.activeSessions[dish.id];
+    // Món đã chốt không được mở phiên mới (cùng luật với `onChoose`) → không
+    // truyền slotId/dishId để màn insight không hiện nút sinh gợi ý.
+    final canChoose = dish.status != DishUiStatus.confirmed;
+    Get.toNamed<void>(PlanningRoutes.candidatesOf(
+      planId,
+      sessionId: session?.sessionId,
+      slotId: canChoose ? widget.slotId : null,
+      dishId: canChoose ? dish.id : null,
+      dishHasNoSession: session == null && dish.status == DishUiStatus.empty,
+    ));
+  }
+
   void _showActionError(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -105,6 +125,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                   child: _EditableDishCard(
                     dish: dish,
                     onDelete: () => store.removeDish(widget.slotId, dish.id),
+                    onInsights: () => _openCandidates(dish),
                     onChoose: dish.status == DishUiStatus.confirmed
                         ? null
                         : () => _openSuggestions(dish.id),
@@ -151,18 +172,24 @@ class _EditableDishCard extends StatelessWidget {
   const _EditableDishCard({
     required this.dish,
     required this.onDelete,
+    required this.onInsights,
     this.onChoose,
   });
 
   final MealPlanDish dish;
   final VoidCallback onDelete;
+  final VoidCallback onInsights;
   final VoidCallback? onChoose;
 
   @override
   Widget build(BuildContext context) {
     final recipe = dish.recipe;
     if (recipe == null) {
-      return _PendingDishCard(onDelete: onDelete, onChoose: onChoose);
+      return _PendingDishCard(
+        onDelete: onDelete,
+        onInsights: onInsights,
+        onChoose: onChoose,
+      );
     }
     final minutes = RecipeCoverImage.demoPrepTimeMinutes(recipe.recipeId);
     return Container(
@@ -225,6 +252,7 @@ class _EditableDishCard extends StatelessWidget {
               ],
             ),
           ),
+          _InsightsButton(onPressed: onInsights),
           IconButton(
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline_rounded),
@@ -238,9 +266,14 @@ class _EditableDishCard extends StatelessWidget {
 }
 
 class _PendingDishCard extends StatelessWidget {
-  const _PendingDishCard({required this.onDelete, this.onChoose});
+  const _PendingDishCard({
+    required this.onDelete,
+    required this.onInsights,
+    this.onChoose,
+  });
 
   final VoidCallback onDelete;
+  final VoidCallback onInsights;
   final VoidCallback? onChoose;
 
   @override
@@ -291,6 +324,7 @@ class _PendingDishCard extends StatelessWidget {
                   foregroundColor: AppColors.sageDark,
                 ),
               ),
+            _InsightsButton(onPressed: onInsights),
             IconButton(
               onPressed: onDelete,
               icon: const Icon(Icons.delete_outline_rounded),
@@ -298,5 +332,21 @@ class _PendingDishCard extends StatelessWidget {
             ),
           ],
         ),
+      );
+}
+
+/// Mở "Gợi ý AI có kiểm chứng" của 1 món (flexible-meal-planning §9 mục 1).
+class _InsightsButton extends StatelessWidget {
+  const _InsightsButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+        key: const ValueKey<String>('dish-candidate-insights'),
+        onPressed: onPressed,
+        icon: const Icon(Icons.auto_awesome_outlined),
+        color: AppColors.sage,
+        tooltip: context.l10n.planningCandidateTooltip,
       );
 }

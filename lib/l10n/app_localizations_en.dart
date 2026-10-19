@@ -1686,4 +1686,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planningGuestSave => 'Save';
+
+  @override
+  String get planningCandidateTitle => 'Verified AI suggestions';
+
+  @override
+  String get planningCandidateTooltip => 'Verified AI suggestions';
+
+  @override
+  String get planningCandidateExplainer =>
+      'Everything below is a RAW suggestion from AI. The system then filters by allergies (mandatory) and ranks by diet, expiring food and variety — only the dish marked ⭐ is the FINAL pick confirmed by the algorithm.';
+
+  @override
+  String get planningCandidateEmpty => 'No suggestions for this dish yet.';
+
+  @override
+  String get planningCandidateEmptyWeek =>
+      'No AI suggestions this week yet. Open a dish and pick suggestions to generate them.';
+
+  @override
+  String get planningCandidateGenerate => 'Generate AI suggestions';
+
+  @override
+  String get planningCandidateGenerateFailed =>
+      'Could not generate suggestions.';
+
+  @override
+  String get planningCandidateAllBlocked =>
+      'All suggestions are blocked by allergies. Try removing some guests from the constraints, or pick a dish manually.';
+
+  @override
+  String get planningCandidateAiLabel => 'AI suggestion';
+
+  @override
+  String get planningCandidateFinalPick =>
+      'Final pick — confirmed by the algorithm';
+
+  @override
+  String get planningCandidatePassed =>
+      'Passed safety checks — not the top pick';
+
+  @override
+  String planningCandidateBlocked(String reason) {
+    return 'Excluded — $reason';
+  }
+
+  @override
+  String get planningCandidateUnverified =>
+      'Allergies NOT verified — this suggestion was never checked by the safety filter';
+
+  @override
+  String get planningCandidateBlockedUnknown => 'unverified allergy';
+
+  @override
+  String planningCandidateScore(String score) {
+    return 'Score $score';
+  }
+
+  @override
+  String get planningCandidateBreakdown => 'Score breakdown';
+
+  @override
+  String planningCandidateWeight(String weight) {
+    return 'weight $weight';
+  }
+
+  @override
+  String get planningCandidateNoBreakdown =>
+      'The engine returned no score breakdown.';
+
+  @override
+  String planningCandidateSession(String time) {
+    return 'Suggestion session · $time';
+  }
+
+  @override
+  String get planningFeatureInventoryCoverage => 'Ingredients on hand';
+
+  @override
+  String get planningFeatureExpiryUrgency => 'Expiring food';
+
+  @override
+  String get planningFeatureRepetitionPenalty => 'Recent repetition';
+
+  @override
+  String get planningFeatureNutritionFit => 'Nutrition fit';
+
+  @override
+  String get planningFeatureDietMatch => 'Diet match';
+
+  @override
+  String get planningFeatureEffortFit => 'Effort fit';
+
+  @override
+  String get planningFeaturePreference => 'Preference';
+
+  @override
+  String get planningFeaturePrior => 'Base priority';
+
+  @override
+  String get planningFeatureNutrientBalance => 'Nutrient balance';
+
+  @override
+  String get planningFeatureRiskPenalty => 'Nutrient risk';
+
+  @override
+  String get planningFeatureConstraintMatch => 'Constraint match';
+
+  @override
+  String get planningFeatureGraphPath => 'Knowledge-graph evidence';
+
+  @override
+  String get planningRepetitionTitle => 'Repeated dishes';
+
+  @override
+  String get planningRepetitionTooltip => 'Repeated dishes';
+
+  @override
+  String planningRepetitionWindow(int days) {
+    return '$days days';
+  }
+
+  @override
+  String planningRepetitionEmpty(int days) {
+    return 'No dish repeated in the last $days days 🎉';
+  }
+
+  @override
+  String planningRepetitionCount(int count) {
+    return '$count times';
+  }
 }

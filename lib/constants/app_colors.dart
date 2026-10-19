@@ -34,6 +34,8 @@ abstract class AppColors {
 
   // `--danger: #d64545` (thay Material `#BA1A1A`).
   static const Color error = Color(0xFFD64545);
+  /// Nền nhạt cho banner/nhãn lỗi (FeatureBanner, badge bị loại).
+  static const Color errorSurface = Color(0xFFFFEEEE);
   static const Color warning = Color(0xFFFF9500);
   static const Color success = Color(0xFF34C759);
 

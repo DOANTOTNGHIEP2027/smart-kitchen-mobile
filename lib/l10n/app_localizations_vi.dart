@@ -1672,4 +1672,132 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get planningGuestSave => 'Lưu';
+
+  @override
+  String get planningCandidateTitle => 'Gợi ý AI có kiểm chứng';
+
+  @override
+  String get planningCandidateTooltip => 'Gợi ý AI có kiểm chứng';
+
+  @override
+  String get planningCandidateExplainer =>
+      'Toàn bộ danh sách dưới đây là gợi ý THÔ do AI sinh ra. Hệ thống sau đó lọc theo dị ứng (bắt buộc) rồi xếp hạng theo chế độ ăn, thực phẩm sắp hết hạn và chống lặp món — chỉ món có ⭐ là LỰA CHỌN CUỐI CÙNG được thuật toán xác nhận.';
+
+  @override
+  String get planningCandidateEmpty => 'Chưa có gợi ý nào cho món này.';
+
+  @override
+  String get planningCandidateEmptyWeek =>
+      'Tuần này chưa có gợi ý AI nào. Mở một món và chọn gợi ý để AI sinh danh sách.';
+
+  @override
+  String get planningCandidateGenerate => 'Sinh gợi ý AI';
+
+  @override
+  String get planningCandidateGenerateFailed => 'Không sinh được gợi ý.';
+
+  @override
+  String get planningCandidateAllBlocked =>
+      'Toàn bộ gợi ý bị chặn do dị ứng. Thử xoá bớt khách khỏi ràng buộc, hoặc chọn món thủ công.';
+
+  @override
+  String get planningCandidateAiLabel => 'Gợi ý AI';
+
+  @override
+  String get planningCandidateFinalPick =>
+      'Lựa chọn cuối cùng — thuật toán xác nhận';
+
+  @override
+  String get planningCandidatePassed =>
+      'Đã qua kiểm tra an toàn — chưa phải lựa chọn hàng đầu';
+
+  @override
+  String planningCandidateBlocked(String reason) {
+    return 'Bị loại — $reason';
+  }
+
+  @override
+  String get planningCandidateUnverified =>
+      'CHƯA kiểm chứng dị ứng — gợi ý này chưa qua bộ lọc an toàn';
+
+  @override
+  String get planningCandidateBlockedUnknown => 'dị ứng chưa kiểm chứng';
+
+  @override
+  String planningCandidateScore(String score) {
+    return 'Điểm $score';
+  }
+
+  @override
+  String get planningCandidateBreakdown => 'Chi tiết điểm';
+
+  @override
+  String planningCandidateWeight(String weight) {
+    return 'trọng số $weight';
+  }
+
+  @override
+  String get planningCandidateNoBreakdown => 'Engine không trả chi tiết điểm.';
+
+  @override
+  String planningCandidateSession(String time) {
+    return 'Phiên gợi ý · $time';
+  }
+
+  @override
+  String get planningFeatureInventoryCoverage => 'Nguyên liệu có sẵn';
+
+  @override
+  String get planningFeatureExpiryUrgency => 'Thực phẩm sắp hết hạn';
+
+  @override
+  String get planningFeatureRepetitionPenalty => 'Lặp món gần đây';
+
+  @override
+  String get planningFeatureNutritionFit => 'Phù hợp dinh dưỡng';
+
+  @override
+  String get planningFeatureDietMatch => 'Hợp chế độ ăn';
+
+  @override
+  String get planningFeatureEffortFit => 'Phù hợp công sức';
+
+  @override
+  String get planningFeaturePreference => 'Sở thích';
+
+  @override
+  String get planningFeaturePrior => 'Mức ưu tiên gốc';
+
+  @override
+  String get planningFeatureNutrientBalance => 'Cân bằng dưỡng chất';
+
+  @override
+  String get planningFeatureRiskPenalty => 'Rủi ro dinh dưỡng';
+
+  @override
+  String get planningFeatureConstraintMatch => 'Khớp ràng buộc';
+
+  @override
+  String get planningFeatureGraphPath => 'Bằng chứng tri thức';
+
+  @override
+  String get planningRepetitionTitle => 'Món lặp lại';
+
+  @override
+  String get planningRepetitionTooltip => 'Thống kê món lặp lại';
+
+  @override
+  String planningRepetitionWindow(int days) {
+    return '$days ngày';
+  }
+
+  @override
+  String planningRepetitionEmpty(int days) {
+    return 'Chưa phát hiện món nào lặp lại trong $days ngày qua 🎉';
+  }
+
+  @override
+  String planningRepetitionCount(int count) {
+    return '$count lần';
+  }
 }
