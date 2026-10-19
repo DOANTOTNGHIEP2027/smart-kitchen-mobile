@@ -1940,4 +1940,66 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get tierMemberViewerInfo =>
       'Vai trò: Chỉ xem (Remote Viewer) — không vote, không sửa kho, không quản lý thành viên.';
+
+  @override
+  String get budgetLoading => 'Đang tải ngân sách…';
+
+  @override
+  String get budgetLoadFailed => 'Không tải được ngân sách';
+
+  @override
+  String get budgetNotSet => 'Chưa đặt ngân sách cho nhà mình';
+
+  @override
+  String budgetCurrentWeekly(String amount) {
+    return 'Ngân sách tuần: $amount';
+  }
+
+  @override
+  String budgetCurrentMonthly(String amount) {
+    return 'Ngân sách tháng: $amount';
+  }
+
+  @override
+  String get budgetSet => 'Đặt ngân sách';
+
+  @override
+  String get budgetEdit => 'Sửa';
+
+  @override
+  String get budgetOwnerOnlyTooltip =>
+      'Chỉ chủ hộ (OWNER) mới có thể đặt ngân sách';
+
+  @override
+  String get budgetLoadingTooltip => 'Đang tải ngân sách hiện tại…';
+
+  @override
+  String get budgetUpsell =>
+      'Xem chi tiêu theo nhóm & xu hướng 8 tuần với Premium';
+
+  @override
+  String get budgetSheetTitle => 'Ngân sách gia đình';
+
+  @override
+  String get budgetPeriodWeek => 'Tuần';
+
+  @override
+  String get budgetPeriodMonth => 'Tháng';
+
+  @override
+  String get budgetAmountLabel => 'Số tiền';
+
+  @override
+  String get budgetAmountInvalid =>
+      'Nhập số tiền lớn hơn 0 và tối đa 999.999.999.999';
+
+  @override
+  String get budgetNotRetroactive =>
+      'Ngân sách áp dụng cho các tuần TỚI. Recap của những tuần đã tổng kết vẫn giữ ngân sách tại thời điểm tổng kết.';
+
+  @override
+  String get budgetSave => 'Lưu';
+
+  @override
+  String get budgetUpdated => 'Đã cập nhật ngân sách';
 }

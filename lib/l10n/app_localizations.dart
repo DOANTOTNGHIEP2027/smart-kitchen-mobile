@@ -3584,6 +3584,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Role: View only (Remote Viewer) — no voting, no inventory edits, no member management.'**
   String get tierMemberViewerInfo;
+
+  /// No description provided for @budgetLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading budget…'**
+  String get budgetLoading;
+
+  /// No description provided for @budgetLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the budget'**
+  String get budgetLoadFailed;
+
+  /// No description provided for @budgetNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget set for this household yet'**
+  String get budgetNotSet;
+
+  /// No description provided for @budgetCurrentWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly budget: {amount}'**
+  String budgetCurrentWeekly(String amount);
+
+  /// No description provided for @budgetCurrentMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly budget: {amount}'**
+  String budgetCurrentMonthly(String amount);
+
+  /// No description provided for @budgetSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set budget'**
+  String get budgetSet;
+
+  /// No description provided for @budgetEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get budgetEdit;
+
+  /// No description provided for @budgetOwnerOnlyTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the household owner can set the budget'**
+  String get budgetOwnerOnlyTooltip;
+
+  /// No description provided for @budgetLoadingTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the current budget…'**
+  String get budgetLoadingTooltip;
+
+  /// No description provided for @budgetUpsell.
+  ///
+  /// In en, this message translates to:
+  /// **'See spending by category & 8-week trend with Premium'**
+  String get budgetUpsell;
+
+  /// No description provided for @budgetSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Household budget'**
+  String get budgetSheetTitle;
+
+  /// No description provided for @budgetPeriodWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get budgetPeriodWeek;
+
+  /// No description provided for @budgetPeriodMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get budgetPeriodMonth;
+
+  /// No description provided for @budgetAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get budgetAmountLabel;
+
+  /// No description provided for @budgetAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than 0 and at most 999,999,999,999'**
+  String get budgetAmountInvalid;
+
+  /// No description provided for @budgetNotRetroactive.
+  ///
+  /// In en, this message translates to:
+  /// **'The budget applies to UPCOMING weeks. Recaps of weeks already summarised keep the budget at that time.'**
+  String get budgetNotRetroactive;
+
+  /// No description provided for @budgetSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get budgetSave;
+
+  /// No description provided for @budgetUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget updated'**
+  String get budgetUpdated;
 }
 
 class _AppLocalizationsDelegate

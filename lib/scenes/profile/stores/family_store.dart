@@ -8,6 +8,8 @@ import '../../../stores/session_store.dart';
 import '../../../widgets/states/view_state.dart';
 import '../api/family_api.dart';
 import '../api/health_api.dart';
+import '../../../domain/shared/budget_period.dart';
+import '../domain/household_budget.dart';
 import '../domain/household_member.dart';
 import '../domain/household_roster.dart';
 import '../domain/household_tier.dart';
@@ -44,6 +46,17 @@ class FamilyStore {
   final Observable<ApiException?> _tierUpdateError =
       Observable<ApiException?>(null);
 
+  /// `null` = CHƯA TẢI (khác "chưa đặt" — xem [HouseholdBudget.isSet]).
+  final Observable<HouseholdBudget?> _budget =
+      Observable<HouseholdBudget?>(null);
+  final Observable<FormStatus> _budgetLoadStatus =
+      Observable<FormStatus>(FormStatus.idle);
+  final Observable<FormStatus> _budgetMutationStatus =
+      Observable<FormStatus>(FormStatus.idle);
+  final Observable<ApiException?> _budgetMutationError =
+      Observable<ApiException?>(null);
+  int _budgetLoadSeq = 0;
+
   ViewState<HouseholdRoster> get rosterState => _rosterState.value;
   bool get rosterIsFromCache => _rosterIsFromCache.value;
   FormStatus get inviteStatus => _inviteStatus.value;
@@ -58,6 +71,25 @@ class FamilyStore {
   ApiException? get changeRoleError => _changeRoleError.value;
   FormStatus get tierUpdateStatus => _tierUpdateStatus.value;
   ApiException? get tierUpdateError => _tierUpdateError.value;
+
+  HouseholdBudget? get budget => _budget.value;
+
+  /// `submitting` = đang tải. UI PHẢI đọc trạng thái này TRƯỚC [hasBudget] —
+  /// tải lỗi không được hiện thành "chưa đặt" (Guard #12, FIX HIGH-A2).
+  FormStatus get budgetLoadStatus => _budgetLoadStatus.value;
+  bool get hasBudget => _budget.value?.isSet ?? false;
+
+  /// Chỉ mở form đặt/sửa khi ĐÃ biết giá trị hiện tại — tránh upsert ghi đè mù.
+  /// Đang có lần ghi chưa xong (sheet bị vuốt đóng giữa chừng) cũng khoá: sheet
+  /// mở lại sẽ điền sẵn giá trị CŨ rồi cho "Lưu" đè lên giá trị vừa ghi.
+  bool get canEditBudget =>
+      isOwner &&
+      _budgetLoadStatus.value == FormStatus.success &&
+      _budgetMutationStatus.value != FormStatus.submitting;
+  FormStatus get budgetMutationStatus => _budgetMutationStatus.value;
+  ApiException? get budgetMutationError => _budgetMutationError.value;
+  bool get isSubmittingBudget =>
+      _budgetMutationStatus.value == FormStatus.submitting;
 
   /// `403 ERR_TIER_SEAT_LIMIT` — quyết định dứt khoát của BE (Guard 1).
   bool get isSeatLimitError =>
@@ -242,6 +274,55 @@ class FamilyStore {
         if (_tierUpdateStatus.value == FormStatus.submitting) return;
         _tierUpdateStatus.value = FormStatus.idle;
         _tierUpdateError.value = null;
+      });
+
+  /// Pipeline ĐỘC LẬP với roster: lỗi ở đây không đụng [rosterState].
+  Future<void> loadBudget() async {
+    final seq = ++_budgetLoadSeq;
+    runInAction(() => _budgetLoadStatus.value = FormStatus.submitting);
+    try {
+      final b = await _familyApi.getBudget();
+      if (seq != _budgetLoadSeq) return;
+      runInAction(() {
+        _budget.value = b;
+        _budgetLoadStatus.value = FormStatus.success;
+      });
+    } catch (_) {
+      if (seq != _budgetLoadSeq) return;
+      // 404 ERR_HH_001 / network: cùng 1 hành vi P2 — giữ `budget` cũ (nếu
+      // có) nhưng UI không coi là "chưa đặt".
+      runInAction(() => _budgetLoadStatus.value = FormStatus.failure);
+    }
+  }
+
+  Future<bool> upsertBudget(BudgetPeriod period, double amount) async {
+    if (_budgetMutationStatus.value == FormStatus.submitting) return false;
+    runInAction(() {
+      _budgetMutationStatus.value = FormStatus.submitting;
+      _budgetMutationError.value = null;
+    });
+    try {
+      final b = await _familyApi.upsertBudget(period: period, amount: amount);
+      runInAction(() {
+        _budgetLoadSeq++; // response mới nhất thắng mọi lần tải đang bay
+        _budget.value = b;
+        _budgetLoadStatus.value = FormStatus.success;
+        _budgetMutationStatus.value = FormStatus.success;
+      });
+      return true;
+    } catch (raw) {
+      runInAction(() {
+        _budgetMutationError.value = storeApiException(raw);
+        _budgetMutationStatus.value = FormStatus.failure;
+      });
+      return false;
+    }
+  }
+
+  void clearBudgetMutationStatus() => runInAction(() {
+        if (_budgetMutationStatus.value == FormStatus.submitting) return;
+        _budgetMutationStatus.value = FormStatus.idle;
+        _budgetMutationError.value = null;
       });
 
   void clearInviteError() =>

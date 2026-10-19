@@ -98,3 +98,18 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Làm trong task dọn profile/tier.
 - **Cần người quyết lại không:** Không.
+
+### OD-12 · Ngân sách household (tier-gate §19, #133) — lệch thiết kế theo BE thật + cấu trúc repo
+- **Ngày:** 2026-10-19 · **Task:** #133 · **Nhánh:** `feature/133_household-budget`
+- **Tình huống:** (1) `BudgetResponse` BE trả camelCase `householdId/period/amount/currency/updatedBy/updatedAt` (thiết kế §19.2 đọc snake_case `updated_by/updated_at`). (2) Thiết kế đặt `formatVnd` ở `lib/core/format/money.dart` — repo không có `lib/core`, đặt ở `lib/utils/money_format.dart` (cạnh helper dùng chung khác); `BudgetPeriod` ở `lib/domain/shared/budget_period.dart` đúng thiết kế, nhãn lấy từ l10n thay vì `displayName`. (3) Trạng thái tải/ghi dùng `FormStatus` (repo không có `MutationStatus`).
+- **Đã chọn:** Code theo BE thật + cấu trúc repo. Recap (weekly-recap §17) khi làm phải import đúng 2 file dùng chung này, không tạo bản thứ hai. · **Theo:** §6.2 luật 1 + §6.0 quy tắc 3.
+- **Đảo ngược thế nào:** Nếu chốt `lib/core/format`, chỉ cần di chuyển file + sửa import.
+- **Cần người quyết lại không:** Không.
+
+### OD-13 · Ngân sách household — 6 finding LOW còn lại sau 3 vòng review + quyết định parse số tiền
+- **Ngày:** 2026-10-19 · **Task:** #133 · **Nhánh:** `feature/133_household-budget`
+- **Quyết định parse (lệch Guard #16):** Guard #16 nói strip MỌI ký tự không phải chữ số; làm vậy biến `1500000.50` thành 150.000.050 (gấp 100 lần) âm thầm. Code chỉ nhận số thuần hoặc phân cách nghìn đúng nhóm 3 (`1.500.000`/`1,500,000`), bỏ hậu tố ₫/đ/VND; còn lại báo lỗi inline. Nên cập nhật Guard #16 ở repo tài liệu.
+- **LOW còn lại:** (1) `period=unknown` + có `amount` vẫn hiện nhãn 'Ngân sách tuần', sheet chọn sẵn Tuần (BE hiện chỉ WEEKLY/MONTHLY). (2) Vuốt đóng sheet khi đang lưu mà PATCH lỗi → không có phản hồi nào. (3) `parseAmount` chấp nhận '1đ500' và dấu phân cách trộn lẫn ('1.500,000'). (4) `formatVnd(-0.4)` ra '-0 ₫' — đúng nguyên văn đặc tả weekly-recap §17.2, cần sửa đặc tả. (5) Chip 'VND' cứng + banner hiện nguyên `error.message` tiếng Anh (pattern chung module profile). (6) Thứ tự import chưa alphabet ở family_store/household_plan_strip.
+- **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Làm trong task dọn profile/budget; (4) và Guard #16 sửa ở repo ai-native.
+- **Cần người quyết lại không:** Có — cập nhật Guard #16 theo quyết định parse ở trên.

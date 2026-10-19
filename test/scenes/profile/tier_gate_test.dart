@@ -12,6 +12,8 @@ import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/data/network/dio_client.dart';
 import 'package:smart_kitchen_mobile/domain/auth/auth_refresh_usecase.dart';
 import 'package:smart_kitchen_mobile/domain/auth/user_summary.dart';
+import 'package:smart_kitchen_mobile/domain/shared/budget_period.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/domain/household_budget.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/family_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/allergen.dart';
@@ -26,7 +28,10 @@ import 'package:smart_kitchen_mobile/scenes/profile/stores/family_store.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/stores/form_status.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/tier_upgrade_screen.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/widgets/change_role_sheet.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/household_budget_sheet.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/widgets/household_plan_strip.dart';
+import 'package:smart_kitchen_mobile/utils/money_format.dart';
+import 'package:smart_kitchen_mobile/widgets/states/view_state.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/widgets/tier_widgets.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
 
@@ -84,6 +89,31 @@ class FakeFamilyApi implements FamilyApi {
     calls.add('tier:${tier.toWire()}');
     if (updateTierError != null) throw updateTierError!;
     return TierUpdateResult(householdId: 'h1', tier: tier, requiresTokenRefresh: true);
+  }
+
+  HouseholdBudget budget = const HouseholdBudget(period: BudgetPeriod.unknown);
+  Object? budgetError;
+  Object? upsertError;
+  int budgetCalls = 0;
+  Completer<void>? budgetGate;
+  Completer<void>? upsertGate;
+  final List<(BudgetPeriod, double)> upserts = <(BudgetPeriod, double)>[];
+
+  @override
+  Future<HouseholdBudget> getBudget() async {
+    budgetCalls++;
+    await budgetGate?.future;
+    if (budgetError != null) throw budgetError!;
+    return budget;
+  }
+
+  @override
+  Future<HouseholdBudget> upsertBudget({required BudgetPeriod period, required double amount}) async {
+    upserts.add((period, amount));
+    await upsertGate?.future;
+    if (upsertError != null) throw upsertError!;
+    budget = HouseholdBudget(period: period, amount: amount, currency: 'VND');
+    return budget;
   }
 
   @override
@@ -458,12 +488,12 @@ void main() {
       await tester.runAsync(() async {
         (st, _, _) = await store(r: roster(callerRole: 'MEMBER'));
       });
-      await tester.pumpAppWidget(HouseholdPlanStrip(store: st, onChangePlan: () {}));
+      await tester.pumpAppWidget(HouseholdPlanStrip(store: st, onChangePlan: () {}, onEditBudget: () {}));
       await tester.pump();
       final btn = find.descendant(of: find.byKey(const ValueKey<String>('household-plan-change')), matching: find.byType(ElevatedButton));
       expect(btn, findsOneWidget);
       expect(tester.widget<ElevatedButton>(btn).onPressed, isNull);
-      expect(find.byType(Tooltip), findsOneWidget);
+      expect(find.ancestor(of: find.byKey(const ValueKey<String>('household-plan-change')), matching: find.byType(Tooltip)), findsOneWidget);
     });
 
     testWidgets('RemoteViewerBanner: visible true/false', (tester) async {
@@ -548,6 +578,253 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey<String>('tier-retry-failed')), findsOneWidget);
       expect(s.tier, isNull);
+    });
+  });
+
+  group('Budget', () {
+    test('BudgetPeriod + formatVnd + parseAmount (Guard #16)', () {
+      expect(BudgetPeriod.fromApi('WEEKLY'), BudgetPeriod.weekly);
+      expect(BudgetPeriod.fromApi('MONTHLY'), BudgetPeriod.monthly);
+      expect(BudgetPeriod.fromApi('YEARLY'), BudgetPeriod.unknown);
+      expect(() => BudgetPeriod.unknown.toWire(), throwsStateError);
+      expect(formatVnd(1500000), '1.500.000 ₫');
+      expect(formatVnd(999), '999 ₫');
+      expect(formatVnd(-1234567.6), '-1.234.568 ₫');
+      expect(HouseholdBudgetSheet.parseAmount('1.500.000 ₫'), 1500000);
+      expect(HouseholdBudgetSheet.parseAmount('0'), isNull);
+      expect(HouseholdBudgetSheet.parseAmount('abc'), isNull);
+      expect(HouseholdBudgetSheet.parseAmount('1234567890123'), isNull);
+      // Có phần thập phân / nhóm sai → từ chối, KHÔNG gửi lên số gấp 10/100 lần.
+      expect(HouseholdBudgetSheet.parseAmount('1500000.50'), isNull);
+      expect(HouseholdBudgetSheet.parseAmount('1,500,000.5'), isNull);
+      expect(HouseholdBudgetSheet.parseAmount('15.00'), isNull);
+      expect(HouseholdBudgetSheet.parseAmount('1,500,000'), 1500000);
+      expect(HouseholdBudgetSheet.parseAmount('2 000 000 VND'), 2000000);
+    });
+
+    test('API: 200 mọi field null → isSet=false; amount int → double; PATCH không gửi currency', () async {
+      final adapter = FakeHttpAdapter((o) async {
+        if (o.method == 'GET') {
+          return jsonResponse(200, successEnvelope(<String, dynamic>{
+            'householdId': 'h1', 'period': null, 'amount': null, 'currency': null, 'updatedBy': null, 'updatedAt': null,
+          }));
+        }
+        return jsonResponse(200, successEnvelope(<String, dynamic>{
+          'householdId': 'h1', 'period': 'MONTHLY', 'amount': 1500000, 'currency': 'VND',
+          'updatedBy': 'me', 'updatedAt': '2026-10-19T03:00:00Z',
+        }));
+      });
+      final dio = Dio(BaseOptions(baseUrl: 'https://test.local'))..httpClientAdapter = adapter;
+      final api = FamilyApiImpl(DioClient.build(tokenStorage: tokenStorage, dio: dio));
+
+      final empty = await api.getBudget();
+      expect(empty.isSet, isFalse);
+      final saved = await api.upsertBudget(period: BudgetPeriod.monthly, amount: 1500000);
+      expect(saved.amount, 1500000.0);
+      expect(saved.updatedAt, DateTime.utc(2026, 10, 19, 3));
+      expect(adapter.requests[1].method, 'PATCH');
+      expect(adapter.requests[1].data, <String, dynamic>{'period': 'MONTHLY', 'amount': 1500000.0});
+    });
+
+    test('Store: loadBudget lỗi KHÔNG đụng roster; upsert cập nhật budget; 403 giữ code', () async {
+      final (st, api, _) = await store();
+      api.budgetError = BusinessException('ERR_HH_001', 'no household');
+      await st.loadBudget();
+      expect(st.budgetLoadStatus, FormStatus.failure);
+      expect(st.hasBudget, isFalse);
+      expect(st.canEditBudget, isFalse);
+      expect(st.rosterState, isA<SuccessState<HouseholdRoster>>());
+
+      api.budgetError = null;
+      await st.loadBudget();
+      expect(st.canEditBudget, isTrue);
+      expect(await st.upsertBudget(BudgetPeriod.weekly, 2000000), isTrue);
+      expect(st.budget!.amount, 2000000);
+
+      api.upsertError = BusinessException('ERR_HH_004', 'forbidden');
+      expect(await st.upsertBudget(BudgetPeriod.weekly, 1), isFalse);
+      expect(st.budgetMutationError!.code, 'ERR_HH_004');
+    });
+
+    test('Store: đã có ngân sách → tải lại lỗi thì KHOÁ sửa (không ghi đè mù); response cũ không đè response mới', () async {
+      final (st, api, _) = await store();
+      api.budget = const HouseholdBudget(period: BudgetPeriod.monthly, amount: 1500000);
+      await st.loadBudget();
+      expect(st.canEditBudget, isTrue);
+
+      api.budgetError = NetworkException();
+      await st.loadBudget();
+      expect(st.budgetLoadStatus, FormStatus.failure);
+      expect(st.canEditBudget, isFalse);
+
+      // Lần tải 1 treo, lần tải 2 trả về trước → kết quả lần 1 bị bỏ.
+      api.budgetError = null;
+      final gate = Completer<void>();
+      api.budgetGate = gate;
+      final first = st.loadBudget();
+      api.budgetGate = null;
+      api.budget = const HouseholdBudget(period: BudgetPeriod.weekly, amount: 700000);
+      await st.loadBudget();
+      api.budget = const HouseholdBudget(period: BudgetPeriod.monthly, amount: 1);
+      gate.complete();
+      await first;
+      expect(st.budget!.amount, 700000);
+      expect(st.budgetLoadStatus, FormStatus.success);
+
+      // Đang ghi (sheet bị vuốt đóng giữa chừng) → KHÔNG cho mở lại form với giá trị cũ.
+      final write = Completer<void>();
+      api.upsertGate = write;
+      final pendingUpsert = st.upsertBudget(BudgetPeriod.weekly, 900000);
+      expect(st.canEditBudget, isFalse);
+      write.complete();
+      expect(await pendingUpsert, isTrue);
+      expect(st.canEditBudget, isTrue);
+      expect(st.budget!.amount, 900000);
+    });
+
+    Future<(FamilyStore, FakeFamilyApi)> stripStore(
+      WidgetTester tester, {
+      String callerRole = 'OWNER',
+      String? tier = 'FREE',
+      HouseholdBudget? budget,
+      Object? budgetError,
+      bool pending = false,
+    }) async {
+      late FamilyStore st;
+      late FakeFamilyApi api;
+      await tester.runAsync(() async {
+        final (s, a, _) = await store(r: roster(callerRole: callerRole), tier: tier);
+        if (budget != null) a.budget = budget;
+        a.budgetError = budgetError;
+        if (pending) {
+          a.budgetGate = Completer<void>();
+          unawaited(s.loadBudget());
+        } else {
+          await s.loadBudget();
+        }
+        st = s;
+        api = a;
+      });
+      return (st, api);
+    }
+
+    ElevatedButton editButton(WidgetTester tester) => tester.widget<ElevatedButton>(find.descendant(
+        of: find.byKey(const ValueKey<String>('budget-edit')), matching: find.byType(ElevatedButton)));
+
+    testWidgets('P1 đang tải → nút có mặt nhưng khoá', (tester) async {
+      final (st, _) = await stripStore(tester, pending: true);
+      await tester.pumpAppWidget(HouseholdPlanStrip(store: st, onChangePlan: () {}, onEditBudget: () {}));
+      expect(find.byKey(const ValueKey<String>('budget-loading')), findsOneWidget);
+      expect(editButton(tester).onPressed, isNull);
+    });
+
+    testWidgets('P2 tải lỗi → KHÔNG hiện "chưa đặt", nút khoá, Thử lại gọi lại API; upsell vẫn hiện', (tester) async {
+      final (st, api) = await stripStore(tester, budgetError: NetworkException());
+      await tester.pumpAppWidget(HouseholdPlanStrip(store: st, onChangePlan: () {}, onEditBudget: () {}));
+      expect(find.byKey(const ValueKey<String>('budget-load-failed')), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('budget-not-set')), findsNothing);
+      expect(editButton(tester).onPressed, isNull);
+      expect(find.byKey(const ValueKey<String>('budget-upsell')), findsOneWidget);
+
+      final before = api.budgetCalls;
+      api.budgetError = null;
+      await tester.runAsync(() async {
+        await tester.tap(find.byKey(const ValueKey<String>('budget-retry')));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pump();
+      expect(api.budgetCalls, before + 1);
+      expect(find.byKey(const ValueKey<String>('budget-not-set')), findsOneWidget);
+    });
+
+    testWidgets('P3 chưa đặt: OWNER bấm được; non-OWNER khoá + tooltip (Guard #14)', (tester) async {
+      final (st, _) = await stripStore(tester);
+      await tester.pumpAppWidget(HouseholdPlanStrip(store: st, onChangePlan: () {}, onEditBudget: () {}));
+      expect(find.text('Đặt ngân sách'), findsOneWidget);
+      expect(editButton(tester).onPressed, isNotNull);
+
+      final (viewer, _) = await stripStore(tester, callerRole: 'MEMBER');
+      await tester.pumpAppWidget(HouseholdPlanStrip(store: viewer, onChangePlan: () {}, onEditBudget: () {}));
+      expect(editButton(tester).onPressed, isNull);
+      expect(find.ancestor(of: find.byKey(const ValueKey<String>('budget-edit')), matching: find.byType(Tooltip)), findsOneWidget);
+    });
+
+    testWidgets('P4 đã có → số tiền định dạng VND; PREMIUM → không có upsell', (tester) async {
+      final (st, _) = await stripStore(tester,
+          tier: 'PREMIUM', budget: const HouseholdBudget(period: BudgetPeriod.monthly, amount: 1500000));
+      await tester.pumpAppWidget(HouseholdPlanStrip(store: st, onChangePlan: () {}, onEditBudget: () {}));
+      expect(find.text('Ngân sách tháng: 1.500.000 ₫'), findsOneWidget);
+      expect(find.text('Sửa'), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('budget-upsell')), findsNothing);
+    });
+
+    Future<void> openSheet(WidgetTester tester, FamilyStore st) async {
+      await tester.pumpAppWidget(Builder(
+        builder: (context) => TextButton(
+          onPressed: () => showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => HouseholdBudgetSheet(store: st),
+          ),
+          child: const Text('open'),
+        ),
+      ));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Sheet: ghi chú không hồi tố + chip VND, không ô currency; số sai → lỗi inline, KHÔNG gọi API', (tester) async {
+      final (st, api) = await stripStore(tester);
+      await openSheet(tester, st);
+      expect(find.byKey(const ValueKey<String>('budget-not-retroactive')), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('budget-currency')), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+
+      await tester.enterText(find.byKey(const ValueKey<String>('budget-amount')), '0');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey<String>('budget-save')));
+      await tester.pump();
+      expect(find.text('Nhập số tiền lớn hơn 0 và tối đa 999.999.999.999'), findsOneWidget);
+      expect(api.upserts, isEmpty);
+    });
+
+    testWidgets('Sheet: nhập "1.500.000" → API nhận 1500000; mở lại không đổi gì → Lưu khoá', (tester) async {
+      final (st, api) = await stripStore(tester);
+      await openSheet(tester, st);
+      await tester.enterText(find.byKey(const ValueKey<String>('budget-amount')), '1.500.000');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey<String>('budget-save')));
+      await tester.pumpAndSettle();
+      expect(api.upserts.single, (BudgetPeriod.weekly, 1500000.0));
+      expect(find.text('Đã cập nhật ngân sách'), findsOneWidget);
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      final save = tester.widget<ElevatedButton>(find.descendant(
+          of: find.byKey(const ValueKey<String>('budget-save')), matching: find.byType(ElevatedButton)));
+      expect(save.onPressed, isNull);
+    });
+
+    testWidgets('Sheet: ngân sách có phần lẻ (1.500.000,40) → điền sẵn số làm tròn, Lưu khoá khi chưa đổi', (tester) async {
+      final (st, _) = await stripStore(tester,
+          budget: const HouseholdBudget(period: BudgetPeriod.monthly, amount: 1500000.4));
+      await openSheet(tester, st);
+      expect(find.text('1500000'), findsOneWidget);
+      final save = tester.widget<ElevatedButton>(find.descendant(
+          of: find.byKey(const ValueKey<String>('budget-save')), matching: find.byType(ElevatedButton)));
+      expect(save.onPressed, isNull);
+    });
+
+    testWidgets('Sheet: 403 ERR_HH_004 → banner "chỉ chủ hộ", form vẫn dùng được', (tester) async {
+      final (st, api) = await stripStore(tester);
+      api.upsertError = BusinessException('ERR_HH_004', 'forbidden');
+      await openSheet(tester, st);
+      await tester.enterText(find.byKey(const ValueKey<String>('budget-amount')), '500000');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey<String>('budget-save')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('budget-save-error')), findsOneWidget);
+      expect(find.text('Chỉ chủ hộ (OWNER) mới có thể đặt ngân sách'), findsOneWidget);
     });
   });
 }
