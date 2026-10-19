@@ -10,6 +10,7 @@ import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/app_loading_view.dart';
+import '../../planning/scenes/planning_routes.dart';
 import '../domain/meal_plan_slot.dart';
 import '../stores/meal_plan_store.dart';
 import '../widgets/recipe_cover_image.dart';
@@ -47,6 +48,29 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
     final session = Get.find<SessionStore>();
     return AppScaffold(
       title: context.l10n.mealPlanTitle,
+      actions: <Widget>[
+        Observer(builder: (_) {
+          // `currentPlanId` không bị xoá khi tải tuần mới lỗi/đang tải — chỉ
+          // tin khi status ready, tránh mở khách của tuần TRƯỚC.
+          final planId = store.currentPlanId;
+          if (planId == null || store.status != MealPlanLoadStatus.ready) {
+            return const SizedBox.shrink();
+          }
+          return IconButton(
+            key: const ValueKey<String>('meal-plan-guest-diners'),
+            tooltip: context.l10n.planningGuestTooltip,
+            icon: const Icon(Icons.group_add_outlined),
+            onPressed: () =>
+                Get.toNamed<void>(PlanningRoutes.guestDinersOf(planId)),
+          );
+        }),
+        IconButton(
+          key: const ValueKey<String>('meal-plan-slot-config'),
+          tooltip: context.l10n.planningSlotConfigTooltip,
+          icon: const Icon(Icons.tune),
+          onPressed: () => Get.toNamed<void>(PlanningRoutes.slotConfig),
+        ),
+      ],
       body: Observer(
         builder: (_) {
           if (session.householdId == null) {

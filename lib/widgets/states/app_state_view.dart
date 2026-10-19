@@ -21,17 +21,19 @@ class AppStateView<T> extends StatelessWidget {
     required this.onRetry,
     required this.successBuilder,
     this.emptyMessage,
+    this.emptyIcon,
   });
 
   final ViewState<T> state;
   final VoidCallback onRetry;
   final Widget Function(BuildContext context, T data) successBuilder;
   final String? emptyMessage;
+  final IconData? emptyIcon;
 
   @override
   Widget build(BuildContext context) => switch (state) {
         LoadingState<T>() => const AppLoadingView(),
-        EmptyState<T>() => AppEmptyView(message: emptyMessage),
+        EmptyState<T>() => AppEmptyView(message: emptyMessage, icon: emptyIcon),
         ErrorState<T>(:final error) =>
           AppErrorView(message: error.message, onRetry: onRetry),
         SuccessState<T>(:final data) => successBuilder(context, data),

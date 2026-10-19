@@ -56,3 +56,17 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Code theo **OAS thật** (§6.2 luật 1: code+test merge thắng kế hoạch khi mâu thuẫn). FE hiển thị kết quả `complete()` với badge "Không đủ" trên từng ingredient có `hasShortfall`, KHÔNG raise dialog lỗi đỏ. UI diễn giải rõ "BE đã trừ tới đâu hết rồi dừng", không có rollback. · **Theo:** §6.2 luật 1 + §6.1 D-09 (không bịa API) + §6.0 quy tắc 2 (thiết kế/OAS thắng phỏng đoán).
 - **Đảo ngược thế nào:** Nếu sau này BE thay đổi để thêm `INSUFFICIENT_STOCK_FOR_RECIPE` (422/409), cập nhật `CookingSessionStore.complete()` thêm `catch` cho mã đó, và sửa UI hiển thị dialog "thiếu + rollback".
 - **Cần người quyết lại không:** Có — kịch bản demo §9.1 bước 6b dựa trên giả định "kho không đổi gì cả". Nếu thầy chấm điểm dựa trên bước 6b, cần đối chiếu lại với BE team xem `complete()` thật có rollback khi thiếu hay không (OAS ghi không, nhưng BE code có thể khác OAS — chưa verify code BE thật).
+
+### OD-06 · Khách ăn cùng (guest-diner) gắn với KẾ HOẠCH TUẦN, không phải 1 bữa như thiết kế FE giả định (D1)
+- **Ngày:** 2026-10-18 · **Task:** #101 flexible meal planning (PR 1: slice 1–5) · **Nhánh:** `feature/101_flexible-meal-planning`
+- **Tình huống:** `flexible-meal-planning-screens.md` §8.2 + D1 giả định `mealPlanId == MealPlanSlot.id` và copy UI "chỉ áp dụng cho ĐÚNG bữa này". BE thật (`GuestDinerServiceImpl.requirePlan` → `MealPlanRepository.findById`) coi `mealPlanId` là id `meal_plans` = 1 row/1 tuần. Gọi bằng slotId sẽ ra `ERR_MEAL_PLAN_NOT_FOUND`. Ngoài ra `DELETE` trả `204` (thiết kế ghi `{success:true}`).
+- **Đã chọn:** Code theo BE thật: route `/meal-plan/plan/:planId/guest-diners`, lấy `MealPlanStore.currentPlanId`, nút mở ở thanh tiêu đề lịch tuần; copy UI nói "chỉ áp dụng cho kế hoạch tuần này". · **Theo:** §6.2 luật 1 + §6.1 D-09 (không bịa API).
+- **Đảo ngược thế nào:** Nếu BE đổi sang scope theo bữa (Q11 của `meal-planning-core.md`), đổi route param sang `slotId` + sửa chuỗi `planningGuestScopeBanner`.
+- **Cần người quyết lại không:** Có — thiết kế và BE đang lệch về ngữ nghĩa an toàn dị ứng (khách tuần vs khách 1 bữa); cần chốt ở phiên repo `ai-native`.
+
+### OD-07 · #101 PR 1 — 3 finding LOW còn lại sau 3 vòng review (gom vào task dọn riêng)
+- **Ngày:** 2026-10-19 · **Task:** #101 PR 1 · **Nhánh:** `feature/101_flexible-meal-planning`
+- **Tình huống:** (1) Chưa có widget test bảo vệ điều kiện chỉ hiện nút 'Khách ăn cùng' khi `status == ready` — thiếu harness `WeeklyMealPlanScene`. (2) [ĐÃ LÀM 2026-10-19: banner hiện tên khách] Banner sau khi xoá chưa tự tắt khi thêm/sửa tiếp. (3) Xoá gặp 404 thì list đã tải lại nhưng dialog vẫn mở.
+- **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Làm trong PR 2 hoặc task dọn planning.
+- **Cần người quyết lại không:** Không — người duyệt đã chốt hiện tên khách (2026-10-19).
