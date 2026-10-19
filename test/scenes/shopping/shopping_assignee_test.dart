@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
 import 'package:smart_kitchen_mobile/data/auth/token_storage.dart';
 import 'package:smart_kitchen_mobile/data/db/app_database.dart';
 import 'package:smart_kitchen_mobile/data/db/read_cache_dao.dart';
@@ -19,10 +20,12 @@ import 'package:smart_kitchen_mobile/scenes/profile/stores/family_store.dart';
 import 'package:smart_kitchen_mobile/scenes/shopping/data/shopping_api.dart';
 import 'package:smart_kitchen_mobile/scenes/shopping/data/shopping_dao.dart';
 import 'package:smart_kitchen_mobile/scenes/shopping/domain/shopping_item.dart';
+import 'package:smart_kitchen_mobile/scenes/shopping/scenes/shopping_list_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/shopping/stores/shopping_store.dart';
 import 'package:smart_kitchen_mobile/scenes/shopping/widgets/assignee_widgets.dart';
 import 'package:smart_kitchen_mobile/services/connectivity_service.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
+import 'package:smart_kitchen_mobile/widgets/states/view_state.dart';
 
 import '../../helpers/fake_http_adapter.dart';
 import '../../helpers/pump_app.dart';
@@ -337,6 +340,113 @@ void main() {
       expect(find.byKey(const ValueKey<String>('assignee-me')), findsOneWidget);
       expect(find.byKey(const ValueKey<String>('assignee-clear')), findsOneWidget);
       expect(find.text('Lan'), findsNothing);
+    });
+
+    testWidgets('roster từ CACHE nạp lại nền (keepCurrent) → KHÔNG nháy về Loading, xong thì hết cờ cache', (tester) async {
+      final api = _FakeFamilyApi();
+      final f = family(api);
+      await tester.runAsync(() async {
+        await f.loadRoster();
+        await Future<void>.delayed(const Duration(milliseconds: 50)); // cache.put chạy nền
+        api.fail = true;
+        await f.loadRoster();
+      });
+      expect(f.rosterIsFromCache, isTrue);
+      api
+        ..fail = false
+        ..gate = Completer<void>();
+      final reload = f.loadRoster(keepCurrent: true);
+      expect(f.rosterState, isA<SuccessState<HouseholdRoster>>());
+      expect(f.rosterIsFromCache, isTrue);
+      await tester.runAsync(() async {
+        api.gate!.complete();
+        await reload;
+      });
+      expect(f.rosterState, isA<SuccessState<HouseholdRoster>>());
+      expect(f.rosterIsFromCache, isFalse);
+    });
+
+    group('cần ShoppingStore + Get', () {
+      late _FakeConnectivity conn;
+      late ShoppingStore store;
+      late ShoppingDao dao;
+
+      setUp(() {
+        conn = _FakeConnectivity();
+        dao = ShoppingDao(db);
+        final s = session();
+        Get.put<SessionStore>(s);
+        store = ShoppingStore(dao: dao, api: _FakeApi()..mirror = () => dao.getAll('h1'), connectivity: conn, session: s);
+        Get.put<ShoppingStore>(store);
+      });
+      tearDown(Get.reset);
+
+      Future<void> pickMe(WidgetTester tester, ShoppingItem i) async {
+        await tester.pumpAppWidget(Builder(
+          builder: (context) => TextButton(
+            onPressed: () => openAssigneePicker(context, store, i, isOnline: conn.isOnline),
+            child: const Text('open'),
+          ),
+        ));
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey<String>('assignee-me')));
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('assign() trả false (món đang đồng bộ) → snackbar "Đang đồng bộ…", không im lặng', (tester) async {
+        await tester.runAsync(() => dao.upsert(item(sync: ShoppingSyncStatus.pendingToggle)));
+        await pickMe(tester, item());
+        expect(find.text('Đang đồng bộ… giao việc được sau khi xong'), findsOneWidget);
+      });
+
+      testWidgets('mất mạng SAU khi mở picker → snackbar "Cần mạng để giao việc"', (tester) async {
+        await tester.runAsync(() => dao.upsert(item()));
+        await tester.pumpAppWidget(Builder(
+          builder: (context) => TextButton(
+            onPressed: () => openAssigneePicker(context, store, item(), isOnline: conn.isOnline),
+            child: const Text('open'),
+          ),
+        ));
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+        conn.online = false;
+        await tester.tap(find.byKey(const ValueKey<String>('assignee-me')));
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+        await tester.pumpAndSettle();
+        expect(find.text('Cần mạng để giao việc'), findsOneWidget);
+      });
+
+      Future<Finder> pumpScene(WidgetTester tester, List<ShoppingItem> rows) async {
+        conn.online = false; // không gọi sync ra API giả
+        await tester.runAsync(() async {
+          for (final r in rows) {
+            await dao.upsert(r);
+          }
+        });
+        await tester.pumpAppWidget(const ShoppingListScene(), wrapInScaffold: false);
+        for (var i = 0; i < 5; i++) {
+          await tester.pump(const Duration(milliseconds: 20));
+        }
+        return find.byKey(const ValueKey<String>('shopping-filter-mine'));
+      }
+
+      testWidgets('chip "Của tôi": không có món chưa mua của mình → KHÔNG số', (tester) async {
+        final chip = await pumpScene(tester, <ShoppingItem>[
+          item(id: 'other', assignedTo: kOtherId),
+          item(id: 'done', assignedTo: 'me', status: ShoppingItemStatus.completed),
+        ]);
+        expect(find.descendant(of: chip, matching: find.text('Của tôi')), findsOneWidget);
+      });
+
+      testWidgets('chip "Của tôi": có món chưa mua của mình → có số (không đếm món đã mua)', (tester) async {
+        final chip = await pumpScene(tester, <ShoppingItem>[
+          item(assignedTo: 'me'),
+          item(id: 'done', assignedTo: 'me', status: ShoppingItemStatus.completed),
+        ]);
+        expect(find.descendant(of: chip, matching: find.text('Của tôi (1)')), findsOneWidget);
+      });
     });
   });
 }

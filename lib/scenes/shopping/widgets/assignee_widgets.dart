@@ -130,7 +130,7 @@ Future<void> openAssigneePicker(
   if (family != null &&
       (family.rosterState is ErrorState<HouseholdRoster> ||
           family.rosterIsFromCache)) {
-    family.loadRoster();
+    family.loadRoster(keepCurrent: true);
   }
   final session = Get.find<SessionStore>();
   final me = session.currentUser?.id;

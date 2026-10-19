@@ -57,7 +57,6 @@ class HybridAIRunner {
     if (!_registry.isAvailable(task)) return AIResult<T>.unavailable(task);
     final stopwatch = Stopwatch()..start();
     try {
-      await _engine.loadIfNeeded(task);
       final output = await _engine.run(task, input);
       return AIResult<T>.fromOnDevice(
         data: fromOutput(output),
