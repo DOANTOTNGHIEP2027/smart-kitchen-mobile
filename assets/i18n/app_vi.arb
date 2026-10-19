@@ -698,5 +698,8 @@
   "shoppingAssignToMe": "Tôi nhận",
   "shoppingUnassign": "Bỏ giao",
   "shoppingMineEmpty": "Chưa có món nào được giao cho bạn.",
-  "shoppingFilterMine": "Của tôi ({count})"
+  "shoppingFilterMine": "Của tôi ({count})",
+  "shoppingFilterMineNoCount": "Của tôi",
+  "shoppingAssignSyncing": "Đang đồng bộ… giao việc được sau khi xong",
+  "shoppingAddRejected": "Không thêm được \"{name}\" — máy chủ từ chối nên món đã bị gỡ khỏi danh sách. Vui lòng thêm lại."
 }

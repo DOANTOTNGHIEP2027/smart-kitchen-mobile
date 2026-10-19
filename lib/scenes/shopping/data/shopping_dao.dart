@@ -66,5 +66,15 @@ class ShoppingDao {
 
   Future<List<ShoppingSyncQueueEntry>> queue(String householdId) =>
       (_db.select(_db.shoppingSyncQueueEntries)..where((t) => t.householdId.equals(householdId))..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
+  /// Mọi row của household — dùng cho bước reconcile của sync.
+  Future<List<ShoppingItem>> getAll(String householdId) async {
+    final rows = await (_db.select(_db.shoppingListItems)..where((t) => t.householdId.equals(householdId))).get();
+    return rows.map(shoppingItemFromRow).toList();
+  }
+
+  /// Entry còn trong hàng đợi không — `false` = đã bị huỷ cặp trong lúc gửi.
+  Future<bool> hasQueueEntry(int id) async =>
+      (await (_db.select(_db.shoppingSyncQueueEntries)..where((t) => t.id.equals(id))).getSingleOrNull()) != null;
+
   Future<void> removeQueue(int id) => (_db.delete(_db.shoppingSyncQueueEntries)..where((t) => t.id.equals(id))).go();
 }

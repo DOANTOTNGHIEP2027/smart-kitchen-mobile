@@ -4340,6 +4340,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mine ({count})'**
   String shoppingFilterMine(int count);
+
+  /// No description provided for @shoppingFilterMineNoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get shoppingFilterMineNoCount;
+
+  /// No description provided for @shoppingAssignSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing… you can assign once it\'s done'**
+  String get shoppingAssignSyncing;
+
+  /// No description provided for @shoppingAddRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add \"{name}\" — the server rejected it, so it was removed from the list. Please add it again.'**
+  String shoppingAddRejected(String name);
 }
 
 class _AppLocalizationsDelegate

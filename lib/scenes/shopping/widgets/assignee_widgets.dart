@@ -31,6 +31,7 @@ class AssigneeChip extends StatelessWidget {
     required this.currentUserId,
     required this.enabled,
     required this.onTap,
+    this.onDisabledTap,
   });
 
   final ShoppingItem item;
@@ -38,6 +39,9 @@ class AssigneeChip extends StatelessWidget {
   final String? currentUserId;
   final bool enabled;
   final VoidCallback onTap;
+
+  /// Bấm lúc disabled — vd. báo "Đang đồng bộ…" thay vì im lặng (§14).
+  final VoidCallback? onDisabledTap;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +74,7 @@ class AssigneeChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
         // Disabled vẫn phải NUỐT tap — `null` để tap lọt xuống InkWell của
         // tile và tick món (Guard #18).
-        onTap: enabled ? onTap : () {},
+        onTap: enabled ? onTap : (onDisabledTap ?? () {}),
         splashFactory: enabled ? null : NoSplash.splashFactory,
         highlightColor: enabled ? null : Colors.transparent,
         child: Container(
@@ -120,22 +124,36 @@ Future<void> openAssigneePicker(
     return;
   }
   if (!context.mounted) return;
-  // Roster lỗi lúc vào app thì không ai nạp lại (scene chỉ initState 1 lần).
+  // Roster lỗi hoặc lấy từ cache (có thể thiếu người mới) — đang online nên
+  // nạp lại; scene chỉ initState 1 lần nên không ai làm thay.
   final family = shoppingFamilyStore();
-  if (family != null && family.rosterState is ErrorState<HouseholdRoster>) {
+  if (family != null &&
+      (family.rosterState is ErrorState<HouseholdRoster> ||
+          family.rosterIsFromCache)) {
     family.loadRoster();
   }
-  final me = Get.find<SessionStore>().currentUser?.id;
+  final session = Get.find<SessionStore>();
+  final me = session.currentUser?.id;
   final choice = await showModalBottomSheet<_AssigneeChoice>(
     context: context,
     builder: (_) => AssigneePickerSheet(
       item: item,
       familyStore: shoppingFamilyStore(),
       currentUserId: me,
+      selfRole: session.role,
     ),
   );
   if (choice == null) return;
   final ok = await store.assign(item, assigneeId: choice.userId);
+  if (!ok && store.assignError == null) {
+    // assign() không gửi gì: mất mạng SAU khi mở picker, hoặc món vừa thành
+    // PENDING_* (đang đồng bộ) — phải báo, không im lặng.
+    messenger.showSnackBar(SnackBar(
+        content: Text(await isOnline()
+            ? l10n.shoppingAssignSyncing
+            : l10n.shoppingAssignNeedsNetwork)));
+    return;
+  }
   if (!ok && store.assignError != null) {
     messenger.showSnackBar(SnackBar(
       content: Text(store.assignError!.code == 'ERR_SHOP_ASSIGNEE_INVALID'
@@ -161,11 +179,24 @@ class AssigneePickerSheet extends StatelessWidget {
     required this.item,
     required this.familyStore,
     required this.currentUserId,
+    this.selfRole,
   });
 
   final ShoppingItem item;
   final FamilyStore? familyStore;
   final String? currentUserId;
+
+  /// Role JWT của chính mình — fallback khi roster chưa có (roster thắng).
+  final String? selfRole;
+
+  /// "Tôi nhận" chỉ khi CHÍNH MÌNH thuộc whitelist — REMOTE_VIEWER tự gán sẽ
+  /// ăn 400 ERR_SHOP_ASSIGNEE_INVALID. Chưa biết role → vẫn cho (BE chặn cuối).
+  bool _canSelfAssign() {
+    final roster = familyStore?.rosterState;
+    final effective =
+        roster is SuccessState<HouseholdRoster> ? roster.data.callerRole : selfRole;
+    return effective == null || _assignableRoles.contains(effective);
+  }
 
   @override
   Widget build(BuildContext context) =>
@@ -188,7 +219,9 @@ class AssigneePickerSheet extends StatelessWidget {
           ListTile(
             title: Text(item.name, style: Theme.of(context).textTheme.titleMedium),
           ),
-          if (currentUserId != null && item.assignedTo != currentUserId)
+          if (currentUserId != null &&
+              item.assignedTo != currentUserId &&
+              _canSelfAssign())
             ListTile(
               key: const ValueKey<String>('assignee-me'),
               leading: const Icon(Icons.front_hand_outlined, color: AppColors.sage),

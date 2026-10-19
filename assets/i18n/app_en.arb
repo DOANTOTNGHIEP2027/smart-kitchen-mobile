@@ -821,5 +821,9 @@
   "shoppingUnassign": "Unassign",
   "shoppingMineEmpty": "Nothing is assigned to you yet.",
   "shoppingFilterMine": "Mine ({count})",
-  "@shoppingFilterMine": {"placeholders": {"count": {"type": "int"}}}
+  "@shoppingFilterMine": {"placeholders": {"count": {"type": "int"}}},
+  "shoppingFilterMineNoCount": "Mine",
+  "shoppingAssignSyncing": "Syncing… you can assign once it's done",
+  "shoppingAddRejected": "Couldn't add \"{name}\" — the server rejected it, so it was removed from the list. Please add it again.",
+  "@shoppingAddRejected": {"placeholders": {"name": {"type": "String"}}}
 }

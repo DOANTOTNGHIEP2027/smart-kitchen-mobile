@@ -179,3 +179,18 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn shopping. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Task dọn shopping riêng (gộp OD-20).
 - **Cần người quyết lại không:** Không.
+
+### OD-23 · Dọn màn đi chợ (gộp OD-20 + OD-22) — đã làm
+- **Ngày:** 2026-10-19 · **Task:** dọn shopping · **Nhánh:** `chore/shopping-cleanup-od20-od22`
+- **Đã làm:** (1) `sync()` reconcile: row SYNCED mà server không còn trả → xoá cục bộ (§16 #16), row PENDING_* giữ cho drain. (2) Drain gặp `ERR_SHOP_ITEM_NOT_FOUND`/`ERR_SHOP_LIST_NOT_ACTIVE` → bỏ entry + xoá row, không chặn entry sau (có giá thì báo mất giá). (3) Race huỷ cặp lúc T1 đang bay → sau khi T1 về, nếu entry đã bị huỷ thì xếp toggle đảo lại từ state server. (4) Mất mạng sau khi mở picker → snackbar 'Cần mạng để giao việc'. (5) Bấm chip lúc đang đồng bộ → snackbar 'Đang đồng bộ…'. (6) 'Tôi nhận' chỉ khi role của chính mình thuộc whitelist (roster thắng, fallback JWT). (7) Badge 'Của tôi' chỉ hiện số khi > 0. (8) Mở picker khi roster lỗi hoặc từ cache → nạp lại. (9) `ShoppingItem.isAssignedTo` dùng chung cho badge + filter.
+- **Ghi chú test:** fake `list()` trả rỗng giờ có nghĩa 'server đã xoá hết' (reconcile) — các test cũ đổi sang mirror dữ liệu cục bộ / server có món.
+- **Đã chọn:** Như trên. · **Theo:** §6.0 quy tắc 3.
+- **Đảo ngược thế nào:** —
+- **Cần người quyết lại không:** Không.
+
+### OD-24 · Dọn màn đi chợ — finding LOW còn lại sau 3 vòng review
+- **Ngày:** 2026-10-19 · **Task:** dọn shopping · **Nhánh:** `chore/shopping-cleanup-od20-od22`
+- **Tình huống:** (1) Drain gặp NOT_FOUND/LIST_NOT_ACTIVE vẫn bật banner 'giá chưa lưu — tick lại' dù row đã bị xoá; đường online không bật → không nhất quán, cần copy riêng. (2) `assign()` trả false khi row vừa bị reconcile xoá → snackbar 'Đang đồng bộ…' sai ngữ cảnh. (3) Mở picker khi roster từ cache → `loadRoster()` đặt Loading, chip nháy về skeleton; BE lỗi liên tục thì mỗi lần mở lại gọi thêm request. (4) Drain coi mọi BusinessException của CREATE (trừ IN_PROGRESS) là vĩnh viễn — nếu BE thêm 429 thì món bị xoá oan (OAS hiện chưa có 429). (5) Đảo lại sau race theo ngược trạng thái server; giá nhập lại trong lúc T1 đang bay bị mất. (6) Thiếu test UI: snackbar khi assign false, badge 'Của tôi' không số, nạp lại roster từ cache. (7) Lỗi cũ ngoài diff: `add()` online bị server từ chối xoá món + đóng sheet không báo.
+- **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Task dọn shopping tiếp theo.
+- **Cần người quyết lại không:** Có cho (1) — câu chữ banner khi món đã bị xoá.

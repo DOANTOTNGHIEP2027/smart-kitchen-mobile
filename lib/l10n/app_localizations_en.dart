@@ -2407,4 +2407,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String shoppingFilterMine(int count) {
     return 'Mine ($count)';
   }
+
+  @override
+  String get shoppingFilterMineNoCount => 'Mine';
+
+  @override
+  String get shoppingAssignSyncing => 'Syncing… you can assign once it\'s done';
+
+  @override
+  String shoppingAddRejected(String name) {
+    return 'Couldn\'t add \"$name\" — the server rejected it, so it was removed from the list. Please add it again.';
+  }
 }
