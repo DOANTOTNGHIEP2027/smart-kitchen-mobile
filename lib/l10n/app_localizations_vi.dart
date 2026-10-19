@@ -2347,4 +2347,34 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get shoppingPriceNotSaved =>
       'Món này vừa được người khác cập nhật — giá bạn nhập chưa được lưu. Bỏ tick rồi tick lại để nhập lại giá.';
+
+  @override
+  String get shoppingAssign => 'Giao';
+
+  @override
+  String get shoppingAssignedMe => 'Tôi';
+
+  @override
+  String get shoppingAssigneeFormer => 'Thành viên cũ';
+
+  @override
+  String get shoppingAssignNeedsNetwork => 'Cần mạng để giao việc';
+
+  @override
+  String get shoppingAssigneeInvalid =>
+      'Người này không còn nhận việc được — đã tải lại danh sách thành viên.';
+
+  @override
+  String get shoppingAssignToMe => 'Tôi nhận';
+
+  @override
+  String get shoppingUnassign => 'Bỏ giao';
+
+  @override
+  String get shoppingMineEmpty => 'Chưa có món nào được giao cho bạn.';
+
+  @override
+  String shoppingFilterMine(int count) {
+    return 'Của tôi ($count)';
+  }
 }

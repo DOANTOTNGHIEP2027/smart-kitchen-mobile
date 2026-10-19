@@ -689,5 +689,14 @@
   "shoppingPriceZeroHint": "0 ₫ nghĩa là miễn phí. Nếu không nhớ giá, hãy bấm Bỏ qua.",
   "shoppingPriceSkip": "Bỏ qua",
   "shoppingPriceSave": "Lưu",
-  "shoppingPriceNotSaved": "Món này vừa được người khác cập nhật — giá bạn nhập chưa được lưu. Bỏ tick rồi tick lại để nhập lại giá."
+  "shoppingPriceNotSaved": "Món này vừa được người khác cập nhật — giá bạn nhập chưa được lưu. Bỏ tick rồi tick lại để nhập lại giá.",
+  "shoppingAssign": "Giao",
+  "shoppingAssignedMe": "Tôi",
+  "shoppingAssigneeFormer": "Thành viên cũ",
+  "shoppingAssignNeedsNetwork": "Cần mạng để giao việc",
+  "shoppingAssigneeInvalid": "Người này không còn nhận việc được — đã tải lại danh sách thành viên.",
+  "shoppingAssignToMe": "Tôi nhận",
+  "shoppingUnassign": "Bỏ giao",
+  "shoppingMineEmpty": "Chưa có món nào được giao cho bạn.",
+  "shoppingFilterMine": "Của tôi ({count})"
 }

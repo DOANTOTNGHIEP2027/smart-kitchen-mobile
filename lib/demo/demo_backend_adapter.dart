@@ -360,6 +360,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (shoppingDeleteMatch != null && method == 'DELETE') {
       return _deleteShoppingItem(shoppingDeleteMatch.group(1)!);
     }
+    if (shoppingDeleteMatch != null && method == 'PATCH') {
+      return _assignShoppingItem(shoppingDeleteMatch.group(1)!, body);
+    }
 
     // ── Budget (Demo Mode) ───────────────────────────────────────────
     if (path == '/api/v1/households/me/budget') {
@@ -1486,6 +1489,28 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final updated = <String, dynamic>{
       ...item,
       'status': newStatus,
+      // #133 — giá sticky: chỉ đổi khi có `price` mới (giống BE).
+      if (body.containsKey('price')) 'price': body['price'],
+      if (body.containsKey('price')) 'priceCurrency': body['currency'] ?? 'VND',
+      'version': (item['version'] as int? ?? 1) + 1,
+      'updatedAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    _shoppingItems[index] = updated;
+    return _ok(200, updated);
+  }
+
+  /// #134 — `PATCH /shopping/items/{id}` chỉ `assignedTo` (key-presence:
+  /// vắng key = giữ nguyên, `null` = bỏ giao).
+  ResponseBody _assignShoppingItem(String id, Map<String, dynamic> body) {
+    final index = _shoppingItems.indexWhere((item) => item['id'] == id);
+    if (index < 0) {
+      return _error(
+          404, 'ERR_SHOPPING_NOT_FOUND', 'Không tìm thấy mục mua sắm.');
+    }
+    final item = _shoppingItems[index];
+    final updated = <String, dynamic>{
+      ...item,
+      if (body.containsKey('assignedTo')) 'assignedTo': body['assignedTo'],
       'version': (item['version'] as int? ?? 1) + 1,
       'updatedAt': DateTime.now().toUtc().toIso8601String(),
     };

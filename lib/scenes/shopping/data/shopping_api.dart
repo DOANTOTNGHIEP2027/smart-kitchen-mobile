@@ -14,6 +14,11 @@ abstract interface class ShoppingApi {
   /// nếu có giá ở chiều về PENDING. Không có giá thì bỏ hẳn key `price`/
   /// `currency` (BE coi thiếu key và `null` như nhau; bỏ key cho body gọn).
   Future<ShoppingItem> toggle(String id, int version, String householdId, {double? price});
+
+  /// `PATCH /items/{id}` — CHỈ `{version, assignedTo}` (#134). `assigneeId ==
+  /// null` = BỎ GIAO: key `assignedTo` VẪN PHẢI có mặt với `null` — BE đọc
+  /// JsonNode, vắng key = giữ nguyên (Guard #14).
+  Future<ShoppingItem> assign(String id, int version, String householdId, {required String? assigneeId});
 }
 
 class ShoppingApiImpl implements ShoppingApi {
@@ -42,6 +47,15 @@ class ShoppingApiImpl implements ShoppingApi {
       'version': version,
       if (price != null) 'price': price,
       if (price != null) 'currency': 'VND',
+    });
+    return shoppingItemFromJson(_data(response.data), householdId);
+  });
+
+  @override
+  Future<ShoppingItem> assign(String id, int version, String householdId, {required String? assigneeId}) => _unwrap(() async {
+    final response = await _client.dio.patch<Map<String, dynamic>>('/api/v1/shopping/items/$id', data: <String, dynamic>{
+      'version': version,
+      'assignedTo': assigneeId,
     });
     return shoppingItemFromJson(_data(response.data), householdId);
   });

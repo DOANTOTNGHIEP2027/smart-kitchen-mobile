@@ -811,5 +811,15 @@
   "shoppingPriceZeroHint": "0 ₫ means free. If you don't know the price, tap Skip.",
   "shoppingPriceSkip": "Skip",
   "shoppingPriceSave": "Save",
-  "shoppingPriceNotSaved": "This item was just updated by someone else — the price you entered was not saved. Untick and tick again to re-enter it."
+  "shoppingPriceNotSaved": "This item was just updated by someone else — the price you entered was not saved. Untick and tick again to re-enter it.",
+  "shoppingAssign": "Assign",
+  "shoppingAssignedMe": "Me",
+  "shoppingAssigneeFormer": "Former member",
+  "shoppingAssignNeedsNetwork": "You need a connection to assign items",
+  "shoppingAssigneeInvalid": "This person can no longer be assigned — the member list was reloaded.",
+  "shoppingAssignToMe": "I'll take it",
+  "shoppingUnassign": "Unassign",
+  "shoppingMineEmpty": "Nothing is assigned to you yet.",
+  "shoppingFilterMine": "Mine ({count})",
+  "@shoppingFilterMine": {"placeholders": {"count": {"type": "int"}}}
 }

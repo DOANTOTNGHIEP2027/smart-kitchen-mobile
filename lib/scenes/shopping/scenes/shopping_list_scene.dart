@@ -4,12 +4,17 @@ import 'package:get/get.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../services/connectivity_service.dart';
+import '../../../stores/session_store.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/money_format.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/states/view_state.dart';
 import '../../inventory/domain/unit_option.dart';
+import '../../profile/domain/household_roster.dart';
 import '../domain/shopping_item.dart';
 import '../stores/shopping_store.dart';
+import '../widgets/assignee_widgets.dart';
 import '../widgets/price_capture_sheet.dart';
 
 enum ShoppingFilter { all, pending, completed }
@@ -28,10 +33,19 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
   ShoppingFilter _filter = ShoppingFilter.all;
   bool _completedExpanded = true;
 
+  /// Filter "Của tôi" (#134) — giao với filter trạng thái bằng AND, lọc CỤC BỘ.
+  bool _mineOnly = false;
+
   @override
   void initState() {
     super.initState();
     Get.find<ShoppingStore>().init();
+    // Roster để hiện tên người được giao — chỉ nạp khi chưa có.
+    final family = shoppingFamilyStore();
+    if (family != null &&
+        family.rosterState is! SuccessState<HouseholdRoster>) {
+      family.loadRoster();
+    }
   }
 
   @override
@@ -89,9 +103,16 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final me = Get.find<SessionStore>().currentUser?.id;
+          // Đọc trong Observer để chip assignee tự vẽ lại khi roster về.
+          shoppingFamilyStore()?.rosterState;
+          List<ShoppingItem> mine(List<ShoppingItem> l) => _mineOnly
+              ? l.where((e) => e.assignedTo != null && e.assignedTo == me).toList()
+              : l;
           final allItems = store.items;
-          final pendingItems = store.pending;
-          final completedItems = store.completed;
+          final pendingItems = mine(store.pending);
+          final completedItems = mine(store.completed);
+          final myCount = store.assignedToMeCount;
 
           if (allItems.isEmpty) {
             return Center(
@@ -166,19 +187,21 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
               AppDimens.xxl,
             ),
             children: <Widget>[
-              // Summary card
+              // Summary card — "Của tôi" chỉ thu hẹp danh sách, KHÔNG đụng
+              // progress/counter (§9).
               _buildSummaryCard(
                 context,
-                pendingItems.length,
-                completedItems.length,
+                store.pending.length,
+                store.completed.length,
               ),
               const SizedBox(height: AppDimens.md),
 
               // Filter pills
               _buildFilterBar(
                 context,
-                pendingItems.length,
-                completedItems.length,
+                store.pending.length,
+                store.completed.length,
+                myCount,
               ),
               const SizedBox(height: AppDimens.md),
 
@@ -231,15 +254,32 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                         _buildItemTile(context, item, true, store)),
                   ],
                 ],
+                if (_mineOnly &&
+                    pendingItems.isEmpty &&
+                    completedItems.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(AppDimens.xl),
+                    child: Center(
+                      child: Text(
+                        context.l10n.shoppingMineEmpty,
+                        key: const ValueKey<String>('shopping-mine-empty'),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
               ] else ...<Widget>[
                 if (filteredItems.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(AppDimens.xl),
                     child: Center(
                       child: Text(
-                        _filter == ShoppingFilter.pending
-                            ? context.l10n.shoppingAllBought
-                            : context.l10n.shoppingNoneBought,
+                        _mineOnly
+                            ? context.l10n.shoppingMineEmpty
+                            : _filter == ShoppingFilter.pending
+                                ? context.l10n.shoppingAllBought
+                                : context.l10n.shoppingNoneBought,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -364,6 +404,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
     BuildContext context,
     int pendingCount,
     int completedCount,
+    int myCount,
   ) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -386,6 +427,13 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
             label: context.l10n.shoppingCompletedCount(completedCount),
             isSelected: _filter == ShoppingFilter.completed,
             onTap: () => setState(() => _filter = ShoppingFilter.completed),
+          ),
+          const SizedBox(width: AppDimens.xs),
+          _FilterChip(
+            key: const ValueKey<String>('shopping-filter-mine'),
+            label: context.l10n.shoppingFilterMine(myCount),
+            isSelected: _mineOnly,
+            onTap: () => setState(() => _mineOnly = !_mineOnly),
           ),
         ],
       ),
@@ -441,7 +489,9 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
         child: InkWell(
-          onTap: item.canToggle
+          // Đang PATCH gán thì không cho tick — 2 thao tác cùng version, bên
+          // về sau sẽ ghi đè/ăn 409 làm mất lần tick (Guard #18).
+          onTap: item.canToggle && !store.isAssigning(item.id)
               ? () => toggleShoppingItemWithPrice(context, store, item)
               : null,
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
@@ -535,6 +585,22 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
+                          AssigneeChip(
+                            item: item,
+                            familyStore: shoppingFamilyStore(),
+                            currentUserId:
+                                Get.find<SessionStore>().currentUser?.id,
+                            // Guard #18: chỉ gán khi row đã SYNCED.
+                            enabled: !item.isPendingSync &&
+                                !store.isAssigning(item.id),
+                            onTap: () => openAssigneePicker(
+                              context,
+                              store,
+                              item,
+                              isOnline: () => Get.find<ConnectivityService>()
+                                  .isOnline(),
+                            ),
+                          ),
                           if (item.isPendingSync)
                             const Icon(
                               Icons.sync_rounded,
@@ -765,6 +831,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
 
 class _FilterChip extends StatelessWidget {
   const _FilterChip({
+    super.key,
     required this.label,
     required this.isSelected,
     required this.onTap,

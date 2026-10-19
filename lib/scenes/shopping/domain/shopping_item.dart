@@ -21,6 +21,7 @@ class ShoppingItem {
     required this.updatedAt,
     this.syncStatus = ShoppingSyncStatus.synced,
     this.price,
+    this.assignedTo,
   });
 
   final String id;
@@ -44,6 +45,9 @@ class ShoppingItem {
   /// Sticky ở BE khi bỏ tick, nên FE không bao giờ xoá giá trị này.
   final double? price;
 
+  /// UUID người được giao mua (#134). KHÔNG BAO GIỜ hiển thị thô (Guard #15).
+  final String? assignedTo;
+
   bool get isPendingSync => syncStatus != ShoppingSyncStatus.synced;
   bool get canToggle => syncStatus != ShoppingSyncStatus.pendingCreate;
 
@@ -64,6 +68,7 @@ class ShoppingItem {
     DateTime? updatedAt,
     ShoppingSyncStatus? syncStatus,
     double? price,
+    String? assignedTo,
   }) => ShoppingItem(
     id: id ?? this.id,
     householdId: householdId,
@@ -82,5 +87,6 @@ class ShoppingItem {
     updatedAt: updatedAt ?? this.updatedAt,
     syncStatus: syncStatus ?? this.syncStatus,
     price: price ?? this.price,
+    assignedTo: assignedTo ?? this.assignedTo,
   );
 }
