@@ -804,5 +804,12 @@
   "tierUpdatedClaimStale": "Household plan updated to {tier}. Sign in again if the screen still shows the old plan.",
   "@tierUpdatedClaimStale": {"placeholders": {"tier": {"type": "String"}}},
   "planningPlanNotReady": "The weekly plan is not loaded yet — please try again.",
-  "sessionExpiredError": "Your session has expired. Please sign in again."
+  "sessionExpiredError": "Your session has expired. Please sign in again.",
+  "shoppingPriceQuestion": "How much did you pay?",
+  "shoppingPriceOptional": "You can skip this",
+  "shoppingPriceLabel": "Price",
+  "shoppingPriceZeroHint": "0 ₫ means free. If you don't know the price, tap Skip.",
+  "shoppingPriceSkip": "Skip",
+  "shoppingPriceSave": "Save",
+  "shoppingPriceNotSaved": "This item was just updated by someone else — the price you entered was not saved. Untick and tick again to re-enter it."
 }

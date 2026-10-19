@@ -10,7 +10,10 @@ abstract interface class ShoppingApi {
   Future<List<ShoppingItem>> list(String householdId);
   /// [idempotencyKey]: header `X-Idempotency-Key` (#55, offline-sync-contract.md §5).
   Future<ShoppingItem> create(Map<String, dynamic> payload, String householdId, {String? idempotencyKey});
-  Future<ShoppingItem> toggle(String id, int version, String householdId);
+  /// [price] CHỈ khi kết quả toggle là COMPLETED (#133, Guard #13) — BE trả 400
+  /// nếu có giá ở chiều về PENDING. Không có giá thì bỏ hẳn key `price`/
+  /// `currency` (BE coi thiếu key và `null` như nhau; bỏ key cho body gọn).
+  Future<ShoppingItem> toggle(String id, int version, String householdId, {double? price});
 }
 
 class ShoppingApiImpl implements ShoppingApi {
@@ -34,8 +37,12 @@ class ShoppingApiImpl implements ShoppingApi {
   });
 
   @override
-  Future<ShoppingItem> toggle(String id, int version, String householdId) => _unwrap(() async {
-    final response = await _client.dio.post<Map<String, dynamic>>('/api/v1/shopping/items/$id/complete', data: <String, dynamic>{'version': version});
+  Future<ShoppingItem> toggle(String id, int version, String householdId, {double? price}) => _unwrap(() async {
+    final response = await _client.dio.post<Map<String, dynamic>>('/api/v1/shopping/items/$id/complete', data: <String, dynamic>{
+      'version': version,
+      if (price != null) 'price': price,
+      if (price != null) 'currency': 'VND',
+    });
     return shoppingItemFromJson(_data(response.data), householdId);
   });
 

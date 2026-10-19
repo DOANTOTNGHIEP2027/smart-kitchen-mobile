@@ -17,6 +17,8 @@ class ShoppingListItems extends Table {
   TextColumn get createdAt => text()();
   TextColumn get updatedAt => text()();
   TextColumn get syncStatus => text().withDefault(const Constant('SYNCED'))();
+  /// Giá VND người dùng nhập khi tick (#133) — `null` = chưa nhập (khác 0).
+  RealColumn get price => real().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};

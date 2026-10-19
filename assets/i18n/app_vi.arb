@@ -682,5 +682,12 @@
   "familyRoleMember": "Thành viên",
   "tierUpdatedClaimStale": "Đã cập nhật gói household thành {tier}. Nếu màn hình vẫn hiện gói cũ, hãy đăng nhập lại.",
   "planningPlanNotReady": "Kế hoạch tuần chưa tải xong — vui lòng thử lại.",
-  "sessionExpiredError": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+  "sessionExpiredError": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+  "shoppingPriceQuestion": "Bạn trả bao nhiêu?",
+  "shoppingPriceOptional": "Có thể bỏ qua",
+  "shoppingPriceLabel": "Giá",
+  "shoppingPriceZeroHint": "0 ₫ nghĩa là miễn phí. Nếu không nhớ giá, hãy bấm Bỏ qua.",
+  "shoppingPriceSkip": "Bỏ qua",
+  "shoppingPriceSave": "Lưu",
+  "shoppingPriceNotSaved": "Món này vừa được người khác cập nhật — giá bạn nhập chưa được lưu. Bỏ tick rồi tick lại để nhập lại giá."
 }

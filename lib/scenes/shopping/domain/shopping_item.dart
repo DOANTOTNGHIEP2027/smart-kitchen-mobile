@@ -20,6 +20,7 @@ class ShoppingItem {
     required this.createdAt,
     required this.updatedAt,
     this.syncStatus = ShoppingSyncStatus.synced,
+    this.price,
   });
 
   final String id;
@@ -38,6 +39,10 @@ class ShoppingItem {
   final DateTime createdAt;
   final DateTime updatedAt;
   final ShoppingSyncStatus syncStatus;
+
+  /// Giá VND nhập khi tick (#133). `null` = chưa nhập — KHÁC `0` (miễn phí).
+  /// Sticky ở BE khi bỏ tick, nên FE không bao giờ xoá giá trị này.
+  final double? price;
 
   bool get isPendingSync => syncStatus != ShoppingSyncStatus.synced;
   bool get canToggle => syncStatus != ShoppingSyncStatus.pendingCreate;
@@ -58,6 +63,7 @@ class ShoppingItem {
     DateTime? createdAt,
     DateTime? updatedAt,
     ShoppingSyncStatus? syncStatus,
+    double? price,
   }) => ShoppingItem(
     id: id ?? this.id,
     householdId: householdId,
@@ -75,5 +81,6 @@ class ShoppingItem {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     syncStatus: syncStatus ?? this.syncStatus,
+    price: price ?? this.price,
   );
 }

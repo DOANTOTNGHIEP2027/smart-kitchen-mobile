@@ -150,3 +150,18 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn phần còn lại. · **Theo:** §6.0 quy tắc 3.
 - **Đảo ngược thế nào:** —
 - **Cần người quyết lại không:** Không.
+
+### OD-19 · Đi chợ — nhập giá khi tick (#133, shopping-list-screen §9.4); phạm vi PR
+- **Ngày:** 2026-10-19 · **Task:** shopping price capture · **Nhánh:** `feature/shopping-complete-price-delete`
+- **Tình huống:** Đề xuất ban đầu gồm xoá món + sinh danh sách từ kế hoạch tuần + sửa món, nhưng `shopping-list-screen.md` §2 ghi rõ DELETE / form sửa đầy đủ / generate là NGOÀI phạm vi; FE hiện không gọi DELETE nên thay đổi breaking (body `{version}`) của BE #55 chưa ảnh hưởng. Assignee (#134) cần thêm `FamilyBinding fenix` + luồng online-only → tách PR sau.
+- **Đã chọn:** PR này chỉ làm nhập giá: cột Drift `price` (schema v5, ALTER chỉ khi đi từ v4), `toggle(price)` gửi `price`+`currency: VND` chỉ khi có giá và chỉ chiều PENDING→COMPLETED, hàng đợi offline mang giá trong payload, tile hiện giá bằng `formatVnd` (hậu tố ₫ thống nhất toàn app thay vì 'đ' của thiết kế). · **Theo:** §6.0 quy tắc 2–3 + §6.1 D-09.
+- **Đảo ngược thế nào:** Thêm DELETE/generate khi có thiết kế FE riêng.
+- **Cần người quyết lại không:** Có — có cần thiết kế FE cho xoá món / sinh danh sách từ kế hoạch tuần không.
+
+### OD-20 · Nhập giá đi chợ — finding LOW còn lại sau 3 vòng review
+- **Ngày:** 2026-10-19 · **Task:** shopping price capture · **Nhánh:** `feature/shopping-complete-price-delete`
+- **Đã thêm ngoài OD-19:** banner `shoppingPriceNotSaved` (AM-TB-4) khi toggle có giá bị BE từ chối (409 version / 400 validation) ở cả đường online lẫn drain — entry stale bị bỏ khỏi hàng đợi thay vì kẹt; toggle khi row còn PENDING_TOGGLE luôn đi qua coalesce kể cả online.
+- **Còn lại:** (1) drain vẫn kẹt với `ERR_SHOP_ITEM_NOT_FOUND`/`ERR_SHOP_LIST_NOT_ACTIVE` (lỗi cũ, không liên quan giá). (2) Race: huỷ cặp đúng lúc drain đang gửi T1 → T1 vẫn tới server, ý định bỏ tick bị mất.
+- **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Task dọn hàng đợi shopping riêng.
+- **Cần người quyết lại không:** Không.

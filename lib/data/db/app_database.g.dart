@@ -1587,6 +1587,11 @@ class $ShoppingListItemsTable extends ShoppingListItems
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('SYNCED'));
+  static const VerificationMeta _priceMeta = const VerificationMeta('price');
+  @override
+  late final GeneratedColumn<double> price = GeneratedColumn<double>(
+      'price', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1604,7 +1609,8 @@ class $ShoppingListItemsTable extends ShoppingListItems
         createdBy,
         createdAt,
         updatedAt,
-        syncStatus
+        syncStatus,
+        price
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1713,6 +1719,10 @@ class $ShoppingListItemsTable extends ShoppingListItems
           syncStatus.isAcceptableOrUnknown(
               data['sync_status']!, _syncStatusMeta));
     }
+    if (data.containsKey('price')) {
+      context.handle(
+          _priceMeta, price.isAcceptableOrUnknown(data['price']!, _priceMeta));
+    }
     return context;
   }
 
@@ -1754,6 +1764,8 @@ class $ShoppingListItemsTable extends ShoppingListItems
           .read(DriftSqlType.string, data['${effectivePrefix}updated_at'])!,
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
+      price: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}price']),
     );
   }
 
@@ -1781,6 +1793,9 @@ class ShoppingListItem extends DataClass
   final String createdAt;
   final String updatedAt;
   final String syncStatus;
+
+  /// Giá VND người dùng nhập khi tick (#133) — `null` = chưa nhập (khác 0).
+  final double? price;
   const ShoppingListItem(
       {required this.id,
       required this.householdId,
@@ -1797,7 +1812,8 @@ class ShoppingListItem extends DataClass
       this.createdBy,
       required this.createdAt,
       required this.updatedAt,
-      required this.syncStatus});
+      required this.syncStatus,
+      this.price});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1823,6 +1839,9 @@ class ShoppingListItem extends DataClass
     map['created_at'] = Variable<String>(createdAt);
     map['updated_at'] = Variable<String>(updatedAt);
     map['sync_status'] = Variable<String>(syncStatus);
+    if (!nullToAbsent || price != null) {
+      map['price'] = Variable<double>(price);
+    }
     return map;
   }
 
@@ -1850,6 +1869,8 @@ class ShoppingListItem extends DataClass
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       syncStatus: Value(syncStatus),
+      price:
+          price == null && nullToAbsent ? const Value.absent() : Value(price),
     );
   }
 
@@ -1873,6 +1894,7 @@ class ShoppingListItem extends DataClass
       createdAt: serializer.fromJson<String>(json['createdAt']),
       updatedAt: serializer.fromJson<String>(json['updatedAt']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      price: serializer.fromJson<double?>(json['price']),
     );
   }
   @override
@@ -1895,6 +1917,7 @@ class ShoppingListItem extends DataClass
       'createdAt': serializer.toJson<String>(createdAt),
       'updatedAt': serializer.toJson<String>(updatedAt),
       'syncStatus': serializer.toJson<String>(syncStatus),
+      'price': serializer.toJson<double?>(price),
     };
   }
 
@@ -1914,7 +1937,8 @@ class ShoppingListItem extends DataClass
           Value<String?> createdBy = const Value.absent(),
           String? createdAt,
           String? updatedAt,
-          String? syncStatus}) =>
+          String? syncStatus,
+          Value<double?> price = const Value.absent()}) =>
       ShoppingListItem(
         id: id ?? this.id,
         householdId: householdId ?? this.householdId,
@@ -1933,6 +1957,7 @@ class ShoppingListItem extends DataClass
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         syncStatus: syncStatus ?? this.syncStatus,
+        price: price.present ? price.value : this.price,
       );
   ShoppingListItem copyWithCompanion(ShoppingListItemsCompanion data) {
     return ShoppingListItem(
@@ -1959,6 +1984,7 @@ class ShoppingListItem extends DataClass
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      price: data.price.present ? data.price.value : this.price,
     );
   }
 
@@ -1980,7 +2006,8 @@ class ShoppingListItem extends DataClass
           ..write('createdBy: $createdBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('syncStatus: $syncStatus')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('price: $price')
           ..write(')'))
         .toString();
   }
@@ -2002,7 +2029,8 @@ class ShoppingListItem extends DataClass
       createdBy,
       createdAt,
       updatedAt,
-      syncStatus);
+      syncStatus,
+      price);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2022,7 +2050,8 @@ class ShoppingListItem extends DataClass
           other.createdBy == this.createdBy &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.syncStatus == this.syncStatus);
+          other.syncStatus == this.syncStatus &&
+          other.price == this.price);
 }
 
 class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
@@ -2042,6 +2071,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
   final Value<String> createdAt;
   final Value<String> updatedAt;
   final Value<String> syncStatus;
+  final Value<double?> price;
   final Value<int> rowid;
   const ShoppingListItemsCompanion({
     this.id = const Value.absent(),
@@ -2060,6 +2090,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.syncStatus = const Value.absent(),
+    this.price = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShoppingListItemsCompanion.insert({
@@ -2079,6 +2110,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     required String createdAt,
     required String updatedAt,
     this.syncStatus = const Value.absent(),
+    this.price = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         householdId = Value(householdId),
@@ -2109,6 +2141,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     Expression<String>? createdAt,
     Expression<String>? updatedAt,
     Expression<String>? syncStatus,
+    Expression<double>? price,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2128,6 +2161,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (syncStatus != null) 'sync_status': syncStatus,
+      if (price != null) 'price': price,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2149,6 +2183,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
       Value<String>? createdAt,
       Value<String>? updatedAt,
       Value<String>? syncStatus,
+      Value<double?>? price,
       Value<int>? rowid}) {
     return ShoppingListItemsCompanion(
       id: id ?? this.id,
@@ -2167,6 +2202,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       syncStatus: syncStatus ?? this.syncStatus,
+      price: price ?? this.price,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2222,6 +2258,9 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     if (syncStatus.present) {
       map['sync_status'] = Variable<String>(syncStatus.value);
     }
+    if (price.present) {
+      map['price'] = Variable<double>(price.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2247,6 +2286,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncStatus: $syncStatus, ')
+          ..write('price: $price, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2785,11 +2825,7 @@ class $$ReadCacheEntriesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$ReadCacheEntriesTable, ReadCacheEntry>(table),
-                    BaseReferences<_$AppDatabase, $ReadCacheEntriesTable,
-                        ReadCacheEntry>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -3164,11 +3200,7 @@ class $$InventoryItemsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$InventoryItemsTable, InventoryItem>(table),
-                    BaseReferences<_$AppDatabase, $InventoryItemsTable,
-                        InventoryItem>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -3369,12 +3401,7 @@ class $$InventorySyncQueueTableTableManager extends RootTableManager<
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$InventorySyncQueueTable,
-                        InventorySyncQueueData>(table),
-                    BaseReferences<_$AppDatabase, $InventorySyncQueueTable,
-                        InventorySyncQueueData>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -3414,6 +3441,7 @@ typedef $$ShoppingListItemsTableCreateCompanionBuilder
   required String createdAt,
   required String updatedAt,
   Value<String> syncStatus,
+  Value<double?> price,
   Value<int> rowid,
 });
 typedef $$ShoppingListItemsTableUpdateCompanionBuilder
@@ -3434,6 +3462,7 @@ typedef $$ShoppingListItemsTableUpdateCompanionBuilder
   Value<String> createdAt,
   Value<String> updatedAt,
   Value<String> syncStatus,
+  Value<double?> price,
   Value<int> rowid,
 });
 
@@ -3495,6 +3524,9 @@ class $$ShoppingListItemsTableFilterComposer
 
   ColumnFilters<String> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get price => $composableBuilder(
+      column: $table.price, builder: (column) => ColumnFilters(column));
 }
 
 class $$ShoppingListItemsTableOrderingComposer
@@ -3555,6 +3587,9 @@ class $$ShoppingListItemsTableOrderingComposer
 
   ColumnOrderings<String> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get price => $composableBuilder(
+      column: $table.price, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ShoppingListItemsTableAnnotationComposer
@@ -3613,6 +3648,9 @@ class $$ShoppingListItemsTableAnnotationComposer
 
   GeneratedColumn<String> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => column);
+
+  GeneratedColumn<double> get price =>
+      $composableBuilder(column: $table.price, builder: (column) => column);
 }
 
 class $$ShoppingListItemsTableTableManager extends RootTableManager<
@@ -3659,6 +3697,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             Value<String> createdAt = const Value.absent(),
             Value<String> updatedAt = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
+            Value<double?> price = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ShoppingListItemsCompanion(
@@ -3678,6 +3717,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             syncStatus: syncStatus,
+            price: price,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -3697,6 +3737,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             required String createdAt,
             required String updatedAt,
             Value<String> syncStatus = const Value.absent(),
+            Value<double?> price = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ShoppingListItemsCompanion.insert(
@@ -3716,15 +3757,11 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             syncStatus: syncStatus,
+            price: price,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$ShoppingListItemsTable, ShoppingListItem>(
-                        table),
-                    BaseReferences<_$AppDatabase, $ShoppingListItemsTable,
-                        ShoppingListItem>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -3926,14 +3963,7 @@ class $$ShoppingSyncQueueEntriesTableTableManager extends RootTableManager<
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$ShoppingSyncQueueEntriesTable,
-                        ShoppingSyncQueueEntry>(table),
-                    BaseReferences<
-                        _$AppDatabase,
-                        $ShoppingSyncQueueEntriesTable,
-                        ShoppingSyncQueueEntry>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));

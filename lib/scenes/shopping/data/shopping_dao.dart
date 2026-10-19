@@ -33,25 +33,33 @@ class ShoppingDao {
   Future<void> enqueueCreate(ShoppingItem item) => _insertQueue(item, 'CREATE', null);
 
   /// Hai toggle offline liên tiếp triệt tiêu nhau; row trở về state server.
-  Future<bool> enqueueToggle(ShoppingItem item, ShoppingItem previous) async {
+  Future<bool> enqueueToggle(ShoppingItem item, ShoppingItem previous, {double? price}) async {
     final existing = await (_db.select(_db.shoppingSyncQueueEntries)
           ..where((t) => t.itemId.equals(item.id)))
         .getSingleOrNull();
     if (existing?.operation == 'TOGGLE_COMPLETE') {
       await (_db.delete(_db.shoppingSyncQueueEntries)..where((t) => t.id.equals(existing!.id))).go();
-      await upsert(previous.copyWith(syncStatus: ShoppingSyncStatus.synced));
+      // [item] là row sau lần toggle 2 = đúng status server; giá phải về giá
+      // TRƯỚC lần toggle 1 (entry bị huỷ), không phải giá cục bộ của lần 1 (§5.4).
+      final queued = jsonDecode(existing!.payload) as Map<String, dynamic>;
+      await _db.into(_db.shoppingListItems).insertOnConflictUpdate(
+          shoppingItemToRow(item.copyWith(syncStatus: ShoppingSyncStatus.synced))
+              .copyWith(price: Value((queued['revertPrice'] as num?)?.toDouble())));
       return true;
     }
-    await _insertQueue(item, 'TOGGLE_COMPLETE', previous.version);
+    // TOGGLE_COMPLETE mang theo giá (nếu có) để phát lại offline đúng, và giá
+    // server trước toggle này để huỷ cặp khôi phục đúng.
+    await _insertQueue(item, 'TOGGLE_COMPLETE', previous.version,
+        payload: <String, dynamic>{if (price != null) 'price': price, 'revertPrice': previous.price});
     return false;
   }
 
-  Future<void> _insertQueue(ShoppingItem item, String operation, int? baseVersion) =>
+  Future<void> _insertQueue(ShoppingItem item, String operation, int? baseVersion, {Map<String, dynamic>? payload}) =>
       _db.into(_db.shoppingSyncQueueEntries).insert(ShoppingSyncQueueEntriesCompanion.insert(
         householdId: item.householdId,
         itemId: item.id,
         operation: operation,
-        payload: jsonEncode(shoppingCreatePayload(item)),
+        payload: jsonEncode(payload ?? shoppingCreatePayload(item)),
         baseVersion: Value(baseVersion),
         createdAt: DateTime.now().toUtc().toIso8601String(),
       ));

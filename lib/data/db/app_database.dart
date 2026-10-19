@@ -21,6 +21,8 @@ part 'app_database.g.dart';
 ///   `CREATE TABLE` thuần tăng — không đụng bảng cũ, không ALTER, không DROP.
 /// - 3 (P0-2): thêm [InventorySyncQueue] để mutation offline sống qua restart.
 /// - 4 (P1): thêm item và queue riêng cho Shopping offline-first.
+/// - 5 (#133): thêm cột `price` cho shopping_list_items. DB đi từ <4 tạo bảng
+///   mới đã có cột này nên chỉ ALTER khi đi từ đúng v4.
 @DriftDatabase(tables: <Type>[
   ReadCacheEntries,
   InventoryItems,
@@ -35,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -51,6 +53,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await m.createTable(shoppingListItems);
             await m.createTable(shoppingSyncQueueEntries);
+          }
+          if (from == 4) {
+            // #133 — giá khi tick hoàn thành món đi chợ.
+            await m.addColumn(shoppingListItems, shoppingListItems.price);
           }
         },
       );
