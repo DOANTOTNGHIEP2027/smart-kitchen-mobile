@@ -5,6 +5,8 @@ import '../../../constants/app_dimens.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../utils/l10n_x.dart';
 
+export '../../../widgets/feature_banner.dart';
+
 class AuthFrame extends StatelessWidget {
   const AuthFrame({
     super.key,
@@ -117,35 +119,6 @@ class BrandMark extends StatelessWidget {
           width: 56,
           height: 56,
           child: Icon(Icons.soup_kitchen_rounded, color: Colors.white, size: 30),
-        ),
-      );
-}
-
-class FeatureBanner extends StatelessWidget {
-  const FeatureBanner({super.key, required this.message, this.isError = true});
-
-  final String message;
-  final bool isError;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-        liveRegion: true,
-        child: Container(
-          padding: const EdgeInsets.all(AppDimens.md),
-          decoration: BoxDecoration(
-            color: isError ? const Color(0xFFFFEEEE) : AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(AppDimens.radiusSm),
-          ),
-          child: Row(
-            children: <Widget>[
-              Icon(
-                isError ? Icons.error_outline : Icons.info_outline,
-                color: isError ? AppColors.error : AppColors.primary,
-              ),
-              const SizedBox(width: AppDimens.sm),
-              Expanded(child: Text(message)),
-            ],
-          ),
         ),
       );
 }

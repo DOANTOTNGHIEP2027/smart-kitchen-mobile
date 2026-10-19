@@ -74,6 +74,7 @@ class _SlotFormSheetState extends State<SlotFormSheet> {
   late SlotPreset _preset;
   late final TextEditingController _label;
   late TimeOfDay _time;
+  bool _labelSeeded = false;
 
   @override
   void initState() {
@@ -90,9 +91,12 @@ class _SlotFormSheetState extends State<SlotFormSheet> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (widget.initial == null && _label.text.isEmpty) {
+    // Seed 1 lần — didChangeDependencies chạy lại mỗi khi viewInsets đổi
+    // (bàn phím), không được ghi đè ô tên user vừa xoá.
+    if (!_labelSeeded && widget.initial == null) {
       _label.text = slotPresetLabel(context, _preset);
     }
+    _labelSeeded = true;
   }
 
   @override
@@ -125,8 +129,7 @@ class _SlotFormSheetState extends State<SlotFormSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final timeText =
-        '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}';
+    final timeText = MealSlotTemplateItem.formatTime(_time.hour, _time.minute);
     return Padding(
       padding: EdgeInsets.only(
         left: AppDimens.md,
@@ -134,59 +137,61 @@ class _SlotFormSheetState extends State<SlotFormSheet> {
         top: AppDimens.md,
         bottom: MediaQuery.of(context).viewInsets.bottom + AppDimens.md,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(
-            widget.initial == null
-                ? l10n.planningSlotFormAddTitle
-                : l10n.planningSlotFormEditTitle,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: AppDimens.md),
-          DropdownButtonFormField<SlotPreset>(
-            key: const ValueKey<String>('slot-form-type'),
-            initialValue: _preset,
-            decoration: InputDecoration(labelText: l10n.planningSlotFormType),
-            items: <DropdownMenuItem<SlotPreset>>[
-              for (final p in SlotPreset.values)
-                DropdownMenuItem<SlotPreset>(
-                  value: p,
-                  child: Text(slotPresetLabel(context, p)),
-                ),
-            ],
-            onChanged: (SlotPreset? p) {
-              if (p == null) return;
-              setState(() {
-                _preset = p;
-                if (p != SlotPreset.custom) {
-                  _label.text = slotPresetLabel(context, p);
-                }
-              });
-            },
-          ),
-          const SizedBox(height: AppDimens.sm),
-          TextField(
-            key: const ValueKey<String>('slot-form-label'),
-            controller: _label,
-            maxLength: 100,
-            decoration: InputDecoration(labelText: l10n.planningSlotFormLabel),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.schedule),
-            title: Text(l10n.planningSlotFormTime),
-            trailing: Text(timeText),
-            onTap: _pickTime,
-          ),
-          const SizedBox(height: AppDimens.sm),
-          AppButton(
-            key: const ValueKey<String>('slot-form-submit'),
-            label: l10n.planningConfirm,
-            onPressed: _submit,
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(
+              widget.initial == null
+                  ? l10n.planningSlotFormAddTitle
+                  : l10n.planningSlotFormEditTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppDimens.md),
+            DropdownButtonFormField<SlotPreset>(
+              key: const ValueKey<String>('slot-form-type'),
+              initialValue: _preset,
+              decoration: InputDecoration(labelText: l10n.planningSlotFormType),
+              items: <DropdownMenuItem<SlotPreset>>[
+                for (final p in SlotPreset.values)
+                  DropdownMenuItem<SlotPreset>(
+                    value: p,
+                    child: Text(slotPresetLabel(context, p)),
+                  ),
+              ],
+              onChanged: (SlotPreset? p) {
+                if (p == null) return;
+                setState(() {
+                  _preset = p;
+                  if (p != SlotPreset.custom) {
+                    _label.text = slotPresetLabel(context, p);
+                  }
+                });
+              },
+            ),
+            const SizedBox(height: AppDimens.sm),
+            TextField(
+              key: const ValueKey<String>('slot-form-label'),
+              controller: _label,
+              maxLength: 100,
+              decoration: InputDecoration(labelText: l10n.planningSlotFormLabel),
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.schedule),
+              title: Text(l10n.planningSlotFormTime),
+              trailing: Text(timeText),
+              onTap: _pickTime,
+            ),
+            const SizedBox(height: AppDimens.sm),
+            AppButton(
+              key: const ValueKey<String>('slot-form-submit'),
+              label: l10n.planningConfirm,
+              onPressed: _submit,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -63,3 +63,10 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Code theo BE thật: route `/meal-plan/plan/:planId/guest-diners`, lấy `MealPlanStore.currentPlanId`, nút mở ở thanh tiêu đề lịch tuần; copy UI nói "chỉ áp dụng cho kế hoạch tuần này". · **Theo:** §6.2 luật 1 + §6.1 D-09 (không bịa API).
 - **Đảo ngược thế nào:** Nếu BE đổi sang scope theo bữa (Q11 của `meal-planning-core.md`), đổi route param sang `slotId` + sửa chuỗi `planningGuestScopeBanner`.
 - **Cần người quyết lại không:** Có — thiết kế và BE đang lệch về ngữ nghĩa an toàn dị ứng (khách tuần vs khách 1 bữa); cần chốt ở phiên repo `ai-native`.
+
+### OD-07 · #101 PR 1 — 3 finding LOW còn lại sau 3 vòng review (gom vào task dọn riêng)
+- **Ngày:** 2026-10-19 · **Task:** #101 PR 1 · **Nhánh:** `feature/101_flexible-meal-planning`
+- **Tình huống:** (1) Chưa có widget test bảo vệ điều kiện chỉ hiện nút 'Khách ăn cùng' khi `status == ready` — thiếu harness `WeeklyMealPlanScene`. (2) [ĐÃ LÀM 2026-10-19: banner hiện tên khách] Banner sau khi xoá chưa tự tắt khi thêm/sửa tiếp. (3) Xoá gặp 404 thì list đã tải lại nhưng dialog vẫn mở.
+- **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Làm trong PR 2 hoặc task dọn planning.
+- **Cần người quyết lại không:** Không — người duyệt đã chốt hiện tên khách (2026-10-19).

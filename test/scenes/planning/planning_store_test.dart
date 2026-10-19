@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
@@ -10,6 +12,37 @@ import 'package:smart_kitchen_mobile/scenes/profile/stores/form_status.dart';
 import 'package:smart_kitchen_mobile/widgets/states/view_state.dart';
 
 import 'planning_fakes.dart';
+
+class _ThrowingSlotApi extends FakeMealSlotApi {
+  @override
+  Future<List<MealSlotTemplateItem>> getTemplate() async =>
+      throw const FormatException('scheduledTime sai dạng');
+}
+
+/// Lần `list` ĐẦU treo tới khi test mở `firstGate`; các lần sau trả ngay.
+class _GatedListGuestApi extends FakeGuestDinerApi {
+  final Completer<void> firstGate = Completer<void>();
+  int _listCalls = 0;
+
+  @override
+  Future<List<GuestDiner>> list(String mealPlanId) async {
+    if (_listCalls++ == 0) {
+      await firstGate.future;
+      return const <GuestDiner>[];
+    }
+    return super.list(mealPlanId);
+  }
+}
+
+class _GatedRemoveGuestApi extends FakeGuestDinerApi {
+  final Completer<void> gate = Completer<void>();
+
+  @override
+  Future<void> remove(String mealPlanId, String guestDinerId) async {
+    await gate.future;
+    return super.remove(mealPlanId, guestDinerId);
+  }
+}
 
 MealSlotTemplateItem slot(String key, int hour, {int? day, String label = 'x'}) =>
     MealSlotTemplateItem(dayOfWeek: day, slotKey: key, label: label, hour: hour, minute: 0, sortOrder: 0);
@@ -109,6 +142,19 @@ void main() {
       expect(store.saveStatus, FormStatus.idle);
     });
 
+    test('sửa/xoá 1 bữa mặc định → hết banner "đang dùng mặc định"', () {
+      expect(store.isUsingDefaults, isTrue);
+      store.removeSlot(store.draftSlots.first);
+      expect(store.isUsingDefaults, isFalse);
+    });
+
+    test('load lỗi parse (giờ sai dạng) → ErrorState, không treo spinner', () async {
+      final bad = _ThrowingSlotApi();
+      final s = MealSlotStore(bad);
+      await s.load();
+      expect(s.templateState, isA<ErrorState<List<MealSlotTemplateItem>>>());
+    });
+
     test('nextCustomKey bỏ qua key đã dùng trong cùng nhóm ngày', () {
       store.addSlot(slot('CUSTOM_1', 10));
       expect(store.nextCustomKey(null), 'CUSTOM_2');
@@ -161,6 +207,31 @@ void main() {
       expect(store.dinersState, isA<EmptyState<List<GuestDiner>>>());
     });
 
+    test('add khi list đang lỗi → tải lại từ BE, không nối vào list rỗng', () async {
+      api.listError = ServerException('ERR_SERVER', 'down');
+      await store.loadAll();
+      api
+        ..listError = null
+        ..diners = <GuestDiner>[guest('g1'), guest('new')];
+      final ok = await store.add(allergenIds: <int>{});
+      expect(ok, isTrue);
+      final data = (store.dinersState as SuccessState<List<GuestDiner>>).data;
+      expect(data.map((d) => d.id), <String>['g1', 'new']);
+    });
+
+    test('404 ERR_MEAL_GUEST_DINER_NOT_FOUND → tải lại list cho khớp BE', () async {
+      api.diners = <GuestDiner>[guest('g1')];
+      await store.loadAll();
+      api
+        ..diners = <GuestDiner>[]
+        ..mutationError = BusinessException('ERR_MEAL_GUEST_DINER_NOT_FOUND', 'gone');
+      final ok = await store.updateAllergens('g1', <int>{3});
+      await Future<void>.delayed(Duration.zero);
+      expect(ok, isFalse);
+      expect(store.mutationStatus, FormStatus.failure);
+      expect(store.dinersState, isA<EmptyState<List<GuestDiner>>>());
+    });
+
     test('updateAllergens thay đúng phần tử', () async {
       api.diners = <GuestDiner>[guest('g1'), guest('g2')];
       await store.loadAll();
@@ -168,6 +239,38 @@ void main() {
       final data = (store.dinersState as SuccessState<List<GuestDiner>>).data;
       expect(data.map((d) => d.id), <String>['g1', 'g2']);
       expect(data[1].allergens.single.id, 3);
+    });
+
+    test('add lúc lần tải đầu còn treo → response cũ về sau KHÔNG ghi đè list mới', () async {
+      final slowApi = _GatedListGuestApi();
+      final s = GuestDinerStore(slowApi, health, 'plan-1');
+      final initial = s.loadAll();
+      await Future<void>.delayed(Duration.zero);
+      expect(s.isCatalogReady, isTrue);
+      expect(s.dinersState, isA<LoadingState<List<GuestDiner>>>());
+
+      slowApi.diners = <GuestDiner>[guest('new')];
+      final ok = await s.add(allergenIds: <int>{});
+      expect(ok, isTrue);
+      // Response của lần tải đầu (chưa có khách mới) về SAU cùng.
+      slowApi.firstGate.complete();
+      await initial;
+      final data = (s.dinersState as SuccessState<List<GuestDiner>>).data;
+      expect(data.map((d) => d.id), <String>['new']);
+    });
+
+    test('clearMutationStatus KHÔNG reset khi request còn treo (giữ guard isSubmitting)', () async {
+      final g = guest('g1');
+      final slowApi = _GatedRemoveGuestApi()..diners = <GuestDiner>[g];
+      final s = GuestDinerStore(slowApi, health, 'plan-1');
+      await s.loadAll();
+      final pending = s.remove(g);
+      expect(s.isSubmitting, isTrue);
+      s.clearMutationStatus();
+      expect(s.isSubmitting, isTrue);
+      expect(await s.add(allergenIds: <int>{}), isFalse, reason: 'không cho mutation chồng');
+      slowApi.gate.complete();
+      expect(await pending, isTrue);
     });
 
     test('remove → bỏ khỏi list + set lastRemoved cho banner', () async {

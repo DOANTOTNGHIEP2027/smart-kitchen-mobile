@@ -482,8 +482,6 @@
   "planningSlotTypeSnack": "Bữa phụ",
   "planningSlotTypeCustom": "Tự đặt tên",
   "planningSlotEdit": "Sửa",
-  "planningSlotDelete": "Xoá",
-  "planningCancel": "Huỷ",
   "planningConfirm": "Xác nhận",
   "planningGuestTitle": "Khách ăn cùng",
   "planningGuestTooltip": "Khách ăn cùng tuần này",
@@ -498,7 +496,7 @@
   "planningGuestEditAllergens": "Sửa dị ứng",
   "planningGuestDelete": "Xoá khách",
   "planningGuestDeleteConfirm": "Xoá khách này khỏi kế hoạch tuần?",
-  "planningGuestRemovedHint": "Đã xoá khách. Các món đã bị chặn trước đó KHÔNG tự mở lại — hãy sinh gợi ý mới nếu muốn thử lại.",
+  "planningGuestRemovedHint": "Đã xoá {name}. Các món đã bị chặn trước đó KHÔNG tự mở lại — hãy sinh gợi ý mới nếu muốn thử lại.",
   "planningGuestUpdated": "Đã cập nhật. Gợi ý AI của tuần này có thể đã thay đổi.",
   "planningGuestSave": "Lưu"
 }

@@ -3045,18 +3045,6 @@ abstract class AppLocalizations {
   /// **'Edit'**
   String get planningSlotEdit;
 
-  /// No description provided for @planningSlotDelete.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete'**
-  String get planningSlotDelete;
-
-  /// No description provided for @planningCancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get planningCancel;
-
   /// No description provided for @planningConfirm.
   ///
   /// In en, this message translates to:
@@ -3144,8 +3132,8 @@ abstract class AppLocalizations {
   /// No description provided for @planningGuestRemovedHint.
   ///
   /// In en, this message translates to:
-  /// **'Guest removed. Dishes blocked earlier are NOT unblocked automatically — generate new suggestions if you want to try again.'**
-  String get planningGuestRemovedHint;
+  /// **'Removed {name}. Dishes blocked earlier are NOT unblocked automatically — generate new suggestions if you want to try again.'**
+  String planningGuestRemovedHint(String name);
 
   /// No description provided for @planningGuestUpdated.
   ///

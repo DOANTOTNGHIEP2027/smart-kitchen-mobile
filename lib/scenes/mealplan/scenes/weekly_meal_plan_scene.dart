@@ -50,8 +50,12 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
       title: context.l10n.mealPlanTitle,
       actions: <Widget>[
         Observer(builder: (_) {
+          // `currentPlanId` không bị xoá khi tải tuần mới lỗi/đang tải — chỉ
+          // tin khi status ready, tránh mở khách của tuần TRƯỚC.
           final planId = store.currentPlanId;
-          if (planId == null) return const SizedBox.shrink();
+          if (planId == null || store.status != MealPlanLoadStatus.ready) {
+            return const SizedBox.shrink();
+          }
           return IconButton(
             key: const ValueKey<String>('meal-plan-guest-diners'),
             tooltip: context.l10n.planningGuestTooltip,

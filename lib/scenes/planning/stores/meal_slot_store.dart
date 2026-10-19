@@ -3,6 +3,7 @@ import 'package:mobx/mobx.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../profile/stores/form_status.dart';
+import '../../profile/stores/store_error.dart';
 import '../data/meal_slot_api.dart';
 import '../domain/meal_slot_template_item.dart';
 
@@ -33,6 +34,9 @@ class MealSlotStore {
   final Observable<MealSlotDraftError?> _draftError =
       Observable<MealSlotDraftError?>(null);
 
+  /// User đã thêm/sửa/xoá slot từ lần load/save gần nhất.
+  final Observable<bool> _draftTouched = Observable<bool>(false);
+
   ViewState<List<MealSlotTemplateItem>> get templateState =>
       _templateState.value;
   FormStatus get saveStatus => _saveStatus.value;
@@ -40,9 +44,12 @@ class MealSlotStore {
   MealSlotDraftError? get draftError => _draftError.value;
   bool get isSaving => _saveStatus.value == FormStatus.submitting;
 
-  /// Household chưa từng PUT → BE trả 3 DEFAULT_SLOTS ảo.
+  /// Household chưa từng PUT → BE trả 3 DEFAULT_SLOTS ảo. Banner biến mất
+  /// ngay khi user sửa/thêm/xoá 1 slot bất kỳ (thiết kế §8.1).
   bool get isUsingDefaults =>
-      draftSlots.isNotEmpty && draftSlots.every((s) => s.isDefault);
+      !_draftTouched.value &&
+      draftSlots.isNotEmpty &&
+      draftSlots.every((s) => s.isDefault);
 
   List<MealSlotTemplateItem> get draftEveryDay => slotsOfDay(null);
 
@@ -62,10 +69,13 @@ class MealSlotStore {
         draftSlots
           ..clear()
           ..addAll(slots);
+        _draftTouched.value = false;
       });
-    } on ApiException catch (e) {
+    } catch (e) {
+      // Lỗi parse (vd. `scheduledTime` lạ) cũng phải ra ErrorState.
       runInAction(() {
-        _templateState.value = ErrorState<List<MealSlotTemplateItem>>(e);
+        _templateState.value =
+            ErrorState<List<MealSlotTemplateItem>>(storeApiException(e));
       });
     }
   }
@@ -134,12 +144,13 @@ class MealSlotStore {
         draftSlots
           ..clear()
           ..addAll(saved);
+        _draftTouched.value = false;
         _saveStatus.value = FormStatus.success;
       });
       return true;
-    } on ApiException catch (e) {
+    } catch (e) {
       runInAction(() {
-        _saveError.value = e;
+        _saveError.value = storeApiException(e);
         _saveStatus.value = FormStatus.failure;
       });
       return false;
@@ -170,6 +181,7 @@ class MealSlotStore {
       });
 
   void _clearErrors() {
+    _draftTouched.value = true;
     _draftError.value = null;
     if (_saveStatus.value == FormStatus.failure) {
       _saveStatus.value = FormStatus.idle;

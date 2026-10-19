@@ -9,7 +9,9 @@ import 'package:smart_kitchen_mobile/scenes/planning/scenes/guest_diner_scene.da
 import 'package:smart_kitchen_mobile/scenes/planning/scenes/meal_slot_config_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/planning/stores/guest_diner_store.dart';
 import 'package:smart_kitchen_mobile/scenes/planning/stores/meal_slot_store.dart';
+import 'package:smart_kitchen_mobile/scenes/planning/widgets/slot_form_sheet.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/allergen.dart';
+import 'package:smart_kitchen_mobile/widgets/buttons/app_button.dart';
 import 'package:smart_kitchen_mobile/widgets/states/app_empty_view.dart';
 import 'package:smart_kitchen_mobile/widgets/states/app_error_view.dart';
 import 'package:smart_kitchen_mobile/widgets/states/app_loading_view.dart';
@@ -102,6 +104,61 @@ void main() {
     });
   });
 
+  group('MealSlotConfigScene — đang lưu', () {
+    testWidgets('saving → nút Lưu isLoading, nút xoá bị khoá (§8.1)', (tester) async {
+      final api = FakeMealSlotApi()..putGate = Completer<void>();
+      Get.put<MealSlotStore>(MealSlotStore(api));
+      await tester.pumpAppWidget(const MealSlotConfigScene(), wrapInScaffold: false);
+      await tester.pumpAndSettle();
+
+      await tapSave(tester);
+      await tester.pump();
+
+      final save = tester.widget<AppButton>(find.byKey(const ValueKey<String>('slot-save')));
+      expect(save.isLoading, isTrue);
+      await tester.drag(find.byType(ListView), const Offset(0, 2000));
+      await tester.pump();
+      final delete = tester.widget<IconButton>(find.byKey(const ValueKey<String>('slot-delete-null-BREAKFAST')));
+      expect(delete.onPressed, isNull);
+
+      api.putGate!.complete();
+      await tester.pumpAndSettle();
+    });
+  });
+
+  group('SlotFormSheet', () {
+    Future<SlotFormResult?> openAndSubmit(WidgetTester tester, MealSlotTemplateItem? initial) async {
+      SlotFormResult? result;
+      await tester.pumpAppWidget(Builder(
+        builder: (context) => TextButton(
+          onPressed: () async => result = await showSlotFormSheet(context, initial: initial),
+          child: const Text('open'),
+        ),
+      ));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('slot-form-submit')));
+      await tester.pumpAndSettle();
+      return result;
+    }
+
+    testWidgets('sửa bữa tự đặt tên → giữ nguyên slotKey cũ (D-SLOT-REPLACE)', (tester) async {
+      final result = await openAndSubmit(
+        tester,
+        const MealSlotTemplateItem(slotKey: 'CUSTOM_2', label: 'Ăn khuya', hour: 22, minute: 30, sortOrder: 1),
+      );
+      expect(result!.slotKey, 'CUSTOM_2');
+      expect(result.label, 'Ăn khuya');
+      expect((result.hour, result.minute), (22, 30));
+    });
+
+    testWidgets('thêm mới → seed tên theo preset mặc định', (tester) async {
+      final result = await openAndSubmit(tester, null);
+      expect(result!.slotKey, 'BREAKFAST');
+      expect(result.label, 'Bữa sáng');
+    });
+  });
+
   group('GuestDinerScene', () {
     Future<(FakeGuestDinerApi, FakeHealthApi)> pump(
       WidgetTester tester, {
@@ -158,6 +215,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(api.calls, contains('remove:g1'));
       expect(find.byKey(const ValueKey<String>('guest-removed-hint')), findsOneWidget);
+      expect(find.textContaining('Đã xoá Bác Tư'), findsOneWidget);
       expect(find.byType(AppEmptyView), findsOneWidget);
     });
 

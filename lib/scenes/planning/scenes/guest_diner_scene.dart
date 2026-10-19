@@ -8,15 +8,14 @@ import '../../../l10n/app_localizations.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
-import '../../../widgets/states/app_empty_view.dart';
-import '../../../widgets/states/app_error_view.dart';
-import '../../../widgets/states/app_loading_view.dart';
+import '../../../widgets/cards/app_card.dart';
+import '../../../widgets/states/app_state_view.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../profile/domain/allergen.dart';
 import '../domain/guest_diner.dart';
 import '../stores/guest_diner_store.dart';
 import '../widgets/allergen_multi_select.dart';
-import '../widgets/planning_banner.dart';
+import '../../../widgets/feature_banner.dart';
 
 /// Thêm/sửa/xoá khách ăn tạm thời của kế hoạch tuần
 /// (flexible-meal-planning-screens.md §8.2). Phạm vi = cả tuần (OD-06).
@@ -55,32 +54,38 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
     _store.clearMutationStatus();
     await showDialog<void>(
       context: context,
+      // §8.2 — dialog không tự đóng cho tới khi có kết quả xoá.
+      barrierDismissible: false,
       builder: (dialogContext) {
         final l10n = dialogContext.l10n;
         return Observer(builder: (_) {
           final busy = _store.isSubmitting;
-          return AlertDialog(
-            title: Text(l10n.planningGuestDelete),
-            content: Text(_store.mutationError?.message ??
-                l10n.planningGuestDeleteConfirm),
-            actions: <Widget>[
-              TextButton(
-                onPressed: busy ? null : () => Navigator.of(dialogContext).pop(),
-                child: Text(l10n.planningCancel),
-              ),
-              AppButton(
-                key: const ValueKey<String>('guest-delete-confirm'),
-                expanded: false,
-                label: l10n.planningGuestDelete,
-                isLoading: busy,
-                onPressed: () async {
-                  final ok = await _store.remove(diner);
-                  if (ok && dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop();
-                  }
-                },
-              ),
-            ],
+          return PopScope(
+            canPop: !busy,
+            child: AlertDialog(
+              title: Text(l10n.planningGuestDelete),
+              content: Text(_store.mutationError?.message ??
+                  l10n.planningGuestDeleteConfirm),
+              actions: <Widget>[
+                TextButton(
+                  onPressed:
+                      busy ? null : () => Navigator.of(dialogContext).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                AppButton(
+                  key: const ValueKey<String>('guest-delete-confirm'),
+                  expanded: false,
+                  label: l10n.planningGuestDelete,
+                  isLoading: busy,
+                  onPressed: () async {
+                    final ok = await _store.remove(diner);
+                    if (ok && dialogContext.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+                  },
+                ),
+              ],
+            ),
           );
         });
       },
@@ -94,19 +99,27 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
       title: l10n.planningGuestTitle,
       floatingActionButton: FloatingActionButton.extended(
         key: const ValueKey<String>('guest-add'),
+        heroTag: 'guest-diner-fab',
+        backgroundColor: AppColors.sage,
+        foregroundColor: Colors.white,
+        elevation: 2,
         onPressed: () => _openForm(),
         icon: const Icon(Icons.person_add_alt_1),
-        label: Text(l10n.planningGuestAdd),
+        label: Text(
+          l10n.planningGuestAdd,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
       body: Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(
                 AppDimens.md, AppDimens.md, AppDimens.md, 0),
-            child: PlanningBanner(
+            child: FeatureBanner(
               key: const ValueKey<String>('guest-scope-banner'),
-              text: l10n.planningGuestScopeBanner,
-              color: AppColors.sageLight,
+              message: l10n.planningGuestScopeBanner,
+              isError: false,
+              margin: const EdgeInsets.only(bottom: AppDimens.sm),
             ),
           ),
           Observer(builder: (_) {
@@ -116,10 +129,13 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
               child: Row(
                 children: <Widget>[
                   Expanded(
-                    child: PlanningBanner(
+                    child: FeatureBanner(
                       key: const ValueKey<String>('guest-removed-hint'),
-                      text: l10n.planningGuestRemovedHint,
-                      color: AppColors.primaryLight,
+                      message: l10n.planningGuestRemovedHint(
+                          _store.lastRemoved!.trimmedName ??
+                              l10n.planningGuestUnnamed),
+                      isError: false,
+                      margin: const EdgeInsets.only(bottom: AppDimens.sm),
                     ),
                   ),
                   IconButton(
@@ -131,28 +147,23 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
             );
           }),
           Expanded(
-            child: Observer(builder: (_) {
-              return switch (_store.dinersState) {
-                LoadingState<List<GuestDiner>>() => const AppLoadingView(),
-                EmptyState<List<GuestDiner>>() => AppEmptyView(
-                    icon: Icons.group_outlined,
-                    message: l10n.planningGuestEmpty,
+            child: Observer(
+              builder: (_) => AppStateView<List<GuestDiner>>(
+                state: _store.dinersState,
+                onRetry: _store.loadAll,
+                emptyMessage: l10n.planningGuestEmpty,
+                emptyIcon: Icons.group_outlined,
+                successBuilder: (_, data) => ListView.builder(
+                  padding: const EdgeInsets.only(bottom: AppDimens.xxl * 2),
+                  itemCount: data.length,
+                  itemBuilder: (_, i) => _GuestDinerRow(
+                    diner: data[i],
+                    onEdit: () => _openForm(editing: data[i]),
+                    onDelete: () => _confirmRemove(data[i]),
                   ),
-                ErrorState<List<GuestDiner>>(:final error) => AppErrorView(
-                    message: error.message,
-                    onRetry: _store.loadAll,
-                  ),
-                SuccessState<List<GuestDiner>>(:final data) => ListView.builder(
-                    padding: const EdgeInsets.only(bottom: AppDimens.xxl * 2),
-                    itemCount: data.length,
-                    itemBuilder: (_, i) => _GuestDinerRow(
-                      diner: data[i],
-                      onEdit: () => _openForm(editing: data[i]),
-                      onDelete: () => _confirmRemove(data[i]),
-                    ),
-                  ),
-              };
-            }),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -174,9 +185,20 @@ class _GuestDinerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          AppDimens.md, AppDimens.sm, AppDimens.md, 0),
+      child: AppCard(
+        padding: EdgeInsets.zero,
+        child: _tile(l10n),
+      ),
+    );
+  }
+
+  Widget _tile(AppLocalizations l10n) {
     return ListTile(
       key: ValueKey<String>('guest-row-${diner.id}'),
-      leading: const Icon(Icons.person_outline),
+      leading: const Icon(Icons.person_outline, color: AppColors.sage),
       title: Text(diner.trimmedName ?? l10n.planningGuestUnnamed),
       subtitle: diner.allergens.isEmpty
           ? Text(l10n.planningGuestNoAllergen)
@@ -258,51 +280,53 @@ class _GuestDinerFormState extends State<_GuestDinerForm> {
         top: AppDimens.md,
         bottom: MediaQuery.of(context).viewInsets.bottom + AppDimens.md,
       ),
-      child: Observer(builder: (_) {
-        final store = widget.store;
-        final catalog = store.catalogState;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Text(
-              widget.editing == null
-                  ? l10n.planningGuestAdd
-                  : l10n.planningGuestEditAllergens,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppDimens.sm),
-            if (widget.editing == null)
-              TextField(
-                key: const ValueKey<String>('guest-form-name'),
-                controller: _name,
-                maxLength: 100,
-                decoration:
-                    InputDecoration(labelText: l10n.planningGuestNameOptional),
+      child: SingleChildScrollView(
+        child: Observer(builder: (_) {
+          final store = widget.store;
+          final catalog = store.catalogState;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(
+                widget.editing == null
+                    ? l10n.planningGuestAdd
+                    : l10n.planningGuestEditAllergens,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            Text(l10n.planningGuestAllergens),
-            const SizedBox(height: AppDimens.xs),
-            ..._catalogSection(l10n, catalog),
-            if (store.mutationError != null)
-              PlanningBanner(
-                key: const ValueKey<String>('guest-form-error'),
-                text: store.mutationError!.message,
-                color: AppColors.primaryLight,
-                textColor: AppColors.error,
+              const SizedBox(height: AppDimens.sm),
+              if (widget.editing == null)
+                TextField(
+                  key: const ValueKey<String>('guest-form-name'),
+                  controller: _name,
+                  maxLength: 100,
+                  decoration:
+                      InputDecoration(labelText: l10n.planningGuestNameOptional),
+                ),
+              Text(l10n.planningGuestAllergens),
+              const SizedBox(height: AppDimens.xs),
+              ..._catalogSection(l10n, catalog),
+              if (store.mutationError != null)
+                FeatureBanner(
+                  key: const ValueKey<String>('guest-form-error'),
+                  message: store.mutationError!.message,
+                  isError: true,
+                  margin: const EdgeInsets.only(bottom: AppDimens.sm),
+                ),
+              const SizedBox(height: AppDimens.sm),
+              AppButton(
+                key: const ValueKey<String>('guest-form-submit'),
+                label: widget.editing == null
+                    ? l10n.planningGuestAdd
+                    : l10n.planningGuestSave,
+                isLoading: store.isSubmitting,
+                // I9 — không cho gửi khi catalog chưa sẵn sàng.
+                onPressed: store.isCatalogReady ? _submit : null,
               ),
-            const SizedBox(height: AppDimens.sm),
-            AppButton(
-              key: const ValueKey<String>('guest-form-submit'),
-              label: widget.editing == null
-                  ? l10n.planningGuestAdd
-                  : l10n.planningGuestSave,
-              isLoading: store.isSubmitting,
-              // I9 — không cho gửi khi catalog chưa sẵn sàng.
-              onPressed: store.isCatalogReady ? _submit : null,
-            ),
-          ],
-        );
-      }),
+            ],
+          );
+        }),
+      ),
     );
   }
 
@@ -318,11 +342,11 @@ class _GuestDinerFormState extends State<_GuestDinerForm> {
           ),
         ],
       ErrorState<List<Allergen>>() => <Widget>[
-          PlanningBanner(
+          FeatureBanner(
             key: const ValueKey<String>('guest-catalog-error'),
-            text: l10n.planningGuestCatalogFailed,
-            color: AppColors.primaryLight,
-            textColor: AppColors.error,
+            message: l10n.planningGuestCatalogFailed,
+            isError: true,
+            margin: const EdgeInsets.only(bottom: AppDimens.sm),
           ),
           Align(
             alignment: Alignment.centerLeft,

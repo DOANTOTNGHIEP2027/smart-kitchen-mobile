@@ -1619,12 +1619,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get planningSlotEdit => 'Sửa';
 
   @override
-  String get planningSlotDelete => 'Xoá';
-
-  @override
-  String get planningCancel => 'Huỷ';
-
-  @override
   String get planningConfirm => 'Xác nhận';
 
   @override
@@ -1668,8 +1662,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get planningGuestDeleteConfirm => 'Xoá khách này khỏi kế hoạch tuần?';
 
   @override
-  String get planningGuestRemovedHint =>
-      'Đã xoá khách. Các món đã bị chặn trước đó KHÔNG tự mở lại — hãy sinh gợi ý mới nếu muốn thử lại.';
+  String planningGuestRemovedHint(String name) {
+    return 'Đã xoá $name. Các món đã bị chặn trước đó KHÔNG tự mở lại — hãy sinh gợi ý mới nếu muốn thử lại.';
+  }
 
   @override
   String get planningGuestUpdated =>

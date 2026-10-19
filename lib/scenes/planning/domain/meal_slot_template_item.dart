@@ -29,8 +29,6 @@ class MealSlotTemplateItem {
   final int sortOrder;
   final bool isDefault;
 
-  static final RegExp slotKeyPattern = RegExp(r'^[A-Z0-9_]{1,30}$');
-
   factory MealSlotTemplateItem.fromJson(Map<String, dynamic> json) {
     // BE trả `LocalTime` — "07:00" hoặc "07:00:00" tuỳ serializer, chỉ đọc HH:mm.
     final parts = (json['scheduledTime'] as String).split(':');
@@ -55,7 +53,10 @@ class MealSlotTemplateItem {
         'sortOrder': sortOrder,
       };
 
-  String get timeText =>
+  String get timeText => formatTime(hour, minute);
+
+  /// `HH:mm` — dùng chung cho row và form sửa slot.
+  static String formatTime(int hour, int minute) =>
       '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
 
   int get minutesOfDay => hour * 60 + minute;

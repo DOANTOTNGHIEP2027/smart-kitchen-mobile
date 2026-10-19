@@ -8,13 +8,12 @@ import '../../../l10n/app_localizations.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
-import '../../../widgets/states/app_error_view.dart';
-import '../../../widgets/states/app_loading_view.dart';
-import '../../../widgets/states/view_state.dart';
+import '../../../widgets/cards/app_card.dart';
+import '../../../widgets/states/app_state_view.dart';
 import '../../profile/stores/form_status.dart';
 import '../domain/meal_slot_template_item.dart';
 import '../stores/meal_slot_store.dart';
-import '../widgets/planning_banner.dart';
+import '../../../widgets/feature_banner.dart';
 import '../widgets/slot_form_sheet.dart';
 
 /// Household tự định nghĩa khung bữa trong ngày (flexible-meal-planning-screens.md
@@ -78,19 +77,16 @@ class _MealSlotConfigSceneState extends State<MealSlotConfigScene> {
     final l10n = context.l10n;
     return AppScaffold(
       title: l10n.planningSlotConfigTitle,
-      body: Observer(builder: (_) {
-        final state = _store.templateState;
-        return switch (state) {
-          LoadingState<List<MealSlotTemplateItem>>() ||
-          EmptyState<List<MealSlotTemplateItem>>() =>
-            const AppLoadingView(),
-          ErrorState<List<MealSlotTemplateItem>>(:final error) => AppErrorView(
-              message: error.message,
-              onRetry: _store.load,
-            ),
-          SuccessState<List<MealSlotTemplateItem>>() => _buildEditor(l10n),
-        };
-      }),
+      // Store không bao giờ set EmptyState (GET luôn trả ≥ 3 DEFAULT_SLOTS ảo).
+      body: Observer(
+        builder: (_) => AppStateView<List<MealSlotTemplateItem>>(
+          state: _store.templateState,
+          onRetry: _store.load,
+          // successBuilder chạy trong build của AppStateView (ngoài tracking
+          // của Observer cha) → cần Observer riêng để theo dõi draft/saving.
+          successBuilder: (_, __) => Observer(builder: (_) => _buildEditor(l10n)),
+        ),
+      ),
     );
   }
 
@@ -102,24 +98,25 @@ class _MealSlotConfigSceneState extends State<MealSlotConfigScene> {
       padding: const EdgeInsets.all(AppDimens.md),
       children: <Widget>[
         if (_store.isUsingDefaults)
-          PlanningBanner(
+          FeatureBanner(
             key: const ValueKey<String>('slot-default-banner'),
-            text: l10n.planningSlotDefaultBanner,
-            color: AppColors.sageLight,
+            message: l10n.planningSlotDefaultBanner,
+            isError: false,
+            margin: const EdgeInsets.only(bottom: AppDimens.sm),
           ),
         if (draftError != null)
-          PlanningBanner(
+          FeatureBanner(
             key: const ValueKey<String>('slot-draft-error'),
-            text: _draftErrorText(l10n, draftError),
-            color: AppColors.primaryLight,
-            textColor: AppColors.error,
+            message: _draftErrorText(l10n, draftError),
+            isError: true,
+            margin: const EdgeInsets.only(bottom: AppDimens.sm),
           ),
         if (saveFailed)
-          PlanningBanner(
+          FeatureBanner(
             key: const ValueKey<String>('slot-save-error'),
-            text: _store.saveError?.message ?? l10n.planningSlotSaveFailed,
-            color: AppColors.primaryLight,
-            textColor: AppColors.error,
+            message: _store.saveError?.message ?? l10n.planningSlotSaveFailed,
+            isError: true,
+            margin: const EdgeInsets.only(bottom: AppDimens.sm),
           ),
         _SectionTitle(l10n.planningSlotEveryDay),
         ..._store.draftEveryDay.map((s) => _slotRow(s, saving)),
@@ -143,6 +140,14 @@ class _MealSlotConfigSceneState extends State<MealSlotConfigScene> {
                 key: ValueKey<String>('slot-day-$day'),
                 label: Text(_weekdayLabel(l10n, day)),
                 selected: _selectedDay == day,
+                selectedColor: AppColors.sageLight,
+                labelStyle: TextStyle(
+                  color: _selectedDay == day
+                      ? AppColors.sageDark
+                      : AppColors.textPrimary,
+                  fontWeight:
+                      _selectedDay == day ? FontWeight.w700 : FontWeight.w500,
+                ),
                 onSelected: (_) => setState(() => _selectedDay = day),
               ),
           ],
@@ -155,9 +160,10 @@ class _MealSlotConfigSceneState extends State<MealSlotConfigScene> {
           onPressed: saving ? null : () => _addSlot(_selectedDay),
         ),
         const SizedBox(height: AppDimens.lg),
-        PlanningBanner(
-          text: l10n.planningSlotNotRetroactive,
-          color: AppColors.secondaryFill,
+        FeatureBanner(
+          message: l10n.planningSlotNotRetroactive,
+          isError: false,
+          margin: const EdgeInsets.only(bottom: AppDimens.sm),
         ),
         const SizedBox(height: AppDimens.md),
         AppButton(
@@ -188,10 +194,21 @@ class _MealSlotConfigSceneState extends State<MealSlotConfigScene> {
 
   Widget _slotRow(MealSlotTemplateItem slot, bool saving) {
     final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimens.sm),
+      child: AppCard(
+        padding: const EdgeInsets.symmetric(horizontal: AppDimens.sm),
+        child: _slotTile(l10n, slot, saving),
+      ),
+    );
+  }
+
+  Widget _slotTile(
+      AppLocalizations l10n, MealSlotTemplateItem slot, bool saving) {
     return ListTile(
       key: ValueKey<String>('slot-row-${slot.dayOfWeek}-${slot.slotKey}'),
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.schedule, color: AppColors.primary),
+      leading: const Icon(Icons.schedule, color: AppColors.sage),
       title: Text(slot.label),
       subtitle: Text(slot.timeText),
       trailing: Row(
@@ -205,7 +222,7 @@ class _MealSlotConfigSceneState extends State<MealSlotConfigScene> {
           IconButton(
             key: ValueKey<String>(
                 'slot-delete-${slot.dayOfWeek}-${slot.slotKey}'),
-            tooltip: l10n.planningSlotDelete,
+            tooltip: l10n.delete,
             icon: const Icon(Icons.delete_outline),
             onPressed: saving ? null : () => _store.removeSlot(slot),
           ),

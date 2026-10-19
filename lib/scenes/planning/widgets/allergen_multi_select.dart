@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../profile/domain/allergen.dart';
 
@@ -31,6 +32,17 @@ class AllergenMultiSelect extends StatelessWidget {
             key: ValueKey<String>('allergen-chip-${allergen.id}'),
             label: Text(allergen.name),
             selected: selectedIds.contains(allergen.id),
+            // Cùng tông chip dị ứng của form hồ sơ: chọn = tông đỏ cảnh báo.
+            selectedColor: AppColors.error.withValues(alpha: 0.15),
+            checkmarkColor: AppColors.error,
+            labelStyle: TextStyle(
+              color: selectedIds.contains(allergen.id)
+                  ? AppColors.error
+                  : AppColors.textPrimary,
+              fontWeight: selectedIds.contains(allergen.id)
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+            ),
             onSelected: enabled
                 ? (bool selected) {
                     final next = <int>{...selectedIds};

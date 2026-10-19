@@ -1632,12 +1632,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planningSlotEdit => 'Edit';
 
   @override
-  String get planningSlotDelete => 'Delete';
-
-  @override
-  String get planningCancel => 'Cancel';
-
-  @override
   String get planningConfirm => 'Confirm';
 
   @override
@@ -1682,8 +1676,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remove this guest from this week\'s plan?';
 
   @override
-  String get planningGuestRemovedHint =>
-      'Guest removed. Dishes blocked earlier are NOT unblocked automatically — generate new suggestions if you want to try again.';
+  String planningGuestRemovedHint(String name) {
+    return 'Removed $name. Dishes blocked earlier are NOT unblocked automatically — generate new suggestions if you want to try again.';
+  }
 
   @override
   String get planningGuestUpdated =>

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
@@ -34,6 +36,8 @@ class GuestDinerStore {
   /// Khách VỪA xoá — UI hiện banner "không tự mở lại món đã chặn" 1 lần.
   final Observable<GuestDiner?> _lastRemoved = Observable<GuestDiner?>(null);
 
+  int _dinersLoadSeq = 0;
+
   ViewState<List<GuestDiner>> get dinersState => _dinersState.value;
   ViewState<List<Allergen>> get catalogState => _catalogState.value;
   FormStatus get mutationStatus => _mutationStatus.value;
@@ -52,13 +56,19 @@ class GuestDinerStore {
   }
 
   Future<void> _loadDiners() async {
+    // Nhiều lần tải có thể chồng nhau (load đầu + reload sau add/404) — chỉ
+    // áp kết quả của lần gọi MỚI NHẤT, tránh list cũ ghi đè list mới.
+    final seq = ++_dinersLoadSeq;
     try {
       final diners = await _api.list(mealPlanId);
-      runInAction(() => _dinersState.value = diners.isEmpty
-          ? const EmptyState<List<GuestDiner>>()
-          : SuccessState<List<GuestDiner>>(diners));
-    } on ApiException catch (e) {
-      runInAction(() => _dinersState.value = ErrorState<List<GuestDiner>>(e));
+      if (seq != _dinersLoadSeq) return;
+      runInAction(() => _setDiners(diners));
+    } catch (e) {
+      if (seq != _dinersLoadSeq) return;
+      // Lỗi parse (TypeError/FormatException) cũng phải ra ErrorState, không
+      // để spinner treo mãi.
+      runInAction(() => _dinersState.value =
+          ErrorState<List<GuestDiner>>(storeApiException(e)));
     }
   }
 
@@ -84,7 +94,13 @@ class GuestDinerStore {
         displayName: name == null || name.isEmpty ? null : name,
         allergenIds: allergenIds.toList()..sort(),
       );
-      runInAction(() => _setDiners(<GuestDiner>[..._currentDiners, created]));
+      if (_isDinersLoaded) {
+        runInAction(
+            () => _setDiners(<GuestDiner>[..._currentDiners, created]));
+      } else {
+        // List chưa tải được — nối vào list rỗng sẽ giấu khách đã có trên BE.
+        await _loadDiners();
+      }
     });
   }
 
@@ -107,10 +123,21 @@ class GuestDinerStore {
 
   void clearLastRemoved() => runInAction(() => _lastRemoved.value = null);
 
-  void clearMutationStatus() => runInAction(() {
-        _mutationStatus.value = FormStatus.idle;
-        _mutationError.value = null;
-      });
+  /// Không reset khi đang có request — nếu không, guard `isSubmitting` của
+  /// [_mutate] bị vô hiệu và kết quả request cũ đổ vào form mới.
+  void clearMutationStatus() {
+    if (isSubmitting) return;
+    runInAction(() {
+      _mutationStatus.value = FormStatus.idle;
+      _mutationError.value = null;
+    });
+  }
+
+  bool get _isDinersLoaded {
+    final state = _dinersState.value;
+    return state is SuccessState<List<GuestDiner>> ||
+        state is EmptyState<List<GuestDiner>>;
+  }
 
   List<GuestDiner> get _currentDiners {
     final state = _dinersState.value;
@@ -135,11 +162,16 @@ class GuestDinerStore {
       await call();
       runInAction(() => _mutationStatus.value = FormStatus.success);
       return true;
-    } on ApiException catch (e) {
+    } catch (error) {
+      final e = storeApiException(error);
       runInAction(() {
         _mutationError.value = e;
         _mutationStatus.value = FormStatus.failure;
       });
+      // §12: khách đã bị xoá ở thiết bị khác → tải lại list cho khớp BE.
+      if (e.code == 'ERR_MEAL_GUEST_DINER_NOT_FOUND') {
+        unawaited(_loadDiners());
+      }
       return false;
     }
   }

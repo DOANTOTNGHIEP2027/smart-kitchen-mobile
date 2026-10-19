@@ -569,8 +569,6 @@
   "planningSlotTypeSnack": "Snack",
   "planningSlotTypeCustom": "Custom",
   "planningSlotEdit": "Edit",
-  "planningSlotDelete": "Delete",
-  "planningCancel": "Cancel",
   "planningConfirm": "Confirm",
   "planningGuestTitle": "Guest diners",
   "planningGuestTooltip": "Guest diners this week",
@@ -585,7 +583,8 @@
   "planningGuestEditAllergens": "Edit allergies",
   "planningGuestDelete": "Remove guest",
   "planningGuestDeleteConfirm": "Remove this guest from this week's plan?",
-  "planningGuestRemovedHint": "Guest removed. Dishes blocked earlier are NOT unblocked automatically — generate new suggestions if you want to try again.",
+  "planningGuestRemovedHint": "Removed {name}. Dishes blocked earlier are NOT unblocked automatically — generate new suggestions if you want to try again.",
+  "@planningGuestRemovedHint": {"placeholders": {"name": {"type": "String"}}},
   "planningGuestUpdated": "Updated. AI suggestions for this week may have changed.",
   "planningGuestSave": "Save"
 }
