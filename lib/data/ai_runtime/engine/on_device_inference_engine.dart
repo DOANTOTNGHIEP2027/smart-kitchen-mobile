@@ -29,7 +29,7 @@ abstract class OnDeviceInferenceEngine {
   /// Nạp model cho [task] nếu chưa nạp — no-op nếu đã sẵn sàng.
   Future<void> loadIfNeeded(AITask task);
 
-  /// Chạy 1 lệnh suy luận. Ném [OnDeviceInferenceException] khi thất bại —
+  /// Chạy 1 lệnh suy luận — tự [loadIfNeeded] trước. Ném [OnDeviceInferenceException] khi thất bại —
   /// KHÔNG bao giờ trả output rỗng/giả để che lỗi.
   Future<InferenceOutput> run(AITask task, InferenceInput input);
 }

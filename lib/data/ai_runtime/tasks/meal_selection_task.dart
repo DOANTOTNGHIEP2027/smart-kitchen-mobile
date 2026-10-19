@@ -133,9 +133,9 @@ class OnDeviceMealSelectionRuleEngine {
       final repetition = _signal(c.repetitionScore);
       final parts = <(String, double, double)>[
         if (expiring != null)
-          ('expiringPriority', weights['expiringPriority'] ?? 0, expiring),
+          ('expiringPriority', weights['expiringPriority']!, expiring),
         if (repetition != null)
-          ('repetitionPenalty', weights['repetitionPenalty'] ?? 0, 1 - repetition),
+          ('repetitionPenalty', weights['repetitionPenalty']!, 1 - repetition),
       ];
       final totalWeight = parts.fold<double>(0, (s, p) => s + p.$2);
       final score = totalWeight <= 0

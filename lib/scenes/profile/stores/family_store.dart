@@ -136,11 +136,15 @@ class FamilyStore {
 
   String get _rosterCacheKey => 'roster:${_session.householdId}';
 
-  Future<void> loadRoster() async {
-    runInAction(() {
-      _rosterState.value = const LoadingState<HouseholdRoster>();
-      _rosterIsFromCache.value = false;
-    });
+  /// [keepCurrent] = nạp lại NỀN: đang có roster thì giữ nguyên tới khi có
+  /// kết quả mới, không nháy về Loading (picker giao việc — OD-24).
+  Future<void> loadRoster({bool keepCurrent = false}) async {
+    if (!keepCurrent || _rosterState.value is! SuccessState<HouseholdRoster>) {
+      runInAction(() {
+        _rosterState.value = const LoadingState<HouseholdRoster>();
+        _rosterIsFromCache.value = false;
+      });
+    }
     try {
       final roster = await _familyApi.getMyHousehold();
       runInAction(() {
