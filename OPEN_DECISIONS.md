@@ -84,3 +84,17 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Làm trong task dọn planning; (2) cần phiên BE.
 - **Cần người quyết lại không:** Không.
+
+### OD-10 · Tier-gate (slice 1–7) — lệch thiết kế theo BE thật; ngân sách §19 tách PR sau
+- **Ngày:** 2026-10-19 · **Task:** tier-gate-screens (#96/#100) · **Nhánh:** `feature/tier-gate-screens`
+- **Tình huống:** (1) `PATCH /households/members/{id}/role` trả **204** (thiết kế §7.1 đọc `data.role`). (2) `PATCH /households/me/tier` trả camelCase `householdId/tier/requiresTokenRefresh` (thiết kế viết snake_case). (3) Thiết kế dùng `MutationStatus` sealed — repo không có, dùng `FormStatus` + error observable như `FamilyStore` hiện có. (4) `SessionStore.refreshClaims()` bọc `refreshSession()` có sẵn, nuốt mọi lỗi (thiết kế chỉ nuốt `ApiException`). (5) Route `/family/tier-upgrade` đăng ký TRƯỚC `/family/:userId`.
+- **Đã chọn:** Code theo BE thật + pattern repo. Phần ngân sách household (§19, `GET/PATCH /me/budget`) để PR riêng. · **Theo:** §6.2 luật 1 + §6.0 quy tắc 3.
+- **Đảo ngược thế nào:** —
+- **Cần người quyết lại không:** Không.
+
+### OD-11 · Tier-gate — 7 finding LOW còn lại sau 3 vòng review (gom vào task dọn riêng)
+- **Ngày:** 2026-10-19 · **Task:** tier-gate-screens · **Nhánh:** `feature/tier-gate-screens`
+- **Tình huống:** (1) Đổi gói thành công nhưng `/auth/refresh` lỗi → toast báo gói mới, màn vẫn hiện gói cũ + nút cũ (trade-off Guard 4) — nên hiện banner 'đã đổi, đăng nhập lại để cập nhật'. (2) Chip 'Chỉ xem' ở MemberDetail cần roster đã tải; deep-link thẳng thì không hiện. (3) Badge MEMBER in chuỗi thô 'MEMBER' (code cũ, chưa l10n). (4) Banner lỗi hiện `ApiException.message` tiếng Anh với NetworkException (pattern toàn repo). (5) `FamilyApi` không `_unwrap` DioException trong Api (pattern cũ, store bù bằng storeApiException). (6) `TierUpdateResult` ép kiểu cứng `householdId`. (7) `applyHouseholdContext` không set `tier` khi refresh lỗi sau tạo/join household.
+- **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Làm trong task dọn profile/tier.
+- **Cần người quyết lại không:** Không.

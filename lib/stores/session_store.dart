@@ -48,6 +48,11 @@ abstract class _SessionStore with Store {
   @observable
   String? provider;
 
+  /// Claim `tier` ('FREE' | 'PREMIUM' | null) — nguồn hiển thị gói household
+  /// duy nhất (tier-gate-screens.md §6). Soft: có thể lệch tới lần refresh kế.
+  @observable
+  String? tier;
+
   @computed
   bool get isAuthenticated => status == AuthStatus.authenticated;
 
@@ -146,6 +151,16 @@ abstract class _SessionStore with Store {
     status = AuthStatus.authenticated;
   }
 
+  /// Refresh best-effort để lấy claim mới (vd. `tier` sau `PATCH /me/tier`).
+  /// KHÔNG throw — lỗi refresh không được làm hỏng mutation gốc đã thành công
+  /// ở BE; claim giữ giá trị cũ tới lần refresh tự nhiên kế tiếp (Guard 4).
+  @action
+  Future<void> refreshClaims() async {
+    try {
+      await refreshSession();
+    } catch (_) {}
+  }
+
   /// Áp dụng context trả trực tiếp từ API khi không cần refresh JWT.
   @action
   void applyHouseholdContext({required String householdId, required String role}) {
@@ -166,6 +181,7 @@ abstract class _SessionStore with Store {
     householdId = claims['household_id'] as String?;
     role = claims['role'] as String?;
     provider = claims['provider'] as String?;
+    tier = claims['tier'] as String?;
     return claims;
   }
 
@@ -185,6 +201,7 @@ abstract class _SessionStore with Store {
     householdId = null;
     role = null;
     provider = null;
+    tier = null;
     status = AuthStatus.unauthenticated;
   }
 

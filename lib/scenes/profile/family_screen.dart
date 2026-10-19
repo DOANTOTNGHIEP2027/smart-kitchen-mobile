@@ -10,10 +10,14 @@ import '../../widgets/buttons/app_button.dart';
 import '../../widgets/states/app_state_view.dart';
 import 'domain/household_member.dart';
 import 'domain/household_roster.dart';
+import 'profile_family_routes.dart';
 import 'stores/family_store.dart';
 import 'stores/form_status.dart';
+import 'widgets/change_role_sheet.dart';
+import 'widgets/household_plan_strip.dart';
 import 'widgets/member_row.dart';
 import 'widgets/stale_data_banner.dart';
+import 'widgets/tier_widgets.dart';
 
 class FamilyScreen extends StatefulWidget {
   const FamilyScreen({super.key});
@@ -72,6 +76,21 @@ class _FamilyScreenState extends State<FamilyScreen> {
     }
   }
 
+  void _openTierUpgrade() => Get.toNamed<void>(ProfileFamilyRoutes.tierUpgrade);
+
+  Future<void> _openChangeRole(HouseholdMember m) async {
+    store.clearChangeRoleStatus();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => ChangeRoleSheet(
+        store: store,
+        member: m,
+        onUpgrade: store.isOwner ? _openTierUpgrade : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -83,6 +102,15 @@ class _FamilyScreenState extends State<FamilyScreen> {
                 ? const StaleDataBanner()
                 : const SizedBox.shrink(),
           ),
+          // §10.4: ngay dưới AppBar, NGOÀI successBuilder — roster lỗi vẫn
+          // hiện nhờ fallback JWT của isRemoteViewer.
+          Observer(
+            builder: (_) => RemoteViewerBanner(
+              visible: store.isRemoteViewer,
+              margin: const EdgeInsets.fromLTRB(
+                  AppDimens.md, AppDimens.md, AppDimens.md, 0),
+            ),
+          ),
           Expanded(
             child: Observer(
               builder: (_) => RefreshIndicator(
@@ -93,19 +121,32 @@ class _FamilyScreenState extends State<FamilyScreen> {
                   emptyMessage: context.l10n.familyRosterEmpty,
                   successBuilder: (_, HouseholdRoster roster) {
                     final isOwner = roster.callerRole == 'OWNER';
+                    final me = store.currentUserId;
                     return ListView(
                       children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                              AppDimens.md, AppDimens.md, AppDimens.md, 0),
+                          child: HouseholdPlanStrip(
+                            store: store,
+                            onChangePlan: _openTierUpgrade,
+                          ),
+                        ),
                         ...roster.members.map(
                           (HouseholdMember m) => MemberRow(
                             member: m,
                             isOwner: isOwner,
                             onTap: () => Get.toNamed(
-                                AppRoutes.memberDetail,
+                                AppRoutes.memberDetail
+                                    .replaceFirst(':userId', m.userId),
                                 arguments: <String, String>{
                                   'userId': m.userId,
                                   'fullName': m.fullName,
                                 }),
                             onRemove: () => _confirmRemove(m),
+                            onChangeRole: m.role == 'OWNER' || m.userId == me
+                                ? null
+                                : () => _openChangeRole(m),
                           ),
                         ),
                         if (isOwner) ...<Widget>[

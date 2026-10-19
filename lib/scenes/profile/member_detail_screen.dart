@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../constants/app_dimens.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
+import '../../widgets/feature_banner.dart';
 import '../../widgets/states/app_state_view.dart';
 import 'domain/diet_type.dart';
 import 'domain/member_health_summary.dart';
@@ -36,6 +37,8 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     return AppScaffold(
       title: fullName.isEmpty ? context.l10n.memberDetailTitle : fullName,
       body: Observer(builder: (_) {
+        // Đọc ở đây để Observer theo dõi — successBuilder chạy ngoài phạm vi.
+        final isViewer = store.isMemberRemoteViewer(userId);
         return AppStateView<MemberHealthSummary>(
           state: store.memberSummaryState,
           onRetry: () => store.loadMemberSummary(userId),
@@ -63,6 +66,14 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                       for (final a in s.allergens) Chip(label: Text(a.name)),
                     ],
                   ),
+                if (isViewer) ...<Widget>[
+                  const SizedBox(height: AppDimens.md),
+                  FeatureBanner(
+                    key: const ValueKey<String>('member-viewer-info'),
+                    message: context.l10n.tierMemberViewerInfo,
+                    isError: false,
+                  ),
+                ],
               ],
             );
           },

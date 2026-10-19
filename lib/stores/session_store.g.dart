@@ -103,6 +103,21 @@ mixin _$SessionStore on _SessionStore, Store {
     });
   }
 
+  late final _$tierAtom = Atom(name: '_SessionStore.tier', context: context);
+
+  @override
+  String? get tier {
+    _$tierAtom.reportRead();
+    return super.tier;
+  }
+
+  @override
+  set tier(String? value) {
+    _$tierAtom.reportWrite(value, super.tier, () {
+      super.tier = value;
+    });
+  }
+
   late final _$bootstrapAsyncAction =
       AsyncAction('_SessionStore.bootstrap', context: context);
 
@@ -139,6 +154,14 @@ mixin _$SessionStore on _SessionStore, Store {
   @override
   Future<void> refreshSession() {
     return _$refreshSessionAsyncAction.run(() => super.refreshSession());
+  }
+
+  late final _$refreshClaimsAsyncAction =
+      AsyncAction('_SessionStore.refreshClaims', context: context);
+
+  @override
+  Future<void> refreshClaims() {
+    return _$refreshClaimsAsyncAction.run(() => super.refreshClaims());
   }
 
   late final _$clearAsyncAction =
@@ -191,6 +214,7 @@ currentUser: ${currentUser},
 householdId: ${householdId},
 role: ${role},
 provider: ${provider},
+tier: ${tier},
 isAuthenticated: ${isAuthenticated},
 needsHousehold: ${needsHousehold}
     ''';

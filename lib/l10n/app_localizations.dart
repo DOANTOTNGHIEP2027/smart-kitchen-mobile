@@ -3362,6 +3362,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} times'**
   String planningRepetitionCount(int count);
+
+  /// No description provided for @tierFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get tierFree;
+
+  /// No description provided for @tierPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get tierPremium;
+
+  /// No description provided for @tierUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get tierUnknown;
+
+  /// No description provided for @tierPlanCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan: {tier}'**
+  String tierPlanCurrent(String tier);
+
+  /// No description provided for @tierSeatUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'{used}/{limit} view-only seats'**
+  String tierSeatUsage(int used, int limit);
+
+  /// No description provided for @tierChangePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade / Downgrade'**
+  String get tierChangePlan;
+
+  /// No description provided for @tierOwnerOnlyTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the household owner can change the plan'**
+  String get tierOwnerOnlyTooltip;
+
+  /// No description provided for @tierViewerOnlyTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'You are in view-only mode — only the household owner can change the plan'**
+  String get tierViewerOnlyTooltip;
+
+  /// No description provided for @tierRemoteViewerBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You are in view-only mode (Remote Viewer) in this household — you cannot invite, remove or change roles of members. Contact the owner if you need different permissions.'**
+  String get tierRemoteViewerBanner;
+
+  /// No description provided for @tierRoleViewOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'View only'**
+  String get tierRoleViewOnly;
+
+  /// No description provided for @tierChangeRoleAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change role'**
+  String get tierChangeRoleAction;
+
+  /// No description provided for @tierChangeRoleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change role — {name}'**
+  String tierChangeRoleTitle(String name);
+
+  /// No description provided for @tierChangeRoleMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Member — view, vote and edit the inventory as usual'**
+  String get tierChangeRoleMember;
+
+  /// No description provided for @tierChangeRoleViewer.
+  ///
+  /// In en, this message translates to:
+  /// **'View only (Remote Viewer) — no voting, no inventory edits, no member management'**
+  String get tierChangeRoleViewer;
+
+  /// No description provided for @tierChangeRoleSoftHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The {tier} plan already uses {used}/{limit} view-only seats. You can still try — if the limit is exceeded, you will be offered an upgrade.'**
+  String tierChangeRoleSoftHint(String tier, int used, int limit);
+
+  /// No description provided for @tierConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get tierConfirm;
+
+  /// No description provided for @tierChangeRoleSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Role changed'**
+  String get tierChangeRoleSuccess;
+
+  /// No description provided for @tierUpsellTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View-only seats are full'**
+  String get tierUpsellTitle;
+
+  /// No description provided for @tierUpsellBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current plan allows {limit} view-only seat(s). Upgrade to Premium for up to 5.'**
+  String tierUpsellBody(int limit);
+
+  /// No description provided for @tierUpsellBodyMaxed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan already uses all {limit} view-only seats. Change someone back to Member to free a seat.'**
+  String tierUpsellBodyMaxed(int limit);
+
+  /// No description provided for @tierUpgradeToPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium'**
+  String get tierUpgradeToPremium;
+
+  /// No description provided for @tierDowngradeToFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Downgrade to Free'**
+  String get tierDowngradeToFree;
+
+  /// No description provided for @tierClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get tierClose;
+
+  /// No description provided for @tierUpgradeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Household plan'**
+  String get tierUpgradeTitle;
+
+  /// No description provided for @tierDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'This is NOT a real purchase. It is a demo/QA switch to try the tier-gate flow. In a real release this will be replaced by an authenticated payment flow.'**
+  String get tierDisclaimer;
+
+  /// No description provided for @tierOwnerOnlyBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the household owner (OWNER) can change the household plan.'**
+  String get tierOwnerOnlyBlocked;
+
+  /// No description provided for @tierCompareFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free — 1 view-only seat'**
+  String get tierCompareFree;
+
+  /// No description provided for @tierComparePremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium — 5 view-only seats'**
+  String get tierComparePremium;
+
+  /// No description provided for @tierCompareSpend.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by category + 8-week trend: Free ✗ / Premium ✓'**
+  String get tierCompareSpend;
+
+  /// No description provided for @tierDowngradeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The household has {used} view-only members, above the Free limit (1). Existing ones are NOT affected right away, but you cannot add new ones until you reduce the number or upgrade again.'**
+  String tierDowngradeWarning(int used);
+
+  /// No description provided for @tierRosterFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the member list — the view-only seat warning for downgrading may be missing.'**
+  String get tierRosterFailed;
+
+  /// No description provided for @tierUnknownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not determine the current plan — please try reloading.'**
+  String get tierUnknownBody;
+
+  /// No description provided for @tierRetryLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Try reloading'**
+  String get tierRetryLoad;
+
+  /// No description provided for @tierRetryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Still unknown — please sign in again.'**
+  String get tierRetryFailed;
+
+  /// No description provided for @tierConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to {tier}?'**
+  String tierConfirmTitle(String tier);
+
+  /// No description provided for @tierUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Household plan updated to {tier}'**
+  String tierUpdated(String tier);
+
+  /// No description provided for @tierMemberViewerInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Role: View only (Remote Viewer) — no voting, no inventory edits, no member management.'**
+  String get tierMemberViewerInfo;
 }
 
 class _AppLocalizationsDelegate

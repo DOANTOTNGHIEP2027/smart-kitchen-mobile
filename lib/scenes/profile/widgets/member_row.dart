@@ -16,12 +16,16 @@ class MemberRow extends StatelessWidget {
     required this.isOwner,
     this.onTap,
     this.onRemove,
+    this.onChangeRole,
   });
 
   final HouseholdMember member;
   final bool isOwner;
   final VoidCallback? onTap;
   final VoidCallback? onRemove;
+
+  /// Chỉ OWNER, không trên dòng của chính mình / OWNER khác (tier-gate §10.3).
+  final VoidCallback? onChangeRole;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +54,18 @@ class MemberRow extends StatelessWidget {
               if (member.role == 'OWNER')
                 _Badge(label: context.l10n.householdOwner, filled: true)
               else if (member.role == 'MEMBER')
-                _Badge(label: member.role, filled: false),
+                _Badge(label: member.role, filled: false)
+              else if (member.isRemoteViewer)
+                _Badge(label: context.l10n.tierRoleViewOnly, filled: false),
+              if (isOwner && onChangeRole != null) ...<Widget>[
+                const SizedBox(width: AppDimens.xs),
+                IconButton(
+                  key: ValueKey<String>('member-change-role-${member.userId}'),
+                  tooltip: context.l10n.tierChangeRoleAction,
+                  icon: const Icon(Icons.manage_accounts_outlined, size: 20),
+                  onPressed: onChangeRole,
+                ),
+              ],
               if (isOwner && onRemove != null) ...<Widget>[
                 const SizedBox(width: AppDimens.sm),
                 IconButton(
