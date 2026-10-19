@@ -51,7 +51,10 @@ class _FakeApi implements ShoppingApi {
   final List<(String, int, String?)> assigns = <(String, int, String?)>[];
   Object? assignError;
   Completer<void>? assignGate;
-  List<ShoppingItem> listed = <ShoppingItem>[];
+  /// `null` = server trả đúng những gì đang có ở máy (mirror) — list rỗng
+  /// sẽ khiến bước reconcile của sync xoá row cục bộ.
+  List<ShoppingItem>? listed;
+  Future<List<ShoppingItem>> Function()? mirror;
   Completer<void>? listGate;
   int listCalls = 0;
 
@@ -74,7 +77,7 @@ class _FakeApi implements ShoppingApi {
   @override
   Future<List<ShoppingItem>> list(String householdId) async {
     listCalls++;
-    final snapshot = listed; // chụp lúc gửi request, như server thật
+    final snapshot = listed ?? await mirror?.call() ?? <ShoppingItem>[]; // chụp lúc gửi request, như server thật
     await listGate?.future;
     return snapshot;
   }
@@ -155,7 +158,7 @@ void main() {
     setUp(() async {
       db = AppDatabase.forTesting(NativeDatabase.memory());
       dao = ShoppingDao(db);
-      api = _FakeApi();
+      api = _FakeApi()..mirror = () => dao.getAll('h1');
       conn = _FakeConnectivity();
       rosterStale = 0;
       store = ShoppingStore(dao: dao, api: api, connectivity: conn, session: session(), onRosterStale: () => rosterStale++);

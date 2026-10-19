@@ -26,6 +26,7 @@ class ShoppingStore {
   final Observable<bool> _loading = Observable(true);
   final Observable<ApiException?> _error = Observable(null);
   final Observable<bool> _priceNotSaved = Observable(false);
+  final Observable<String?> _rejectedCreateName = Observable(null);
   final ObservableSet<String> _assigningIds = ObservableSet<String>();
   final Observable<ApiException?> _assignError = Observable(null);
   /// Món nhận response PATCH gán trong lúc có `sync()` đang chạy — bản `list()`
@@ -40,6 +41,9 @@ class ShoppingStore {
   /// AM-TB-4 (§12): 1 toggle MANG GIÁ bị server từ chối vì món đã đổi ở nơi
   /// khác — giá vừa nhập chưa được lưu, phải báo người dùng.
   bool get priceNotSaved => _priceNotSaved.value;
+  /// Tên món thêm lúc offline bị server từ chối vĩnh viễn khi drain — row đã
+  /// bị gỡ, phải báo người dùng (không im lặng mất món).
+  String? get rejectedCreateName => _rejectedCreateName.value;
   /// Đang gửi PATCH gán cho món này — chặn bấm chồng.
   bool isAssigning(String itemId) => _assigningIds.contains(itemId);
   ApiException? get assignError => _assignError.value;
@@ -49,7 +53,7 @@ class ShoppingStore {
   int get assignedToMeCount {
     final me = _session.currentUser?.id;
     if (me == null) return 0;
-    return _items.where((e) => e.assignedTo == me && e.status == ShoppingItemStatus.pending).length;
+    return _items.where((e) => e.isAssignedTo(me) && e.status == ShoppingItemStatus.pending).length;
   }
 
   List<ShoppingItem> get pending => _items.where((e) => e.status == ShoppingItemStatus.pending).toList();
@@ -65,6 +69,7 @@ class ShoppingStore {
 
   Future<bool> add(String name, double quantity, String unit, {String? category}) async {
     final householdId = _session.householdId; if (householdId == null || name.trim().isEmpty || quantity <= 0) return false;
+    runInAction(() => _rejectedCreateName.value = null);
     final now = DateTime.now();
     final local = ShoppingItem(id: 'local-${now.microsecondsSinceEpoch}-${Random().nextInt(1 << 20)}', householdId: householdId, name: name.trim(), quantity: quantity, unit: unit, displayQuantity: quantity, displayUnit: unit, category: category?.trim().isEmpty == true ? null : category?.trim(), status: ShoppingItemStatus.pending, source: ShoppingItemSource.manual, version: 0, createdBy: _session.currentUser?.id, createdAt: now, updatedAt: now, syncStatus: ShoppingSyncStatus.pendingCreate);
     await _dao.upsert(local);
@@ -90,6 +95,9 @@ class ShoppingStore {
     try { await _dao.upsert((await _api.toggle(item.id, item.version, item.householdId, price: sentPrice)).copyWith(syncStatus: ShoppingSyncStatus.synced)); }
     on NetworkException { await _dao.enqueueToggle(next, item, price: sentPrice); }
     on ApiException catch (e) {
+      // §10: món không còn ở server / danh sách đã sang tuần mới — rollback
+      // không áp dụng, xoá row (như drain).
+      if (e.code == 'ERR_SHOP_ITEM_NOT_FOUND' || e.code == 'ERR_SHOP_LIST_NOT_ACTIVE') { await _dao.delete(item.id); return; }
       await _dao.upsert(item); runInAction(() => _error.value = e);
       if (_isStaleToggle(e)) { if (sentPrice != null) runInAction(() => _priceNotSaved.value = true); await sync(); }
     }
@@ -143,7 +151,21 @@ class ShoppingStore {
     final householdId = _session.householdId; if (householdId == null) return;
     await _drain(householdId);
     _syncsRunning++;
-    try { for (final item in await _api.list(householdId)) { final local = await _dao.getById(item.id); if (local == null || (!local.isPendingSync && !(_assignedDuringSync.contains(item.id) && item.version < local.version))) await _dao.upsert(item); } }
+    try {
+      // Chụp row SYNCED TRƯỚC khi gửi list(): chỉ những row này mới được xoá
+      // khi server không trả. Row thành SYNCED trong lúc list() bay (remap của
+      // add() online / drain của sync khác) không có trong bản chụp server.
+      final syncedBefore = <String>{for (final l in await _dao.getAll(householdId)) if (!l.isPendingSync) l.id};
+      final serverItems = await _api.list(householdId);
+      final seen = <String>{for (final i in serverItems) i.id};
+      for (final item in serverItems) { final local = await _dao.getById(item.id); if (local == null || (!local.isPendingSync && !(_assignedDuringSync.contains(item.id) && item.version < local.version))) await _dao.upsert(item); }
+      // Reconcile (§16 #16): row đã SYNCED mà server không còn trả (bị xoá ở
+      // máy khác / danh sách sang tuần mới) → xoá cục bộ. Row PENDING_* giữ
+      // nguyên để drain xử lý.
+      for (final local in await _dao.getAll(householdId)) {
+        if (!local.isPendingSync && syncedBefore.contains(local.id) && !seen.contains(local.id)) await _dao.delete(local.id);
+      }
+    }
     on ApiException catch (e) { runInAction(() => _error.value = e); }
     finally { if (--_syncsRunning == 0) _assignedDuringSync.clear(); }
   }
@@ -152,8 +174,12 @@ class ShoppingStore {
       return;
     }
     _draining = true;
+    var requeued = false;
     try {
       for (final entry in await _dao.queue(householdId)) {
+        // Bản chụp hàng đợi có thể cũ: entry đã bị huỷ cặp trong lúc drain gửi
+        // entry trước — gửi nó sẽ toggle server ngược ý người dùng.
+        if (!await _dao.hasQueueEntry(entry.id)) continue;
         final item = await _dao.getById(entry.itemId);
         if (item == null) {
           await _dao.removeQueue(entry.id);
@@ -169,11 +195,25 @@ class ShoppingStore {
               await _api.create(shoppingCreatePayload(item), householdId, idempotencyKey: item.id),
             );
           } else {
-            await _dao.upsert(
-              (await _api.toggle(item.id, entry.baseVersion!, householdId,
-                      price: queuedPrice))
-                  .copyWith(syncStatus: ShoppingSyncStatus.synced),
-            );
+            final server = (await _api.toggle(item.id, entry.baseVersion!, householdId,
+                    price: queuedPrice))
+                .copyWith(syncStatus: ShoppingSyncStatus.synced);
+            // Race: người dùng bỏ tick (huỷ cặp, xoá entry) ĐÚNG lúc entry này
+            // đang bay → server đã nhận T1, ngược ý muốn. Xếp 1 toggle đảo lại
+            // từ state server để server khớp ý người dùng ở lần drain kế.
+            if (!await _dao.hasQueueEntry(entry.id)) {
+              final revert = server.copyWith(
+                status: server.status == ShoppingItemStatus.completed
+                    ? ShoppingItemStatus.pending
+                    : ShoppingItemStatus.completed,
+                syncStatus: ShoppingSyncStatus.pendingToggle,
+              );
+              await _dao.upsert(revert);
+              await _dao.enqueueToggle(revert, server);
+              requeued = true;
+              continue;
+            }
+            await _dao.upsert(server);
           }
           await _dao.removeQueue(entry.id);
         } on BusinessException catch (e) {
@@ -183,6 +223,20 @@ class ShoppingStore {
             runInAction(() => _error.value = e);
             await _dao.removeQueue(entry.id);
             await _dao.delete(item.id);
+            continue;
+          }
+          // CREATE bị từ chối vĩnh viễn (vd. đơn vị không hợp lệ, mất quyền) —
+          // retry không bao giờ thành, giữ lại sẽ chặn MỌI entry phía sau.
+          // Chỉ `ERR_IDEMPOTENCY_IN_PROGRESS` là tạm thời (request trước còn chạy).
+          if (entry.operation == 'CREATE' && e.code != 'ERR_IDEMPOTENCY_IN_PROGRESS') {
+            await _dropCreate(entry, item, e);
+            continue;
+          }
+          if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
+          break;
+        } on ValidationException catch (e) {
+          if (entry.operation == 'CREATE') {
+            await _dropCreate(entry, item, e);
             continue;
           }
           if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
@@ -195,11 +249,32 @@ class ShoppingStore {
     } finally {
       _draining = false;
     }
+    // Toggle đảo lại vừa xếp không nằm trong bản chụp hàng đợi ở trên — gửi
+    // ngay, không chờ lần sync kế (có thể rất lâu nếu không có sự kiện nào).
+    if (requeued) await _drain(householdId);
   }
+  Future<void> _dropCreate(ShoppingSyncQueueEntry entry, ShoppingItem item, ApiException e) async {
+    runInAction(() {
+      _error.value = e;
+      _rejectedCreateName.value = item.name;
+    });
+    await _dao.removeQueue(entry.id);
+    await _dao.delete(item.id);
+  }
+
   /// AM-TB-4: entry toggle bị từ chối vì món đã đổi → bỏ entry, đưa row về
   /// SYNCED để `list()` ngay sau đó ghi đè bằng bản server; mất giá thì báo.
   Future<bool> _dropStaleToggle(ShoppingSyncQueueEntry entry, ShoppingItem item, ApiException e, double? queuedPrice) async {
-    if (entry.operation == 'CREATE' || !_isStaleToggle(e)) return false;
+    if (entry.operation == 'CREATE') return false;
+    // Món không còn (xoá ở máy khác) / danh sách đã sang tuần mới: entry vô
+    // nghĩa — bỏ, xoá row cục bộ, KHÔNG kẹt hàng đợi (OD-20).
+    if (e.code == 'ERR_SHOP_ITEM_NOT_FOUND' || e.code == 'ERR_SHOP_LIST_NOT_ACTIVE') {
+      await _dao.removeQueue(entry.id);
+      await _dao.delete(item.id);
+      if (queuedPrice != null) runInAction(() => _priceNotSaved.value = true);
+      return true;
+    }
+    if (!_isStaleToggle(e)) return false;
     await _dao.removeQueue(entry.id);
     await _dao.upsert(item.copyWith(syncStatus: ShoppingSyncStatus.synced));
     if (queuedPrice != null) runInAction(() => _priceNotSaved.value = true);

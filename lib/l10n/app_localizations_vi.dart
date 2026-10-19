@@ -2377,4 +2377,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String shoppingFilterMine(int count) {
     return 'Của tôi ($count)';
   }
+
+  @override
+  String get shoppingFilterMineNoCount => 'Của tôi';
+
+  @override
+  String get shoppingAssignSyncing =>
+      'Đang đồng bộ… giao việc được sau khi xong';
+
+  @override
+  String shoppingAddRejected(String name) {
+    return 'Không thêm được \"$name\" — máy chủ từ chối nên món đã bị gỡ khỏi danh sách. Vui lòng thêm lại.';
+  }
 }

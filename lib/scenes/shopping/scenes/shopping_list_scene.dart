@@ -80,6 +80,26 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   )
                 : const SizedBox.shrink(),
           ),
+          // Món thêm lúc offline bị server từ chối vĩnh viễn khi drain — row
+          // đã bị gỡ, không được im lặng mất món (OD-23).
+          Observer(
+            builder: (_) {
+              final name = store.rejectedCreateName;
+              return name != null
+                  ? Material(
+                      key: const ValueKey<String>('shopping-add-rejected'),
+                      color: Colors.amber.shade100,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.md,
+                          vertical: AppDimens.sm,
+                        ),
+                        child: Text(context.l10n.shoppingAddRejected(name)),
+                      ),
+                    )
+                  : const SizedBox.shrink();
+            },
+          ),
           // AM-TB-4 (§12): toggle mang giá bị từ chối vì món đã đổi ở nơi khác
           // — giá người dùng nhập đã mất, không được im lặng.
           Observer(
@@ -107,7 +127,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
           // Đọc trong Observer để chip assignee tự vẽ lại khi roster về.
           shoppingFamilyStore()?.rosterState;
           List<ShoppingItem> mine(List<ShoppingItem> l) => _mineOnly
-              ? l.where((e) => e.assignedTo != null && e.assignedTo == me).toList()
+              ? l.where((e) => e.isAssignedTo(me)).toList()
               : l;
           final allItems = store.items;
           final pendingItems = mine(store.pending);
@@ -431,7 +451,10 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
           const SizedBox(width: AppDimens.xs),
           _FilterChip(
             key: const ValueKey<String>('shopping-filter-mine'),
-            label: context.l10n.shoppingFilterMine(myCount),
+            // Badge chỉ khi > 0 (§14).
+            label: myCount > 0
+                ? context.l10n.shoppingFilterMine(myCount)
+                : context.l10n.shoppingFilterMineNoCount,
             isSelected: _mineOnly,
             onTap: () => setState(() => _mineOnly = !_mineOnly),
           ),
@@ -593,6 +616,13 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                             // Guard #18: chỉ gán khi row đã SYNCED.
                             enabled: !item.isPendingSync &&
                                 !store.isAssigning(item.id),
+                            onDisabledTap: item.isPendingSync
+                                ? () => ScaffoldMessenger.of(context)
+                                  ..hideCurrentSnackBar()
+                                  ..showSnackBar(SnackBar(
+                                      content: Text(
+                                          context.l10n.shoppingAssignSyncing)))
+                                : null,
                             onTap: () => openAssigneePicker(
                               context,
                               store,

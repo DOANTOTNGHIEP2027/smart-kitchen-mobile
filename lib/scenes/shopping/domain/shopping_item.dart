@@ -49,6 +49,10 @@ class ShoppingItem {
   final String? assignedTo;
 
   bool get isPendingSync => syncStatus != ShoppingSyncStatus.synced;
+
+  /// Đang giao cho [userId] — 1 định nghĩa dùng chung cho badge và filter
+  /// "Của tôi".
+  bool isAssignedTo(String? userId) => userId != null && assignedTo == userId;
   bool get canToggle => syncStatus != ShoppingSyncStatus.pendingCreate;
 
   ShoppingItem copyWith({

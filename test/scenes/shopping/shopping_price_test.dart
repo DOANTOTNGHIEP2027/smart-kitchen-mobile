@@ -59,8 +59,12 @@ class _FakeApi implements ShoppingApi {
   Future<ShoppingItem> assign(String id, int version, String householdId, {required String? assigneeId}) =>
       throw UnimplementedError();
 
+  /// Server "còn" món i1 (bản gốc) — list rỗng nghĩa là server đã xoá hết và
+  /// bước reconcile của sync sẽ xoá row cục bộ.
+  List<ShoppingItem> serverItems = <ShoppingItem>[item()];
+
   @override
-  Future<List<ShoppingItem>> list(String householdId) async => <ShoppingItem>[];
+  Future<List<ShoppingItem>> list(String householdId) async => serverItems;
 }
 
 class _SpyStore implements ShoppingStore {
