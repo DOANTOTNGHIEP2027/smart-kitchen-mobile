@@ -11,6 +11,8 @@ void main() {
     expect(apiErrorMessage(l10n, ServerException('ERR_UNKNOWN', 'Unexpected response')), l10n.genericRetryError);
     expect(apiErrorMessage(l10n, ServerException('ERR_UNKNOWN', 'x'), fallback: 'F'), 'F');
     expect(apiErrorMessage(l10n, ServerException('ERR_INTERNAL', 'Server error')), l10n.genericRetryError);
+    expect(apiErrorMessage(l10n, AuthExpiredException('ERR_AUTH_UNKNOWN', 'Session expired')), l10n.sessionExpiredError);
+    expect(apiErrorMessage(l10n, AuthExpiredException('ERR_AUTH_001', 'Invalid or expired token')), l10n.sessionExpiredError);
     expect(apiErrorMessage(l10n, null), l10n.genericRetryError);
   });
 

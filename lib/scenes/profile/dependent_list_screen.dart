@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
@@ -216,9 +217,11 @@ class _DependentListScreenState extends State<DependentListScreen> {
       try {
         final birthDate = DateTime.parse(dob);
         final now = DateTime.now();
-        final age = now.year - birthDate.year;
-        ageText = context.l10n.dependentAgeAndBirth(age,
-            '${birthDate.day}/${birthDate.month}/${birthDate.year}');
+        final age = ageOn(birthDate, now);
+        ageText = context.l10n.dependentAgeAndBirth(
+            age,
+            DateFormat.yMd(Localizations.localeOf(context).toString())
+                .format(birthDate));
       } catch (_) {
         ageText = dob;
       }
@@ -366,4 +369,11 @@ class _DependentListScreenState extends State<DependentListScreen> {
       ),
     );
   }
+}
+
+/// Tuổi tròn tại [now] — trừ 1 nếu năm nay chưa tới sinh nhật.
+int ageOn(DateTime birth, DateTime now) {
+  final hadBirthday = now.month > birth.month ||
+      (now.month == birth.month && now.day >= birth.day);
+  return now.year - birth.year - (hadBirthday ? 0 : 1);
 }

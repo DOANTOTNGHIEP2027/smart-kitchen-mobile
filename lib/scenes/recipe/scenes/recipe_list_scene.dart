@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../routing/app_routes.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_cached_image.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/app_empty_view.dart';
@@ -76,7 +77,9 @@ class _RecipeListSceneState extends State<RecipeListScene> {
       return const AppLoadingView();
     }
     if (_store.isFirstLoadError) {
-      return AppErrorView(message: _store.error?.message, onRetry: _store.refresh);
+      return AppErrorView(
+          message: apiErrorMessage(context.l10n, _store.error),
+          onRetry: _store.refresh);
     }
     if (_store.isEmptyResult) {
       return AppEmptyView(
@@ -93,7 +96,9 @@ class _RecipeListSceneState extends State<RecipeListScene> {
         if (_store.status == RecipeListStatus.loading)
           const LinearProgressIndicator(minHeight: 2),
         if (_store.error != null && _store.recipes.isNotEmpty)
-          _InlineError(message: _store.error!.message, onRetry: _store.refresh),
+          _InlineError(
+              message: apiErrorMessage(context.l10n, _store.error),
+              onRetry: _store.refresh),
         Expanded(
           child: RefreshIndicator(
             onRefresh: _store.refresh,

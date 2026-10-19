@@ -4,6 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../profile/stores/form_status.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../stores/meal_log_store.dart';
 import '../domain/meal_log_entry.dart';
@@ -128,7 +129,7 @@ class _CalorieConfirmSheetState extends State<CalorieConfirmSheet> {
             ],
             if (confirmError != null) ...<Widget>[
               const SizedBox(height: AppDimens.sm),
-              Text(confirmError.message,
+              Text(apiErrorMessage(context.l10n, confirmError),
                   style:
                       const TextStyle(fontSize: 13, color: AppColors.error)),
             ],

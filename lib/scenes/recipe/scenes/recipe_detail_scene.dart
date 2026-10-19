@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_cached_image.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
@@ -83,7 +84,7 @@ class _RecipeDetailBody extends StatelessWidget {
           if (store.mutationError != null) ...<Widget>[
             const SizedBox(height: AppDimens.sm),
             MaterialBanner(
-              content: Text(store.mutationError!.message),
+              content: Text(apiErrorMessage(context.l10n, store.mutationError)),
               actions: <Widget>[
                 TextButton(
                   onPressed: store.load,

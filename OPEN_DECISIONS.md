@@ -142,3 +142,11 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn tiếp theo. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Áp `apiErrorMessage` cho các màn ở (7); sửa (1)(3) như bug riêng.
 - **Cần người quyết lại không:** Không.
+
+### OD-18 · Dọn nốt OD-17 — đã làm & còn lại
+- **Ngày:** 2026-10-19 · **Task:** dọn OD-17 · **Nhánh:** `chore/fe-cleanup-od17`
+- **Đã làm:** `apiErrorMessage` áp cho cooking_session_scene, calorie_confirm_sheet, monthly_history_scene (3 chỗ), meal_suggestion_detail_scene, vote_session_scene, weekly_recap_scene, recipe_detail_scene, recipe_list_scene (2 chỗ); `AuthExpiredException` (mọi 401) → `sessionExpiredError`; field lỗi hồ sơ sức khoẻ hiện nhãn l10n thay vì tên field kỹ thuật; tuổi người phụ thuộc tính đúng (`ageOn`), ngày sinh theo locale (`DateFormat.yMd`, như inventory_history_scene); card nhật ký bữa bỏ tiền tố '[Bữa sáng]' khỏi mô tả (`stripMealTypePrefix`).
+- **Còn lại:** chưa có widget test cho snackbar lỗi cooking chỉ hiện 1 lần/instance (cần dựng Get + WakelockPlus); snackbar cooking 'Thử lại' chỉ xoá lỗi, không retry, và sau khi snackbar tự ẩn thì `actionError` vẫn còn mà không có UI (có từ trước); `ageOn` trả số âm nếu BE trả ngày sinh ở tương lai; tooltip 'Tải lại' → 'Làm mới' (chấp nhận); `ocr_store` truyền `'SAVE_FAILED'` như mã lỗi (không hiển thị thô).
+- **Đã chọn:** Hoãn phần còn lại. · **Theo:** §6.0 quy tắc 3.
+- **Đảo ngược thế nào:** —
+- **Cần người quyết lại không:** Không.

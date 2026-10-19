@@ -803,5 +803,6 @@
   "familyRoleMember": "Member",
   "tierUpdatedClaimStale": "Household plan updated to {tier}. Sign in again if the screen still shows the old plan.",
   "@tierUpdatedClaimStale": {"placeholders": {"tier": {"type": "String"}}},
-  "planningPlanNotReady": "The weekly plan is not loaded yet — please try again."
+  "planningPlanNotReady": "The weekly plan is not loaded yet — please try again.",
+  "sessionExpiredError": "Your session has expired. Please sign in again."
 }

@@ -681,5 +681,6 @@
   "mealPlanStatusEmpty": "Chưa chọn",
   "familyRoleMember": "Thành viên",
   "tierUpdatedClaimStale": "Đã cập nhật gói household thành {tier}. Nếu màn hình vẫn hiện gói cũ, hãy đăng nhập lại.",
-  "planningPlanNotReady": "Kế hoạch tuần chưa tải xong — vui lòng thử lại."
+  "planningPlanNotReady": "Kế hoạch tuần chưa tải xong — vui lòng thử lại.",
+  "sessionExpiredError": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
 }

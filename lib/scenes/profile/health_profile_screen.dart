@@ -261,7 +261,7 @@ class _InlineError extends StatelessWidget {
           if (fieldErrors != null && fieldErrors!.isNotEmpty) ...<Widget>[
             const SizedBox(height: 4),
             for (final entry in fieldErrors!.entries)
-              Text('• ${entry.key}: ${entry.value}',
+              Text('• ${_fieldLabel(context, entry.key)}: ${entry.value}',
                   style:
                       const TextStyle(color: Colors.red, fontSize: 12)),
           ],
@@ -269,6 +269,20 @@ class _InlineError extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Tên field BE (camelCase) → nhãn l10n; field lạ giữ nguyên key.
+String _fieldLabel(BuildContext context, String field) {
+  final l = context.l10n;
+  return switch (field) {
+    'targetDailyCalories' => l.healthProfileTargetCalories,
+    'heightCm' => l.healthProfileHeight,
+    'weightKg' => l.healthProfileWeight,
+    'dietType' => l.healthProfileDietType,
+    // saveAllergens dùng chung mutationError → lỗi của nó cũng hiện ở đây.
+    'allergenIds' => l.healthProfileAllergensSection,
+    _ => field,
+  };
 }
 
 String _dietLabel(BuildContext context, DietType t) {

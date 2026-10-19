@@ -4,6 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../domain/meal_log_entry.dart';
+import '../domain/meal_type.dart';
 import 'meal_type_label.dart';
 import 'confidence_badge.dart';
 
@@ -21,6 +22,12 @@ class MealLogCard extends StatelessWidget {
   });
 
   final MealLogEntry entry;
+
+  /// Mô tả người dùng nhập, bỏ tiền tố `[Bữa sáng]` — nhãn bữa đã hiện riêng.
+  String get _userText {
+    final d = entry.description;
+    return d == null ? '' : stripMealTypePrefix(d);
+  }
   final VoidCallback onTap;
   final VoidCallback? onRetry;
   final VoidCallback? onDelete;
@@ -77,10 +84,10 @@ class MealLogCard extends StatelessWidget {
                   ],
                 ],
               ),
-              if (entry.description?.isNotEmpty ?? false) ...<Widget>[
+              if (_userText.isNotEmpty) ...<Widget>[
                 const SizedBox(height: AppDimens.xs),
                 Text(
-                  entry.description!,
+                  _userText,
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,

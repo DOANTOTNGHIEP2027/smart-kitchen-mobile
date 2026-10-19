@@ -2349,4 +2349,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get planningPlanNotReady =>
       'The weekly plan is not loaded yet — please try again.';
+
+  @override
+  String get sessionExpiredError =>
+      'Your session has expired. Please sign in again.';
 }

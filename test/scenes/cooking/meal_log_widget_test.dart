@@ -71,6 +71,9 @@ void main() {
         Material(child: MealLogCard(entry: entry(caloriesKcal: 480), onTap: () {})),
       );
       expect(find.text('Bữa trưa'), findsOneWidget);
+      // Tiền tố '[Bữa trưa]' đã hiện thành nhãn riêng — mô tả chỉ còn phần user nhập.
+      expect(find.text('Phở'), findsOneWidget);
+      expect(find.textContaining('[Bữa trưa]'), findsNothing);
       expect(find.textContaining('480'), findsOneWidget);
       expect(find.byType(ConfidenceBadge), findsOneWidget);
     });
