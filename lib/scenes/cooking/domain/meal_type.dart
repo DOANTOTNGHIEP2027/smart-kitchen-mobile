@@ -36,3 +36,11 @@ MealType? parseMealTypeFromDescription(String? description) {
   }
   return null;
 }
+
+/// Phần mô tả người dùng nhập, đã bỏ tiền tố `[<nhãn>]` (nhãn đã hiện riêng
+/// qua l10n ở card). Không khớp tiền tố → trả nguyên văn.
+String stripMealTypePrefix(String description) {
+  final type = parseMealTypeFromDescription(description);
+  if (type == null) return description;
+  return description.substring('[${type.label}]'.length).trim();
+}

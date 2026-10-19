@@ -7,6 +7,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/cards/app_card.dart';
@@ -135,7 +136,8 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
       case CookingScreenPhase.error:
         return AppScaffold(
           body: _ErrorPhaseView(
-            message: store.loadError?.message ?? context.l10n.cookingLoadFailed,
+            message: apiErrorMessage(context.l10n, store.loadError,
+                fallback: context.l10n.cookingLoadFailed),
             retryable: store.loadErrorIsRetryable,
             onRetry: store.retryLoad,
           ),
@@ -199,6 +201,9 @@ class _ErrorPhaseView extends StatelessWidget {
 
 /// Phase `active` — top bar + progress + nội dung bước + timer + nút hành động.
 class _ActiveStepView extends StatelessWidget {
+  /// Lỗi đã hiện snackbar — key theo instance, tự giải phóng khi lỗi bị bỏ.
+  static final Expando<bool> _shownErrors = Expando<bool>('cookingShownError');
+
   const _ActiveStepView({required this.store, required this.onAbandon});
 
   final CookingSessionStore store;
@@ -218,13 +223,17 @@ class _ActiveStepView extends StatelessWidget {
       ],
       body: Observer(
         builder: (_) {
-          if (store.actionError != null) {
+          final actionError = store.actionError;
+          // Observer build lại mỗi giây (timer) — chỉ hiện snackbar 1 lần cho
+          // mỗi instance lỗi, không xếp hàng 1 cái/giây.
+          if (actionError != null && _shownErrors[actionError] != true) {
+            _shownErrors[actionError] = true;
             // Banner lỗi không chặn — user có thể bấm "Thử lại" qua actionError.
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(store.actionError!.message),
+                    content: Text(apiErrorMessage(context.l10n, actionError)),
                     action: SnackBarAction(
                       label: context.l10n.cookingRetry,
                       onPressed: () {

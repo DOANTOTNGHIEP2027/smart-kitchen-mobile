@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
@@ -54,7 +55,7 @@ class _WeeklyRecapSceneState extends State<WeeklyRecapScene> {
             return AppEmptyView(message: l10n.recapEmpty);
           case RecapLoadStatus.error:
             return AppErrorView(
-              message: _store.error?.message ?? l10n.recapError,
+              message: apiErrorMessage(l10n, _store.error, fallback: l10n.recapError),
               onRetry: _store.retry,
             );
           case RecapLoadStatus.ready:

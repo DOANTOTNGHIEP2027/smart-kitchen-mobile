@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/view_state.dart';
 import '../domain/streak_summary.dart';
@@ -108,7 +109,9 @@ class _CaloTab extends StatelessWidget {
         case LoadingState():
           return const HistorySkeleton();
         case ErrorState(:final error):
-          return AppErrorView(message: error.message, onRetry: store.loadMonth);
+          return AppErrorView(
+              message: apiErrorMessage(context.l10n, error),
+              onRetry: store.loadMonth);
         case SuccessState(:final data):
           if (data.every((p) => !p.hasData)) {
             return Center(child: Text(context.l10n.insightsEmptyDiary));
@@ -152,7 +155,9 @@ class _MacroTab extends StatelessWidget {
         case LoadingState():
           return const HistorySkeleton();
         case ErrorState(:final error):
-          return AppErrorView(message: error.message, onRetry: store.loadMonth);
+          return AppErrorView(
+              message: apiErrorMessage(context.l10n, error),
+              onRetry: store.loadMonth);
         case SuccessState(:final data):
           if (data.every((p) => !p.hasData)) {
             return Center(child: Text(context.l10n.insightsEmptyDiary));
@@ -180,7 +185,9 @@ class _AdherenceTab extends StatelessWidget {
         case LoadingState():
           return const HistorySkeleton();
         case ErrorState(:final error):
-          return AppErrorView(message: error.message, onRetry: store.loadMonth);
+          return AppErrorView(
+              message: apiErrorMessage(context.l10n, error),
+              onRetry: store.loadMonth);
         case SuccessState(:final data):
           final streak = store.streak ??
               const StreakSummary(currentStreak: 0, bestStreak: 0);

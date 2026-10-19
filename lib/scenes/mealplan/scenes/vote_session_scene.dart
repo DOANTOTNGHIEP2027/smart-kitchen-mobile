@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/cards/app_card.dart';
@@ -162,7 +163,7 @@ class _VoteSessionSceneState extends State<VoteSessionScene> {
                       return Padding(
                         padding: const EdgeInsets.all(AppDimens.sm),
                         child: Text(
-                          _store.castError!.message,
+                          apiErrorMessage(context.l10n, _store.castError),
                           style: const TextStyle(color: AppColors.error),
                           textAlign: TextAlign.center,
                         ),

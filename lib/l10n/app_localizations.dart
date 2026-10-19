@@ -4238,6 +4238,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The weekly plan is not loaded yet — please try again.'**
   String get planningPlanNotReady;
+
+  /// No description provided for @sessionExpiredError.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again.'**
+  String get sessionExpiredError;
 }
 
 class _AppLocalizationsDelegate

@@ -2320,4 +2320,8 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get planningPlanNotReady =>
       'Kế hoạch tuần chưa tải xong — vui lòng thử lại.';
+
+  @override
+  String get sessionExpiredError =>
+      'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
 }
