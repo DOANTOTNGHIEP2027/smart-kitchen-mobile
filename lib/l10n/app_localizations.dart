@@ -3692,6 +3692,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Budget updated'**
   String get budgetUpdated;
+
+  /// No description provided for @recapWasteSpendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waste & spending'**
+  String get recapWasteSpendTitle;
+
+  /// No description provided for @recapWeekRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Monday {start} – Sunday {end}'**
+  String recapWeekRange(String start, String end);
+
+  /// No description provided for @recapWasteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waste this week'**
+  String get recapWasteTitle;
+
+  /// No description provided for @recapWasteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item thrown away} other{{count} items thrown away}}'**
+  String recapWasteCount(int count);
+
+  /// No description provided for @recapWasteNone.
+  ///
+  /// In en, this message translates to:
+  /// **'🎉 Your household threw nothing away this week. Keep it up!'**
+  String get recapWasteNone;
+
+  /// No description provided for @recapWasteOverbought.
+  ///
+  /// In en, this message translates to:
+  /// **'Overbought'**
+  String get recapWasteOverbought;
+
+  /// No description provided for @recapWasteForgotten.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgotten in the fridge'**
+  String get recapWasteForgotten;
+
+  /// No description provided for @recapWasteSpoiledEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'Spoiled early'**
+  String get recapWasteSpoiledEarly;
+
+  /// No description provided for @recapWasteUntagged.
+  ///
+  /// In en, this message translates to:
+  /// **'No reason given'**
+  String get recapWasteUntagged;
+
+  /// No description provided for @recapWasteOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get recapWasteOther;
+
+  /// No description provided for @recapSpendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending this week'**
+  String get recapSpendTitle;
+
+  /// No description provided for @recapSpendNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No item has a price entered this week'**
+  String get recapSpendNone;
+
+  /// No description provided for @recapSpendNoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the price when you tick an item done on the shopping list to see spending here.'**
+  String get recapSpendNoneHint;
+
+  /// No description provided for @recapSpendOfBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} / {budget}'**
+  String recapSpendOfBudget(String spent, String budget);
+
+  /// No description provided for @recapSpendPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of the weekly budget'**
+  String recapSpendPercent(int percent);
+
+  /// No description provided for @recapSpendOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of the weekly budget · Over by {amount}'**
+  String recapSpendOver(int percent, String amount);
+
+  /// No description provided for @recapSpendCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'{priced}/{completed} items have a price'**
+  String recapSpendCoverage(int priced, int completed);
+
+  /// No description provided for @recapSetBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Set budget'**
+  String get recapSetBudget;
+
+  /// No description provided for @recapNoBudgetMember.
+  ///
+  /// In en, this message translates to:
+  /// **'The owner has not set a budget for this household'**
+  String get recapNoBudgetMember;
+
+  /// No description provided for @recapBudgetConvertedMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'The monthly budget ({amount}) has been converted to a weekly amount.'**
+  String recapBudgetConvertedMonthly(String amount);
+
+  /// No description provided for @recapBudgetConvertedOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Your budget ({amount}) has been converted to a weekly amount.'**
+  String recapBudgetConvertedOther(String amount);
+
+  /// No description provided for @recapSpendByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by category'**
+  String get recapSpendByCategory;
+
+  /// No description provided for @recapSpendTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'8-week trend'**
+  String get recapSpendTrend;
+
+  /// No description provided for @recapUncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get recapUncategorized;
+
+  /// No description provided for @recapSpendCategoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No priced spending this week yet'**
+  String get recapSpendCategoryEmpty;
+
+  /// No description provided for @recapSpendUpsell.
+  ///
+  /// In en, this message translates to:
+  /// **'See spending by category and the 8-week trend with Premium'**
+  String get recapSpendUpsell;
+
+  /// No description provided for @recapUpgradePremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium'**
+  String get recapUpgradePremium;
+
+  /// No description provided for @recapSpendDetailNeutral.
+  ///
+  /// In en, this message translates to:
+  /// **'No detailed data for this week yet.'**
+  String get recapSpendDetailNeutral;
 }
 
 class _AppLocalizationsDelegate

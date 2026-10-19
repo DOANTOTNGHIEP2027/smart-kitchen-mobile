@@ -4,6 +4,7 @@ import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
 import '../../../stores/session_store.dart';
+import '../../profile/domain/household_tier.dart';
 import '../data/recap_api.dart';
 import '../domain/household_streak.dart';
 import '../domain/weekly_recap_summary.dart';
@@ -11,6 +12,18 @@ import '../domain/weekly_recap_summary.dart';
 /// Trạng thái fetch nhánh con của màn hình Weekly Recap (weekly-recap-screen.md
 /// §10) — MobX thủ công (Observable + runInAction).
 enum RecapLoadStatus { loading, noHousehold, empty, error, ready }
+
+/// 3 nhánh hiển thị chi tiết chi tiêu PREMIUM (weekly-recap §17.3).
+enum SpendDetailGate {
+  /// BE đã trả `spendByCategory`.
+  unlocked,
+
+  /// BE gate + claim KHÔNG phải PREMIUM → mời nâng cấp.
+  lockedUpsell,
+
+  /// BE gate NHƯNG claim là PREMIUM (claim lệch/vừa hạ cấp) → KHÔNG mời.
+  lockedNeutral,
+}
 
 /// State + actions cho `WeeklyRecapScreen` — hero + household stats +
 /// InsightCard + streak counter (weekly-recap-screen.md §10).
@@ -64,6 +77,22 @@ class WeeklyRecapStore {
   /// KHÔNG ẩn self (decision-log D4).
   List<MemberWeeklyInsight> get orderedMemberInsights =>
       _summary.value?.memberInsights ?? const <MemberWeeklyInsight>[];
+
+  /// Nội dung PREMIUM do BE quyết (`spendByCategory == null` ⟺ đã gate); claim
+  /// `tier` CHỈ chọn câu chữ của khối thay thế (Guard #14, #20).
+  SpendDetailGate? get spendDetailGate {
+    final s = _summary.value;
+    if (s == null) return null;
+    if (s.spendByCategory != null) return SpendDetailGate.unlocked;
+    return HouseholdTier.fromApi(_sessionStore.tier) == HouseholdTier.premium
+        ? SpendDetailGate.lockedNeutral
+        : SpendDetailGate.lockedUpsell;
+  }
+
+  /// Soft hint cho CTA "Đặt ngân sách" — quyền thật do BE (403 ERR_HH_004).
+  /// Đọc thẳng JWT role là ngoại lệ có chủ đích (§17.3, D17): không kéo
+  /// FamilyStore vào module recap.
+  bool get canSetBudget => _sessionStore.role == 'OWNER';
 
   // ── Actions ──────────────────────────────────────────────────────────────
 
@@ -121,11 +150,14 @@ class WeeklyRecapStore {
         _status.value = RecapLoadStatus.error;
         _error.value = e;
       });
-    } on ApiException catch (e) {
+    } catch (e) {
+      // Gồm cả lỗi parse (TypeError) của field mới méo shape — không để màn
+      // kẹt skeleton mãi. Lỗi không phải ApiException → error = null để màn
+      // rơi về `l10n.recapError`, không lộ chuỗi tiếng Anh "Unexpected response".
       runInAction(() {
         _summary.value = null;
         _status.value = RecapLoadStatus.error;
-        _error.value = e;
+        _error.value = e is ApiException ? e : null;
       });
     }
   }

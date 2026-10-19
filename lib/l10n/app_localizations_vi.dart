@@ -2002,4 +2002,109 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get budgetUpdated => 'Đã cập nhật ngân sách';
+
+  @override
+  String get recapWasteSpendTitle => 'Lãng phí & Chi tiêu';
+
+  @override
+  String recapWeekRange(String start, String end) {
+    return 'Thứ Hai $start – Chủ Nhật $end';
+  }
+
+  @override
+  String get recapWasteTitle => 'Lãng phí tuần này';
+
+  @override
+  String recapWasteCount(int count) {
+    return '$count món bị bỏ đi';
+  }
+
+  @override
+  String get recapWasteNone =>
+      '🎉 Tuần này nhà bạn không bỏ đi món nào. Giữ nhịp này nhé!';
+
+  @override
+  String get recapWasteOverbought => 'Mua dư';
+
+  @override
+  String get recapWasteForgotten => 'Quên trong tủ';
+
+  @override
+  String get recapWasteSpoiledEarly => 'Hỏng trước hạn';
+
+  @override
+  String get recapWasteUntagged => 'Chưa gắn nguyên nhân';
+
+  @override
+  String get recapWasteOther => 'Khác';
+
+  @override
+  String get recapSpendTitle => 'Chi tiêu tuần này';
+
+  @override
+  String get recapSpendNone => 'Chưa có món nào được nhập giá trong tuần này';
+
+  @override
+  String get recapSpendNoneHint =>
+      'Nhập giá khi tick hoàn thành món trong danh sách đi chợ để thấy chi tiêu ở đây.';
+
+  @override
+  String recapSpendOfBudget(String spent, String budget) {
+    return '$spent / $budget';
+  }
+
+  @override
+  String recapSpendPercent(int percent) {
+    return '$percent% ngân sách tuần';
+  }
+
+  @override
+  String recapSpendOver(int percent, String amount) {
+    return '$percent% ngân sách tuần · Vượt $amount';
+  }
+
+  @override
+  String recapSpendCoverage(int priced, int completed) {
+    return '$priced/$completed món đã nhập giá';
+  }
+
+  @override
+  String get recapSetBudget => 'Đặt ngân sách';
+
+  @override
+  String get recapNoBudgetMember => 'Chủ hộ chưa đặt ngân sách cho nhà mình';
+
+  @override
+  String recapBudgetConvertedMonthly(String amount) {
+    return 'Ngân sách tháng ($amount) đã được quy đổi theo tuần.';
+  }
+
+  @override
+  String recapBudgetConvertedOther(String amount) {
+    return 'Ngân sách bạn đặt ($amount) đã được quy đổi theo tuần.';
+  }
+
+  @override
+  String get recapSpendByCategory => 'Chi tiêu theo nhóm';
+
+  @override
+  String get recapSpendTrend => 'Xu hướng 8 tuần';
+
+  @override
+  String get recapUncategorized => 'Chưa phân nhóm';
+
+  @override
+  String get recapSpendCategoryEmpty =>
+      'Chưa có khoản chi nào được nhập giá tuần này';
+
+  @override
+  String get recapSpendUpsell =>
+      'Xem chi tiêu theo nhóm và xu hướng 8 tuần với gói Premium';
+
+  @override
+  String get recapUpgradePremium => 'Nâng cấp lên Premium';
+
+  @override
+  String get recapSpendDetailNeutral =>
+      'Chưa có dữ liệu chi tiết cho tuần này.';
 }

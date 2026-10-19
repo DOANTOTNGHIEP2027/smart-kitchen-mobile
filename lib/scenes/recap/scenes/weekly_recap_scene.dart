@@ -8,14 +8,17 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
+import '../../profile/profile_family_routes.dart';
 import '../stores/weekly_recap_store.dart';
 import '../widgets/insight_card.dart';
 import '../widgets/recap_skeleton.dart';
 import '../widgets/shareable_recap_card.dart';
+import '../widgets/waste_spend_sections.dart';
 
 /// Màn hình Weekly Recap "kiểu Wrapped" (weekly-recap-screen.md, issue #86).
 class WeeklyRecapScene extends StatefulWidget {
@@ -89,6 +92,33 @@ class _WeeklyRecapSceneState extends State<WeeklyRecapScene> {
                     insights: _store.orderedMemberInsights,
                     emptyText: l10n.recapEmptyInsights,
                   ),
+                  // #133 — NGOÀI RepaintBoundary (Guard #19), hiện cả khi
+                  // isStale vì độc lập kết quả AI.
+                  RecapSectionTitle(l10n.recapWasteSpendTitle),
+                  WasteSection(
+                    count: s.wasteItemCount,
+                    breakdown: s.wasteCauseBreakdown,
+                    weekStart: s.weekStart,
+                  ),
+                  SpendSection(
+                    summary: s,
+                    canSetBudget: _store.canSetBudget,
+                    onSetBudget: () =>
+                        Get.toNamed<void>(ProfileFamilyRoutes.family),
+                  ),
+                  SpendDetailSection(
+                    gate: _store.spendDetailGate!,
+                    summary: s,
+                    // Nâng cấp xong summary vẫn là bản đã gate. LUÔN tải lại,
+                    // không so gate theo claim: refreshClaims() có thể hỏng im
+                    // lặng (tier-gate Guard 4) → claim vẫn FREE dù BE đã
+                    // PREMIUM → upsell sai cho tới khi kéo làm mới.
+                    onUpgrade: () async {
+                      await Get.toNamed<void>(ProfileFamilyRoutes.tierUpgrade);
+                      if (mounted) await _store.fetchAll();
+                    },
+                  ),
+                  const SizedBox(height: AppDimens.lg),
                 ],
               ),
             );

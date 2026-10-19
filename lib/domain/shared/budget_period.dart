@@ -7,7 +7,8 @@ enum BudgetPeriod {
   /// Giá trị lạ/null — fail-safe, không throw khi parse.
   unknown;
 
-  static BudgetPeriod fromApi(String? raw) => switch (raw) {
+  /// Không phân biệt hoa/thường — đồng bộ với `HouseholdTier.fromApi`.
+  static BudgetPeriod fromApi(String? raw) => switch (raw?.toUpperCase()) {
         'WEEKLY' => BudgetPeriod.weekly,
         'MONTHLY' => BudgetPeriod.monthly,
         _ => BudgetPeriod.unknown,

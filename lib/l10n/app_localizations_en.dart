@@ -2018,4 +2018,114 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetUpdated => 'Budget updated';
+
+  @override
+  String get recapWasteSpendTitle => 'Waste & spending';
+
+  @override
+  String recapWeekRange(String start, String end) {
+    return 'Monday $start – Sunday $end';
+  }
+
+  @override
+  String get recapWasteTitle => 'Waste this week';
+
+  @override
+  String recapWasteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items thrown away',
+      one: '1 item thrown away',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recapWasteNone =>
+      '🎉 Your household threw nothing away this week. Keep it up!';
+
+  @override
+  String get recapWasteOverbought => 'Overbought';
+
+  @override
+  String get recapWasteForgotten => 'Forgotten in the fridge';
+
+  @override
+  String get recapWasteSpoiledEarly => 'Spoiled early';
+
+  @override
+  String get recapWasteUntagged => 'No reason given';
+
+  @override
+  String get recapWasteOther => 'Other';
+
+  @override
+  String get recapSpendTitle => 'Spending this week';
+
+  @override
+  String get recapSpendNone => 'No item has a price entered this week';
+
+  @override
+  String get recapSpendNoneHint =>
+      'Enter the price when you tick an item done on the shopping list to see spending here.';
+
+  @override
+  String recapSpendOfBudget(String spent, String budget) {
+    return '$spent / $budget';
+  }
+
+  @override
+  String recapSpendPercent(int percent) {
+    return '$percent% of the weekly budget';
+  }
+
+  @override
+  String recapSpendOver(int percent, String amount) {
+    return '$percent% of the weekly budget · Over by $amount';
+  }
+
+  @override
+  String recapSpendCoverage(int priced, int completed) {
+    return '$priced/$completed items have a price';
+  }
+
+  @override
+  String get recapSetBudget => 'Set budget';
+
+  @override
+  String get recapNoBudgetMember =>
+      'The owner has not set a budget for this household';
+
+  @override
+  String recapBudgetConvertedMonthly(String amount) {
+    return 'The monthly budget ($amount) has been converted to a weekly amount.';
+  }
+
+  @override
+  String recapBudgetConvertedOther(String amount) {
+    return 'Your budget ($amount) has been converted to a weekly amount.';
+  }
+
+  @override
+  String get recapSpendByCategory => 'Spending by category';
+
+  @override
+  String get recapSpendTrend => '8-week trend';
+
+  @override
+  String get recapUncategorized => 'Uncategorized';
+
+  @override
+  String get recapSpendCategoryEmpty => 'No priced spending this week yet';
+
+  @override
+  String get recapSpendUpsell =>
+      'See spending by category and the 8-week trend with Premium';
+
+  @override
+  String get recapUpgradePremium => 'Upgrade to Premium';
+
+  @override
+  String get recapSpendDetailNeutral => 'No detailed data for this week yet.';
 }
