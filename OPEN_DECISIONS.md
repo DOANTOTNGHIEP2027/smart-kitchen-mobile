@@ -194,3 +194,20 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Task dọn shopping tiếp theo.
 - **Cần người quyết lại không:** Có cho (1) — câu chữ banner khi món đã bị xoá.
+
+### OD-25 · On-device AI runtime (Epic 13, on-device-ai-runtime.md) — làm Slice 1/4/5/6, KHÔNG chọn runtime NN
+- **Ngày:** 2026-10-19 · **Task:** #115 · **Nhánh:** `feature/on-device-ai-runtime`
+- **Tình huống:** Người duyệt đã đồng ý thêm `tflite_flutter`/`onnxruntime_flutter`, nhưng Guard #2/§4.3 cấm chốt runtime khi chưa benchmark trên thiết bị vật lý (Q5), chưa có ngưỡng (Q2), chưa có model đã train (§14 mục 4). → KHÔNG thêm 2 package này ở lượt này.
+- **Đã làm:** `AIResult<T>` + 2 mã `ERR_ONDEVICE_*` tách biệt; `ConnectivityGate` bọc `ConnectivityService` sẵn có (không thêm listener); `ModelRegistry` đọc `metadata.json` + verify SHA-256 (tự viết `lib/utils/sha256.dart` — package `crypto` ngoài danh sách D-05; có test vector FIPS), degrade theo từng task; `HybridAIRunner` viết bảng quyết định §8 MỘT lần cho mọi repository; Task 4 `OnDeviceMealSelectionRuleEngine` (lọc cứng dị ứng trước, xếp hạng mềm sau, tái chuẩn hoá khi thiếu tín hiệu — §6.4 AMEND) + `MealSelectionRepository`; `OfflineModeBanner`/`AIResultSourceBadge` (dùng `FeatureBanner`); wiring bootstrap; package `assets/models/rule_based_selection/v1`.
+- **Lệch thiết kế:** (1) `MealCandidate` thêm `allergenTags` (null = chưa kiểm chứng → bị LOẠI khi household có dị ứng cần tránh) — thiếu nó không lọc cứng được. (2) Checksum là của file payload (`payloadFile` trong manifest), không phải của chính metadata.json (vòng tròn). (3) `isDegraded` = success && onDevice (kết quả lỗi không hiện banner, §9.3). (4) Trọng số `rules_config.json` là placeholder (Q1). (5) Receipt OCR / calorie / repetition: chưa có repository — engine báo `ERR_ONDEVICE_MODEL_UNAVAILABLE`; calorie cần nguồn `nutrition_table.json` (Q6).
+- **Đã chọn:** Như trên. · **Theo:** Guard #2 + §6.0 quy tắc 2–3 + D-05.
+- **Đảo ngược thế nào:** Slice 2 (benchmark thiết bị thật) → chốt runtime ở decision-log D1 → thêm package + engine cho 3 task NN.
+- **Cần người quyết lại không:** Có — Q1 (trọng số), Q2 (ngưỡng benchmark), Q5 (thiết bị chuẩn), Q6 (nguồn nutrition table), owner train model.
+
+### OD-26 · On-device AI — finding còn lại sau 3 vòng review
+- **Ngày:** 2026-10-19 · **Task:** #115 · **Nhánh:** `feature/on-device-ai-runtime`
+- **Tình huống:** (1) `cloud == null` lúc online vẫn chạy on-device → `isDegraded` = true → banner 'chế độ offline' hiện dù có mạng (cần cờ kiểu `isFallback` tách khỏi §9.3). (2) Payload hash trên main isolate + giữ trong RAM cả đời app — vô hại với rules_config, cần xem lại khi có model NN vài MB. (3) So khớp dị ứng phân biệt hoa/thường, chưa chuẩn hoá — chưa xác nhận là bug (cần đối chiếu định dạng id dị ứng ở OAS). (4) `loadIfNeeded` gọi 2 lần (runner + engine). (5) `?? 0` ở trọng số là code chết sau khi `fromConfig` đã bắt buộc đủ key. (6) Thư mục untracked `web/`, `windows/` + dòng `web/**` trong analysis_options ngoài phạm vi task — KHÔNG đưa vào PR này.
+- **Đã sửa ở vòng 3:** `.gitattributes` `assets/models/** -text` (autocrlf làm lệch checksum); `ModelRegistry.bootstrap()` chạy song song các task. Vòng 2: dời `AllergenDerivation` sang `lib/domain/shared/` (tầng data không phụ thuộc scenes; file cũ re-export).
+- **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Khi feature đầu tiên tiêu thụ `MealSelectionRepository` / khi có model NN.
+- **Cần người quyết lại không:** Có cho (1) — banner khi chạy cục bộ lúc online; (3) — định dạng id dị ứng.

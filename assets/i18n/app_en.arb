@@ -825,5 +825,9 @@
   "shoppingFilterMineNoCount": "Mine",
   "shoppingAssignSyncing": "Syncing… you can assign once it's done",
   "shoppingAddRejected": "Couldn't add \"{name}\" — the server rejected it, so it was removed from the list. Please add it again.",
-  "@shoppingAddRejected": {"placeholders": {"name": {"type": "String"}}}
+  "@shoppingAddRejected": {"placeholders": {"name": {"type": "String"}}},
+  "aiOfflineModeBanner": "Using offline mode — results may be simpler than usual",
+  "aiOfflineEstimate": "Offline estimate",
+  "aiOfflineEstimateConfidence": "Offline estimate · {percent}%",
+  "@aiOfflineEstimateConfidence": {"placeholders": {"percent": {"type": "int"}}}
 }

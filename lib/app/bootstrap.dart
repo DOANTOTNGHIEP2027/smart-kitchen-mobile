@@ -37,6 +37,11 @@ import '../data/notification/quick_action_api.dart';
 import '../data/realtime/realtime_service.dart';
 import '../services/connectivity_service.dart';
 import '../stores/realtime_store.dart';
+import '../data/ai_runtime/connectivity/connectivity_gate.dart';
+import '../data/ai_runtime/engine/model_registry.dart';
+import '../data/ai_runtime/engine/on_device_inference_engine.dart';
+import '../data/ai_runtime/engine/on_device_inference_engine_impl.dart';
+import '../data/ai_runtime/hybrid_ai_runner.dart';
 import 'app.dart';
 import 'env_config.dart';
 
@@ -117,6 +122,19 @@ Future<void> bootstrap() async {
   await connectivityService.init();
   Get.put<ConnectivityService>(connectivityService, permanent: true);
 
+  // On-device AI runtime (on-device-ai-runtime.md §10): chỉ đọc asset local,
+  // không mạng/auth. Package thiếu/hỏng chỉ tắt đúng task đó, không crash.
+  // Chạy SONG SONG với sessionStore.bootstrap() (§10) — await chung bên dưới.
+  final modelRegistry = ModelRegistry();
+  final modelRegistryReady = modelRegistry.bootstrap();
+  Get.put<ModelRegistry>(modelRegistry, permanent: true);
+  final onDeviceEngine = OnDeviceInferenceEngineImpl(modelRegistry);
+  Get.put<OnDeviceInferenceEngine>(onDeviceEngine, permanent: true);
+  Get.put<HybridAIRunner>(
+    HybridAIRunner(ConnectivityGate(connectivityService), onDeviceEngine, modelRegistry),
+    permanent: true,
+  );
+
   // Task 4 (image caching): Signal phát tán trạng thái offline/online dùng chung
   // cho mọi AppCachedImage — app xem mạng online cho tới khi callback xác nhận
   // offline (tránh ấn xoá cache không cần thiết khi mạng thực chất chỉ chập chờn).
@@ -149,7 +167,10 @@ Future<void> bootstrap() async {
   );
   Get.put<NotificationService>(notificationService, permanent: true);
 
-  await sessionStore.bootstrap(); // thử silent refresh, set AuthStatus
+  await Future.wait<void>(<Future<void>>[
+    sessionStore.bootstrap(), // thử silent refresh, set AuthStatus
+    modelRegistryReady,
+  ]);
 
   // RealtimeStore init PHẢI sau sessionStore.bootstrap() để biết auth state.
   final realtimeStore = RealtimeStore(

@@ -2389,4 +2389,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String shoppingAddRejected(String name) {
     return 'Không thêm được \"$name\" — máy chủ từ chối nên món đã bị gỡ khỏi danh sách. Vui lòng thêm lại.';
   }
+
+  @override
+  String get aiOfflineModeBanner =>
+      'Đang dùng chế độ ngoại tuyến — kết quả có thể đơn giản hơn bình thường';
+
+  @override
+  String get aiOfflineEstimate => 'Ước tính offline';
+
+  @override
+  String aiOfflineEstimateConfidence(int percent) {
+    return 'Ước tính offline · $percent%';
+  }
 }

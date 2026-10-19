@@ -2418,4 +2418,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String shoppingAddRejected(String name) {
     return 'Couldn\'t add \"$name\" — the server rejected it, so it was removed from the list. Please add it again.';
   }
+
+  @override
+  String get aiOfflineModeBanner =>
+      'Using offline mode — results may be simpler than usual';
+
+  @override
+  String get aiOfflineEstimate => 'Offline estimate';
+
+  @override
+  String aiOfflineEstimateConfidence(int percent) {
+    return 'Offline estimate · $percent%';
+  }
 }
