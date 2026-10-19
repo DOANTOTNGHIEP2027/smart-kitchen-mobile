@@ -1816,4 +1816,144 @@ class AppLocalizationsEn extends AppLocalizations {
   String planningRepetitionCount(int count) {
     return '$count times';
   }
+
+  @override
+  String get tierFree => 'Free';
+
+  @override
+  String get tierPremium => 'Premium';
+
+  @override
+  String get tierUnknown => 'Unknown';
+
+  @override
+  String tierPlanCurrent(String tier) {
+    return 'Current plan: $tier';
+  }
+
+  @override
+  String tierSeatUsage(int used, int limit) {
+    return '$used/$limit view-only seats';
+  }
+
+  @override
+  String get tierChangePlan => 'Upgrade / Downgrade';
+
+  @override
+  String get tierOwnerOnlyTooltip =>
+      'Only the household owner can change the plan';
+
+  @override
+  String get tierViewerOnlyTooltip =>
+      'You are in view-only mode — only the household owner can change the plan';
+
+  @override
+  String get tierRemoteViewerBanner =>
+      'You are in view-only mode (Remote Viewer) in this household — you cannot invite, remove or change roles of members. Contact the owner if you need different permissions.';
+
+  @override
+  String get tierRoleViewOnly => 'View only';
+
+  @override
+  String get tierChangeRoleAction => 'Change role';
+
+  @override
+  String tierChangeRoleTitle(String name) {
+    return 'Change role — $name';
+  }
+
+  @override
+  String get tierChangeRoleMember =>
+      'Member — view, vote and edit the inventory as usual';
+
+  @override
+  String get tierChangeRoleViewer =>
+      'View only (Remote Viewer) — no voting, no inventory edits, no member management';
+
+  @override
+  String tierChangeRoleSoftHint(String tier, int used, int limit) {
+    return 'The $tier plan already uses $used/$limit view-only seats. You can still try — if the limit is exceeded, you will be offered an upgrade.';
+  }
+
+  @override
+  String get tierConfirm => 'Confirm';
+
+  @override
+  String get tierChangeRoleSuccess => 'Role changed';
+
+  @override
+  String get tierUpsellTitle => 'View-only seats are full';
+
+  @override
+  String tierUpsellBody(int limit) {
+    return 'Your current plan allows $limit view-only seat(s). Upgrade to Premium for up to 5.';
+  }
+
+  @override
+  String tierUpsellBodyMaxed(int limit) {
+    return 'Your plan already uses all $limit view-only seats. Change someone back to Member to free a seat.';
+  }
+
+  @override
+  String get tierUpgradeToPremium => 'Upgrade to Premium';
+
+  @override
+  String get tierDowngradeToFree => 'Downgrade to Free';
+
+  @override
+  String get tierClose => 'Close';
+
+  @override
+  String get tierUpgradeTitle => 'Household plan';
+
+  @override
+  String get tierDisclaimer =>
+      'This is NOT a real purchase. It is a demo/QA switch to try the tier-gate flow. In a real release this will be replaced by an authenticated payment flow.';
+
+  @override
+  String get tierOwnerOnlyBlocked =>
+      'Only the household owner (OWNER) can change the household plan.';
+
+  @override
+  String get tierCompareFree => 'Free — 1 view-only seat';
+
+  @override
+  String get tierComparePremium => 'Premium — 5 view-only seats';
+
+  @override
+  String get tierCompareSpend =>
+      'Spending by category + 8-week trend: Free ✗ / Premium ✓';
+
+  @override
+  String tierDowngradeWarning(int used) {
+    return 'The household has $used view-only members, above the Free limit (1). Existing ones are NOT affected right away, but you cannot add new ones until you reduce the number or upgrade again.';
+  }
+
+  @override
+  String get tierRosterFailed =>
+      'Could not load the member list — the view-only seat warning for downgrading may be missing.';
+
+  @override
+  String get tierUnknownBody =>
+      'Could not determine the current plan — please try reloading.';
+
+  @override
+  String get tierRetryLoad => 'Try reloading';
+
+  @override
+  String get tierRetryFailed => 'Still unknown — please sign in again.';
+
+  @override
+  String tierConfirmTitle(String tier) {
+    return 'Switch to $tier?';
+  }
+
+  @override
+  String tierUpdated(String tier) {
+    return 'Household plan updated to $tier';
+  }
+
+  @override
+  String get tierMemberViewerInfo =>
+      'Role: View only (Remote Viewer) — no voting, no inventory edits, no member management.';
 }

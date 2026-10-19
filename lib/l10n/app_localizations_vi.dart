@@ -1800,4 +1800,144 @@ class AppLocalizationsVi extends AppLocalizations {
   String planningRepetitionCount(int count) {
     return '$count lần';
   }
+
+  @override
+  String get tierFree => 'Free';
+
+  @override
+  String get tierPremium => 'Premium';
+
+  @override
+  String get tierUnknown => 'Không xác định';
+
+  @override
+  String tierPlanCurrent(String tier) {
+    return 'Gói hiện tại: $tier';
+  }
+
+  @override
+  String tierSeatUsage(int used, int limit) {
+    return '$used/$limit ghế Chỉ xem';
+  }
+
+  @override
+  String get tierChangePlan => 'Nâng cấp / Hạ cấp';
+
+  @override
+  String get tierOwnerOnlyTooltip => 'Chỉ chủ hộ (OWNER) mới có thể đổi gói';
+
+  @override
+  String get tierViewerOnlyTooltip =>
+      'Bạn đang ở chế độ Chỉ xem — chỉ chủ hộ (OWNER) mới có thể đổi gói';
+
+  @override
+  String get tierRemoteViewerBanner =>
+      'Bạn đang ở chế độ Chỉ xem (Remote Viewer) trong gia đình này — không thể mời/xoá/đổi vai trò thành viên. Liên hệ chủ hộ (OWNER) nếu cần thay đổi quyền.';
+
+  @override
+  String get tierRoleViewOnly => 'Chỉ xem';
+
+  @override
+  String get tierChangeRoleAction => 'Đổi vai trò';
+
+  @override
+  String tierChangeRoleTitle(String name) {
+    return 'Đổi vai trò — $name';
+  }
+
+  @override
+  String get tierChangeRoleMember =>
+      'Thành viên (Member) — xem, vote, sửa kho bình thường';
+
+  @override
+  String get tierChangeRoleViewer =>
+      'Chỉ xem (Remote Viewer) — không vote, không sửa kho, không quản lý thành viên';
+
+  @override
+  String tierChangeRoleSoftHint(String tier, int used, int limit) {
+    return 'Gói $tier đã dùng $used/$limit ghế Chỉ xem. Bạn vẫn có thể thử — nếu vượt giới hạn, hệ thống sẽ báo và đề nghị nâng cấp.';
+  }
+
+  @override
+  String get tierConfirm => 'Xác nhận';
+
+  @override
+  String get tierChangeRoleSuccess => 'Đã đổi vai trò';
+
+  @override
+  String get tierUpsellTitle => 'Đã hết ghế Chỉ xem';
+
+  @override
+  String tierUpsellBody(int limit) {
+    return 'Gói hiện tại chỉ cho $limit ghế Chỉ xem. Nâng cấp lên Premium để có tối đa 5 ghế.';
+  }
+
+  @override
+  String tierUpsellBodyMaxed(int limit) {
+    return 'Gói hiện tại đã dùng hết $limit ghế Chỉ xem. Đổi một người về Thành viên để giải phóng ghế.';
+  }
+
+  @override
+  String get tierUpgradeToPremium => 'Nâng cấp lên Premium';
+
+  @override
+  String get tierDowngradeToFree => 'Hạ cấp về Free';
+
+  @override
+  String get tierClose => 'Đóng';
+
+  @override
+  String get tierUpgradeTitle => 'Gói household';
+
+  @override
+  String get tierDisclaimer =>
+      'Đây KHÔNG phải luồng mua hàng thật. Đây là công tắc demo/QA để bạn thử luồng tier-gate. Trong bản phát hành thật, thao tác này sẽ được thay bằng luồng thanh toán có xác thực.';
+
+  @override
+  String get tierOwnerOnlyBlocked =>
+      'Chỉ chủ hộ (OWNER) mới có thể thay đổi gói household.';
+
+  @override
+  String get tierCompareFree => 'Free — 1 ghế Chỉ xem';
+
+  @override
+  String get tierComparePremium => 'Premium — 5 ghế Chỉ xem';
+
+  @override
+  String get tierCompareSpend =>
+      'Chi tiêu theo nhóm + xu hướng 8 tuần: Free ✗ / Premium ✓';
+
+  @override
+  String tierDowngradeWarning(int used) {
+    return 'Household hiện có $used thành viên Chỉ xem, vượt giới hạn gói Free (1). Các thành viên Chỉ xem hiện tại KHÔNG bị ảnh hưởng ngay, nhưng bạn sẽ không thể thêm mới cho tới khi giảm số lượng hoặc nâng cấp lại.';
+  }
+
+  @override
+  String get tierRosterFailed =>
+      'Không tải được danh sách thành viên — cảnh báo vượt ghế Chỉ xem khi hạ cấp có thể bị thiếu.';
+
+  @override
+  String get tierUnknownBody =>
+      'Không xác định được gói hiện tại — vui lòng thử tải lại.';
+
+  @override
+  String get tierRetryLoad => 'Thử tải lại';
+
+  @override
+  String get tierRetryFailed =>
+      'Vẫn chưa xác định được — vui lòng đăng nhập lại.';
+
+  @override
+  String tierConfirmTitle(String tier) {
+    return 'Chuyển sang gói $tier?';
+  }
+
+  @override
+  String tierUpdated(String tier) {
+    return 'Đã cập nhật gói household thành $tier';
+  }
+
+  @override
+  String get tierMemberViewerInfo =>
+      'Vai trò: Chỉ xem (Remote Viewer) — không vote, không sửa kho, không quản lý thành viên.';
 }

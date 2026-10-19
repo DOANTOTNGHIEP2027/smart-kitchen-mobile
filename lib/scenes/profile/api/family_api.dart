@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../data/network/api_response.dart';
 import '../../../data/network/dio_client.dart';
 import '../domain/household_roster.dart';
+import '../domain/household_tier.dart';
 import '../domain/invite_result.dart';
 import '../domain/profile_mappers.dart';
 
@@ -10,6 +11,14 @@ abstract interface class FamilyApi {
   Future<HouseholdRoster> getMyHousehold();
   Future<InviteResult> createInvite();
   Future<void> removeMember(String userId);
+
+  /// `PATCH /households/members/{userId}/role` — OWNER only, BE trả 204.
+  /// `role` CHỈ 'MEMBER' | 'REMOTE_VIEWER' (Guard 3). Vượt ghế → 403
+  /// `ERR_TIER_SEAT_LIMIT`.
+  Future<void> changeRole(String userId, String role);
+
+  /// `PATCH /households/me/tier` — OWNER only, self-serve demo (KHÔNG billing).
+  Future<TierUpdateResult> updateTier(HouseholdTier tier);
 }
 
 class FamilyApiImpl implements FamilyApi {
@@ -36,6 +45,24 @@ class FamilyApiImpl implements FamilyApi {
     await _client.dio.delete<Map<String, dynamic>>(
       '/api/v1/households/members/$userId',
     );
+  }
+
+  @override
+  Future<void> changeRole(String userId, String role) async {
+    assert(role == 'MEMBER' || role == 'REMOTE_VIEWER');
+    await _client.dio.patch<void>(
+      '/api/v1/households/members/$userId/role',
+      data: <String, dynamic>{'role': role},
+    );
+  }
+
+  @override
+  Future<TierUpdateResult> updateTier(HouseholdTier tier) async {
+    final response = await _client.dio.patch<Map<String, dynamic>>(
+      '/api/v1/households/me/tier',
+      data: <String, dynamic>{'tier': tier.toWire()},
+    );
+    return _unwrap(response, TierUpdateResult.fromJson);
   }
 }
 

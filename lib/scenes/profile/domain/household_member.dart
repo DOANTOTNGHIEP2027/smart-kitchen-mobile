@@ -19,3 +19,8 @@ class HouseholdMember {
   final String provider;
   final DateTime joinedAt;
 }
+
+/// Value-set `role` mở rộng thêm `REMOTE_VIEWER` (#96) — không đổi type.
+extension HouseholdMemberRoleX on HouseholdMember {
+  bool get isRemoteViewer => role == 'REMOTE_VIEWER';
+}
