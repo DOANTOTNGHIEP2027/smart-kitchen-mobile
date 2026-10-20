@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../routing/app_routes.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
 import '../../../utils/l10n_x.dart';
@@ -12,10 +13,13 @@ import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../inventory/domain/unit_option.dart';
 import '../../profile/domain/household_roster.dart';
+import '../domain/shopping_category.dart';
 import '../domain/shopping_item.dart';
 import '../stores/shopping_store.dart';
 import '../widgets/assignee_widgets.dart';
+import '../widgets/category_widgets.dart';
 import '../widgets/price_capture_sheet.dart';
+import '../widgets/share_export_sheet.dart';
 
 enum ShoppingFilter { all, pending, completed }
 
@@ -40,6 +44,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
   void initState() {
     super.initState();
     Get.find<ShoppingStore>().init();
+    // #69 — chip category trong sheet thêm món (màu local).
+    shoppingCategoryStore()?.loadCategories();
     // Roster để hiện tên người được giao — chỉ nạp khi chưa có.
     final family = shoppingFamilyStore();
     if (family != null &&
@@ -60,6 +66,23 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
           tooltip: context.l10n.refresh,
           onPressed: store.sync,
           icon: const Icon(Icons.refresh_rounded),
+        ),
+        // #69 — additive (Guard #10).
+        IconButton(
+          key: const ValueKey<String>('shopping-share'),
+          tooltip: context.l10n.shoppingShareTooltip,
+          onPressed: () => showModalBottomSheet<void>(
+            context: context,
+            backgroundColor: AppColors.surface,
+            builder: (_) => ShareExportSheet(store: store),
+          ),
+          icon: const Icon(Icons.share_rounded),
+        ),
+        IconButton(
+          key: const ValueKey<String>('shopping-categories'),
+          tooltip: context.l10n.shoppingManageCategoriesTooltip,
+          onPressed: () => Get.toNamed<void>(AppRoutes.shoppingCategories),
+          icon: const Icon(Icons.label_outline_rounded),
         ),
       ],
       body: Column(
@@ -701,7 +724,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
     String unit = unitOptions.first.value;
     String? category;
 
-    final categories = <String>[
+    final defaultCategories = <String>[
       'Rau củ',
       'Thịt cá',
       'Gia vị',
@@ -785,6 +808,9 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   Expanded(
                     flex: 3,
                     child: DropdownButtonFormField<String>(
+                      // Nhãn đơn vị dài ("cái / gói / hộp…") tràn ngang nếu
+                      // dropdown tự đo theo mục rộng nhất.
+                      isExpanded: true,
                       initialValue: unit,
                       decoration: InputDecoration(
                         labelText: context.l10n.shoppingUnitLabel,
@@ -817,16 +843,25 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     ),
               ),
               const SizedBox(height: 6),
-              SingleChildScrollView(
+              Observer(
+                builder: (_) => SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: categories.map((cat) {
+                  children: categorySuggestions(
+                    local: shoppingCategoryStore()?.categories ?? const <ShoppingCategory>[],
+                    used: store.items.map((i) => i.category),
+                    defaults: defaultCategories,
+                  ).map((s) {
+                    final cat = s.name;
                     final selected = category == cat;
                     return Padding(
                       padding: const EdgeInsets.only(right: 6),
                       child: ChoiceChip(
+                        key: ValueKey<String>('add-category-$cat'),
                         label: Text(cat),
                         selected: selected,
+                        // #69: màu category local (xám nếu chưa đặt).
+                        backgroundColor: categoryColor(s.colorHex).withValues(alpha: 0.15),
                         selectedColor: AppColors.sageLight,
                         labelStyle: TextStyle(
                           color: selected
@@ -843,6 +878,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     );
                   }).toList(),
                 ),
+              ),
               ),
               const SizedBox(height: AppDimens.lg),
               FilledButton(

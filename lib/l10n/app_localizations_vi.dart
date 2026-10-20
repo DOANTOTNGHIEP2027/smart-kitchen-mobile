@@ -2401,4 +2401,96 @@ class AppLocalizationsVi extends AppLocalizations {
   String aiOfflineEstimateConfidence(int percent) {
     return 'Ước tính offline · $percent%';
   }
+
+  @override
+  String get shoppingManageCategoriesTooltip => 'Quản lý danh mục';
+
+  @override
+  String get shoppingShareTooltip => 'Chia sẻ danh sách';
+
+  @override
+  String get shoppingCategoriesTitle => 'Danh mục đi chợ';
+
+  @override
+  String get shoppingCategoriesEmpty =>
+      'Chưa có danh mục nào. Tạo danh mục để tô màu và sắp xếp danh sách đi chợ theo cách của bạn.\nDanh mục chỉ lưu trên thiết bị này, không đồng bộ cho cả nhà.';
+
+  @override
+  String get shoppingCategoriesLocalNote =>
+      'Chỉ lưu trên thiết bị này — không đồng bộ cho cả nhà.';
+
+  @override
+  String get shoppingCategoryAdd => 'Thêm danh mục';
+
+  @override
+  String get shoppingCategoryEdit => 'Sửa danh mục';
+
+  @override
+  String get shoppingCategoryNameLabel => 'Tên danh mục';
+
+  @override
+  String get shoppingCategoryColorLabel => 'Màu';
+
+  @override
+  String get shoppingCategorySave => 'Lưu';
+
+  @override
+  String get shoppingCategoryCancel => 'Huỷ';
+
+  @override
+  String get shoppingCategoryDelete => 'Xoá';
+
+  @override
+  String get shoppingCategoryErrEmpty => 'Tên danh mục không được để trống';
+
+  @override
+  String shoppingCategoryErrTooLong(int max) {
+    return 'Tên danh mục tối đa $max ký tự';
+  }
+
+  @override
+  String get shoppingCategoryErrDuplicate => 'Đã có danh mục trùng tên';
+
+  @override
+  String get shoppingCategoriesLoadFailed => 'Không tải được danh mục';
+
+  @override
+  String get shoppingCategoryErrSaveFailed => 'Không thể lưu, vui lòng thử lại';
+
+  @override
+  String shoppingCategoryDeleteConfirm(String name) {
+    return 'Xoá danh mục \"$name\"? Các mặt hàng đã gán danh mục này vẫn giữ nguyên, chỉ mất màu/vị trí gợi ý.';
+  }
+
+  @override
+  String get shoppingShareTitle => 'Chia sẻ danh sách mua sắm';
+
+  @override
+  String get shoppingShareCopyText => 'Sao chép dạng text';
+
+  @override
+  String get shoppingShareNoItems => 'Chưa có mặt hàng nào để chia sẻ';
+
+  @override
+  String get shoppingShareLink => 'Chia sẻ link';
+
+  @override
+  String get shoppingShareComingSoon => 'Sắp ra mắt';
+
+  @override
+  String get shoppingShareCopied => 'Đã sao chép danh sách vào bộ nhớ tạm';
+
+  @override
+  String get shoppingShareTextHeader => '🛒 Danh sách mua sắm';
+
+  @override
+  String shoppingShareTextProgress(int checked, int total) {
+    return 'Đã mua: $checked/$total';
+  }
+
+  @override
+  String get shoppingShareTextUncategorized => 'Chưa phân loại';
+
+  @override
+  String get shoppingShareTextFooter => 'Tạo từ Smart Kitchen App';
 }
