@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/quantity_format.dart';
 import '../domain/inventory_item.dart';
 
 /// Hiển thị một [InventoryItemModel] trong danh sách kho.
@@ -99,7 +100,7 @@ class InventoryItemTile extends StatelessWidget {
                                   BorderRadius.circular(AppDimens.radiusSm),
                             ),
                             child: Text(
-                              '${_formatQty(displayQty)} $displayUnitStr',
+                              '${formatQuantity(displayQty)} $displayUnitStr',
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 13,
@@ -195,13 +196,6 @@ class InventoryItemTile extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatQty(double qty) {
-    if (qty == qty.roundToDouble()) {
-      return qty.toInt().toString();
-    }
-    return qty.toString();
   }
 
   String _formatExpiry(DateTime date) {
