@@ -59,9 +59,28 @@ class ShoppingStore {
   List<ShoppingItem> get pending => _items.where((e) => e.status == ShoppingItemStatus.pending).toList();
   List<ShoppingItem> get completed => _items.where((e) => e.status == ShoppingItemStatus.completed).toList();
 
+  /// Household đang nghe Drift — store `permanent` sống qua logout/đổi household.
+  String? _boundHousehold;
+  bool _bound = false;
+  ReactionDisposer? _householdReaction;
+
+  /// Idempotent theo household: cùng household → no-op; household đổi (kể cả
+  /// logout → login tài khoản khác) → huỷ luồng cũ, xoá dữ liệu cũ, nghe lại.
+  /// Không huỷ thì luồng household cũ vẫn ghi đè `_items` (lộ dữ liệu).
   Future<void> init() async {
+    _householdReaction ??= reaction<String?>((_) => _session.householdId, (_) => unawaited(init()));
     final householdId = _session.householdId;
-    if (householdId == null) { runInAction(() => _loading.value = false); return; }
+    if (_bound && householdId == _boundHousehold) return;
+    final oldItems = _itemsSub, oldConn = _connectivitySub;
+    _itemsSub = null; _connectivitySub = null;
+    _bound = true; _boundHousehold = householdId;
+    runInAction(() {
+      _items.clear(); _assigningIds.clear();
+      _error.value = null; _assignError.value = null; _priceNotSaved.value = false; _rejectedCreateName.value = null;
+      _loading.value = householdId != null;
+    });
+    unawaited(oldItems?.cancel()); unawaited(oldConn?.cancel());
+    if (householdId == null) return;
     _itemsSub = _dao.watchAll(householdId).listen((rows) => runInAction(() { _items..clear()..addAll(rows); _loading.value = false; }));
     _connectivitySub = _connectivity.onConnectivityRestored.listen((_) => unawaited(sync()));
     unawaited(sync());
@@ -166,7 +185,8 @@ class ShoppingStore {
         if (!local.isPendingSync && syncedBefore.contains(local.id) && !seen.contains(local.id)) await _dao.delete(local.id);
       }
     }
-    on ApiException catch (e) { runInAction(() => _error.value = e); }
+    // Household đổi trong lúc sync bay → lỗi của household cũ không được hiện ở household mới.
+    on ApiException catch (e) { if (_session.householdId == householdId) runInAction(() => _error.value = e); }
     finally { if (--_syncsRunning == 0) _assignedDuringSync.clear(); }
   }
   Future<void> _drain(String householdId) async {
@@ -177,6 +197,9 @@ class ShoppingStore {
     var requeued = false;
     try {
       for (final entry in await _dao.queue(householdId)) {
+        // Household đổi giữa chừng (vd. logout → tài khoản khác) — token mới bị
+        // từ chối sẽ khiến entry household cũ bị xoá nhầm; dừng, giữ queue.
+        if (_session.householdId != householdId) break;
         // Bản chụp hàng đợi có thể cũ: entry đã bị huỷ cặp trong lúc drain gửi
         // entry trước — gửi nó sẽ toggle server ngược ý người dùng.
         if (!await _dao.hasQueueEntry(entry.id)) continue;
@@ -217,6 +240,7 @@ class ShoppingStore {
           }
           await _dao.removeQueue(entry.id);
         } on BusinessException catch (e) {
+          if (_session.householdId != householdId) break;
           // #55: cùng key nhưng nội dung khác — không tự retry, báo người dùng.
           // Bản đã tạo ở lần gửi đầu sẽ về qua list ở bước sync kế tiếp.
           if (e.code == 'ERR_IDEMPOTENCY_KEY_REUSED') {
@@ -235,6 +259,7 @@ class ShoppingStore {
           if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
           break;
         } on ValidationException catch (e) {
+          if (_session.householdId != householdId) break;
           if (entry.operation == 'CREATE') {
             await _dropCreate(entry, item, e);
             continue;
@@ -242,6 +267,7 @@ class ShoppingStore {
           if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
           break;
         } on ApiException catch (e) {
+          if (_session.householdId != householdId) break;
           if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
           break;
         }
@@ -249,6 +275,9 @@ class ShoppingStore {
     } finally {
       _draining = false;
     }
+    // Lần drain của household mới đã bị cờ `_draining` chặn — chạy bù.
+    final now = _session.householdId;
+    if (now != null && now != householdId) { await _drain(now); return; }
     // Toggle đảo lại vừa xếp không nằm trong bản chụp hàng đợi ở trên — gửi
     // ngay, không chờ lần sync kế (có thể rất lâu nếu không có sự kiện nào).
     if (requeued) await _drain(householdId);
@@ -281,5 +310,5 @@ class ShoppingStore {
     return true;
   }
   Future<bool> _online() async { try { return await _connectivity.isOnline(); } catch (_) { return true; } }
-  Future<void> dispose() async { await _itemsSub?.cancel(); await _connectivitySub?.cancel(); }
+  Future<void> dispose() async { _householdReaction?.call(); _householdReaction = null; _bound = false; await _itemsSub?.cancel(); await _connectivitySub?.cancel(); }
 }

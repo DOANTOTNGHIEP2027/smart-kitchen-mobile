@@ -258,3 +258,11 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** (1) task riêng: store nghe `householdId` bằng reaction.
 - **Cần người quyết lại không:** Có cho (1) — duyệt đổi vòng đời store.
+
+### OD-33 · Store permanent bám household (đảo ngược OD-32 (1)) — đã làm & còn lại
+- **Ngày:** 2026-10-20 · **Task:** OD-32 (1) · **Nhánh:** `fix/household-scoped-store-reset`
+- **Đã làm:** `ShoppingStore`/`InventoryStore` (permanent, sống qua logout) tự nghe `session.householdId` bằng MobX `reaction` (cùng pattern `RealtimeStore`): đổi household/logout → huỷ luồng Drift cũ, xoá dữ liệu + lỗi + bộ lọc cũ, nghe lại; `init()` idempotent theo household. Sync/drain của household cũ về muộn: không reconcile-xoá kho household mới, không ghi lỗi sang household mới, drain dừng khi household đổi (không gửi thao tác h1 bằng token h2) và chạy bù drain cho household mới. Các store `fenix` khác được tạo lại sau `offAllNamed`.
+- **Còn lại:** (1) Request đang bay đúng lúc đổi household không huỷ được — nếu server nhận thì vẫn lọt. (2) Đổi A→B→A trong lúc sync: điều kiện so household vẫn đúng → có thể reconcile nhầm (cần số đếm thế hệ/epoch). (3) `add`/`toggle`/`assign` đang chạy dở vẫn ghi lỗi không kiểm household. (4) Ô tìm kiếm kho không có controller → sau reset vẫn hiện chữ cũ. (5) Logic bám household chép ở 2 store — nên gom mixin/epoch khi có store thứ 3. (6) Các nhánh sửa ở vòng 3 (drain dừng/chạy bù, `_isSyncing`) chưa có test riêng.
+- **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Task riêng: epoch dùng chung cho mọi tác vụ bất đồng bộ theo household.
+- **Cần người quyết lại không:** Không.
