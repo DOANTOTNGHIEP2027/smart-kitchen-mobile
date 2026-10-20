@@ -689,6 +689,8 @@
   "shoppingPriceZeroHint": "0 ₫ nghĩa là miễn phí. Nếu không nhớ giá, hãy bấm Bỏ qua.",
   "shoppingPriceSkip": "Bỏ qua",
   "shoppingPriceSave": "Lưu",
+  "shoppingPriceLostItemDeleted": "Món đã bị xoá trên máy khác — giá bạn nhập chưa được lưu.",
+  "shoppingPriceLostListClosed": "Danh sách đã sang tuần mới — giá bạn nhập chưa được lưu.",
   "shoppingPriceNotSaved": "Món này vừa được người khác cập nhật — giá bạn nhập chưa được lưu. Bỏ tick rồi tick lại để nhập lại giá.",
   "shoppingAssign": "Giao",
   "shoppingAssignedMe": "Tôi",

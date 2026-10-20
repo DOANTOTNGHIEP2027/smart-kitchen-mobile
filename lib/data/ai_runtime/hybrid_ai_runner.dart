@@ -29,8 +29,9 @@ class HybridAIRunner {
     required InferenceInput input,
     required T Function(InferenceOutput output) fromOutput,
   }) async {
-    if (cloud == null || await _gate.isDeviceOffline()) {
-      return runOnDevice(task: task, input: input, fromOutput: fromOutput);
+    final offline = await _gate.isDeviceOffline();
+    if (cloud == null || offline) {
+      return runOnDevice(task: task, input: input, fromOutput: fromOutput, offlineFallback: offline);
     }
     final stopwatch = Stopwatch()..start();
     try {
@@ -41,7 +42,7 @@ class HybridAIRunner {
       // NetworkException CHƯA đủ để kết luận offline — re-verify đúng lúc này,
       // nếu không BE/AI outage thật bị che sau UX "chế độ offline" (Guard #1).
       if (await _gate.isDeviceOffline()) {
-        return runOnDevice(task: task, input: input, fromOutput: fromOutput);
+        return runOnDevice(task: task, input: input, fromOutput: fromOutput, offlineFallback: true);
       }
       rethrow;
     }
@@ -53,6 +54,7 @@ class HybridAIRunner {
     required AITask task,
     required InferenceInput input,
     required T Function(InferenceOutput output) fromOutput,
+    required bool offlineFallback,
   }) async {
     if (!_registry.isAvailable(task)) return AIResult<T>.unavailable(task);
     final stopwatch = Stopwatch()..start();
@@ -63,6 +65,7 @@ class HybridAIRunner {
         confidence: output.confidence,
         modelUsed: _registry.manifestFor(task).modelUsed,
         latencyMs: stopwatch.elapsedMilliseconds,
+        offlineFallback: offlineFallback,
       );
     } on OnDeviceInferenceException catch (e) {
       return e.modelUnavailable

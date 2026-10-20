@@ -143,7 +143,7 @@ void main() {
       engine = _Engine();
     });
 
-    Future<AIResult<String>> run(_Conn conn, Future<String> Function() cloud) =>
+    Future<AIResult<String>> run(_Conn conn, Future<String> Function()? cloud) =>
         HybridAIRunner(ConnectivityGate(conn), engine, reg).run<String>(
           task: AITask.ruleBasedSelection,
           cloud: cloud,
@@ -158,6 +158,11 @@ void main() {
       expect(called, isFalse);
       expect(r.source, AISource.onDevice);
       expect(r.isDegraded, isTrue);
+    });
+
+    test('OD-26: không có đường cloud nhưng ĐANG ONLINE → chạy cục bộ, KHÔNG báo "chế độ offline"', () async {
+      final r = await run(_Conn(true), null);
+      expect((r.success, r.source, r.offlineFallback, r.isDegraded), (true, AISource.onDevice, false, false));
     });
 
     test('online + cloud OK → fromCloud, không degraded', () async {
@@ -189,7 +194,7 @@ void main() {
       final empty = ModelRegistry(loader: memLoader(<String, String>{}));
       await empty.bootstrap();
       final r1 = await HybridAIRunner(ConnectivityGate(_Conn(false)), engine, empty).runOnDevice<String>(
-          task: AITask.ruleBasedSelection, input: const MealSelectionInput(<MealCandidate>[], HouseholdConstraints(hardAllergenExclusions: <String>{})), fromOutput: (_) => '');
+          task: AITask.ruleBasedSelection, input: const MealSelectionInput(<MealCandidate>[], HouseholdConstraints(hardAllergenExclusions: <String>{})), fromOutput: (_) => '', offlineFallback: true);
       expect(r1.success, isFalse);
       expect(r1.error!.code, AIResult.errModelUnavailable);
       expect(r1.isDegraded, isFalse);
@@ -202,6 +207,19 @@ void main() {
 
   group('OnDeviceMealSelectionRuleEngine', () {
     const engine = OnDeviceMealSelectionRuleEngine(<String, double>{'expiringPriority': 0.4, 'repetitionPenalty': 0.5});
+
+    test('OD-26: so khớp dị ứng KHÔNG phân biệt hoa/thường + bỏ khoảng trắng', () {
+      final r = engine.select(
+        <MealCandidate>[cand('lower', allergens: <String>{'gluten '}, exp: 1), cand('safe', exp: 0.1)],
+        const HouseholdConstraints(hardAllergenExclusions: <String>{'GLUTEN'}),
+      );
+      expect(r.selectedDishId, 'safe');
+      final r2 = engine.select(
+        <MealCandidate>[cand('upper', allergens: <String>{'EGG'}, exp: 1), cand('safe', exp: 0.1)],
+        const HouseholdConstraints(hardAllergenExclusions: <String>{' egg'}),
+      );
+      expect(r2.selectedDishId, 'safe');
+    });
 
     test('lọc cứng dị ứng TRƯỚC; món chưa kiểm chứng dị ứng bị loại khi có ràng buộc', () {
       final r = engine.select(
@@ -286,7 +304,7 @@ void main() {
   });
 
   group('Widget §9', () {
-    final degraded = AIResult<Object?>.fromOnDevice(data: 1, confidence: 0.82, modelUsed: 'on-device:x@v1', latencyMs: 3);
+    final degraded = AIResult<Object?>.fromOnDevice(data: 1, confidence: 0.82, modelUsed: 'on-device:x@v1', latencyMs: 3, offlineFallback: true);
     final cloud = AIResult<Object?>.fromCloud(1, modelUsed: 'cloud:x');
     final unavailable = AIResult<Object?>.unavailable(AITask.receiptOcr);
 

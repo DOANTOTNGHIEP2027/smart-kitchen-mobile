@@ -2345,6 +2345,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get shoppingPriceSave => 'Lưu';
 
   @override
+  String get shoppingPriceLostItemDeleted =>
+      'Món đã bị xoá trên máy khác — giá bạn nhập chưa được lưu.';
+
+  @override
+  String get shoppingPriceLostListClosed =>
+      'Danh sách đã sang tuần mới — giá bạn nhập chưa được lưu.';
+
+  @override
   String get shoppingPriceNotSaved =>
       'Món này vừa được người khác cập nhật — giá bạn nhập chưa được lưu. Bỏ tick rồi tick lại để nhập lại giá.';
 

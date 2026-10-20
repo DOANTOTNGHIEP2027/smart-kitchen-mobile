@@ -266,3 +266,11 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Task riêng: epoch dùng chung cho mọi tác vụ bất đồng bộ theo household.
 - **Cần người quyết lại không:** Không.
+
+### OD-34 · Áp quyết định OD-24 (1) + OD-26 (1)(3) — đã làm & còn lại
+- **Ngày:** 2026-10-20 · **Task:** quyết định người duyệt 2026-10-20 · **Nhánh:** `chore/decisions-od24-od26`
+- **Đã làm:** OD-26 (1) — `AIResult.offlineFallback` (bắt buộc truyền ở `fromOnDevice`/`runOnDevice`); `isDegraded` chỉ khi chạy on-device VÌ offline → không banner "chế độ offline" lúc online. OD-26 (3) — so khớp dị ứng không phân biệt hoa/thường + bỏ khoảng trắng (trong rule engine). OD-24 (1) — lý do mất giá thành tập `PriceLostReason {stale, itemDeleted, listClosed}`, banner hiện đủ mọi lý do: "Món đã bị xoá trên máy khác…", "Danh sách đã sang tuần mới…" (câu theo khuyến nghị, người duyệt giao chọn), cả đường online lẫn drain; không ghi lý do sang household khác.
+- **Còn lại:** (1) Mỗi lần tick xoá mọi lý do mất giá — kể cả lý do drain vừa báo (hành vi cũ). (2) Chuẩn hoá dị ứng mới ở rule engine — model/parse (`MealSuggestion`, candidate) vẫn giữ chuỗi gốc; chưa xử lý 'TREE NUT' vs 'TREE_NUT' (chưa rõ định dạng BE). (3) Exclusion rỗng sau trim vẫn tính là ràng buộc (giữ vì an toàn hơn).
+- **Đã chọn:** Hoãn phần còn lại. · **Theo:** §3 + §6.1 D-10.
+- **Đảo ngược thế nào:** (2) chuẩn hoá ở tầng parse khi chốt định dạng mã dị ứng với BE.
+- **Cần người quyết lại không:** Không.

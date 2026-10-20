@@ -127,7 +127,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
           // AM-TB-4 (§12): toggle mang giá bị từ chối vì món đã đổi ở nơi khác
           // — giá người dùng nhập đã mất, không được im lặng.
           Observer(
-            builder: (_) => store.priceNotSaved
+            builder: (_) => store.priceNotSaved || store.priceLostItemDeleted || store.priceLostListClosed
                 ? Material(
                     key: const ValueKey<String>('shopping-price-not-saved'),
                     color: Colors.amber.shade100,
@@ -136,7 +136,17 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                         horizontal: AppDimens.md,
                         vertical: AppDimens.sm,
                       ),
-                      child: Text(context.l10n.shoppingPriceNotSaved),
+                      // 1 lần drain có thể bật CẢ HAI cờ (món A bị xoá, món B
+                      // bị tick nơi khác) — hiện đủ cả hai câu, không che câu nào.
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          if (store.priceLostItemDeleted) Text(context.l10n.shoppingPriceLostItemDeleted),
+                          if (store.priceLostListClosed) Text(context.l10n.shoppingPriceLostListClosed),
+                          if (store.priceNotSaved) Text(context.l10n.shoppingPriceNotSaved),
+                        ],
+                      ),
                     ),
                   )
                 : const SizedBox.shrink(),

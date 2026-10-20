@@ -4281,6 +4281,18 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get shoppingPriceSave;
 
+  /// No description provided for @shoppingPriceLostItemDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'This item was deleted on another device — the price you entered wasn\'t saved.'**
+  String get shoppingPriceLostItemDeleted;
+
+  /// No description provided for @shoppingPriceLostListClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'The list has moved to a new week — the price you entered wasn\'t saved.'**
+  String get shoppingPriceLostListClosed;
+
   /// No description provided for @shoppingPriceNotSaved.
   ///
   /// In en, this message translates to:

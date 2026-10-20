@@ -2374,6 +2374,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingPriceSave => 'Save';
 
   @override
+  String get shoppingPriceLostItemDeleted =>
+      'This item was deleted on another device — the price you entered wasn\'t saved.';
+
+  @override
+  String get shoppingPriceLostListClosed =>
+      'The list has moved to a new week — the price you entered wasn\'t saved.';
+
+  @override
   String get shoppingPriceNotSaved =>
       'This item was just updated by someone else — the price you entered was not saved. Untick and tick again to re-enter it.';
 
