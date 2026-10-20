@@ -5,6 +5,7 @@ import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
 import '../../../data/realtime/ws_event_envelope.dart';
+import '../../../stores/household_scoped.dart';
 import '../../../stores/session_store.dart';
 import '../../../services/connectivity_service.dart';
 import '../data/inventory_api.dart';
@@ -23,7 +24,7 @@ enum InventoryLoadStatus { loading, ready }
 ///
 /// Bám pattern thủ công MobX của profile_store (Observable + runInAction) —
 /// không codegen để giữ code phẳng và dễ đọc cho scope 3 ngày công này.
-class InventoryStore {
+class InventoryStore with HouseholdScoped {
   InventoryStore({
     required InventoryDao dao,
     required InventoryApi api,
@@ -42,9 +43,6 @@ class InventoryStore {
   StreamSubscription<List<InventoryItemModel>>? _dbSub;
   StreamSubscription<void>? _connectivitySub;
   bool _isDrainingQueue = false;
-  String? _boundHousehold;
-  bool _bound = false;
-  ReactionDisposer? _householdReaction;
 
   final Observable<InventoryLoadStatus> _status =
       Observable<InventoryLoadStatus>(InventoryLoadStatus.loading);
@@ -96,17 +94,11 @@ class InventoryStore {
   /// liệu + bộ lọc cũ rồi nghe lại. Không huỷ thì luồng household cũ vẫn ghi
   /// đè `_items` (lộ dữ liệu household trước).
   Future<void> init() async {
-    _householdReaction ??= reaction<String?>(
-      (_) => _session.householdId,
-      (_) => unawaited(init()),
-    );
+    if (!rebindHousehold(_session, () => unawaited(init()))) return;
     final hid = _session.householdId;
-    if (_bound && hid == _boundHousehold) return;
     final oldDb = _dbSub, oldConn = _connectivitySub;
     _dbSub = null;
     _connectivitySub = null;
-    _bound = true;
-    _boundHousehold = hid;
     _seenEventIds.clear();
     runInAction(() {
       _items.clear();
@@ -140,9 +132,7 @@ class InventoryStore {
   }
 
   Future<void> dispose() async {
-    _householdReaction?.call();
-    _householdReaction = null;
-    _bound = false;
+    unbindHousehold();
     await _dbSub?.cancel();
     _dbSub = null;
     await _connectivitySub?.cancel();
@@ -165,6 +155,7 @@ class InventoryStore {
   Future<void> syncFromServer() async {
     final hid = _session.householdId;
     if (hid == null) return;
+    final epoch = householdEpoch;
 
     runInAction(() {
       _isSyncing.value = true;
@@ -177,6 +168,8 @@ class InventoryStore {
       bool? gotFullSet;
       while (page < maxPages) {
         final result = await _api.list(page: page, size: 100);
+        // Household đổi giữa chừng → trang sau lấy bằng token mới; dừng.
+        if (isStaleEpoch(epoch)) break;
         for (final serverItem in result.items) {
           final local = await _dao.getById(serverItem.id);
           if (local == null || local.syncStatus == SyncStatus.synced) {
@@ -193,22 +186,24 @@ class InventoryStore {
       // Chỉ reconcile-xóa khi đã tải đủ toàn bộ set; tránh false-positive.
       // Household đổi trong lúc sync bay → `_items` đã là household mới, xoá
       // theo `seenIds` cũ sẽ xoá nhầm row household mới.
-      if (gotFullSet == true && _session.householdId == hid) {
+      // So epoch (không so householdId): A→B→A trong lúc sync thì id khớp lại
+      // nhưng các trang sau đã lấy bằng token của B (OD-33).
+      if (gotFullSet == true && !isStaleEpoch(epoch)) {
         await _reconcileDeletes(seenIds, hid);
       }
     } on ApiException catch (e) {
-      if (_session.householdId == hid) runInAction(() => _syncError.value = e);
+      if (!isStaleEpoch(epoch)) runInAction(() => _syncError.value = e);
     } catch (e) {
       // Bất ngờ — log và làm như mọi ApiException.
       developer.log('syncFromServer lỗi ngoài dự kiến: $e',
           name: 'InventoryStore');
-      if (_session.householdId == hid) {
+      if (!isStaleEpoch(epoch)) {
         runInAction(() =>
             _syncError.value = ServerException('ERR_UNKNOWN', e.toString()));
       }
     } finally {
       // Sync household cũ về muộn không được tắt cờ của sync household mới.
-      if (_session.householdId == hid) {
+      if (!isStaleEpoch(epoch)) {
         runInAction(() => _isSyncing.value = false);
       }
     }
@@ -222,12 +217,13 @@ class InventoryStore {
     if (hid == null) return;
 
     _isDrainingQueue = true;
+    final epoch = householdEpoch;
     try {
       final operations = await _dao.queuedOperations(hid);
       for (final operation in operations) {
         // Household đổi giữa chừng → token đã thuộc household mới; gửi tiếp
         // queue household cũ sẽ tạo/sửa nhầm sang household mới.
-        if (_session.householdId != hid) break;
+        if (isStaleEpoch(epoch)) break;
         final local = await _dao.getById(operation.itemId);
         if (local == null) {
           await _dao.removeQueuedOperation(operation.id);
@@ -280,7 +276,7 @@ class InventoryStore {
           await _dao.removeQueuedOperation(operation.id);
         } on BusinessException catch (e) {
           // Lỗi có thể do token household mới — không xoá/đánh dấu conflict.
-          if (_session.householdId != hid) break;
+          if (isStaleEpoch(epoch)) break;
           if (e.code == 'ERR_INVENTORY_NOT_FOUND' &&
               operation.operation == 'DELETE') {
             await _dao.deleteItem(local.id);
@@ -314,9 +310,12 @@ class InventoryStore {
     } finally {
       _isDrainingQueue = false;
     }
-    // Lần drain của household mới đã bị cờ trên chặn — chạy bù.
-    final now = _session.householdId;
-    if (now != null && now != hid) await drainSyncQueue();
+    // Household đổi giữa chừng (kể cả A→B→A): lần drain của household hiện
+    // tại đã bị cờ trên chặn — chạy bù.
+    // Store đã dispose (unbind cũng tăng epoch) → không chạy bù.
+    if (isStaleEpoch(epoch) && isHouseholdBound && _session.householdId != null) {
+      await drainSyncQueue();
+    }
   }
 
   Future<void> _syncAfterConnectivityRestored() async {

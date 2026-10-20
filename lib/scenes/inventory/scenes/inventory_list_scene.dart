@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
+import 'package:mobx/mobx.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
@@ -24,11 +25,27 @@ class InventoryListScene extends StatefulWidget {
 }
 
 class _InventoryListSceneState extends State<InventoryListScene> {
+  /// Store reset ô tìm khi đổi household (OD-33) — ô nhập phải theo, không
+  /// thì vẫn hiện chữ cũ trong khi danh sách không lọc.
+  final TextEditingController _search = TextEditingController();
+  ReactionDisposer? _searchSync;
+
   @override
   void initState() {
     super.initState();
     final store = Get.find<InventoryStore>();
+    _search.text = store.searchQuery;
+    _searchSync = reaction<String>((_) => store.searchQuery, (q) {
+      if (_search.text != q) _search.text = q;
+    });
     store.init();
+  }
+
+  @override
+  void dispose() {
+    _searchSync?.call();
+    _search.dispose();
+    super.dispose();
   }
 
   @override
@@ -167,6 +184,8 @@ class _InventoryListSceneState extends State<InventoryListScene> {
 
                     // Search TextField
                     TextField(
+                      key: const ValueKey<String>('inventory-search'),
+                      controller: _search,
                       decoration: InputDecoration(
                         hintText: context.l10n.inventorySearchHint,
                         prefixIcon: const Icon(
