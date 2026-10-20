@@ -14,6 +14,7 @@ class AIResult<T> {
     this.confidence,
     required this.modelUsed,
     this.latencyMs,
+    this.offlineFallback = false,
   });
 
   final bool success;
@@ -26,9 +27,15 @@ class AIResult<T> {
   final String modelUsed;
   final int? latencyMs;
 
+  /// Chạy on-device VÌ thiết bị offline (khác: feature chủ động chạy cục bộ
+  /// khi vẫn có mạng — vd. không truyền đường cloud).
+  final bool offlineFallback;
+
   /// Điều kiện DUY NHẤT để hiện banner/badge offline (§9.3). Kết quả lỗi
-  /// (`success == false`) KHÔNG phải degraded — đó là error state riêng.
-  bool get isDegraded => success && source == AISource.onDevice;
+  /// (`success == false`) KHÔNG phải degraded — đó là error state riêng. Chạy
+  /// cục bộ khi đang online KHÔNG hiện banner (người duyệt chốt 2026-10-20,
+  /// OD-26) — báo "chế độ offline" lúc có mạng là sai thông tin.
+  bool get isDegraded => success && source == AISource.onDevice && offlineFallback;
 
   /// BE hiện KHÔNG forward confidence xuống FE (be-ai-contract §14) → null.
   factory AIResult.fromCloud(T data, {required String modelUsed, int? latencyMs}) =>
@@ -45,6 +52,7 @@ class AIResult<T> {
     double? confidence,
     required String modelUsed,
     required int latencyMs,
+    required bool offlineFallback,
   }) =>
       AIResult<T>._(
         success: true,
@@ -53,6 +61,7 @@ class AIResult<T> {
         confidence: confidence,
         modelUsed: modelUsed,
         latencyMs: latencyMs,
+        offlineFallback: offlineFallback,
       );
 
   /// Model on-device thiếu/hỏng VÀ đang offline — task không dùng được.

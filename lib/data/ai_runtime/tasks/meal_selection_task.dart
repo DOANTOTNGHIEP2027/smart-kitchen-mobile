@@ -99,16 +99,20 @@ class OnDeviceMealSelectionRuleEngine {
     return OnDeviceMealSelectionRuleEngine(weights);
   }
 
+  static String _normAllergen(String tag) => tag.trim().toUpperCase();
+
   /// NaN → coi như thiếu tín hiệu; ngoài 0..1 → kẹp lại (tránh đảo dấu điểm).
   static double? _signal(double? v) =>
       v == null || v.isNaN ? null : v.clamp(0.0, 1.0).toDouble();
 
   MealSelectionResult select(List<MealCandidate> candidates, HouseholdConstraints constraints) {
     final trace = <String>[];
-    final exclusions = constraints.hardAllergenExclusions;
+    // Không phân biệt hoa/thường (người duyệt chốt 2026-10-20, OD-26): 'gluten'
+    // và 'GLUTEN' phải là CÙNG một dị ứng — lệch chữ mà lọt là mất an toàn.
+    final exclusions = constraints.hardAllergenExclusions.map(_normAllergen).toSet();
     final eligible = <MealCandidate>[];
     for (final c in candidates) {
-      final tags = c.allergenTags;
+      final tags = c.allergenTags?.map(_normAllergen).toSet();
       final hit = tags?.intersection(exclusions) ?? const <String>{};
       if (hit.isNotEmpty) {
         trace.add('loại ${c.name}: dị ứng ${hit.join(', ')} (hard)');

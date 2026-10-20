@@ -131,6 +131,51 @@ void main() {
     expect(await dao.getById('fresh'), isNotNull);
   });
 
+  test('OD-24: drain tick KÈM GIÁ gặp NOT_FOUND → báo "món đã bị xoá", KHÔNG báo "tick lại"', () async {
+    await dao.upsert(item('a'));
+    conn.online = false;
+    await store.toggle(item('a'), price: 25000);
+    conn.online = true;
+    api.toggleErrors['a'] = BusinessException('ERR_SHOP_ITEM_NOT_FOUND', 'gone');
+    await store.sync();
+    expect((store.priceLostItemDeleted, store.priceNotSaved), (true, false));
+  });
+
+  test('OD-24: toggle online KÈM GIÁ gặp NOT_FOUND → cũng báo "món đã bị xoá" (thống nhất với drain)', () async {
+    await dao.upsert(item('a'));
+    api.toggleErrors['a'] = BusinessException('ERR_SHOP_ITEM_NOT_FOUND', 'gone');
+    await store.toggle(item('a'), price: 25000);
+    expect((store.priceLostItemDeleted, store.priceNotSaved), (true, false));
+  });
+
+  test('OD-24: LIST_NOT_ACTIVE kèm giá (online + drain) → báo "sang tuần mới", KHÔNG báo "đã bị xoá"', () async {
+    await dao.upsert(item('a'));
+    api.toggleErrors['a'] = BusinessException('ERR_SHOP_LIST_NOT_ACTIVE', 'closed');
+    await store.toggle(item('a'), price: 25000);
+    expect((store.priceLostListClosed, store.priceLostItemDeleted, store.priceNotSaved), (true, false, false));
+
+    await dao.upsert(item('b'));
+    conn.online = false;
+    await store.toggle(item('b'), price: 1000);
+    conn.online = true;
+    api.toggleErrors['b'] = BusinessException('ERR_SHOP_LIST_NOT_ACTIVE', 'closed');
+    await store.sync();
+    expect((store.priceLostListClosed, store.priceLostItemDeleted), (true, false));
+  });
+
+  test('OD-24: 1 lần drain có NHIỀU lý do mất giá → giữ đủ (không cái này che cái kia)', () async {
+    await dao.upsert(item('a'));
+    await dao.upsert(item('c'));
+    conn.online = false;
+    await store.toggle(item('a'), price: 1000);
+    await store.toggle(item('c'), price: 2000);
+    conn.online = true;
+    api.toggleErrors['a'] = BusinessException('ERR_SHOP_ITEM_NOT_FOUND', 'gone');
+    api.toggleErrors['c'] = BusinessException('ERR_SHOP_LIST_NOT_ACTIVE', 'closed');
+    await store.sync();
+    expect((store.priceLostItemDeleted, store.priceLostListClosed), (true, true));
+  });
+
   test('toggle online: NOT_FOUND → xoá row, không rollback (§10)', () async {
     await dao.upsert(item('a'));
     api.toggleErrors['a'] = BusinessException('ERR_SHOP_ITEM_NOT_FOUND', 'gone');

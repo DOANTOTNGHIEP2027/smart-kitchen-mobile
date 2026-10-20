@@ -13,6 +13,10 @@ import '../data/shopping_dao.dart';
 import '../data/shopping_mapper.dart';
 import '../domain/shopping_item.dart';
 
+/// stale = món vừa đổi ở nơi khác (tick lại được); itemDeleted = món đã bị xoá
+/// ở máy khác; listClosed = danh sách đã sang tuần mới (OD-24).
+enum PriceLostReason { stale, itemDeleted, listClosed }
+
 class ShoppingStore {
   ShoppingStore({required ShoppingDao dao, required ShoppingApi api, required ConnectivityService connectivity, required SessionStore session, void Function()? onRosterStale})
       : _dao = dao, _api = api, _connectivity = connectivity, _session = session, _onRosterStale = onRosterStale;
@@ -25,7 +29,8 @@ class ShoppingStore {
   final ObservableList<ShoppingItem> _items = ObservableList<ShoppingItem>();
   final Observable<bool> _loading = Observable(true);
   final Observable<ApiException?> _error = Observable(null);
-  final Observable<bool> _priceNotSaved = Observable(false);
+  /// Lý do giá vừa nhập bị mất — 1 lần drain có thể có NHIỀU lý do cùng lúc.
+  final ObservableSet<PriceLostReason> _priceLost = ObservableSet<PriceLostReason>();
   final Observable<String?> _rejectedCreateName = Observable(null);
   final ObservableSet<String> _assigningIds = ObservableSet<String>();
   final Observable<ApiException?> _assignError = Observable(null);
@@ -40,7 +45,12 @@ class ShoppingStore {
   ApiException? get error => _error.value;
   /// AM-TB-4 (§12): 1 toggle MANG GIÁ bị server từ chối vì món đã đổi ở nơi
   /// khác — giá vừa nhập chưa được lưu, phải báo người dùng.
-  bool get priceNotSaved => _priceNotSaved.value;
+  bool get priceNotSaved => _priceLost.contains(PriceLostReason.stale);
+  /// Giá mất vì món đã bị XOÁ ở máy khác (không còn món để tick lại) — câu
+  /// báo khác [priceNotSaved] (OD-24).
+  bool get priceLostItemDeleted => _priceLost.contains(PriceLostReason.itemDeleted);
+  /// Danh sách đã sang tuần mới — món KHÔNG bị xoá, câu báo riêng (OD-24).
+  bool get priceLostListClosed => _priceLost.contains(PriceLostReason.listClosed);
   /// Tên món thêm lúc offline bị server từ chối vĩnh viễn khi drain — row đã
   /// bị gỡ, phải báo người dùng (không im lặng mất món).
   String? get rejectedCreateName => _rejectedCreateName.value;
@@ -76,7 +86,7 @@ class ShoppingStore {
     _bound = true; _boundHousehold = householdId;
     runInAction(() {
       _items.clear(); _assigningIds.clear();
-      _error.value = null; _assignError.value = null; _priceNotSaved.value = false; _rejectedCreateName.value = null;
+      _error.value = null; _assignError.value = null; _priceLost.clear(); _rejectedCreateName.value = null;
       _loading.value = householdId != null;
     });
     unawaited(oldItems?.cancel()); unawaited(oldConn?.cancel());
@@ -103,7 +113,7 @@ class ShoppingStore {
   /// qua để không gửi `price` khi BE sẽ từ chối.
   Future<void> toggle(ShoppingItem item, {double? price}) async {
     if (!item.canToggle) return;
-    runInAction(() => _priceNotSaved.value = false);
+    runInAction(_priceLost.clear);
     final completing = item.status == ShoppingItemStatus.pending;
     final sentPrice = completing ? price : null;
     final next = item.copyWith(status: completing ? ShoppingItemStatus.completed : ShoppingItemStatus.pending, syncStatus: ShoppingSyncStatus.pendingToggle, updatedAt: DateTime.now(), price: sentPrice);
@@ -116,9 +126,9 @@ class ShoppingStore {
     on ApiException catch (e) {
       // §10: món không còn ở server / danh sách đã sang tuần mới — rollback
       // không áp dụng, xoá row (như drain).
-      if (e.code == 'ERR_SHOP_ITEM_NOT_FOUND' || e.code == 'ERR_SHOP_LIST_NOT_ACTIVE') { await _dao.delete(item.id); return; }
+      if (_isGone(e)) { await _dao.delete(item.id); if (sentPrice != null) _markPriceLost(_goneReason(e), item.householdId); return; }
       await _dao.upsert(item); runInAction(() => _error.value = e);
-      if (_isStaleToggle(e)) { if (sentPrice != null) runInAction(() => _priceNotSaved.value = true); await sync(); }
+      if (_isStaleToggle(e)) { if (sentPrice != null) _markPriceLost(PriceLostReason.stale, item.householdId); await sync(); }
     }
   }
 
@@ -297,18 +307,25 @@ class ShoppingStore {
     if (entry.operation == 'CREATE') return false;
     // Món không còn (xoá ở máy khác) / danh sách đã sang tuần mới: entry vô
     // nghĩa — bỏ, xoá row cục bộ, KHÔNG kẹt hàng đợi (OD-20).
-    if (e.code == 'ERR_SHOP_ITEM_NOT_FOUND' || e.code == 'ERR_SHOP_LIST_NOT_ACTIVE') {
+    if (_isGone(e)) {
       await _dao.removeQueue(entry.id);
       await _dao.delete(item.id);
-      if (queuedPrice != null) runInAction(() => _priceNotSaved.value = true);
+      if (queuedPrice != null) _markPriceLost(_goneReason(e), item.householdId);
       return true;
     }
     if (!_isStaleToggle(e)) return false;
     await _dao.removeQueue(entry.id);
     await _dao.upsert(item.copyWith(syncStatus: ShoppingSyncStatus.synced));
-    if (queuedPrice != null) runInAction(() => _priceNotSaved.value = true);
+    if (queuedPrice != null) _markPriceLost(PriceLostReason.stale, item.householdId);
     return true;
   }
+  /// Household đổi trong lúc request bay → không báo mất giá của household cũ ở household mới.
+  void _markPriceLost(PriceLostReason r, String householdId) {
+    if (_session.householdId == householdId) runInAction(() => _priceLost.add(r));
+  }
+  static bool _isGone(ApiException e) => e.code == 'ERR_SHOP_ITEM_NOT_FOUND' || e.code == 'ERR_SHOP_LIST_NOT_ACTIVE';
+  static PriceLostReason _goneReason(ApiException e) =>
+      e.code == 'ERR_SHOP_LIST_NOT_ACTIVE' ? PriceLostReason.listClosed : PriceLostReason.itemDeleted;
   Future<bool> _online() async { try { return await _connectivity.isOnline(); } catch (_) { return true; } }
   Future<void> dispose() async { _householdReaction?.call(); _householdReaction = null; _bound = false; await _itemsSub?.cancel(); await _connectivitySub?.cancel(); }
 }

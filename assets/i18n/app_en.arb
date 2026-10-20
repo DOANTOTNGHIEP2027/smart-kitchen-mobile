@@ -811,6 +811,8 @@
   "shoppingPriceZeroHint": "0 ₫ means free. If you don't know the price, tap Skip.",
   "shoppingPriceSkip": "Skip",
   "shoppingPriceSave": "Save",
+  "shoppingPriceLostItemDeleted": "This item was deleted on another device — the price you entered wasn't saved.",
+  "shoppingPriceLostListClosed": "The list has moved to a new week — the price you entered wasn't saved.",
   "shoppingPriceNotSaved": "This item was just updated by someone else — the price you entered was not saved. Untick and tick again to re-enter it.",
   "shoppingAssign": "Assign",
   "shoppingAssignedMe": "Me",
