@@ -2722,6 +2722,359 @@ class ShoppingSyncQueueEntriesCompanion
   }
 }
 
+class $ShoppingCategoriesTable extends ShoppingCategories
+    with TableInfo<$ShoppingCategoriesTable, ShoppingCategoryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ShoppingCategoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _householdIdMeta =
+      const VerificationMeta('householdId');
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+      'household_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _colorHexMeta =
+      const VerificationMeta('colorHex');
+  @override
+  late final GeneratedColumn<String> colorHex = GeneratedColumn<String>(
+      'color_hex', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta =
+      const VerificationMeta('sortOrder');
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+      'sort_order', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, householdId, name, colorHex, sortOrder, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'shopping_categories';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<ShoppingCategoryRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+          _householdIdMeta,
+          householdId.isAcceptableOrUnknown(
+              data['household_id']!, _householdIdMeta));
+    } else if (isInserting) {
+      context.missing(_householdIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('color_hex')) {
+      context.handle(_colorHexMeta,
+          colorHex.isAcceptableOrUnknown(data['color_hex']!, _colorHexMeta));
+    } else if (isInserting) {
+      context.missing(_colorHexMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ShoppingCategoryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ShoppingCategoryRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      householdId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}household_id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      colorHex: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color_hex'])!,
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $ShoppingCategoriesTable createAlias(String alias) {
+    return $ShoppingCategoriesTable(attachedDatabase, alias);
+  }
+}
+
+class ShoppingCategoryRow extends DataClass
+    implements Insertable<ShoppingCategoryRow> {
+  final String id;
+  final String householdId;
+  final String name;
+
+  /// 1 trong [categoryColorPalette] — không nhập hex tự do (Guard #5).
+  final String colorHex;
+  final int sortOrder;
+  final String createdAt;
+  const ShoppingCategoryRow(
+      {required this.id,
+      required this.householdId,
+      required this.name,
+      required this.colorHex,
+      required this.sortOrder,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['household_id'] = Variable<String>(householdId);
+    map['name'] = Variable<String>(name);
+    map['color_hex'] = Variable<String>(colorHex);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['created_at'] = Variable<String>(createdAt);
+    return map;
+  }
+
+  ShoppingCategoriesCompanion toCompanion(bool nullToAbsent) {
+    return ShoppingCategoriesCompanion(
+      id: Value(id),
+      householdId: Value(householdId),
+      name: Value(name),
+      colorHex: Value(colorHex),
+      sortOrder: Value(sortOrder),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ShoppingCategoryRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ShoppingCategoryRow(
+      id: serializer.fromJson<String>(json['id']),
+      householdId: serializer.fromJson<String>(json['householdId']),
+      name: serializer.fromJson<String>(json['name']),
+      colorHex: serializer.fromJson<String>(json['colorHex']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'householdId': serializer.toJson<String>(householdId),
+      'name': serializer.toJson<String>(name),
+      'colorHex': serializer.toJson<String>(colorHex),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'createdAt': serializer.toJson<String>(createdAt),
+    };
+  }
+
+  ShoppingCategoryRow copyWith(
+          {String? id,
+          String? householdId,
+          String? name,
+          String? colorHex,
+          int? sortOrder,
+          String? createdAt}) =>
+      ShoppingCategoryRow(
+        id: id ?? this.id,
+        householdId: householdId ?? this.householdId,
+        name: name ?? this.name,
+        colorHex: colorHex ?? this.colorHex,
+        sortOrder: sortOrder ?? this.sortOrder,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  ShoppingCategoryRow copyWithCompanion(ShoppingCategoriesCompanion data) {
+    return ShoppingCategoryRow(
+      id: data.id.present ? data.id.value : this.id,
+      householdId:
+          data.householdId.present ? data.householdId.value : this.householdId,
+      name: data.name.present ? data.name.value : this.name,
+      colorHex: data.colorHex.present ? data.colorHex.value : this.colorHex,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ShoppingCategoryRow(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('name: $name, ')
+          ..write('colorHex: $colorHex, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, householdId, name, colorHex, sortOrder, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ShoppingCategoryRow &&
+          other.id == this.id &&
+          other.householdId == this.householdId &&
+          other.name == this.name &&
+          other.colorHex == this.colorHex &&
+          other.sortOrder == this.sortOrder &&
+          other.createdAt == this.createdAt);
+}
+
+class ShoppingCategoriesCompanion extends UpdateCompanion<ShoppingCategoryRow> {
+  final Value<String> id;
+  final Value<String> householdId;
+  final Value<String> name;
+  final Value<String> colorHex;
+  final Value<int> sortOrder;
+  final Value<String> createdAt;
+  final Value<int> rowid;
+  const ShoppingCategoriesCompanion({
+    this.id = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.colorHex = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ShoppingCategoriesCompanion.insert({
+    required String id,
+    required String householdId,
+    required String name,
+    required String colorHex,
+    required int sortOrder,
+    required String createdAt,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        householdId = Value(householdId),
+        name = Value(name),
+        colorHex = Value(colorHex),
+        sortOrder = Value(sortOrder),
+        createdAt = Value(createdAt);
+  static Insertable<ShoppingCategoryRow> custom({
+    Expression<String>? id,
+    Expression<String>? householdId,
+    Expression<String>? name,
+    Expression<String>? colorHex,
+    Expression<int>? sortOrder,
+    Expression<String>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (householdId != null) 'household_id': householdId,
+      if (name != null) 'name': name,
+      if (colorHex != null) 'color_hex': colorHex,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ShoppingCategoriesCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? householdId,
+      Value<String>? name,
+      Value<String>? colorHex,
+      Value<int>? sortOrder,
+      Value<String>? createdAt,
+      Value<int>? rowid}) {
+    return ShoppingCategoriesCompanion(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      name: name ?? this.name,
+      colorHex: colorHex ?? this.colorHex,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (colorHex.present) {
+      map['color_hex'] = Variable<String>(colorHex.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ShoppingCategoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('name: $name, ')
+          ..write('colorHex: $colorHex, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2734,6 +3087,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ShoppingListItemsTable(this);
   late final $ShoppingSyncQueueEntriesTable shoppingSyncQueueEntries =
       $ShoppingSyncQueueEntriesTable(this);
+  late final $ShoppingCategoriesTable shoppingCategories =
+      $ShoppingCategoriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2743,7 +3098,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         inventoryItems,
         inventorySyncQueue,
         shoppingListItems,
-        shoppingSyncQueueEntries
+        shoppingSyncQueueEntries,
+        shoppingCategories
       ];
 }
 
@@ -4046,6 +4402,198 @@ typedef $$ShoppingSyncQueueEntriesTableProcessedTableManager
         ),
         ShoppingSyncQueueEntry,
         PrefetchHooks Function()>;
+typedef $$ShoppingCategoriesTableCreateCompanionBuilder
+    = ShoppingCategoriesCompanion Function({
+  required String id,
+  required String householdId,
+  required String name,
+  required String colorHex,
+  required int sortOrder,
+  required String createdAt,
+  Value<int> rowid,
+});
+typedef $$ShoppingCategoriesTableUpdateCompanionBuilder
+    = ShoppingCategoriesCompanion Function({
+  Value<String> id,
+  Value<String> householdId,
+  Value<String> name,
+  Value<String> colorHex,
+  Value<int> sortOrder,
+  Value<String> createdAt,
+  Value<int> rowid,
+});
+
+class $$ShoppingCategoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $ShoppingCategoriesTable> {
+  $$ShoppingCategoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+      column: $table.householdId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get colorHex => $composableBuilder(
+      column: $table.colorHex, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+      column: $table.sortOrder, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$ShoppingCategoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ShoppingCategoriesTable> {
+  $$ShoppingCategoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+      column: $table.householdId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get colorHex => $composableBuilder(
+      column: $table.colorHex, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+      column: $table.sortOrder, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ShoppingCategoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ShoppingCategoriesTable> {
+  $$ShoppingCategoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+      column: $table.householdId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get colorHex =>
+      $composableBuilder(column: $table.colorHex, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$ShoppingCategoriesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ShoppingCategoriesTable,
+    ShoppingCategoryRow,
+    $$ShoppingCategoriesTableFilterComposer,
+    $$ShoppingCategoriesTableOrderingComposer,
+    $$ShoppingCategoriesTableAnnotationComposer,
+    $$ShoppingCategoriesTableCreateCompanionBuilder,
+    $$ShoppingCategoriesTableUpdateCompanionBuilder,
+    (
+      ShoppingCategoryRow,
+      BaseReferences<_$AppDatabase, $ShoppingCategoriesTable,
+          ShoppingCategoryRow>
+    ),
+    ShoppingCategoryRow,
+    PrefetchHooks Function()> {
+  $$ShoppingCategoriesTableTableManager(
+      _$AppDatabase db, $ShoppingCategoriesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ShoppingCategoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ShoppingCategoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ShoppingCategoriesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> householdId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> colorHex = const Value.absent(),
+            Value<int> sortOrder = const Value.absent(),
+            Value<String> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ShoppingCategoriesCompanion(
+            id: id,
+            householdId: householdId,
+            name: name,
+            colorHex: colorHex,
+            sortOrder: sortOrder,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String householdId,
+            required String name,
+            required String colorHex,
+            required int sortOrder,
+            required String createdAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ShoppingCategoriesCompanion.insert(
+            id: id,
+            householdId: householdId,
+            name: name,
+            colorHex: colorHex,
+            sortOrder: sortOrder,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ShoppingCategoriesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ShoppingCategoriesTable,
+    ShoppingCategoryRow,
+    $$ShoppingCategoriesTableFilterComposer,
+    $$ShoppingCategoriesTableOrderingComposer,
+    $$ShoppingCategoriesTableAnnotationComposer,
+    $$ShoppingCategoriesTableCreateCompanionBuilder,
+    $$ShoppingCategoriesTableUpdateCompanionBuilder,
+    (
+      ShoppingCategoryRow,
+      BaseReferences<_$AppDatabase, $ShoppingCategoriesTable,
+          ShoppingCategoryRow>
+    ),
+    ShoppingCategoryRow,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4061,4 +4609,6 @@ class $AppDatabaseManager {
   $$ShoppingSyncQueueEntriesTableTableManager get shoppingSyncQueueEntries =>
       $$ShoppingSyncQueueEntriesTableTableManager(
           _db, _db.shoppingSyncQueueEntries);
+  $$ShoppingCategoriesTableTableManager get shoppingCategories =>
+      $$ShoppingCategoriesTableTableManager(_db, _db.shoppingCategories);
 }

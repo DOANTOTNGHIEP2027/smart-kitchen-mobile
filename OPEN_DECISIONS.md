@@ -235,3 +235,18 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Task dọn shopping tiếp theo.
 - **Cần người quyết lại không:** Có cho (1) — có mở picker luôn khi kiểm lại thấy online không.
+
+### OD-30 · Chia sẻ + quản lý danh mục đi chợ (#69, shopping-share-category.md) — lệch thiết kế theo code thật
+- **Ngày:** 2026-10-20 · **Task:** #69 · **Nhánh:** `feature/69_shopping-share-category`
+- **Tình huống:** (1) Repo KHÔNG có `QuickAddSheet`/ô nhập category tự do/`knownCategories` như thiết kế giả định — sheet thêm món là `_showAddDialog` trong scene với hàng ChoiceChip cố định → chip gợi ý = category local (màu, thứ tự người dùng) + category đã dùng trên món + bộ mặc định cũ, không trùng (hoa/thường). (2) Lỗi validate của `CategoryStore` là enum `CategoryError` dịch qua l10n thay vì `String` tiếng Việt (luật không hardcode text); vẫn KHÔNG phải ApiException (Guard #9). (3) Không có package `uuid` → id `cat-<micros>-<rand>` như id tạm của shopping. (4) Flutter 3.47: `ReorderableListView.onReorder` deprecated → dùng `onReorderItem` (đã trừ sẵn chỉ số) — bước -1 của Guard #6 không còn áp dụng. (5) Row Drift đặt `@DataClassName('ShoppingCategoryRow')` để không trùng model domain. (6) Chuỗi share text lấy từ l10n, truyền vào builder qua `ShoppingShareLabels` (builder vẫn pure, Guard #7). (7) Sửa kèm: dropdown đơn vị trong sheet thêm món tràn ngang với nhãn dài → `isExpanded: true`.
+- **Đã chọn:** Như trên. · **Theo:** §6.0 quy tắc 2–3 + AGENTS.md (không hardcode text, không thêm package ngoài D-05).
+- **Đảo ngược thế nào:** Khi BE có category CRUD/share-link (Q1/Q2 của thiết kế) → thiết kế lượt riêng.
+- **Cần người quyết lại không:** Không.
+
+### OD-31 · Chia sẻ + danh mục đi chợ (#69) — finding còn lại sau 3 vòng review
+- **Ngày:** 2026-10-20 · **Task:** #69 · **Nhánh:** `feature/69_shopping-share-category`
+- **Đã sửa trong 3 vòng:** xoá/sắp xếp optimistic + trả đúng snapshot khi ghi lỗi + snackbar; sortOrder mới = max+1 (không trùng sau khi xoá); `update()` chỉ ghi tên + màu; lỗi đọc/ghi Drift → `saveFailed` (không kẹt dialog); stream lỗi → màn hiện lỗi + thử lại; nạp lại cùng household không nháy loading, gọi song song không rò subscription.
+- **Còn lại:** (1) `CategoryStore.dispose()` không được GetX gọi khi xoá instance `lazyPut(fenix)` — cùng kiểu `ShoppingStore` hiện có. (2) Đổi household khi tab đi chợ đã dựng → chip category không nạp lại tới khi mở màn quản lý. (3) `/shopping/categories` mở trực tiếp (deep link/web reload) → `Get.find<CategoryStore>()` crash — đúng ràng buộc Guard #11 (chỉ push từ màn đi chợ). (4) Giới hạn 100 đếm theo UTF-16 (khớp BE) còn ô nhập đếm theo ký tự hiển thị — emoji lệch. (5) Share text ghép số lượng + đơn vị không dấu cách ('2cái'), theo đúng mẫu §11. (6) Hàm định dạng số lượng lặp ở 3 nơi. (7) Thêm category đọc bảng 2 lần.
+- **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Task dọn shopping tiếp theo.
+- **Cần người quyết lại không:** Có cho (5) — có thêm dấu cách '2 cái' không.

@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'inventory_items_table.dart';
 import 'inventory_sync_queue_table.dart';
 import 'read_cache_table.dart';
+import 'shopping_categories_table.dart';
 import 'shopping_list_items_table.dart';
 import 'shopping_sync_queue_table.dart';
 
@@ -24,12 +25,14 @@ part 'app_database.g.dart';
 /// - 5 (#133): thêm cột `price` cho shopping_list_items. DB đi từ <4 tạo bảng
 ///   mới đã có cột này nên chỉ ALTER khi đi từ đúng v4.
 /// - 6 (#134): thêm cột `assigned_to` — ALTER khi đi từ v4 hoặc v5.
+/// - 7 (#69): thêm bảng [ShoppingCategories] (category local-only).
 @DriftDatabase(tables: <Type>[
   ReadCacheEntries,
   InventoryItems,
   InventorySyncQueue,
   ShoppingListItems,
   ShoppingSyncQueueEntries,
+  ShoppingCategories,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_filesystemBackend());
@@ -38,7 +41,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -62,6 +65,9 @@ class AppDatabase extends _$AppDatabase {
           if (from == 4 || from == 5) {
             // #134 — người được giao mua.
             await m.addColumn(shoppingListItems, shoppingListItems.assignedTo);
+          }
+          if (from < 7) {
+            await m.createTable(shoppingCategories);
           }
         },
       );

@@ -4376,6 +4376,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Offline estimate · {percent}%'**
   String aiOfflineEstimateConfidence(int percent);
+
+  /// No description provided for @shoppingManageCategoriesTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage categories'**
+  String get shoppingManageCategoriesTooltip;
+
+  /// No description provided for @shoppingShareTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Share list'**
+  String get shoppingShareTooltip;
+
+  /// No description provided for @shoppingCategoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping categories'**
+  String get shoppingCategoriesTitle;
+
+  /// No description provided for @shoppingCategoriesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet. Create categories to colour and order your shopping list your way.\nCategories are kept on this device only and are not synced to your family.'**
+  String get shoppingCategoriesEmpty;
+
+  /// No description provided for @shoppingCategoriesLocalNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept on this device only — not synced to your family.'**
+  String get shoppingCategoriesLocalNote;
+
+  /// No description provided for @shoppingCategoryAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get shoppingCategoryAdd;
+
+  /// No description provided for @shoppingCategoryEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get shoppingCategoryEdit;
+
+  /// No description provided for @shoppingCategoryNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get shoppingCategoryNameLabel;
+
+  /// No description provided for @shoppingCategoryColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Colour'**
+  String get shoppingCategoryColorLabel;
+
+  /// No description provided for @shoppingCategorySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get shoppingCategorySave;
+
+  /// No description provided for @shoppingCategoryCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get shoppingCategoryCancel;
+
+  /// No description provided for @shoppingCategoryDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get shoppingCategoryDelete;
+
+  /// No description provided for @shoppingCategoryErrEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name can\'t be empty'**
+  String get shoppingCategoryErrEmpty;
+
+  /// No description provided for @shoppingCategoryErrTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name must be at most {max} characters'**
+  String shoppingCategoryErrTooLong(int max);
+
+  /// No description provided for @shoppingCategoryErrDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'A category with this name already exists'**
+  String get shoppingCategoryErrDuplicate;
+
+  /// No description provided for @shoppingCategoriesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load categories'**
+  String get shoppingCategoriesLoadFailed;
+
+  /// No description provided for @shoppingCategoryErrSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save, please try again'**
+  String get shoppingCategoryErrSaveFailed;
+
+  /// No description provided for @shoppingCategoryDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category \"{name}\"? Items already in this category keep it — only the colour and order hint is lost.'**
+  String shoppingCategoryDeleteConfirm(String name);
+
+  /// No description provided for @shoppingShareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share shopping list'**
+  String get shoppingShareTitle;
+
+  /// No description provided for @shoppingShareCopyText.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy as text'**
+  String get shoppingShareCopyText;
+
+  /// No description provided for @shoppingShareNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No items to share yet'**
+  String get shoppingShareNoItems;
+
+  /// No description provided for @shoppingShareLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Share link'**
+  String get shoppingShareLink;
+
+  /// No description provided for @shoppingShareComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get shoppingShareComingSoon;
+
+  /// No description provided for @shoppingShareCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping list copied to clipboard'**
+  String get shoppingShareCopied;
+
+  /// No description provided for @shoppingShareTextHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'🛒 Shopping list'**
+  String get shoppingShareTextHeader;
+
+  /// No description provided for @shoppingShareTextProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought: {checked}/{total}'**
+  String shoppingShareTextProgress(int checked, int total);
+
+  /// No description provided for @shoppingShareTextUncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get shoppingShareTextUncategorized;
+
+  /// No description provided for @shoppingShareTextFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Made with Smart Kitchen App'**
+  String get shoppingShareTextFooter;
 }
 
 class _AppLocalizationsDelegate

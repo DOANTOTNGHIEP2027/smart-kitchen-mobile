@@ -2430,4 +2430,98 @@ class AppLocalizationsEn extends AppLocalizations {
   String aiOfflineEstimateConfidence(int percent) {
     return 'Offline estimate · $percent%';
   }
+
+  @override
+  String get shoppingManageCategoriesTooltip => 'Manage categories';
+
+  @override
+  String get shoppingShareTooltip => 'Share list';
+
+  @override
+  String get shoppingCategoriesTitle => 'Shopping categories';
+
+  @override
+  String get shoppingCategoriesEmpty =>
+      'No categories yet. Create categories to colour and order your shopping list your way.\nCategories are kept on this device only and are not synced to your family.';
+
+  @override
+  String get shoppingCategoriesLocalNote =>
+      'Kept on this device only — not synced to your family.';
+
+  @override
+  String get shoppingCategoryAdd => 'Add category';
+
+  @override
+  String get shoppingCategoryEdit => 'Edit category';
+
+  @override
+  String get shoppingCategoryNameLabel => 'Category name';
+
+  @override
+  String get shoppingCategoryColorLabel => 'Colour';
+
+  @override
+  String get shoppingCategorySave => 'Save';
+
+  @override
+  String get shoppingCategoryCancel => 'Cancel';
+
+  @override
+  String get shoppingCategoryDelete => 'Delete';
+
+  @override
+  String get shoppingCategoryErrEmpty => 'Category name can\'t be empty';
+
+  @override
+  String shoppingCategoryErrTooLong(int max) {
+    return 'Category name must be at most $max characters';
+  }
+
+  @override
+  String get shoppingCategoryErrDuplicate =>
+      'A category with this name already exists';
+
+  @override
+  String get shoppingCategoriesLoadFailed => 'Couldn\'t load categories';
+
+  @override
+  String get shoppingCategoryErrSaveFailed =>
+      'Couldn\'t save, please try again';
+
+  @override
+  String shoppingCategoryDeleteConfirm(String name) {
+    return 'Delete category \"$name\"? Items already in this category keep it — only the colour and order hint is lost.';
+  }
+
+  @override
+  String get shoppingShareTitle => 'Share shopping list';
+
+  @override
+  String get shoppingShareCopyText => 'Copy as text';
+
+  @override
+  String get shoppingShareNoItems => 'No items to share yet';
+
+  @override
+  String get shoppingShareLink => 'Share link';
+
+  @override
+  String get shoppingShareComingSoon => 'Coming soon';
+
+  @override
+  String get shoppingShareCopied => 'Shopping list copied to clipboard';
+
+  @override
+  String get shoppingShareTextHeader => '🛒 Shopping list';
+
+  @override
+  String shoppingShareTextProgress(int checked, int total) {
+    return 'Bought: $checked/$total';
+  }
+
+  @override
+  String get shoppingShareTextUncategorized => 'Uncategorized';
+
+  @override
+  String get shoppingShareTextFooter => 'Made with Smart Kitchen App';
 }
