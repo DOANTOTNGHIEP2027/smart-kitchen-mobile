@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:mobx/mobx.dart';
 
 /// Service detect trạng thái mạng online/offline (FE-3 #49).
 ///
@@ -31,13 +32,29 @@ class ConnectivityService {
 
   bool get isListening => _sub != null;
 
+  /// `null` = chưa biết (trước [init]) — coi như online để không khoá nhầm UI;
+  /// thao tác vẫn kiểm [isOnline] lúc bấm.
+  final Observable<bool?> _online = Observable<bool?>(null);
+
+  /// Trạng thái mạng REACTIVE cho UI (đọc trong `Observer`) — vd. khoá chip
+  /// giao việc khi offline (shopping-list-screen §9.5, OD-21).
+  bool get isOnlineNow => _online.value ?? true;
+
   /// Kiểm tra online tại thời điểm gọi — dùng cho InventoryFormStore quyết
   /// định optimistic-then-enqueue vs optimistic-then-API. Lưu ý: đây là best
   /// effort vì `connectivity_plus` không guarantee internet thật — chỉ loại
   /// kết nối. Đủ để chặn các thao tác chắc chắn thất bại khi `none`.
   Future<bool> isOnline() async {
     final results = await _connectivity.checkConnectivity();
-    return !_isOffline(results);
+    final online = !_isOffline(results);
+    // Đồng bộ lại [isOnlineNow] — stream có thể lỡ sự kiện (vd. app resume),
+    // không được để UI khoá vĩnh viễn theo trạng thái cũ.
+    runInAction(() => _online.value = online);
+    // Lỡ sự kiện "mất mạng" thì vẫn phải ghi nhận, để lần có mạng lại kế tiếp
+    // phát [onConnectivityRestored]. Không hạ cờ khi online — lần khôi phục bị
+    // lỡ vẫn được phát ở sự kiện stream tiếp theo.
+    if (!online) _wasOffline = true;
+    return online;
   }
 
   /// Bắt đầu lắng nghe thay đổi kết nối.
@@ -45,6 +62,7 @@ class ConnectivityService {
     // Kiểm tra trạng thái hiện tại
     final results = await _connectivity.checkConnectivity();
     _wasOffline = _isOffline(results);
+    runInAction(() => _online.value = !_wasOffline);
 
     _sub = _connectivity.onConnectivityChanged.listen(_onChanged);
     developer.log(
@@ -77,6 +95,7 @@ class ConnectivityService {
       }
     }
     _wasOffline = offline;
+    runInAction(() => _online.value = !offline);
   }
 
   static bool _isOffline(List<ConnectivityResult> results) {
