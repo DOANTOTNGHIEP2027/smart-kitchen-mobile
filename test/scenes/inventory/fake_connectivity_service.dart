@@ -25,6 +25,9 @@ class FakeConnectivityService implements ConnectivityService {
   bool get isListening => true;
 
   @override
+  bool get isOnlineNow => _online;
+
+  @override
   Future<void> init() async {}
 
   @override

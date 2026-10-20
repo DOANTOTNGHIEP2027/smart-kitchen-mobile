@@ -227,3 +227,11 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Nếu cần triệt để (1)(2): đổi snackbar lỗi thành banner inline trong Observer.
 - **Cần người quyết lại không:** Không.
+
+### OD-29 · Chip giao việc khoá khi offline (đảo ngược OD-21 (1)) — đã làm & còn lại
+- **Ngày:** 2026-10-20 · **Task:** #134 · **Nhánh:** `feature/134_assignee-offline-chip`
+- **Đã làm:** `ConnectivityService.isOnlineNow` (MobX Observable, cập nhật theo `onConnectivityChanged` và mỗi lần `isOnline()`); chip giao việc disabled + bấm hiện 'Cần mạng để giao việc' khi offline, đúng shopping-list-screen §9.5; bấm chip đang khoá thì kiểm lại mạng thật (stream lỡ sự kiện → chip tự mở); `isOnline()` thấy offline thì ghi `_wasOffline` để lần có mạng sau vẫn phát `onConnectivityRestored`.
+- **Còn lại:** (1) Bấm chip khoá mà kiểm lại thấy đã online → chip mở nhưng lần bấm đó không mở picker (phải bấm lại). (2) Sau await trong `onDisabledTap` vẫn đọc `item.isPendingSync` lúc build. (3) Test: chip đọc `ConnectivityService` thật, store dùng fake riêng — nên đưa trạng thái online vào 1 nguồn. (4) 3 biến cùng theo dõi online (`_wasOffline`, `_online`, `ConnectivitySignal`). (5) `Get.find<ConnectivityService>()` mỗi dòng lúc build.
+- **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Task dọn shopping tiếp theo.
+- **Cần người quyết lại không:** Có cho (1) — có mở picker luôn khi kiểm lại thấy online không.

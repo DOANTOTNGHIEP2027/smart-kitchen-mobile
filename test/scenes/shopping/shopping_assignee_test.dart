@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -84,6 +85,26 @@ class _FakeApi implements ShoppingApi {
     await listGate?.future;
     return snapshot;
   }
+}
+
+/// `Connectivity` giả cho [ConnectivityService] THẬT — đẩy thay đổi mạng bằng tay.
+class _FakeNet implements Connectivity {
+  _FakeNet(this.current);
+  List<ConnectivityResult> current;
+  final StreamController<List<ConnectivityResult>> changes =
+      StreamController<List<ConnectivityResult>>.broadcast();
+
+  void set(List<ConnectivityResult> r) {
+    current = r;
+    changes.add(r);
+  }
+
+  @override
+  Future<List<ConnectivityResult>> checkConnectivity() async => current;
+  @override
+  Stream<List<ConnectivityResult>> get onConnectivityChanged => changes.stream;
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
 class _FakeConnectivity extends ConnectivityService {
@@ -370,8 +391,14 @@ void main() {
       late _FakeConnectivity conn;
       late ShoppingStore store;
       late ShoppingDao dao;
+      late _FakeNet net;
+      late ConnectivityService service;
 
-      setUp(() {
+      setUp(() async {
+        net = _FakeNet(<ConnectivityResult>[ConnectivityResult.wifi]);
+        service = ConnectivityService(connectivity: net);
+        await service.init();
+        Get.put<ConnectivityService>(service);
         conn = _FakeConnectivity();
         dao = ShoppingDao(db);
         final s = session();
@@ -379,7 +406,11 @@ void main() {
         store = ShoppingStore(dao: dao, api: _FakeApi()..mirror = () => dao.getAll('h1'), connectivity: conn, session: s);
         Get.put<ShoppingStore>(store);
       });
-      tearDown(Get.reset);
+      tearDown(() async {
+        Get.reset();
+        await service.dispose();
+        await net.changes.close();
+      });
 
       Future<void> pickMe(WidgetTester tester, ShoppingItem i) async {
         await tester.pumpAppWidget(Builder(
@@ -431,6 +462,45 @@ void main() {
         }
         return find.byKey(const ValueKey<String>('shopping-filter-mine'));
       }
+
+      testWidgets('§9.5: mất mạng → chip giao việc KHOÁ ngay (không cần bấm); bấm → "Cần mạng", KHÔNG mở picker', (tester) async {
+        final chip = find.byKey(const ValueKey<String>('assignee-chip-i1'));
+        await pumpScene(tester, <ShoppingItem>[item()]);
+        double opacity() => tester.widget<Opacity>(find.ancestor(of: chip, matching: find.byType(Opacity)).first).opacity;
+        expect(opacity(), 1);
+
+        net.set(<ConnectivityResult>[ConnectivityResult.none]);
+        // Service init() ở setUp (zone thật) → sự kiện stream giao ở zone thật.
+        await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+        await tester.pump();
+        expect(opacity(), 0.5);
+        await tester.tap(chip);
+        await tester.pump();
+        expect(find.text('Cần mạng để giao việc'), findsOneWidget);
+        expect(find.byType(AssigneePickerSheet), findsNothing);
+
+        net.set(<ConnectivityResult>[ConnectivityResult.mobile]);
+        await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+        await tester.pump();
+        expect(opacity(), 1);
+      });
+
+      testWidgets('stream LỠ sự kiện "có mạng lại" → bấm chip khoá kiểm lại mạng thật, chip tự mở, KHÔNG báo "Cần mạng"', (tester) async {
+        final chip = find.byKey(const ValueKey<String>('assignee-chip-i1'));
+        await pumpScene(tester, <ShoppingItem>[item()]);
+        double opacity() => tester.widget<Opacity>(find.ancestor(of: chip, matching: find.byType(Opacity)).first).opacity;
+        net.set(<ConnectivityResult>[ConnectivityResult.none]);
+        await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+        await tester.pump();
+        expect(opacity(), 0.5);
+
+        net.current = <ConnectivityResult>[ConnectivityResult.wifi]; // KHÔNG phát sự kiện
+        await tester.tap(chip);
+        await tester.pump();
+        await tester.pump();
+        expect(opacity(), 1);
+        expect(find.text('Cần mạng để giao việc'), findsNothing);
+      });
 
       testWidgets('chip "Của tôi": không có món chưa mua của mình → KHÔNG số', (tester) async {
         final chip = await pumpScene(tester, <ShoppingItem>[

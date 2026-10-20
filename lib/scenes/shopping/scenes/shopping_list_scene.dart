@@ -494,6 +494,9 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
     ShoppingStore store,
   ) {
     final theme = Theme.of(context);
+    // Gọi trong Observer của danh sách → chip tự khoá/mở khi mạng đổi.
+    final connectivity = Get.find<ConnectivityService>();
+    final isOnline = connectivity.isOnlineNow;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppDimens.xs),
@@ -613,22 +616,33 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                             familyStore: shoppingFamilyStore(),
                             currentUserId:
                                 Get.find<SessionStore>().currentUser?.id,
-                            // Guard #18: chỉ gán khi row đã SYNCED.
-                            enabled: !item.isPendingSync &&
+                            // Guard #18: chỉ gán khi row đã SYNCED; §9.5:
+                            // ONLINE-ONLY → offline thì khoá ngay tại chip.
+                            enabled: isOnline &&
+                                !item.isPendingSync &&
                                 !store.isAssigning(item.id),
-                            onDisabledTap: item.isPendingSync
-                                ? () => ScaffoldMessenger.of(context)
-                                  ..hideCurrentSnackBar()
-                                  ..showSnackBar(SnackBar(
-                                      content: Text(
-                                          context.l10n.shoppingAssignSyncing)))
+                            onDisabledTap: !isOnline || item.isPendingSync
+                                ? () async {
+                                    // Kiểm lại mạng thật — isOnline() cập nhật
+                                    // isOnlineNow nên chip tự mở nếu stream lỡ
+                                    // sự kiện "có mạng lại".
+                                    final offline = !isOnline &&
+                                        !await connectivity.isOnline();
+                                    if (!offline && !item.isPendingSync) return;
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context)
+                                      ..hideCurrentSnackBar()
+                                      ..showSnackBar(SnackBar(
+                                          content: Text(offline
+                                              ? context.l10n.shoppingAssignNeedsNetwork
+                                              : context.l10n.shoppingAssignSyncing)));
+                                  }
                                 : null,
                             onTap: () => openAssigneePicker(
                               context,
                               store,
                               item,
-                              isOnline: () => Get.find<ConnectivityService>()
-                                  .isOnline(),
+                              isOnline: connectivity.isOnline,
                             ),
                           ),
                           if (item.isPendingSync)
