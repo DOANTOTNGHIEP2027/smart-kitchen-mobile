@@ -217,11 +217,12 @@ class _DependentListScreenState extends State<DependentListScreen> {
       try {
         final birthDate = DateTime.parse(dob);
         final now = DateTime.now();
+        final date = DateFormat.yMd(Localizations.localeOf(context).toString())
+            .format(birthDate);
         final age = ageOn(birthDate, now);
-        ageText = context.l10n.dependentAgeAndBirth(
-            age,
-            DateFormat.yMd(Localizations.localeOf(context).toString())
-                .format(birthDate));
+        // Ngày sinh ở tương lai (dữ liệu BE sai) → chỉ hiện ngày, không "-1 tuổi".
+        ageText =
+            age < 0 ? date : context.l10n.dependentAgeAndBirth(age, date);
       } catch (_) {
         ageText = dob;
       }
