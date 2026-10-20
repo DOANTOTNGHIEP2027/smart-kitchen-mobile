@@ -37,6 +37,12 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
     with WidgetsBindingObserver {
   late final CookingSessionStore _store;
   ReactionDisposer? _wakelockReaction;
+  ReactionDisposer? _actionErrorReaction;
+
+  /// Snackbar của lỗi thao tác đang hiện/xếp hàng (OD-27).
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _errorSnack;
+  ApiException? _errorSnackError;
+  bool _errorSnackVisible = false;
 
   @override
   void initState() {
@@ -58,7 +64,77 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
       },
     );
 
+    // Snackbar lỗi thao tác: reaction chỉ chạy khi lỗi ĐỔI — không phụ thuộc
+    // Observer build lại mỗi giây vì timer (OD-27).
+    _actionErrorReaction = reaction<ApiException?>(
+      (_) => _store.actionError,
+      _onActionErrorChanged,
+    );
+
     _store.init();
+  }
+
+  void _onActionErrorChanged(ApiException? error) {
+    // Snackbar có "Thử lại" persist — lỗi đã bị xoá/thay thì tự đóng.
+    if (_errorSnack != null && !identical(_errorSnackError, error)) {
+      _closeStaleErrorSnack();
+    }
+    if (error == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    _errorSnackError = error;
+    _errorSnackVisible = false;
+    late final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> snack;
+    snack = messenger.showSnackBar(
+      SnackBar(
+        content: Text(apiErrorMessage(l10n, error)),
+        // Đang xếp hàng sau snackbar khác thì chỉ đóng được khi tới lượt.
+        onVisible: () {
+          if (identical(_errorSnack, snack)) _errorSnackVisible = true;
+          // Lỗi đã cũ trong lúc chờ → tự đóng CHÍNH nó.
+          if (!identical(_store.actionError, error)) snack.close();
+        },
+        action: _store.canRetryAction
+            ? SnackBarAction(
+                label: l10n.cookingRetry,
+                // User bấm mới chạy, KHÔNG tự retry.
+                onPressed: () {
+                  if (identical(_store.actionError, error)) {
+                    _store.retryLastAction();
+                  }
+                },
+              )
+            : null,
+      ),
+    );
+    _errorSnack = snack;
+    snack.closed.then((reason) {
+      if (identical(_errorSnack, snack)) {
+        _errorSnack = null;
+        _errorSnackError = null;
+      }
+      if (!identical(_store.actionError, error)) return;
+      if (reason == SnackBarClosedReason.hide ||
+          reason == SnackBarClosedReason.remove) {
+        // Bị snackbar khác (vd. thông báo toàn cục) đẩy ra trong khi lỗi vẫn
+        // còn → xếp hiện lại, không xoá mất đường "Thử lại".
+        if (mounted) _onActionErrorChanged(error);
+        return;
+      }
+      // Tự ẩn/bị vuốt → lỗi không còn UI nào hiện, dọn khỏi store.
+      _store.clearActionError();
+    });
+  }
+
+  /// `close()` chỉ hợp lệ khi snackbar đang là cái hiện tại — chưa tới lượt
+  /// thì `onVisible` của nó sẽ tự đóng.
+  void _closeStaleErrorSnack() {
+    final snack = _errorSnack;
+    final visible = _errorSnackVisible;
+    _errorSnack = null;
+    _errorSnackError = null;
+    _errorSnackVisible = false;
+    if (snack != null && visible) snack.close();
   }
 
   @override
@@ -74,6 +150,10 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
   @override
   void dispose() {
     _wakelockReaction?.call();
+    // Rời màn hình → lỗi không còn UI: reaction tự đóng snackbar "Thử lại"
+    // (persist) để nó không treo sang màn khác và gọi store đã dispose.
+    _store.clearActionError();
+    _actionErrorReaction?.call();
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable(); // idempotent-safe dù reaction đã tắt trước đó
     _store.dispose();
@@ -202,15 +282,6 @@ class _ErrorPhaseView extends StatelessWidget {
 
 /// Phase `active` — top bar + progress + nội dung bước + timer + nút hành động.
 class _ActiveStepView extends StatelessWidget {
-  /// Lỗi đã hiện snackbar — key theo instance, tự giải phóng khi lỗi bị bỏ.
-  static final Expando<bool> _shownErrors = Expando<bool>('cookingShownError');
-
-  /// Lỗi của snackbar đang hiện, theo store. Snackbar có "Thử lại" persist —
-  /// lỗi đã bị xoá/thay thì phải tự ẩn, không thì nó treo mãi (kể cả sang màn
-  /// khác) và chặn snackbar của lỗi mới phía sau.
-  static final Expando<ApiException> _snackBarErrors =
-      Expando<ApiException>('cookingSnackBarError');
-
   const _ActiveStepView({required this.store, required this.onAbandon});
 
   final CookingSessionStore store;
@@ -230,59 +301,8 @@ class _ActiveStepView extends StatelessWidget {
       ],
       body: Observer(
         builder: (_) {
-          final actionError = store.actionError;
-          final shownError = _snackBarErrors[store];
-          if (shownError != null && !identical(shownError, actionError)) {
-            _snackBarErrors[store] = null;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              }
-            });
-          }
-          // Observer build lại mỗi giây (timer) — chỉ hiện snackbar 1 lần cho
-          // mỗi instance lỗi, không xếp hàng 1 cái/giây.
-          if (actionError != null && _shownErrors[actionError] != true) {
-            _shownErrors[actionError] = true;
-            _snackBarErrors[store] = actionError;
-            // Banner lỗi không chặn — "Thử lại" gọi lại đúng thao tác vừa lỗi
-            // (user bấm mới chạy, KHÔNG tự retry).
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(
-                      SnackBar(
-                        content:
-                            Text(apiErrorMessage(context.l10n, actionError)),
-                        action: store.canRetryAction
-                            ? SnackBarAction(
-                                label: context.l10n.cookingRetry,
-                                // Snackbar persist (có action) — lỗi có thể đã bị
-                                // thao tác khác thay/xoá; chỉ retry khi vẫn là nó.
-                                onPressed: () {
-                                  if (identical(store.actionError, actionError)) {
-                                    store.retryLastAction();
-                                  }
-                                },
-                              )
-                            : null,
-                      ),
-                    )
-                    .closed
-                    .then((reason) {
-                  if (identical(_snackBarErrors[store], actionError)) {
-                    _snackBarErrors[store] = null;
-                  }
-                  // Snackbar tự ẩn/bị vuốt → lỗi không còn UI nào hiện, dọn
-                  // khỏi store (chỉ khi vẫn là ĐÚNG lỗi này).
-                  if (reason != SnackBarClosedReason.action &&
-                      identical(store.actionError, actionError)) {
-                    store.clearActionError();
-                  }
-                });
-              }
-            });
-          }
+          final busy =
+              store.isAdvancing || store.isCompleting || store.isResyncing;
           return Column(
             children: <Widget>[
               const SizedBox(height: AppDimens.md),
@@ -358,13 +378,11 @@ class _ActiveStepView extends StatelessWidget {
                         label: store.session?.isLastStep == true
                             ? context.l10n.cookingComplete
                             : context.l10n.cookingNextStep,
-                        isLoading: store.isAdvancing || store.isCompleting,
+                        isLoading: busy,
                         icon: store.session?.isLastStep == true
                             ? Icons.check_circle_outline
                             : Icons.arrow_forward,
-                        onPressed: (store.isAdvancing || store.isCompleting)
-                            ? null
-                            : store.advanceOrComplete,
+                        onPressed: busy ? null : store.advanceOrComplete,
                       ),
                     ),
                   ],

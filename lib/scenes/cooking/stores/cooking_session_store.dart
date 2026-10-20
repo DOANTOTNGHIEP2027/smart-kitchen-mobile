@@ -69,8 +69,13 @@ class CookingSessionStore {
       Observable<ApiException?>(null);
 
   /// Thao tác vừa sinh [actionError] — "Thử lại" gọi lại đúng nó (OD-18).
-  /// `null` với abandon: dialog Huỷ bỏ vẫn mở, người dùng bấm lại ở đó.
-  Future<void> Function()? _retryAction;
+  /// `null` với abandon (dialog Huỷ bỏ vẫn mở, người dùng bấm lại ở đó) và
+  /// với lỗi chắc chắn lặp lại ([_isRetryableActionError]).
+  final Observable<Future<void> Function()?> _retryAction =
+      Observable<Future<void> Function()?>(null);
+  /// Số resync đang chạy — có thể chồng nhau (advance + abandon cùng gặp lỗi
+  /// lệch state), cái xong trước không được mở khoá nút khi cái kia còn chạy.
+  final Observable<int> _resyncCount = Observable<int>(0);
 
   // Mã lỗi ở `phase=error` KHÔNG tự sửa được bằng cách gọi lại đúng request
   // vừa lỗi (id/recipe sai vẫn sẽ sai lần nữa).
@@ -79,6 +84,13 @@ class CookingSessionStore {
     'ERR_SESSION_NO_HOUSEHOLD',
     'ERR_SESSION_RECIPE_NOT_FOUND',
     'ERR_SESSION_RECIPE_NO_STEPS',
+  };
+
+  // Lỗi thao tác mà gọi lại y nguyên vẫn sai — snackbar KHÔNG có "Thử lại"
+  // (OD-27, cùng tinh thần [_nonRetryableLoadErrorCodes]).
+  static const Set<String> _nonRetryableActionErrorCodes = <String>{
+    'ERR_SESSION_NOT_FOUND',
+    'ERR_SESSION_NO_HOUSEHOLD',
   };
 
   // ── Getters ──────────────────────────────────────────────────────────────
@@ -95,7 +107,9 @@ class CookingSessionStore {
   bool get isAbandoning => _isAbandoning.value;
   ApiException? get loadError => _loadError.value;
   ApiException? get actionError => _actionError.value;
-  bool get canRetryAction => _retryAction != null;
+  bool get canRetryAction => _retryAction.value != null;
+  /// Đang GET lại session (resync) — nút chính phải khoá như khi advance.
+  bool get isResyncing => _resyncCount.value > 0;
 
   bool get isViewingCurrentStep =>
       viewedStep == (session?.currentStep ?? 1);
@@ -252,14 +266,21 @@ class CookingSessionStore {
       await complete();
       return;
     }
-    _retryAction = null;
     runInAction(() {
+      _retryAction.value = null;
       _isAdvancing.value = true;
       _actionError.value = null;
     });
     try {
       final updated =
           await _cookingApi.advanceStep(s.id, s.currentStep + 1);
+      // Như resync: về muộn sau abandon/complete tại máy hoặc màn đã đóng →
+      // bỏ, không ghi đè session đã kết thúc + bật timer mồ côi (OD-27).
+      if (_disposed ||
+          _phase.value == CookingScreenPhase.abandoned ||
+          _phase.value == CookingScreenPhase.completed) {
+        return;
+      }
       runInAction(() {
         _session.value = updated;
         _viewedStep.value = updated.currentStep;
@@ -288,8 +309,8 @@ class CookingSessionStore {
   Future<void> complete() async {
     final s = _session.value;
     if (s == null) return;
-    _retryAction = null;
     runInAction(() {
+      _retryAction.value = null;
       _isCompleting.value = true;
       _actionError.value = null;
     });
@@ -308,7 +329,7 @@ class CookingSessionStore {
       } else if (e is ApiException) {
         // Bao gồm ERR_SESSION_COMPLETE_CONFLICT (deadlock, retry an toàn) và
         // mọi mã khác — UI hiện banner retry.
-        _setActionError(e, complete);
+        _setActionError(e, _retryComplete);
       } else {
         rethrow;
       }
@@ -321,8 +342,8 @@ class CookingSessionStore {
   Future<void> abandon() async {
     final s = _session.value;
     if (s == null) return;
-    _retryAction = null;
     runInAction(() {
+      _retryAction.value = null;
       _isAbandoning.value = true;
       _actionError.value = null;
     });
@@ -352,8 +373,17 @@ class CookingSessionStore {
   Future<void> _resyncSessionFromServer() async {
     final id = _session.value?.id ?? _sessionId;
     if (id == null) return;
+    runInAction(() => _resyncCount.value += 1);
     try {
       final result = await _cookingApi.getById(id);
+      // GET về muộn sau khi phiên đã kết thúc tại máy (abandon/complete trong
+      // lúc chờ) hoặc màn đã đóng → bỏ, không kéo phase về active + bật timer
+      // mồ côi (OD-27).
+      if (_disposed ||
+          _phase.value == CookingScreenPhase.abandoned ||
+          _phase.value == CookingScreenPhase.completed) {
+        return;
+      }
       runInAction(() {
         _session.value = result.session;
         _deductions.value = result.deductions;
@@ -366,6 +396,8 @@ class CookingSessionStore {
       }
     } on ApiException catch (e) {
       _setActionError(e, _resyncSessionFromServer);
+    } finally {
+      runInAction(() => _resyncCount.value -= 1);
     }
   }
 
@@ -425,14 +457,23 @@ class CookingSessionStore {
     runInAction(() => _timerRunning.value = false);
   }
 
+  static bool _isRetryableActionError(ApiException e) =>
+      e is! AuthExpiredException &&
+      e is! ValidationException &&
+      !_nonRetryableActionErrorCodes.contains(e.code);
+
   void _setActionError(ApiException e, Future<void> Function()? retry) {
-    _retryAction = retry;
-    runInAction(() => _actionError.value = e);
+    runInAction(() {
+      _retryAction.value = _isRetryableActionError(e) ? retry : null;
+      _actionError.value = e;
+    });
   }
 
   void clearActionError() {
-    _retryAction = null;
-    runInAction(() => _actionError.value = null);
+    runInAction(() {
+      _retryAction.value = null;
+      _actionError.value = null;
+    });
   }
 
   /// Retry advance khi người dùng đang xem lại bước cũ: advanceOrComplete sẽ
@@ -442,12 +483,23 @@ class CookingSessionStore {
     await advanceOrComplete();
   }
 
+  /// Như [_retryAdvance]: không hoàn thành phiên khi đang xem lại bước cũ.
+  Future<void> _retryComplete() async {
+    returnToCurrentStep();
+    await complete();
+  }
+
   /// "Thử lại" trên snackbar: xoá lỗi rồi gọi lại đúng thao tác vừa lỗi.
   Future<void> retryLastAction() async {
-    final retry = _retryAction;
+    final retry = _retryAction.value;
     clearActionError();
     await retry?.call();
   }
 
-  void dispose() => _cancelTimer();
+  bool _disposed = false;
+
+  void dispose() {
+    _disposed = true;
+    _cancelTimer();
+  }
 }

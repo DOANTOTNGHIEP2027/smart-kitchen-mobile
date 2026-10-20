@@ -219,3 +219,11 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Task dọn cooking tiếp theo.
 - **Cần người quyết lại không:** Có cho (2) — lỗi nào được 'Thử lại'.
+
+### OD-28 · Dọn OD-27 (snackbar lỗi cooking) — đã làm & còn lại
+- **Ngày:** 2026-10-20 · **Task:** dọn OD-27 · **Nhánh:** `chore/cooking-od27`
+- **Đã làm:** Snackbar lỗi thao tác chuyển sang `reaction` theo `actionError` trong State (bỏ Expando/post-frame; chỉ đóng snackbar khi đã hiện — `onVisible`); bị snackbar khác đẩy ra thì xếp hiện lại, không xoá lỗi; rời màn → dọn lỗi + đóng snackbar. Không 'Thử lại' cho AuthExpired, ValidationException, `ERR_SESSION_NOT_FOUND`, `ERR_SESSION_NO_HOUSEHOLD` (người duyệt chốt 2026-10-20). Retry complete quay về bước hiện tại; `isResyncing` (bộ đếm) khoá nút chính; kết quả advance/resync về muộn sau abandon/complete/dispose bị bỏ (không timer mồ côi); `canRetryAction` là Observable.
+- **Còn lại:** (1) Snackbar lỗi đang XẾP HÀNG lúc rời màn chớp ~250ms ở màn trước rồi tự đóng (Flutter không gỡ riêng được 1 snackbar trong hàng). (2) Bản debug + TalkBack: đóng snackbar trong `dispose` có thể báo setState khi cây khoá. (3) Chưa có test cho advance về muộn sau abandon và 2 resync chồng nhau. (4) Mã non-retryable lặp 2 mã với `_nonRetryableLoadErrorCodes`.
+- **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Nếu cần triệt để (1)(2): đổi snackbar lỗi thành banner inline trong Observer.
+- **Cần người quyết lại không:** Không.

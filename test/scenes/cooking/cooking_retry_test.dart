@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:mobx/mobx.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session_result.dart';
@@ -148,6 +151,145 @@ void main() {
     });
   });
 
+  group('OD-27', () {
+    test('lỗi chắc chắn lặp lại (AuthExpired, ERR_SESSION_NOT_FOUND/NO_HOUSEHOLD) → KHÔNG có retry', () async {
+      for (final err in <ApiException>[
+        AuthExpiredException('ERR_AUTH_EXPIRED', 'expired'),
+        BusinessException('ERR_SESSION_NOT_FOUND', 'x'),
+        BusinessException('ERR_SESSION_NO_HOUSEHOLD', 'x'),
+      ]) {
+        cookingApi.onCompleteError = err;
+        final store = newStore();
+        await store.init();
+        await store.complete();
+        expect(store.actionError, same(err));
+        expect(store.canRetryAction, isFalse, reason: err.code);
+        store.dispose();
+      }
+    });
+
+    test('retry complete khi đang xem bước cũ → quay về bước hiện tại TRƯỚC khi gọi API', () async {
+      cookingApi.onStart = (_) async => session(currentStep: 3, totalSteps: 3);
+      recipeApi.onGetSteps = (_) async => const <CookingSessionStep>[
+            CookingSessionStep(stepNumber: 1, instruction: 'A'),
+            CookingSessionStep(stepNumber: 2, instruction: 'B'),
+            CookingSessionStep(stepNumber: 3, instruction: 'C'),
+          ];
+      final store = newStore();
+      await store.init();
+      await store.complete();
+      store.viewPreviousStep();
+      expect(store.isViewingCurrentStep, isFalse);
+      bool? viewingCurrentAtCall;
+      cookingApi
+        ..onCompleteError = null
+        ..onComplete = (_) async {
+          viewingCurrentAtCall = store.isViewingCurrentStep;
+          return CookingSessionResult(
+            session: session(status: CookingSessionStatusWire.completed, currentStep: 3, totalSteps: 3),
+            deductions: const <IngredientDeduction>[],
+          );
+        };
+      await store.retryLastAction();
+      expect(viewingCurrentAtCall, isTrue);
+      expect(store.phase, CookingScreenPhase.completed);
+      store.dispose();
+    });
+
+    test('resync đang chạy → isResyncing = true (nút chính khoá), xong → false', () async {
+      cookingApi
+        ..onStart = ((_) async => session(totalSteps: 3))
+        ..onAdvanceStepError = BusinessException('ERR_SESSION_STEP_INVALID', 'stale');
+      final gate = Completer<void>();
+      cookingApi.onGetById = (_) async {
+        await gate.future;
+        return CookingSessionResult(session: session(currentStep: 2, totalSteps: 3), deductions: const <IngredientDeduction>[]);
+      };
+      final store = newStore();
+      await store.init();
+      final advancing = store.advanceOrComplete();
+      await Future<void>.delayed(Duration.zero);
+      expect(store.isResyncing, isTrue);
+      gate.complete();
+      await advancing;
+      expect(store.isResyncing, isFalse);
+      expect(store.session!.currentStep, 2);
+      store.dispose();
+    });
+
+    test('ValidationException (400) → KHÔNG có retry (gửi lại y nguyên vẫn 400)', () async {
+      cookingApi.onCompleteError =
+          ValidationException('ERR_VALIDATION_FAILED', 'bad', fieldErrors: const <String, String>{});
+      final store = newStore();
+      await store.init();
+      await store.complete();
+      expect(store.canRetryAction, isFalse);
+      store.dispose();
+    });
+
+    test('"Thử lại" resync từ snackbar → isResyncing khoá nút (isAdvancing KHÔNG bật)', () async {
+      cookingApi
+        ..onStart = ((_) async => session(totalSteps: 3))
+        ..onAdvanceStepError = BusinessException('ERR_SESSION_STEP_INVALID', 'stale')
+        ..onGetByIdError = NetworkException();
+      final store = newStore();
+      await store.init();
+      await store.advanceOrComplete(); // resync lỗi → retry = resync
+      expect(store.canRetryAction, isTrue);
+      final gate = Completer<void>();
+      cookingApi
+        ..onGetByIdError = null
+        ..onGetById = (_) async {
+          await gate.future;
+          return CookingSessionResult(session: session(currentStep: 2, totalSteps: 3), deductions: const <IngredientDeduction>[]);
+        };
+      final retrying = store.retryLastAction();
+      await Future<void>.delayed(Duration.zero);
+      expect(store.isAdvancing, isFalse);
+      expect(store.isResyncing, isTrue);
+      gate.complete();
+      await retrying;
+      expect(store.isResyncing, isFalse);
+      store.dispose();
+    });
+
+    test('GET resync về muộn SAU khi đã huỷ bỏ → bỏ qua, phase giữ abandoned', () async {
+      cookingApi
+        ..onStart = ((_) async => session(totalSteps: 3))
+        ..onAdvanceStepError = BusinessException('ERR_SESSION_STEP_INVALID', 'stale')
+        ..onAbandonError = null
+        ..onAbandon = ((_) async => session(status: CookingSessionStatusWire.abandoned, totalSteps: 3));
+      final gate = Completer<void>();
+      cookingApi.onGetById = (_) async {
+        await gate.future;
+        return CookingSessionResult(session: session(currentStep: 2, totalSteps: 3), deductions: const <IngredientDeduction>[]);
+      };
+      final store = newStore();
+      await store.init();
+      final advancing = store.advanceOrComplete();
+      await Future<void>.delayed(Duration.zero);
+      await store.abandon();
+      expect(store.phase, CookingScreenPhase.abandoned);
+      gate.complete();
+      await advancing;
+      expect(store.phase, CookingScreenPhase.abandoned);
+      expect(store.timerRunning, isFalse);
+      store.dispose();
+    });
+
+    test('canRetryAction là Observable — reaction thấy khi retry được gắn/xoá', () async {
+      final store = newStore();
+      await store.init();
+      final seen = <bool>[];
+      final dispose = reaction<bool>((_) => store.canRetryAction, seen.add);
+      await store.complete();
+      store.clearActionError();
+      dispose();
+      expect(seen, <bool>[true, false]);
+      store.dispose();
+    });
+  });
+
   group('widget', () {
     late CookingSessionStore store;
 
@@ -185,11 +327,42 @@ void main() {
         await tester.pump(const Duration(seconds: 1));
       }
       expect(find.byType(SnackBar), findsOneWidget);
-      ScaffoldMessenger.of(tester.element(find.byType(SnackBar))).hideCurrentSnackBar();
+      // Người dùng vuốt bỏ → lỗi không còn UI, phải dọn.
+      ScaffoldMessenger.of(tester.element(find.byType(SnackBar)))
+          .removeCurrentSnackBar(reason: SnackBarClosedReason.swipe);
       await tester.pumpAndSettle();
       expect(find.byType(SnackBar), findsNothing);
-      expect(store.actionError, isNull, reason: 'snackbar bị ẩn → lỗi không còn UI, phải dọn');
+      expect(store.actionError, isNull, reason: 'snackbar bị vuốt → lỗi không còn UI, phải dọn');
       await unmount(tester);
+    });
+
+    testWidgets('snackbar khác (thông báo toàn cục) đẩy snackbar lỗi ra → lỗi GIỮ, "Thử lại" hiện lại sau đó', (tester) async {
+      await pumpActive(tester);
+      await store.complete();
+      await tester.pumpAndSettle();
+      final messenger = ScaffoldMessenger.of(tester.element(find.byType(SnackBar)));
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('push'), duration: Duration(seconds: 2)));
+      await tester.pumpAndSettle();
+      expect(store.actionError, isNotNull);
+      expect(find.text('push'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      expect(find.text('push'), findsNothing);
+      expect(find.text('Thử lại'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('rời màn khi snackbar "Thử lại" đang hiện → snackbar đóng, không treo sang màn khác', (tester) async {
+      await pumpActive(tester);
+      await store.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('Thử lại'), findsOneWidget);
+      await tester.pumpAppWidget(const Text('màn khác'));
+      await tester.pumpAndSettle();
+      expect(find.text('Thử lại'), findsNothing);
+      expect(store.actionError, isNull);
     });
 
     testWidgets('lỗi không retry được (abandon) → snackbar KHÔNG có "Thử lại", tự ẩn → dọn lỗi', (tester) async {
@@ -222,6 +395,16 @@ void main() {
       await store.advanceOrComplete();
       await tester.pumpAndSettle();
       expect(find.byType(SnackBar), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('lỗi không retry được (ERR_SESSION_NOT_FOUND) → snackbar KHÔNG có "Thử lại"', (tester) async {
+      cookingApi.onCompleteError = BusinessException('ERR_SESSION_NOT_FOUND', 'x');
+      await pumpActive(tester);
+      await store.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('Thử lại'), findsNothing);
       await unmount(tester);
     });
 
