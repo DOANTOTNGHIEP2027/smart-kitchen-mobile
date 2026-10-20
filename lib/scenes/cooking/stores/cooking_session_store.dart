@@ -68,6 +68,10 @@ class CookingSessionStore {
   final Observable<ApiException?> _actionError =
       Observable<ApiException?>(null);
 
+  /// Thao tác vừa sinh [actionError] — "Thử lại" gọi lại đúng nó (OD-18).
+  /// `null` với abandon: dialog Huỷ bỏ vẫn mở, người dùng bấm lại ở đó.
+  Future<void> Function()? _retryAction;
+
   // Mã lỗi ở `phase=error` KHÔNG tự sửa được bằng cách gọi lại đúng request
   // vừa lỗi (id/recipe sai vẫn sẽ sai lần nữa).
   static const Set<String> _nonRetryableLoadErrorCodes = <String>{
@@ -91,6 +95,7 @@ class CookingSessionStore {
   bool get isAbandoning => _isAbandoning.value;
   ApiException? get loadError => _loadError.value;
   ApiException? get actionError => _actionError.value;
+  bool get canRetryAction => _retryAction != null;
 
   bool get isViewingCurrentStep =>
       viewedStep == (session?.currentStep ?? 1);
@@ -247,6 +252,7 @@ class CookingSessionStore {
       await complete();
       return;
     }
+    _retryAction = null;
     runInAction(() {
       _isAdvancing.value = true;
       _actionError.value = null;
@@ -267,7 +273,7 @@ class CookingSessionStore {
         // gọi retryLoad()/init() — sẽ tạo session thứ hai).
         await _resyncSessionFromServer();
       } else if (e is ApiException) {
-        runInAction(() => _actionError.value = e);
+        _setActionError(e, _retryAdvance);
       } else {
         rethrow;
       }
@@ -282,6 +288,7 @@ class CookingSessionStore {
   Future<void> complete() async {
     final s = _session.value;
     if (s == null) return;
+    _retryAction = null;
     runInAction(() {
       _isCompleting.value = true;
       _actionError.value = null;
@@ -301,7 +308,7 @@ class CookingSessionStore {
       } else if (e is ApiException) {
         // Bao gồm ERR_SESSION_COMPLETE_CONFLICT (deadlock, retry an toàn) và
         // mọi mã khác — UI hiện banner retry.
-        runInAction(() => _actionError.value = e);
+        _setActionError(e, complete);
       } else {
         rethrow;
       }
@@ -314,6 +321,7 @@ class CookingSessionStore {
   Future<void> abandon() async {
     final s = _session.value;
     if (s == null) return;
+    _retryAction = null;
     runInAction(() {
       _isAbandoning.value = true;
       _actionError.value = null;
@@ -328,7 +336,7 @@ class CookingSessionStore {
           e.code == 'ERR_SESSION_ALREADY_ENDED') {
         await _resyncSessionFromServer();
       } else if (e is ApiException) {
-        runInAction(() => _actionError.value = e);
+        _setActionError(e, null);
       } else {
         rethrow;
       }
@@ -357,7 +365,7 @@ class CookingSessionStore {
         _startTimerForCurrentStep();
       }
     } on ApiException catch (e) {
-      runInAction(() => _actionError.value = e);
+      _setActionError(e, _resyncSessionFromServer);
     }
   }
 
@@ -417,8 +425,29 @@ class CookingSessionStore {
     runInAction(() => _timerRunning.value = false);
   }
 
-  void clearActionError() =>
-      runInAction(() => _actionError.value = null);
+  void _setActionError(ApiException e, Future<void> Function()? retry) {
+    _retryAction = retry;
+    runInAction(() => _actionError.value = e);
+  }
+
+  void clearActionError() {
+    _retryAction = null;
+    runInAction(() => _actionError.value = null);
+  }
+
+  /// Retry advance khi người dùng đang xem lại bước cũ: advanceOrComplete sẽ
+  /// lặng lẽ bỏ qua (Guard §9.1) — quay về bước hiện tại trước.
+  Future<void> _retryAdvance() async {
+    returnToCurrentStep();
+    await advanceOrComplete();
+  }
+
+  /// "Thử lại" trên snackbar: xoá lỗi rồi gọi lại đúng thao tác vừa lỗi.
+  Future<void> retryLastAction() async {
+    final retry = _retryAction;
+    clearActionError();
+    await retry?.call();
+  }
 
   void dispose() => _cancelTimer();
 }

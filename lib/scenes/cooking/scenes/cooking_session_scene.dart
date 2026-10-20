@@ -6,6 +6,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../data/network/api_exception.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -204,6 +205,12 @@ class _ActiveStepView extends StatelessWidget {
   /// Lỗi đã hiện snackbar — key theo instance, tự giải phóng khi lỗi bị bỏ.
   static final Expando<bool> _shownErrors = Expando<bool>('cookingShownError');
 
+  /// Lỗi của snackbar đang hiện, theo store. Snackbar có "Thử lại" persist —
+  /// lỗi đã bị xoá/thay thì phải tự ẩn, không thì nó treo mãi (kể cả sang màn
+  /// khác) và chặn snackbar của lỗi mới phía sau.
+  static final Expando<ApiException> _snackBarErrors =
+      Expando<ApiException>('cookingSnackBarError');
+
   const _ActiveStepView({required this.store, required this.onAbandon});
 
   final CookingSessionStore store;
@@ -224,25 +231,55 @@ class _ActiveStepView extends StatelessWidget {
       body: Observer(
         builder: (_) {
           final actionError = store.actionError;
+          final shownError = _snackBarErrors[store];
+          if (shownError != null && !identical(shownError, actionError)) {
+            _snackBarErrors[store] = null;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              }
+            });
+          }
           // Observer build lại mỗi giây (timer) — chỉ hiện snackbar 1 lần cho
           // mỗi instance lỗi, không xếp hàng 1 cái/giây.
           if (actionError != null && _shownErrors[actionError] != true) {
             _shownErrors[actionError] = true;
-            // Banner lỗi không chặn — user có thể bấm "Thử lại" qua actionError.
+            _snackBarErrors[store] = actionError;
+            // Banner lỗi không chặn — "Thử lại" gọi lại đúng thao tác vừa lỗi
+            // (user bấm mới chạy, KHÔNG tự retry).
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(apiErrorMessage(context.l10n, actionError)),
-                    action: SnackBarAction(
-                      label: context.l10n.cookingRetry,
-                      onPressed: () {
-                        store.clearActionError();
-                        // KHÔNG tự động retry — user explicit.
-                      },
-                    ),
-                  ),
-                );
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(
+                      SnackBar(
+                        content:
+                            Text(apiErrorMessage(context.l10n, actionError)),
+                        action: store.canRetryAction
+                            ? SnackBarAction(
+                                label: context.l10n.cookingRetry,
+                                // Snackbar persist (có action) — lỗi có thể đã bị
+                                // thao tác khác thay/xoá; chỉ retry khi vẫn là nó.
+                                onPressed: () {
+                                  if (identical(store.actionError, actionError)) {
+                                    store.retryLastAction();
+                                  }
+                                },
+                              )
+                            : null,
+                      ),
+                    )
+                    .closed
+                    .then((reason) {
+                  if (identical(_snackBarErrors[store], actionError)) {
+                    _snackBarErrors[store] = null;
+                  }
+                  // Snackbar tự ẩn/bị vuốt → lỗi không còn UI nào hiện, dọn
+                  // khỏi store (chỉ khi vẫn là ĐÚNG lỗi này).
+                  if (reason != SnackBarClosedReason.action &&
+                      identical(store.actionError, actionError)) {
+                    store.clearActionError();
+                  }
+                });
               }
             });
           }

@@ -211,3 +211,11 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Khi feature đầu tiên tiêu thụ `MealSelectionRepository` / khi có model NN.
 - **Cần người quyết lại không:** Có cho (1) — banner khi chạy cục bộ lúc online; (3) — định dạng id dị ứng.
+
+### OD-27 · Dọn OD-18 (cooking retry + tuổi người phụ thuộc) — đã làm & còn lại
+- **Ngày:** 2026-10-20 · **Task:** dọn OD-18 · **Nhánh:** `chore/cleanup-od18`
+- **Đã làm:** 'Thử lại' trên snackbar lỗi cooking gọi lại ĐÚNG thao tác vừa lỗi (advance → quay về bước hiện tại trước; complete; resync) — abandon không có 'Thử lại' (dialog Huỷ bỏ vẫn mở); thao tác mới huỷ retry cũ; snackbar ẩn → dọn `actionError`; lỗi bị xoá/thay → ẩn snackbar cũ (SnackBar có action là persist trên Flutter 3.47); ngày sinh tương lai → chỉ hiện ngày, không tuổi âm. Test widget snackbar 1 lần/instance, retry thật, tuổi.
+- **Còn lại:** (1) Cơ chế snackbar nên chuyển sang `reaction` theo `actionError` trong State (bỏ Expando + post-frame; hide hiện có thể ẩn nhầm snackbar khác đang xếp trước). (2) Mọi ApiException của advance/complete đều có 'Thử lại', kể cả lỗi chắc chắn lặp lại (AuthExpired, 404) — cần danh sách non-retryable như phần load. (3) Retry complete không quay về bước hiện tại như retry advance. (4) Retry resync không bật cờ loading → nút chính vẫn bấm được. (5) `canRetryAction` đọc field thường, không Observable.
+- **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** Task dọn cooking tiếp theo.
+- **Cần người quyết lại không:** Có cho (2) — lỗi nào được 'Thử lại'.
