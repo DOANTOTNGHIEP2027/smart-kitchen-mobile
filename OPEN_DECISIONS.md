@@ -274,3 +274,11 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn phần còn lại. · **Theo:** §3 + §6.1 D-10.
 - **Đảo ngược thế nào:** (2) chuẩn hoá ở tầng parse khi chốt định dạng mã dị ứng với BE.
 - **Cần người quyết lại không:** Không.
+
+### OD-35 · Epoch household dùng chung (đảo ngược OD-33) — đã làm & còn lại
+- **Ngày:** 2026-10-20 · **Task:** OD-33 · **Nhánh:** `fix/household-epoch-od33`
+- **Đã làm:** mixin `HouseholdScoped` (`lib/stores/household_scoped.dart`): reaction theo `householdId` + epoch tăng mỗi lần đổi household và khi dispose; `ShoppingStore`/`InventoryStore` dùng chung, bỏ code chép. Sync/drain/add/toggle/assign/báo mất giá/`_isSyncing` so epoch (đúng cả A→B→A); drain dừng + chạy bù chỉ khi store còn bind; ô tìm kiếm kho có controller, tự xoá khi store reset. Test: A→B→A, drain dừng/chạy bù, `_isSyncing`, lỗi household cũ, dispose, ô tìm.
+- **Còn lại:** (1) 2 lần sync CÙNG household chạy chồng: lần xong trước tắt `isSyncing` của lần kia (có từ trước). (2) Shopping `sync()` không kiểm epoch sau `list()` (list truyền householdId tường minh — rủi ro thấp). (3) Test chờ bằng delay cố định 20ms — có thể chập chờn trên CI chậm. (4) Epoch tăng 2 lần mỗi lần đổi (reaction + rebind) — cố ý phòng hờ.
+- **Đã chọn:** Hoãn. · **Theo:** §3 + §6.1 D-10.
+- **Đảo ngược thế nào:** —
+- **Cần người quyết lại không:** Không.

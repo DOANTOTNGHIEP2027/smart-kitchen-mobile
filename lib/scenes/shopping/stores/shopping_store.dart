@@ -7,6 +7,7 @@ import 'package:mobx/mobx.dart';
 import '../../../data/db/app_database.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../services/connectivity_service.dart';
+import '../../../stores/household_scoped.dart';
 import '../../../stores/session_store.dart';
 import '../data/shopping_api.dart';
 import '../data/shopping_dao.dart';
@@ -17,7 +18,7 @@ import '../domain/shopping_item.dart';
 /// ở máy khác; listClosed = danh sách đã sang tuần mới (OD-24).
 enum PriceLostReason { stale, itemDeleted, listClosed }
 
-class ShoppingStore {
+class ShoppingStore with HouseholdScoped {
   ShoppingStore({required ShoppingDao dao, required ShoppingApi api, required ConnectivityService connectivity, required SessionStore session, void Function()? onRosterStale})
       : _dao = dao, _api = api, _connectivity = connectivity, _session = session, _onRosterStale = onRosterStale;
   final ShoppingDao _dao; final ShoppingApi _api; final ConnectivityService _connectivity; final SessionStore _session;
@@ -69,21 +70,14 @@ class ShoppingStore {
   List<ShoppingItem> get pending => _items.where((e) => e.status == ShoppingItemStatus.pending).toList();
   List<ShoppingItem> get completed => _items.where((e) => e.status == ShoppingItemStatus.completed).toList();
 
-  /// Household đang nghe Drift — store `permanent` sống qua logout/đổi household.
-  String? _boundHousehold;
-  bool _bound = false;
-  ReactionDisposer? _householdReaction;
-
   /// Idempotent theo household: cùng household → no-op; household đổi (kể cả
   /// logout → login tài khoản khác) → huỷ luồng cũ, xoá dữ liệu cũ, nghe lại.
   /// Không huỷ thì luồng household cũ vẫn ghi đè `_items` (lộ dữ liệu).
   Future<void> init() async {
-    _householdReaction ??= reaction<String?>((_) => _session.householdId, (_) => unawaited(init()));
+    if (!rebindHousehold(_session, () => unawaited(init()))) return;
     final householdId = _session.householdId;
-    if (_bound && householdId == _boundHousehold) return;
     final oldItems = _itemsSub, oldConn = _connectivitySub;
     _itemsSub = null; _connectivitySub = null;
-    _bound = true; _boundHousehold = householdId;
     runInAction(() {
       _items.clear(); _assigningIds.clear();
       _error.value = null; _assignError.value = null; _priceLost.clear(); _rejectedCreateName.value = null;
@@ -98,6 +92,7 @@ class ShoppingStore {
 
   Future<bool> add(String name, double quantity, String unit, {String? category}) async {
     final householdId = _session.householdId; if (householdId == null || name.trim().isEmpty || quantity <= 0) return false;
+    final epoch = householdEpoch;
     runInAction(() => _rejectedCreateName.value = null);
     final now = DateTime.now();
     final local = ShoppingItem(id: 'local-${now.microsecondsSinceEpoch}-${Random().nextInt(1 << 20)}', householdId: householdId, name: name.trim(), quantity: quantity, unit: unit, displayQuantity: quantity, displayUnit: unit, category: category?.trim().isEmpty == true ? null : category?.trim(), status: ShoppingItemStatus.pending, source: ShoppingItemSource.manual, version: 0, createdBy: _session.currentUser?.id, createdAt: now, updatedAt: now, syncStatus: ShoppingSyncStatus.pendingCreate);
@@ -106,13 +101,14 @@ class ShoppingStore {
     // #55: id tạm là idempotency key — lần phát lại từ queue dùng đúng id này.
     try { await _dao.remap(local.id, await _api.create(shoppingCreatePayload(local), householdId, idempotencyKey: local.id)); return true; }
     on NetworkException { await _dao.enqueueCreate(local); return true; }
-    on ApiException catch (e) { await _dao.delete(local.id); runInAction(() => _error.value = e); return false; }
+    on ApiException catch (e) { await _dao.delete(local.id); _setError(e, epoch); return false; }
   }
 
   /// [price] chỉ có nghĩa ở chiều PENDING → COMPLETED (#133); chiều ngược bỏ
   /// qua để không gửi `price` khi BE sẽ từ chối.
   Future<void> toggle(ShoppingItem item, {double? price}) async {
     if (!item.canToggle) return;
+    final epoch = householdEpoch;
     runInAction(_priceLost.clear);
     final completing = item.status == ShoppingItemStatus.pending;
     final sentPrice = completing ? price : null;
@@ -126,9 +122,9 @@ class ShoppingStore {
     on ApiException catch (e) {
       // §10: món không còn ở server / danh sách đã sang tuần mới — rollback
       // không áp dụng, xoá row (như drain).
-      if (_isGone(e)) { await _dao.delete(item.id); if (sentPrice != null) _markPriceLost(_goneReason(e), item.householdId); return; }
-      await _dao.upsert(item); runInAction(() => _error.value = e);
-      if (_isStaleToggle(e)) { if (sentPrice != null) _markPriceLost(PriceLostReason.stale, item.householdId); await sync(); }
+      if (_isGone(e)) { await _dao.delete(item.id); if (sentPrice != null) _markPriceLost(_goneReason(e), epoch); return; }
+      await _dao.upsert(item); _setError(e, epoch);
+      if (_isStaleToggle(e) && !isStaleEpoch(epoch)) { if (sentPrice != null) _markPriceLost(PriceLostReason.stale, epoch); await sync(); }
     }
   }
 
@@ -145,6 +141,7 @@ class ShoppingStore {
     // Chiếm chỗ ĐỒNG BỘ trước mọi await — kiểm sau await thì 2 lần gọi sát
     // nhau đều lọt qua, gửi 2 PATCH cùng version (lần sau ăn 409 giả).
     if (_assigningIds.contains(item.id)) return false;
+    final epoch = householdEpoch;
     runInAction(() {
       _assignError.value = null;
       _assigningIds.add(item.id);
@@ -162,15 +159,18 @@ class ShoppingStore {
       await _dao.upsert(server.copyWith(syncStatus: ShoppingSyncStatus.synced));
       return true;
     } on BusinessException catch (e) {
+      if (isStaleEpoch(epoch)) return false;
       runInAction(() => _assignError.value = e);
       if (e.code == 'ERR_SHOP_ASSIGNEE_INVALID') _onRosterStale?.call();
       if (e.code == 'ERR_SHOP_ITEM_VERSION_CONFLICT') await sync();
       return false;
     } on ApiException catch (e) {
-      runInAction(() => _assignError.value = e);
+      if (!isStaleEpoch(epoch)) runInAction(() => _assignError.value = e);
       return false;
     } finally {
-      runInAction(() => _assigningIds.remove(item.id));
+      // Epoch cũ: init() đã xoá `_assigningIds`; gỡ id lúc này có thể gỡ nhầm
+      // khoá của lần gán cùng món ở epoch mới (A→B→A).
+      if (!isStaleEpoch(epoch)) runInAction(() => _assigningIds.remove(item.id));
     }
   }
 
@@ -178,7 +178,10 @@ class ShoppingStore {
 
   Future<void> sync() async {
     final householdId = _session.householdId; if (householdId == null) return;
+    final epoch = householdEpoch;
     await _drain(householdId);
+    // Household đổi trong lúc drain → init() của household mới đã tự sync.
+    if (isStaleEpoch(epoch)) return;
     _syncsRunning++;
     try {
       // Chụp row SYNCED TRƯỚC khi gửi list(): chỉ những row này mới được xoá
@@ -196,7 +199,7 @@ class ShoppingStore {
       }
     }
     // Household đổi trong lúc sync bay → lỗi của household cũ không được hiện ở household mới.
-    on ApiException catch (e) { if (_session.householdId == householdId) runInAction(() => _error.value = e); }
+    on ApiException catch (e) { _setError(e, epoch); }
     finally { if (--_syncsRunning == 0) _assignedDuringSync.clear(); }
   }
   Future<void> _drain(String householdId) async {
@@ -204,12 +207,13 @@ class ShoppingStore {
       return;
     }
     _draining = true;
+    final epoch = householdEpoch;
     var requeued = false;
     try {
       for (final entry in await _dao.queue(householdId)) {
         // Household đổi giữa chừng (vd. logout → tài khoản khác) — token mới bị
         // từ chối sẽ khiến entry household cũ bị xoá nhầm; dừng, giữ queue.
-        if (_session.householdId != householdId) break;
+        if (isStaleEpoch(epoch)) break;
         // Bản chụp hàng đợi có thể cũ: entry đã bị huỷ cặp trong lúc drain gửi
         // entry trước — gửi nó sẽ toggle server ngược ý người dùng.
         if (!await _dao.hasQueueEntry(entry.id)) continue;
@@ -250,11 +254,11 @@ class ShoppingStore {
           }
           await _dao.removeQueue(entry.id);
         } on BusinessException catch (e) {
-          if (_session.householdId != householdId) break;
+          if (isStaleEpoch(epoch)) break;
           // #55: cùng key nhưng nội dung khác — không tự retry, báo người dùng.
           // Bản đã tạo ở lần gửi đầu sẽ về qua list ở bước sync kế tiếp.
           if (e.code == 'ERR_IDEMPOTENCY_KEY_REUSED') {
-            runInAction(() => _error.value = e);
+            _setError(e, epoch);
             await _dao.removeQueue(entry.id);
             await _dao.delete(item.id);
             continue;
@@ -263,69 +267,76 @@ class ShoppingStore {
           // retry không bao giờ thành, giữ lại sẽ chặn MỌI entry phía sau.
           // Chỉ `ERR_IDEMPOTENCY_IN_PROGRESS` là tạm thời (request trước còn chạy).
           if (entry.operation == 'CREATE' && e.code != 'ERR_IDEMPOTENCY_IN_PROGRESS') {
-            await _dropCreate(entry, item, e);
+            await _dropCreate(entry, item, e, epoch);
             continue;
           }
-          if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
+          if (await _dropStaleToggle(entry, item, e, queuedPrice, epoch)) continue;
           break;
         } on ValidationException catch (e) {
-          if (_session.householdId != householdId) break;
+          if (isStaleEpoch(epoch)) break;
           if (entry.operation == 'CREATE') {
-            await _dropCreate(entry, item, e);
+            await _dropCreate(entry, item, e, epoch);
             continue;
           }
-          if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
+          if (await _dropStaleToggle(entry, item, e, queuedPrice, epoch)) continue;
           break;
         } on ApiException catch (e) {
-          if (_session.householdId != householdId) break;
-          if (await _dropStaleToggle(entry, item, e, queuedPrice)) continue;
+          if (isStaleEpoch(epoch)) break;
+          if (await _dropStaleToggle(entry, item, e, queuedPrice, epoch)) continue;
           break;
         }
       }
     } finally {
       _draining = false;
     }
-    // Lần drain của household mới đã bị cờ `_draining` chặn — chạy bù.
-    final now = _session.householdId;
-    if (now != null && now != householdId) { await _drain(now); return; }
+    // Household đổi giữa chừng (kể cả A→B→A): lần drain của household hiện tại
+    // đã bị cờ `_draining` chặn — chạy bù.
+    // Store đã dispose (unbind cũng tăng epoch) → không chạy bù.
+    if (isStaleEpoch(epoch)) { final now = _session.householdId; if (now != null && isHouseholdBound) await _drain(now); return; }
     // Toggle đảo lại vừa xếp không nằm trong bản chụp hàng đợi ở trên — gửi
     // ngay, không chờ lần sync kế (có thể rất lâu nếu không có sự kiện nào).
     if (requeued) await _drain(householdId);
   }
-  Future<void> _dropCreate(ShoppingSyncQueueEntry entry, ShoppingItem item, ApiException e) async {
-    runInAction(() {
-      _error.value = e;
-      _rejectedCreateName.value = item.name;
-    });
+  Future<void> _dropCreate(ShoppingSyncQueueEntry entry, ShoppingItem item, ApiException e, int epoch) async {
+    if (!isStaleEpoch(epoch)) {
+      runInAction(() {
+        _error.value = e;
+        _rejectedCreateName.value = item.name;
+      });
+    }
     await _dao.removeQueue(entry.id);
     await _dao.delete(item.id);
   }
 
   /// AM-TB-4: entry toggle bị từ chối vì món đã đổi → bỏ entry, đưa row về
   /// SYNCED để `list()` ngay sau đó ghi đè bằng bản server; mất giá thì báo.
-  Future<bool> _dropStaleToggle(ShoppingSyncQueueEntry entry, ShoppingItem item, ApiException e, double? queuedPrice) async {
+  Future<bool> _dropStaleToggle(ShoppingSyncQueueEntry entry, ShoppingItem item, ApiException e, double? queuedPrice, int epoch) async {
     if (entry.operation == 'CREATE') return false;
     // Món không còn (xoá ở máy khác) / danh sách đã sang tuần mới: entry vô
     // nghĩa — bỏ, xoá row cục bộ, KHÔNG kẹt hàng đợi (OD-20).
     if (_isGone(e)) {
       await _dao.removeQueue(entry.id);
       await _dao.delete(item.id);
-      if (queuedPrice != null) _markPriceLost(_goneReason(e), item.householdId);
+      if (queuedPrice != null) _markPriceLost(_goneReason(e), epoch);
       return true;
     }
     if (!_isStaleToggle(e)) return false;
     await _dao.removeQueue(entry.id);
     await _dao.upsert(item.copyWith(syncStatus: ShoppingSyncStatus.synced));
-    if (queuedPrice != null) _markPriceLost(PriceLostReason.stale, item.householdId);
+    if (queuedPrice != null) _markPriceLost(PriceLostReason.stale, epoch);
     return true;
   }
-  /// Household đổi trong lúc request bay → không báo mất giá của household cũ ở household mới.
-  void _markPriceLost(PriceLostReason r, String householdId) {
-    if (_session.householdId == householdId) runInAction(() => _priceLost.add(r));
+  /// Household đổi trong lúc request bay → lỗi/mất giá của household cũ KHÔNG
+  /// hiện ở household mới (so epoch, OD-33).
+  void _markPriceLost(PriceLostReason r, int epoch) {
+    if (!isStaleEpoch(epoch)) runInAction(() => _priceLost.add(r));
+  }
+  void _setError(ApiException e, int epoch) {
+    if (!isStaleEpoch(epoch)) runInAction(() => _error.value = e);
   }
   static bool _isGone(ApiException e) => e.code == 'ERR_SHOP_ITEM_NOT_FOUND' || e.code == 'ERR_SHOP_LIST_NOT_ACTIVE';
   static PriceLostReason _goneReason(ApiException e) =>
       e.code == 'ERR_SHOP_LIST_NOT_ACTIVE' ? PriceLostReason.listClosed : PriceLostReason.itemDeleted;
   Future<bool> _online() async { try { return await _connectivity.isOnline(); } catch (_) { return true; } }
-  Future<void> dispose() async { _householdReaction?.call(); _householdReaction = null; _bound = false; await _itemsSub?.cancel(); await _connectivitySub?.cancel(); }
+  Future<void> dispose() async { unbindHousehold(); await _itemsSub?.cancel(); await _connectivitySub?.cancel(); }
 }
