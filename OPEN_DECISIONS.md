@@ -250,3 +250,11 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Task dọn shopping tiếp theo.
 - **Cần người quyết lại không:** Có cho (5) — có thêm dấu cách '2 cái' không.
+
+### OD-32 · Dọn đi chợ (OD-29 + OD-31) — đã làm & còn lại
+- **Ngày:** 2026-10-20 · **Task:** dọn shopping · **Nhánh:** `chore/shopping-cleanup-od29-od31`
+- **Đã làm:** bấm chip giao việc đang khoá mà kiểm lại thấy có mạng → mở picker luôn (đọc lại món mới nhất sau await; món đã bị gỡ/đang gán thì không mở); share text '2 cái' (người duyệt chốt 2026-10-20), đơn vị rỗng không thừa khoảng trắng; mở sheet thêm món nạp lại danh mục (đổi household → xoá danh mục cũ ngay; rollback ghi lỗi không đè sang household mới); gom `formatQuantity`/`formatQuantityWithUnit` vào `lib/utils/quantity_format.dart` (vô cực/NaN không crash).
+- **Còn lại:** (1) **`ShoppingStore` và `CategoryStore` không tự theo dõi `session.householdId`** — đổi household khi tab đi chợ đã dựng thì danh sách món vẫn của household cũ (có từ trước, cần reaction trong store — đổi vòng đời store). (2) Món tạo offline vừa đồng bộ xong trong lúc kiểm mạng đổi id (`local-…` → id server) → vẫn báo 'đang đồng bộ'. (3) Bấm nhanh 2 lần có thể mở 2 picker (cả đường onTap cũ). (4) Đang gán (`isAssigning`) mà bấm chip khoá → báo 'đang đồng bộ' (sai lý do, cần chuỗi mới). (5) Hàm định dạng số lượng còn ở `recipe_detail_scene`, `ocr_item_card`, `calorie_confirm_sheet`.
+- **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
+- **Đảo ngược thế nào:** (1) task riêng: store nghe `householdId` bằng reaction.
+- **Cần người quyết lại không:** Có cho (1) — duyệt đổi vòng đời store.

@@ -1,3 +1,4 @@
+import '../../../utils/quantity_format.dart';
 import 'shopping_item.dart';
 
 class ShoppingCategoryGroup {
@@ -77,14 +78,11 @@ class ShoppingShareTextBuilder {
         final mark = item.status == ShoppingItemStatus.completed ? '☑' : '☐';
         final assignee = item.assignedTo == null ? null : memberNamesById[item.assignedTo];
         final suffix = assignee == null ? '' : ' — @$assignee';
-        buffer.writeln('$mark ${item.name} — ${_formatQuantity(item.displayQuantity)}${item.displayUnit}$suffix');
+        buffer.writeln('$mark ${item.name} — ${formatQuantityWithUnit(item.displayQuantity, item.displayUnit)}$suffix');
       }
       buffer.writeln();
     }
     buffer.write(labels.footer);
     return buffer.toString();
   }
-
-  static String _formatQuantity(double qty) =>
-      qty == qty.roundToDouble() ? qty.toInt().toString() : qty.toString();
 }

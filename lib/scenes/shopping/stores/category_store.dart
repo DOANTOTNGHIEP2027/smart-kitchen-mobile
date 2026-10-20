@@ -47,6 +47,7 @@ class CategoryStore {
     // song song cũng lọt qua kiểm tra trên → 2 subscription, 1 cái rò.
     final old = _sub;
     _sub = null;
+    final switched = householdId != _loadedHousehold;
     _loadedHousehold = householdId;
     if (householdId == null) {
       runInAction(() {
@@ -57,6 +58,9 @@ class CategoryStore {
       return;
     }
     runInAction(() {
+      // Đổi household → bỏ danh mục cũ ngay, không để sheet hiện chip của
+      // household trước trong lúc chờ stream mới emit.
+      if (switched) _categories.clear();
       _loading.value = true;
       _loadFailed.value = false;
     });
@@ -148,9 +152,12 @@ class CategoryStore {
 
   Future<bool> _optimistic(void Function(List<ShoppingCategory> list) apply, Future<void> Function() write) async {
     final snapshot = List<ShoppingCategory>.of(_categories);
+    final household = _loadedHousehold;
     runInAction(() => apply(_categories));
     final ok = await _guard(write);
-    if (!ok) {
+    // Đã đổi household trong lúc ghi → snapshot là của household cũ, không
+    // được đè lên danh mục mới.
+    if (!ok && household == _loadedHousehold) {
       runInAction(() => _categories
         ..clear()
         ..addAll(snapshot));

@@ -9,6 +9,7 @@ import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/money_format.dart';
+import '../../../utils/quantity_format.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../inventory/domain/unit_option.dart';
@@ -651,8 +652,24 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                     // sự kiện "có mạng lại".
                                     final offline = !isOnline &&
                                         !await connectivity.isOnline();
-                                    if (!offline && !item.isPendingSync) return;
                                     if (!context.mounted) return;
+                                    // Sau await đọc lại món mới nhất — có thể
+                                    // vừa đồng bộ xong (OD-29).
+                                    final current = store.items
+                                        .where((i) => i.id == item.id)
+                                        .firstOrNull;
+                                    // Món đã bị gỡ trong lúc chờ → không mở
+                                    // picker cho bản cũ.
+                                    if (current == null) return;
+                                    if (!offline &&
+                                        !current.isPendingSync &&
+                                        !store.isAssigning(current.id)) {
+                                      // Mạng thật vẫn có → mở picker luôn,
+                                      // không bắt bấm lại.
+                                      openAssigneePicker(context, store, current,
+                                          isOnline: connectivity.isOnline);
+                                      return;
+                                    }
                                     ScaffoldMessenger.of(context)
                                       ..hideCurrentSnackBar()
                                       ..showSnackBar(SnackBar(
@@ -693,7 +710,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                   ),
                   child: Text(
-                    '${_formatQty(item.displayQuantity)} ${item.displayUnit}',
+                    formatQuantityWithUnit(item.displayQuantity, item.displayUnit),
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 12,
@@ -711,14 +728,10 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
     );
   }
 
-  String _formatQty(double qty) {
-    if (qty == qty.roundToDouble()) {
-      return qty.toInt().toString();
-    }
-    return qty.toString();
-  }
-
   Future<void> _showAddDialog(BuildContext context, ShoppingStore store) async {
+    // Tab giữ state qua IndexedStack — household có thể đã đổi sau initState;
+    // cùng household thì no-op (OD-31).
+    shoppingCategoryStore()?.loadCategories();
     final name = TextEditingController();
     final quantity = TextEditingController(text: '1');
     String unit = unitOptions.first.value;

@@ -25,6 +25,7 @@ import 'package:smart_kitchen_mobile/scenes/shopping/widgets/category_widgets.da
 import 'package:smart_kitchen_mobile/scenes/shopping/widgets/share_export_sheet.dart';
 import 'package:smart_kitchen_mobile/services/connectivity_service.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
+import 'package:smart_kitchen_mobile/utils/quantity_format.dart';
 
 import '../../helpers/pump_app.dart';
 import '../../helpers/secure_storage_channel.dart';
@@ -58,11 +59,14 @@ class _MemDao extends ShoppingCategoryDao {
   Completer<void>? reorderGate;
   bool failStream = false;
 
-  void _emit() => _ctl.add(List<ShoppingCategory>.of(rows)..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)));
+  String? _watching;
+  void _emit() => _ctl.add(rows.where((r) => _watching == null || r.householdId == _watching).toList()
+    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)));
 
   @override
   Stream<List<ShoppingCategory>> watchAll(String householdId) {
     if (failStream) return Stream<List<ShoppingCategory>>.error(StateError('db corrupt'));
+    _watching = householdId;
     scheduleMicrotask(_emit);
     return _ctl.stream;
   }
@@ -295,6 +299,52 @@ void main() {
       expect(s.isLoading, isFalse);
       expect(s.categories, isEmpty);
     });
+
+    test('đổi household → bỏ danh mục cũ NGAY, không chờ stream mới emit', () async {
+      final sess = session();
+      final s = CategoryStore(dao, sess);
+      await s.loadCategories();
+      await Future<void>.delayed(Duration.zero);
+      expect(s.categories, isNotEmpty);
+      sess.applyHouseholdContext(householdId: 'h2', role: 'MEMBER');
+      final loading = s.loadCategories();
+      expect(s.categories, isEmpty);
+      await loading;
+      s.dispose();
+    });
+
+    test('lỗi ghi SAU khi đã đổi household → KHÔNG trả snapshot household cũ về', () async {
+      final sess = session();
+      final s = CategoryStore(dao, sess);
+      await s.loadCategories();
+      await Future<void>.delayed(Duration.zero);
+      dao
+        ..reorderGate = Completer<void>()
+        ..failWrites = true;
+      final pending = s.reorderCategories(<String>['a']);
+      sess.applyHouseholdContext(householdId: 'h2', role: 'MEMBER');
+      await s.loadCategories();
+      await Future<void>.delayed(Duration.zero);
+      dao.reorderGate!.complete();
+      expect(await pending, isFalse);
+      expect(s.categories, isEmpty);
+      s.dispose();
+    });
+  });
+
+  test('formatQuantityWithUnit: có đơn vị thì cách 1 khoảng, rỗng/null thì chỉ số', () {
+    expect(formatQuantityWithUnit(2, 'kg'), '2 kg');
+    expect(formatQuantityWithUnit(1.5, ' g '), '1.5 g');
+    expect(formatQuantityWithUnit(10, ''), '10');
+    expect(formatQuantityWithUnit(10, null), '10');
+  });
+
+  test('formatQuantity: số nguyên bỏ .0, số lẻ giữ nguyên', () {
+    expect(formatQuantity(2), '2');
+    expect(formatQuantity(1.5), '1.5');
+    expect(formatQuantity(0.25), '0.25');
+    expect(formatQuantity(double.infinity), 'Infinity'); // không ném lỗi
+    expect(formatQuantity(double.nan), 'NaN');
   });
 
   test('reorderedIds: kéo xuống và kéo lên (chỉ số sau khi nhấc, như onReorderItem)', () {
@@ -340,11 +390,16 @@ void main() {
       expect(
         text,
         'HEAD\n1/4\n\n'
-        '📌 Rau\n☐ Bắp cải — 1kg\n☑ Cà chua — 1.5kg\n\n'
-        '📌 Thịt\n☐ Bò — 1kg\n\n'
-        '📌 Chưa phân loại\n☐ Muối — 500g\n\n'
+        '📌 Rau\n☐ Bắp cải — 1 kg\n☑ Cà chua — 1.5 kg\n\n'
+        '📌 Thịt\n☐ Bò — 1 kg\n\n'
+        '📌 Chưa phân loại\n☐ Muối — 500 g\n\n'
         'FOOT',
       );
+    });
+
+    test('đơn vị rỗng → chỉ số lượng, không khoảng trắng thừa', () {
+      final text = build(<ShoppingItem>[item('1', 'Trứng', unit: '', qty: 10, assignedTo: 'u1')], names: <String, String>{'u1': 'Mẹ'});
+      expect(text, contains('☐ Trứng — 10 — @Mẹ\n'));
     });
 
     test('danh sách rỗng vẫn ra chuỗi hợp lệ', () {
@@ -357,8 +412,8 @@ void main() {
         <ShoppingItem>[item('1', 'Bò', assignedTo: 'u1'), item('2', 'Gà', assignedTo: uuid)],
         names: <String, String>{'u1': 'Mẹ'},
       );
-      expect(text, contains('☐ Bò — 1kg — @Mẹ\n'));
-      expect(text, contains('☐ Gà — 1kg\n'));
+      expect(text, contains('☐ Bò — 1 kg — @Mẹ\n'));
+      expect(text, contains('☐ Gà — 1 kg\n'));
       expect(text.contains(uuid), isFalse);
     });
 
@@ -493,8 +548,8 @@ void main() {
         await tester.pump();
         expect(copied, isNotNull);
         expect(copied, contains('Đã mua: 1/2'));
-        expect(copied, contains('☐ Bò — 1kg\n'));
-        expect(copied, contains('☑ Rau muống — 1kg\n'));
+        expect(copied, contains('☐ Bò — 1 kg\n'));
+        expect(copied, contains('☑ Rau muống — 1 kg\n'));
         expect(copied!.contains('@'), isFalse);
         expect(shoppingCategoryStore(), isNull);
       });
@@ -508,7 +563,8 @@ void main() {
         ..put<ConnectivityService>(_OfflineConn());
       final shopping = ShoppingStore(dao: shoppingDao, api: _NoApi(shoppingDao), connectivity: _OfflineConn(), session: s);
       Get.put<ShoppingStore>(shopping);
-      await putStore(tester, <ShoppingCategory>[cat('b', 'Đồ nhà', order: 1), cat('a', 'Bánh', order: 0)]);
+      final categoryDao = _MemDao(db, <ShoppingCategory>[cat('b', 'Đồ nhà', order: 1), cat('a', 'Bánh', order: 0)]);
+      Get.put<CategoryStore>(CategoryStore(categoryDao, s));
       await tester.runAsync(() => shoppingDao.upsert(item('old', 'Cũ', category: 'Hải sản')));
       await tester.pumpAppWidget(const ShoppingListScene(), wrapInScaffold: false);
       for (var i = 0; i < 5; i++) {
@@ -528,6 +584,16 @@ void main() {
       await tester.pumpAndSettle();
       final added = (await tester.runAsync(() => shoppingDao.getAll('h1')))!.firstWhere((i) => i.name == 'Bánh mì');
       expect(added.category, 'Bánh');
+
+      // OD-31: đổi household khi tab đã dựng → mở lại sheet nạp đúng danh mục mới.
+      categoryDao.rows.add(ShoppingCategory(
+          id: 'h2c', householdId: 'h2', name: 'Nhà mới', colorHex: '#4285F4', sortOrder: 0, createdAt: DateTime.utc(2026)));
+      s.applyHouseholdContext(householdId: 'h2', role: 'MEMBER');
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>('add-category-Nhà mới')), findsOneWidget);
+      // Category local của household cũ (chưa dùng trên món nào) không còn.
+      expect(find.byKey(const ValueKey<String>('add-category-Đồ nhà')), findsNothing);
     });
 
     test('DI (Fix CRITICAL-1): ShoppingListBinding đăng ký CategoryStore — sheet thêm món không crash', () async {

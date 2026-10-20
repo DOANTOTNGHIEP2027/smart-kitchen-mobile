@@ -500,6 +500,9 @@ void main() {
         await tester.pump();
         expect(opacity(), 1);
         expect(find.text('Cần mạng để giao việc'), findsNothing);
+        // OD-29: mở picker luôn, không bắt bấm lại.
+        await tester.pumpAndSettle();
+        expect(find.byType(AssigneePickerSheet), findsOneWidget);
       });
 
       testWidgets('chip "Của tôi": không có món chưa mua của mình → KHÔNG số', (tester) async {
