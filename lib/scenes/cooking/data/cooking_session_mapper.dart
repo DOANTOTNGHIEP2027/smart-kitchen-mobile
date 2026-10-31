@@ -14,8 +14,7 @@ CookingSessionStep mapCookingSessionStep(Map<String, dynamic> json) {
   return CookingSessionStep(
     stepNumber: json['stepNumber'] as int,
     instruction: json['instruction'] as String,
-    durationSeconds:
-        durationMinutes == null ? null : durationMinutes * 60,
+    durationSeconds: durationMinutes == null ? null : durationMinutes * 60,
   );
 }
 
@@ -28,7 +27,6 @@ CookingSession mapCookingSession(Map<String, dynamic> json) {
     recipeName: json['recipeName'] as String,
     startedBy: json['startedBy'] as String,
     status: CookingSessionStatusWireX.fromWire(json['status'] as String),
-    currentStep: json['currentStep'] as int,
     totalSteps: json['totalSteps'] as int,
     startedAt: DateTime.parse(json['startedAt'] as String),
     endedAt: json['endedAt'] == null

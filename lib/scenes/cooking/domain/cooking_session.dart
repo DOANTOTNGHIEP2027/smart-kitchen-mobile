@@ -1,7 +1,7 @@
 /// Trạng thái cooking session (FE-6 §5, #76).
 ///
 /// Wire format ghép với BE:
-/// - `IN_PROGRESS` — session đang mở, currentStep trong [1, totalSteps].
+/// - `IN_PROGRESS` — session đang mở, tiến độ bước được lưu trên thiết bị.
 /// - `COMPLETED` — complete() đã chạy, inventory đã trừ.
 /// - `ABANDONED` — abandon() đã chạy, inventory KHÔNG bị đụng.
 enum CookingSessionStatusWire { inProgress, completed, abandoned }
@@ -46,7 +46,6 @@ class CookingSession {
     required this.recipeName,
     required this.startedBy,
     required this.status,
-    required this.currentStep,
     required this.totalSteps,
     required this.startedAt,
     this.endedAt,
@@ -58,16 +57,12 @@ class CookingSession {
   final String recipeName;
   final String startedBy;
   final CookingSessionStatusWire status;
-  final int currentStep;
   final int totalSteps;
   final DateTime startedAt;
   final DateTime? endedAt;
 
-  bool get isLastStep => currentStep >= totalSteps;
-
   CookingSession copyWith({
     CookingSessionStatusWire? status,
-    int? currentStep,
     DateTime? endedAt,
   }) =>
       CookingSession(
@@ -77,7 +72,6 @@ class CookingSession {
         recipeName: recipeName,
         startedBy: startedBy,
         status: status ?? this.status,
-        currentStep: currentStep ?? this.currentStep,
         totalSteps: totalSteps,
         startedAt: startedAt,
         endedAt: endedAt ?? this.endedAt,

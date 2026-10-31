@@ -302,14 +302,14 @@ class _ActiveStepView extends StatelessWidget {
       body: Observer(
         builder: (_) {
           final busy =
-              store.isAdvancing || store.isCompleting || store.isResyncing;
+              store.isCompleting || store.isAbandoning || store.isResyncing;
           return Column(
             children: <Widget>[
               const SizedBox(height: AppDimens.md),
               StepProgressBar(
                 viewedStep: store.viewedStep,
-                currentStep: store.session?.currentStep ?? 1,
-                totalSteps: store.session?.totalSteps ?? 1,
+                currentStep: store.currentStep,
+                totalSteps: store.totalSteps,
               ),
               Expanded(
                 child: SingleChildScrollView(
@@ -375,11 +375,11 @@ class _ActiveStepView extends StatelessWidget {
                     const SizedBox(width: AppDimens.sm),
                     Expanded(
                       child: AppButton(
-                        label: store.session?.isLastStep == true
+                        label: store.isLastStep
                             ? context.l10n.cookingComplete
                             : context.l10n.cookingNextStep,
                         isLoading: busy,
-                        icon: store.session?.isLastStep == true
+                        icon: store.isLastStep
                             ? Icons.check_circle_outline
                             : Icons.arrow_forward,
                         onPressed: busy ? null : store.advanceOrComplete,

@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/data/cooking_progress_store.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session_result.dart';
@@ -20,7 +22,6 @@ void main() {
   CookingSession session({
     String id = 's1',
     CookingSessionStatusWire status = CookingSessionStatusWire.inProgress,
-    int currentStep = 1,
     int totalSteps = 3,
   }) {
     return CookingSession(
@@ -30,7 +31,6 @@ void main() {
       recipeName: 'Canh chua',
       startedBy: 'u1',
       status: status,
-      currentStep: currentStep,
       totalSteps: totalSteps,
       startedAt: DateTime.parse('2026-09-16T07:00:00Z'),
       endedAt: null,
@@ -48,6 +48,8 @@ void main() {
     return CookingSessionStore(
       cookingApi: cookingApi,
       recipeApi: recipeApi,
+      progressStore: CookingProgressCoordinator(MemoryProgressStore()),
+      userId: 'u1',
       entryMode: CookingEntryMode.start,
       recipeId: 'r1',
     );
@@ -64,7 +66,7 @@ void main() {
 
       expect(store.phase, CookingScreenPhase.active);
       expect(store.session, isNotNull);
-      expect(store.session!.currentStep, 1);
+      expect(store.currentStep, 1);
       expect(store.steps.length, 3);
       expect(store.viewedStep, 1);
     });
@@ -102,6 +104,8 @@ void main() {
       final store = CookingSessionStore(
         cookingApi: cookingApi,
         recipeApi: recipeApi,
+        progressStore: CookingProgressCoordinator(MemoryProgressStore()),
+        userId: 'u1',
         entryMode: CookingEntryMode.resume,
         sessionId: 's1',
       );
@@ -160,7 +164,6 @@ void main() {
       cookingApi.onComplete = (id) async => CookingSessionResult(
             session: session(
               status: CookingSessionStatusWire.completed,
-              currentStep: 1,
               totalSteps: 1,
             ),
             deductions: const <IngredientDeduction>[
@@ -185,8 +188,7 @@ void main() {
 
     test(
         'nhánh 2: THIẾU nguyên liệu (shortfall>0) → phase=completed vẫn, '
-        'UI show hasShortfall=true — KHÔNG rollback',
-        () async {
+        'UI show hasShortfall=true — KHÔNG rollback', () async {
       cookingApi.onStart = (_) async => session(totalSteps: 1);
       recipeApi.onGetSteps = (_) async => const <CookingSessionStep>[
             CookingSessionStep(stepNumber: 1, instruction: 'Nấu'),
@@ -194,9 +196,7 @@ void main() {
       // OD-04: BE trả 200 với shortfall trong deductions (KHÔNG raise lỗi).
       cookingApi.onComplete = (id) async => CookingSessionResult(
             session: session(
-                status: CookingSessionStatusWire.completed,
-                currentStep: 1,
-                totalSteps: 1),
+                status: CookingSessionStatusWire.completed, totalSteps: 1),
             deductions: const <IngredientDeduction>[
               IngredientDeduction(
                 ingredientName: 'Cà chua',
@@ -233,7 +233,6 @@ void main() {
             session: session(
               // Server bảo đã COMPLETED ở nơi khác
               status: CookingSessionStatusWire.completed,
-              currentStep: 1,
               totalSteps: 1,
             ),
             deductions: const <IngredientDeduction>[],
@@ -255,8 +254,8 @@ void main() {
       recipeApi.onGetSteps = (_) async => const <CookingSessionStep>[
             CookingSessionStep(stepNumber: 1, instruction: 'Nấu'),
           ];
-      cookingApi.onCompleteError = BusinessException(
-          'ERR_SESSION_COMPLETE_CONFLICT', 'deadlock');
+      cookingApi.onCompleteError =
+          BusinessException('ERR_SESSION_COMPLETE_CONFLICT', 'deadlock');
 
       final store = startStore();
       await store.init();
@@ -268,59 +267,127 @@ void main() {
     });
   });
 
-  group('advanceOrComplete — guard', () {
-    test('chặn advance khi đang xem bước trước (!isViewingCurrentStep)',
+  group('local progress', () {
+    test('advance is local, review does not advance, last step completes',
         () async {
-      cookingApi.onStart = (_) async =>
-          session(currentStep: 3, totalSteps: 3); // đang ở bước cuối
+      cookingApi.onStart = (_) async => session();
       recipeApi.onGetSteps = (_) async => steps();
-      var advanceCallCount = 0;
-      cookingApi.onAdvanceStep = (_, __) async {
-        advanceCallCount++;
-        return session(currentStep: 3);
-      };
-
+      cookingApi.onComplete = (_) async => CookingSessionResult(
+          session: session(status: CookingSessionStatusWire.completed),
+          deductions: const []);
       final store = startStore();
+      addTearDown(store.dispose);
       await store.init();
-
-      // Giả lập user xem lại bước 1
-      store.viewPreviousStep();
-      store.viewPreviousStep();
-      expect(store.isViewingCurrentStep, isFalse);
-
       await store.advanceOrComplete();
-      expect(advanceCallCount, 0,
-          reason: 'Guard §9.1: advance phải chặn khi đang xem lại bước');
+      expect(store.currentStep, 2);
+      store.viewPreviousStep();
+      await store.advanceOrComplete();
+      expect(store.currentStep, 2);
+      store.returnToCurrentStep();
+      await store.advanceOrComplete();
+      expect(store.currentStep, 3);
+      await store.advanceOrComplete();
+      expect(store.phase, CookingScreenPhase.completed);
     });
 
-    test('currentStep = totalSteps → advanceOrComplete gọi complete(), '
-        'không advanceStep', () async {
-      cookingApi.onStart =
-          (_) async => session(currentStep: 2, totalSteps: 2);
-      recipeApi.onGetSteps = (_) async => const <CookingSessionStep>[
-            CookingSessionStep(stepNumber: 1, instruction: 'A'),
-            CookingSessionStep(stepNumber: 2, instruction: 'B'),
-          ];
-      var advanceCount = 0;
-      cookingApi.onAdvanceStep = (_, __) async {
-        advanceCount++;
-        return session(currentStep: 3);
-      };
-      cookingApi.onComplete = (id) async => CookingSessionResult(
-            session: session(
-                status: CookingSessionStatusWire.completed,
-                currentStep: 2),
-            deductions: const <IngredientDeduction>[],
-          );
-
-      final store = startStore();
+    test('resume restores local progress and clamps to actual recipe steps',
+        () async {
+      final progress = MemoryProgressStore()..step = 99;
+      cookingApi.onGetById = (_) async =>
+          CookingSessionResult(session: session(), deductions: const []);
+      recipeApi.onGetSteps = (_) async => steps().take(2).toList();
+      final store = CookingSessionStore(
+          cookingApi: cookingApi,
+          recipeApi: recipeApi,
+          progressStore: CookingProgressCoordinator(progress),
+          userId: 'u1',
+          entryMode: CookingEntryMode.resume,
+          sessionId: 's1');
+      addTearDown(store.dispose);
       await store.init();
+      expect(store.currentStep, 2);
+      expect(store.totalSteps, 2);
+      expect(store.isLastStep, isTrue);
+    });
 
-      await store.advanceOrComplete();
-
-      expect(advanceCount, 0,
-          reason: 'tại bước cuối → phải gọi complete(), không phải advance');
+    test('completed session clears local progress without fetching recipe',
+        () async {
+      final progress = MemoryProgressStore()..step = 2;
+      cookingApi.onGetById = (_) async => CookingSessionResult(
+          session: session(status: CookingSessionStatusWire.completed),
+          deductions: const []);
+      final store = CookingSessionStore(
+          cookingApi: cookingApi,
+          recipeApi: recipeApi,
+          progressStore: CookingProgressCoordinator(progress),
+          userId: 'u1',
+          entryMode: CookingEntryMode.resume,
+          sessionId: 's1');
+      addTearDown(store.dispose);
+      await store.init();
       expect(store.phase, CookingScreenPhase.completed);
+      expect(progress.step, isNull);
+    });
+
+    test('storage errors do not block local navigation', () async {
+      final progress = MemoryProgressStore()..fail = true;
+      cookingApi.onGetById = (_) async =>
+          CookingSessionResult(session: session(), deductions: const []);
+      recipeApi.onGetSteps = (_) async => steps();
+      final store = CookingSessionStore(
+          cookingApi: cookingApi,
+          recipeApi: recipeApi,
+          progressStore: CookingProgressCoordinator(progress),
+          userId: 'u1',
+          entryMode: CookingEntryMode.resume,
+          sessionId: 's1');
+      addTearDown(store.dispose);
+      await store.init();
+      await store.advanceOrComplete();
+      expect(store.currentStep, 2);
+      expect(store.phase, CookingScreenPhase.active);
+    });
+
+    test('rapid advances persist in order; failed completion retains progress',
+        () async {
+      final progress = DelayedProgressStore();
+      cookingApi.onStart = (_) async => session();
+      recipeApi.onGetSteps = (_) async => steps();
+      cookingApi.onCompleteError = NetworkException();
+      final store = CookingSessionStore(
+          cookingApi: cookingApi,
+          recipeApi: recipeApi,
+          progressStore: CookingProgressCoordinator(progress),
+          userId: 'u1',
+          entryMode: CookingEntryMode.start,
+          recipeId: 'r1');
+      addTearDown(store.dispose);
+      await store.init();
+      final first = store.advanceOrComplete();
+      final second = store.advanceOrComplete();
+      expect(store.currentStep, 3);
+      progress.release.complete();
+      await Future.wait([first, second]);
+      expect(progress.writes, [2, 3]);
+      await store.complete();
+      expect(store.phase, CookingScreenPhase.active);
+      expect(progress.step, 3);
+      expect(store.currentStep, 3);
+      cookingApi.onAbandon =
+          (_) async => session(status: CookingSessionStatusWire.abandoned);
+      await store.abandon();
+      expect(progress.step, isNull);
+    });
+
+    test('empty recipe is a load error instead of an invalid step index',
+        () async {
+      cookingApi.onStart = (_) async => session();
+      recipeApi.onGetSteps = (_) async => [];
+      final store = startStore();
+      addTearDown(store.dispose);
+      await store.init();
+      expect(store.phase, CookingScreenPhase.error);
+      expect(store.loadError?.code, 'ERR_SESSION_RECIPE_NO_STEPS');
     });
   });
 
@@ -328,8 +395,8 @@ void main() {
     test('success → phase=abandoned, actionError null', () async {
       cookingApi.onStart = (_) async => session();
       recipeApi.onGetSteps = (_) async => steps();
-      cookingApi.onAbandon = (id) async =>
-          session(status: CookingSessionStatusWire.abandoned);
+      cookingApi.onAbandon =
+          (id) async => session(status: CookingSessionStatusWire.abandoned);
 
       final store = startStore();
       await store.init();
@@ -344,6 +411,8 @@ void main() {
     final store = CookingSessionStore(
       cookingApi: cookingApi,
       recipeApi: recipeApi,
+      progressStore: CookingProgressCoordinator(MemoryProgressStore()),
+      userId: 'u1',
       entryMode: CookingEntryMode.start,
       recipeId: 'r1',
     );
@@ -351,4 +420,39 @@ void main() {
     store.dispose();
     expect(true, isTrue); // pass nếu không throw
   });
+}
+
+class MemoryProgressStore implements CookingProgressStore {
+  int? step;
+  bool fail = false;
+  @override
+  Future<int?> read(String userId, String householdId, String sessionId) async {
+    if (fail) throw StateError('storage unavailable');
+    return step;
+  }
+
+  @override
+  Future<void> write(
+      String userId, String householdId, String sessionId, int value) async {
+    if (fail) throw StateError('storage unavailable');
+    step = value;
+  }
+
+  @override
+  Future<void> clear(
+      String userId, String householdId, String sessionId) async {
+    step = null;
+  }
+}
+
+class DelayedProgressStore extends MemoryProgressStore {
+  final release = Completer<void>();
+  final writes = <int>[];
+  @override
+  Future<void> write(
+      String userId, String householdId, String sessionId, int value) async {
+    if (value == 2) await release.future;
+    writes.add(value);
+    await super.write(userId, householdId, sessionId, value);
+  }
 }

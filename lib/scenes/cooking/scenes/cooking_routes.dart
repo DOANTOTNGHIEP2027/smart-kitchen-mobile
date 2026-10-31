@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 
 import '../../../data/network/dio_client.dart';
+import '../../../data/db/read_cache_dao.dart';
+import '../data/cooking_progress_store.dart';
 import '../../../routing/route_guards.dart';
 import '../../../stores/session_store.dart';
 import '../../profile/api/health_api.dart';
@@ -28,7 +30,8 @@ class MealLogBinding extends Bindings {
       Get.put<HealthApi>(HealthApiImpl(Get.find<DioClient>()), permanent: true);
     }
     if (!Get.isRegistered<MealLogApi>()) {
-      Get.put<MealLogApi>(MealLogApiImpl(Get.find<DioClient>()), permanent: true);
+      Get.put<MealLogApi>(MealLogApiImpl(Get.find<DioClient>()),
+          permanent: true);
     }
     Get.lazyPut<MealLogStore>(
       () => MealLogStore(
@@ -63,20 +66,36 @@ class CookingSessionBinding extends Bindings {
   @override
   void dependencies() {
     final args = Get.arguments as CookingArgs;
+    if (!Get.isRegistered<CookingProgressCoordinator>()) {
+      Get.put<CookingProgressCoordinator>(
+        CookingProgressCoordinator(
+            DriftCookingProgressStore(Get.find<ReadCacheDao>())),
+        permanent: true,
+      );
+    }
     Get.lazyPut<CookingSessionStore>(
       () {
         final cookingApi = Get.find<CookingSessionApi>();
         final recipeApi = Get.find<RecipeApi>();
+        final userId = Get.find<SessionStore>().currentUser?.id;
+        if (userId == null) {
+          throw StateError('Authenticated user required for cooking');
+        }
+        final progressStore = Get.find<CookingProgressCoordinator>();
         return switch (args) {
           _CookingStartArgs(:final recipeId) => CookingSessionStore(
               cookingApi: cookingApi,
               recipeApi: recipeApi,
+              progressStore: progressStore,
+              userId: userId,
               entryMode: CookingEntryMode.start,
               recipeId: recipeId,
             ),
           _CookingResumeArgs(:final sessionId) => CookingSessionStore(
               cookingApi: cookingApi,
               recipeApi: recipeApi,
+              progressStore: progressStore,
+              userId: userId,
               entryMode: CookingEntryMode.resume,
               sessionId: sessionId,
             ),
