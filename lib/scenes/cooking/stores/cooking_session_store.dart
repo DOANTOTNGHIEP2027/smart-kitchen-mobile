@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:developer' as developer;
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
+import '../data/cooking_progress_store.dart';
 import '../../cooking/data/cooking_session_api.dart';
 import '../../cooking/data/recipe_api.dart';
 import '../../cooking/domain/cooking_session.dart';
@@ -31,14 +34,21 @@ class CookingSessionStore {
     required CookingSessionApi cookingApi,
     required RecipeApi recipeApi,
     required this.entryMode,
+    required CookingProgressCoordinator progressStore,
+    required this.userId,
     this.recipeId,
     String? sessionId,
   })  : _cookingApi = cookingApi,
         _recipeApi = recipeApi,
+        _progressStore = progressStore,
         _sessionId = sessionId;
 
   final CookingSessionApi _cookingApi;
   final RecipeApi _recipeApi;
+  final CookingProgressCoordinator _progressStore;
+  final String userId;
+  bool _disposed = false;
+  final Observable<int> _currentStep = Observable<int>(1);
   final CookingEntryMode entryMode;
 
   /// Bắt buộc khi `entryMode == start`. `null` khi `entryMode == resume`.
@@ -60,11 +70,9 @@ class CookingSessionStore {
   final Observable<int> _viewedStep = Observable<int>(1);
   final Observable<int?> _remainingSeconds = Observable<int?>(null);
   final Observable<bool> _timerRunning = Observable<bool>(false);
-  final Observable<bool> _isAdvancing = Observable<bool>(false);
   final Observable<bool> _isCompleting = Observable<bool>(false);
   final Observable<bool> _isAbandoning = Observable<bool>(false);
-  final Observable<ApiException?> _loadError =
-      Observable<ApiException?>(null);
+  final Observable<ApiException?> _loadError = Observable<ApiException?>(null);
   final Observable<ApiException?> _actionError =
       Observable<ApiException?>(null);
 
@@ -73,6 +81,7 @@ class CookingSessionStore {
   /// với lỗi chắc chắn lặp lại ([_isRetryableActionError]).
   final Observable<Future<void> Function()?> _retryAction =
       Observable<Future<void> Function()?>(null);
+
   /// Số resync đang chạy — có thể chồng nhau (advance + abandon cùng gặp lỗi
   /// lệch state), cái xong trước không được mở khoá nút khi cái kia còn chạy.
   final Observable<int> _resyncCount = Observable<int>(0);
@@ -100,19 +109,21 @@ class CookingSessionStore {
   List<CookingSessionStep> get steps => _steps.value;
   List<IngredientDeduction> get deductions => _deductions.value;
   int get viewedStep => _viewedStep.value;
+  int get currentStep => _currentStep.value;
+  int get totalSteps => math.min(session?.totalSteps ?? 0, steps.length);
+  bool get isLastStep => totalSteps > 0 && currentStep >= totalSteps;
   int? get remainingSeconds => _remainingSeconds.value;
   bool get timerRunning => _timerRunning.value;
-  bool get isAdvancing => _isAdvancing.value;
   bool get isCompleting => _isCompleting.value;
   bool get isAbandoning => _isAbandoning.value;
   ApiException? get loadError => _loadError.value;
   ApiException? get actionError => _actionError.value;
   bool get canRetryAction => _retryAction.value != null;
+
   /// Đang GET lại session (resync) — nút chính phải khoá như khi advance.
   bool get isResyncing => _resyncCount.value > 0;
 
-  bool get isViewingCurrentStep =>
-      viewedStep == (session?.currentStep ?? 1);
+  bool get isViewingCurrentStep => viewedStep == currentStep;
 
   CookingSessionStep? get viewedStepDef {
     final idx = viewedStep - 1;
@@ -153,16 +164,9 @@ class CookingSessionStore {
         s = result.session;
         runInAction(() => _deductions.value = result.deductions);
       }
-      final bundle = await _recipeApi.getSteps(s.recipeId);
-      runInAction(() {
-        _session.value = s;
-        _steps.value = bundle;
-        _viewedStep.value = s.currentStep;
-      });
-      _resolvePhaseFromStatus();
-      if (_phase.value == CookingScreenPhase.active) {
-        _startTimerForCurrentStep();
-      }
+      runInAction(() => _session.value = s);
+      await _loadStepsAndProgress(s,
+          restore: entryMode == CookingEntryMode.resume);
     } on ApiException catch (e) {
       runInAction(() {
         _loadError.value = e;
@@ -176,48 +180,78 @@ class CookingSessionStore {
   /// Guard §9.9 — gọi lại `start()` tạo 1 session THỨ HAI cho cùng 1 lần nấu,
   /// để lại 1 session mồ côi IN_PROGRESS.
   Future<void> retryLoad() async {
-    // Các điều kiện:
-    // - `_sessionId != null`: `start()` đã chạy thành công ở lần đầu (start()
-    //   đặt _sessionId ngay sau khi nhận response, trước khi getSteps).
-    // - `_steps.value.isEmpty`: chỉ retry khi phần recipe chưa tải.
-    //
-    // KHÔNG gọi `start()` lần 2 — Guard §9.9: tạo session mồ côi thứ hai.
-    if (_sessionId != null && _steps.value.isEmpty) {
-      final knownRecipeId = _session.value?.recipeId ??
-          (entryMode == CookingEntryMode.start ? recipeId : null);
-      if (knownRecipeId == null) {
-        await init();
-        return;
-      }
-      runInAction(() {
-        _phase.value = CookingScreenPhase.loading;
-        _loadError.value = null;
-      });
-      try {
-        if (_session.value == null) {
-          final result = await _cookingApi.getById(_sessionId!);
-          runInAction(() {
-            _session.value = result.session;
-            _deductions.value = result.deductions;
-            _viewedStep.value = result.session.currentStep;
-          });
-        }
-        final bundle = await _recipeApi.getSteps(knownRecipeId);
-        runInAction(() => _steps.value = bundle);
-        _resolvePhaseFromStatus();
-        if (_phase.value == CookingScreenPhase.active) {
-          _startTimerForCurrentStep();
-        }
-      } on ApiException catch (e) {
-        runInAction(() {
-          _loadError.value = e;
-          _phase.value = CookingScreenPhase.error;
-        });
-      }
-    } else {
+    if (_sessionId == null) {
       await init();
+      return;
+    }
+    runInAction(() {
+      _phase.value = CookingScreenPhase.loading;
+      _loadError.value = null;
+    });
+    try {
+      final result = await _cookingApi.getById(_sessionId!);
+      runInAction(() {
+        _session.value = result.session;
+        _deductions.value = result.deductions;
+      });
+      await _loadStepsAndProgress(result.session, restore: true);
+    } on ApiException catch (e) {
+      runInAction(() {
+        _loadError.value = e;
+        _phase.value = CookingScreenPhase.error;
+      });
     }
   }
+
+  Future<void> _loadStepsAndProgress(CookingSession s,
+      {required bool restore}) async {
+    if (s.status != CookingSessionStatusWire.inProgress) {
+      _cancelTimer();
+      _resolvePhaseFromStatus();
+      await _clearProgress(s);
+      return;
+    }
+    final bundle = await _recipeApi.getSteps(s.recipeId);
+    if (_disposed) return;
+    final count = math.min(s.totalSteps, bundle.length);
+    if (count < 1) {
+      throw BusinessException(
+          'ERR_SESSION_RECIPE_NO_STEPS', 'Recipe has no cooking steps');
+    }
+    int step = 1;
+    if (restore) {
+      try {
+        step = (await _progressStore.read(userId, s.householdId, s.id) ?? 1)
+            .clamp(1, count);
+      } catch (error, stack) {
+        developer.log('Unable to read local cooking progress',
+            name: 'cooking', error: error, stackTrace: stack);
+      }
+    }
+    if (_disposed) return;
+    runInAction(() {
+      _steps.value = bundle.take(count).toList(growable: false);
+      _currentStep.value = step;
+      _viewedStep.value = step;
+    });
+    _resolvePhaseFromStatus();
+    _startTimerForCurrentStep();
+  }
+
+  Future<void> _persistProgress(Future<void> Function() operation) async {
+    try {
+      await operation();
+    } catch (error, stack) {
+      developer.log('Unable to persist local cooking progress',
+          name: 'cooking', error: error, stackTrace: stack);
+    }
+  }
+
+  Future<void> _saveProgress(CookingSession s, int step) => _persistProgress(
+      () => _progressStore.write(userId, s.householdId, s.id, step));
+
+  Future<void> _clearProgress(CookingSession s) =>
+      _persistProgress(() => _progressStore.clear(userId, s.householdId, s.id));
 
   void _resolvePhaseFromStatus() {
     final status = _session.value?.status;
@@ -247,60 +281,42 @@ class CookingSessionStore {
     if (isViewingCurrentStep) return;
     _cancelTimer();
     runInAction(() {
-      _viewedStep.value = _session.value?.currentStep ?? 1;
+      _viewedStep.value = currentStep;
     });
     if (_phase.value == CookingScreenPhase.active) {
       _startTimerForCurrentStep();
     }
   }
 
-  // ── Mutation thật (non-optimistic) ──────────────────────────────────────
+  // ── Tiến bước local; complete/abandon do server xử lý ──────────────────────────────────────
 
   /// Nút chính: "Bước tiếp theo" hoặc "Hoàn thành" tuỳ `isLastStep`.
   /// Guard §9.1: không cho phép gọi khi `!isViewingCurrentStep` — tránh advance
   /// từ 1 bước đang xem lại.
   Future<void> advanceOrComplete() async {
-    if (!isViewingCurrentStep || _session.value == null) return;
-    final s = _session.value!;
-    if (s.isLastStep) {
+    final s = session;
+    if (_disposed ||
+        !isViewingCurrentStep ||
+        s == null ||
+        phase != CookingScreenPhase.active ||
+        isCompleting ||
+        isAbandoning ||
+        isResyncing ||
+        totalSteps < 1) {
+      return;
+    }
+    if (isLastStep) {
       await complete();
       return;
     }
     runInAction(() {
       _retryAction.value = null;
-      _isAdvancing.value = true;
+      _currentStep.value += 1;
+      _viewedStep.value = currentStep;
       _actionError.value = null;
     });
-    try {
-      final updated =
-          await _cookingApi.advanceStep(s.id, s.currentStep + 1);
-      // Như resync: về muộn sau abandon/complete tại máy hoặc màn đã đóng →
-      // bỏ, không ghi đè session đã kết thúc + bật timer mồ côi (OD-27).
-      if (_disposed ||
-          _phase.value == CookingScreenPhase.abandoned ||
-          _phase.value == CookingScreenPhase.completed) {
-        return;
-      }
-      runInAction(() {
-        _session.value = updated;
-        _viewedStep.value = updated.currentStep;
-      });
-      _startTimerForCurrentStep();
-    } catch (e) {
-      if (e is BusinessException &&
-          (e.code == 'ERR_SESSION_ALREADY_ENDED' ||
-              e.code == 'ERR_SESSION_STEP_INVALID')) {
-        // Local state đã lệch server — resync qua GET (Guard §9.9: không
-        // gọi retryLoad()/init() — sẽ tạo session thứ hai).
-        await _resyncSessionFromServer();
-      } else if (e is ApiException) {
-        _setActionError(e, _retryAdvance);
-      } else {
-        rethrow;
-      }
-    } finally {
-      runInAction(() => _isAdvancing.value = false);
-    }
+    _startTimerForCurrentStep();
+    await _saveProgress(s, currentStep);
   }
 
   /// Hoàn thành — trừ kho FIFO nearest-expiry, atomic (#76 D1).
@@ -308,7 +324,12 @@ class CookingSessionStore {
   /// dùng [IngredientDeduction.hasShortfall] để render cảnh báo (OD-04).
   Future<void> complete() async {
     final s = _session.value;
-    if (s == null) return;
+    if (s == null ||
+        phase != CookingScreenPhase.active ||
+        isCompleting ||
+        isAbandoning) {
+      return;
+    }
     runInAction(() {
       _retryAction.value = null;
       _isCompleting.value = true;
@@ -322,9 +343,9 @@ class CookingSessionStore {
       });
       _cancelTimer();
       runInAction(() => _phase.value = CookingScreenPhase.completed);
+      await _clearProgress(result.session);
     } catch (e) {
-      if (e is BusinessException &&
-          e.code == 'ERR_SESSION_ALREADY_ENDED') {
+      if (e is BusinessException && e.code == 'ERR_SESSION_ALREADY_ENDED') {
         await _resyncSessionFromServer();
       } else if (e is ApiException) {
         // Bao gồm ERR_SESSION_COMPLETE_CONFLICT (deadlock, retry an toàn) và
@@ -341,7 +362,12 @@ class CookingSessionStore {
   /// Abandon — đóng session, KHÔNG đụng kho (#76).
   Future<void> abandon() async {
     final s = _session.value;
-    if (s == null) return;
+    if (s == null ||
+        phase != CookingScreenPhase.active ||
+        isCompleting ||
+        isAbandoning) {
+      return;
+    }
     runInAction(() {
       _retryAction.value = null;
       _isAbandoning.value = true;
@@ -352,9 +378,9 @@ class CookingSessionStore {
       runInAction(() => _session.value = updated);
       _cancelTimer();
       runInAction(() => _phase.value = CookingScreenPhase.abandoned);
+      await _clearProgress(updated);
     } catch (e) {
-      if (e is BusinessException &&
-          e.code == 'ERR_SESSION_ALREADY_ENDED') {
+      if (e is BusinessException && e.code == 'ERR_SESSION_ALREADY_ENDED') {
         await _resyncSessionFromServer();
       } else if (e is ApiException) {
         _setActionError(e, null);
@@ -368,7 +394,7 @@ class CookingSessionStore {
 
   /// GET lại session THẬT khi state cục bộ có thể đã lệch server — dùng
   /// chung cho `ERR_SESSION_ALREADY_ENDED` (session đã kết thúc ở nơi khác)
-  /// và `ERR_SESSION_STEP_INVALID` (cục bộ đã cũ). KHÔNG BAO GIỜ dùng
+  /// khi session đã kết thúc ở nơi khác. KHÔNG BAO GIỜ dùng
   /// `retryLoad()`/`init()` cho 2 tình huống này — Guard §9.9.
   Future<void> _resyncSessionFromServer() async {
     final id = _session.value?.id ?? _sessionId;
@@ -387,12 +413,14 @@ class CookingSessionStore {
       runInAction(() {
         _session.value = result.session;
         _deductions.value = result.deductions;
-        _viewedStep.value = result.session.currentStep;
+        _viewedStep.value = currentStep;
       });
       _cancelTimer();
       _resolvePhaseFromStatus();
       if (_phase.value == CookingScreenPhase.active) {
         _startTimerForCurrentStep();
+      } else {
+        await _clearProgress(result.session);
       }
     } on ApiException catch (e) {
       _setActionError(e, _resyncSessionFromServer);
@@ -404,6 +432,7 @@ class CookingSessionStore {
   // ── Timer per-step (sống trong Store — yêu cầu #81) ─────────────────────
 
   void _startTimerForCurrentStep() {
+    if (_disposed) return;
     _cancelTimer();
     final def = viewedStepDef;
     final duration = def?.durationSeconds;
@@ -476,14 +505,7 @@ class CookingSessionStore {
     });
   }
 
-  /// Retry advance khi người dùng đang xem lại bước cũ: advanceOrComplete sẽ
-  /// lặng lẽ bỏ qua (Guard §9.1) — quay về bước hiện tại trước.
-  Future<void> _retryAdvance() async {
-    returnToCurrentStep();
-    await advanceOrComplete();
-  }
-
-  /// Như [_retryAdvance]: không hoàn thành phiên khi đang xem lại bước cũ.
+  /// Quay về bước hiện tại trước khi thử lại hoàn thành.
   Future<void> _retryComplete() async {
     returnToCurrentStep();
     await complete();
@@ -495,8 +517,6 @@ class CookingSessionStore {
     clearActionError();
     await retry?.call();
   }
-
-  bool _disposed = false;
 
   void dispose() {
     _disposed = true;

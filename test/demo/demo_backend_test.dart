@@ -138,7 +138,8 @@ void main() {
       }
     }
 
-    expect(await previewCode(DemoBackendAdapter.expiredInviteCode), 'ERR_HH_002');
+    expect(
+        await previewCode(DemoBackendAdapter.expiredInviteCode), 'ERR_HH_002');
 
     String? joinCode;
     try {
@@ -208,7 +209,8 @@ void main() {
     final plan = await mealPlanApi.getCurrent();
     final slot = plan.slots.firstWhere((slot) => slot.mealTime == 'LUNCH');
     final dish = await mealPlanApi.addDish(plan.id, slot.id);
-    final session = await voteApi.open(plan.id, slot.id, dish.id, deadlineHours: 24);
+    final session =
+        await voteApi.open(plan.id, slot.id, dish.id, deadlineHours: 24);
 
     expect(session.suggestions, hasLength(3));
     final selectedRecipeId = session.suggestions.first.recipeId;
@@ -232,8 +234,7 @@ void main() {
     expect(steps, isNotEmpty);
 
     final started = await cookingApi.start(recipeId);
-    final advanced = await cookingApi.advanceStep(started.id, 2);
-    final completed = await cookingApi.complete(advanced.id);
+    final completed = await cookingApi.complete(started.id);
 
     expect(completed.session.recipeId, recipeId);
     expect(completed.deductions, isNotEmpty);

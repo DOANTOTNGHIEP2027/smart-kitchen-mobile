@@ -5,7 +5,8 @@ import 'package:smart_kitchen_mobile/scenes/cooking/domain/ingredient_deduction.
 
 void main() {
   group('mapCookingSessionStep — Implementation Guard #10', () {
-    test('durationMinutes 5 (recipe-core JSON) → durationSeconds 300 (GIÂY)', () {
+    test('durationMinutes 5 (recipe-core JSON) → durationSeconds 300 (GIÂY)',
+        () {
       final step = mapCookingSessionStep(<String, dynamic>{
         'stepNumber': 1,
         'instruction': ' Rang hành',
@@ -48,7 +49,6 @@ void main() {
         'recipeName': 'Canh chua',
         'startedBy': 'u1',
         'status': 'IN_PROGRESS',
-        'currentStep': 1,
         'totalSteps': 4,
         'startedAt': '2026-09-16T07:00:00Z',
         'endedAt': null,
@@ -56,7 +56,6 @@ void main() {
 
       expect(s.id, 's1');
       expect(s.status, CookingSessionStatusWire.inProgress);
-      expect(s.isLastStep, isFalse);
       expect(s.endedAt, isNull);
     });
 
@@ -68,13 +67,11 @@ void main() {
         'recipeName': 'Canh chua',
         'startedBy': 'u1',
         'status': 'COMPLETED',
-        'currentStep': 4,
         'totalSteps': 4,
         'startedAt': '2026-09-16T07:00:00Z',
         'endedAt': '2026-09-16T07:32:00Z',
       });
       expect(s.status, CookingSessionStatusWire.completed);
-      expect(s.isLastStep, isTrue);
       expect(s.endedAt, DateTime.parse('2026-09-16T07:32:00Z'));
     });
   });
@@ -116,7 +113,6 @@ void main() {
           'recipeName': 'C',
           'startedBy': 'u1',
           'status': 'COMPLETED',
-          'currentStep': 2,
           'totalSteps': 2,
           'startedAt': '2026-09-16T07:00:00Z',
           'endedAt': '2026-09-16T07:30:00Z',
@@ -145,7 +141,6 @@ void main() {
           'recipeName': 'C',
           'startedBy': 'u1',
           'status': 'IN_PROGRESS',
-          'currentStep': 1,
           'totalSteps': 2,
           'startedAt': '2026-09-16T07:00:00Z',
           'endedAt': null,

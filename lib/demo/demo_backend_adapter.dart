@@ -319,12 +319,6 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (path == '/api/v1/cooking/sessions' && method == 'POST') {
       return _startCooking(body);
     }
-    final cookingAdvance = RegExp(
-      r'^/api/v1/cooking/sessions/([^/]+)/advance-step$',
-    ).firstMatch(path);
-    if (cookingAdvance != null && method == 'POST') {
-      return _advanceCooking(cookingAdvance.group(1)!, body);
-    }
     final cookingComplete = RegExp(
       r'^/api/v1/cooking/sessions/([^/]+)/complete$',
     ).firstMatch(path);
@@ -1265,29 +1259,12 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'recipeName': recipe['recipeName'],
       'startedBy': _userId,
       'status': 'ACTIVE',
-      'currentStep': 1,
       'totalSteps': (recipe['steps'] as List<dynamic>).length,
       'startedAt': DateTime.now().toUtc().toIso8601String(),
       'endedAt': null,
     };
     _cookingSessions[session['id'] as String] = session;
     return _ok(201, session);
-  }
-
-  ResponseBody _advanceCooking(String sessionId, Map<String, dynamic> body) {
-    final session = _cookingSessions[sessionId];
-    if (session == null) {
-      return _error(
-          404, 'ERR_COOKING_NOT_FOUND', 'Không tìm thấy phiên nấu ăn.');
-    }
-    final requestedStep = (body['step'] as num?)?.toInt();
-    if (requestedStep == null ||
-        requestedStep < 1 ||
-        requestedStep > (session['totalSteps'] as int)) {
-      return _error(400, 'ERR_COOKING_STEP', 'Bước nấu ăn không hợp lệ.');
-    }
-    session['currentStep'] = requestedStep;
-    return _ok(200, session);
   }
 
   ResponseBody _completeCooking(String sessionId) {
@@ -1298,7 +1275,6 @@ class DemoBackendAdapter implements HttpClientAdapter {
     }
     session
       ..['status'] = 'COMPLETED'
-      ..['currentStep'] = session['totalSteps']
       ..['endedAt'] = DateTime.now().toUtc().toIso8601String();
     return _ok(200, _cookingResult(session));
   }

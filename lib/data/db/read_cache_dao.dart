@@ -34,4 +34,9 @@ class ReadCacheDao {
           ),
         );
   }
+
+  Future<void> remove(String key) async {
+    await (_db.delete(_db.readCacheEntries)..where((t) => t.key.equals(key)))
+        .go();
+  }
 }

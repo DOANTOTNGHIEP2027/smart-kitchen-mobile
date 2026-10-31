@@ -7,13 +7,11 @@ import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session_step.
 /// Stub programmable cho cooking API — bám pattern FakeInventoryApi.
 class FakeCookingApi implements CookingSessionApi {
   Future<CookingSession> Function(String recipeId)? onStart;
-  Future<CookingSession> Function(String id, int step)? onAdvanceStep;
   Future<CookingSessionResult> Function(String id)? onComplete;
   Future<CookingSession> Function(String id)? onAbandon;
   Future<CookingSessionResult> Function(String id)? onGetById;
 
   Object? onStartError;
-  Object? onAdvanceStepError;
   Object? onCompleteError;
   Object? onAbandonError;
   Object? onGetByIdError;
@@ -22,13 +20,6 @@ class FakeCookingApi implements CookingSessionApi {
   Future<CookingSession> start(String recipeId) async {
     if (onStartError != null) throw onStartError!;
     if (onStart != null) return onStart!(recipeId);
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<CookingSession> advanceStep(String sessionId, int step) async {
-    if (onAdvanceStepError != null) throw onAdvanceStepError!;
-    if (onAdvanceStep != null) return onAdvanceStep!(sessionId, step);
     throw UnimplementedError();
   }
 
