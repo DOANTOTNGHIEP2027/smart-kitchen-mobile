@@ -186,6 +186,262 @@ abstract final class DemoFixtures {
         },
       ];
 
+  static Map<String, dynamic> weeklyRecap() {
+    final now = DateTime.now();
+    final monday = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - DateTime.monday));
+    final weekStart = _dateOnly(monday);
+    final w1 = _dateOnly(monday.subtract(const Duration(days: 21)));
+    final w2 = _dateOnly(monday.subtract(const Duration(days: 14)));
+    final w3 = _dateOnly(monday.subtract(const Duration(days: 7)));
+
+    return <String, dynamic>{
+      'householdId': householdId,
+      'weekStart': weekStart,
+      'mealsLoggedCount': 18,
+      'avgCaloriesKcal': 1820.0,
+      'adherencePercent': 92.5,
+      'householdSummary':
+          'Gia đình bạn đã có một tuần ăn uống rất điều độ, giảm 40% lượng thức ăn thừa so với tuần trước!',
+      'suggestedFocus':
+          'Tăng cường thêm rau xanh và uống đủ nước vào các bữa trưa.',
+      'isStale': false,
+      'computedAt': now.toUtc().toIso8601String(),
+      'wasteItemCount': 2,
+      'wasteCauseBreakdown': <String, dynamic>{
+        'OVERBOUGHT': 1,
+        'EXPIRED_FORGOTTEN': 1,
+        'SPOILED_EARLY': 0,
+        'OTHER': 0,
+      },
+      'spendTotal': 1250000.0,
+      'spendItemCount': 14,
+      'shoppingCompletedItemCount': 14,
+      'budgetAmount': 1500000.0,
+      'budgetPeriod': 'WEEKLY',
+      'budgetWeeklyAmount': 1500000.0,
+      'spendByCategory': <String, dynamic>{
+        'Rau củ': 250000.0,
+        'Thịt cá': 650000.0,
+        'Gia vị': 150000.0,
+        'Khác': 200000.0,
+      },
+      'spendTrend': <Map<String, dynamic>>[
+        <String, dynamic>{'weekStart': w1, 'spendTotal': 1400000.0},
+        <String, dynamic>{'weekStart': w2, 'spendTotal': 1350000.0},
+        <String, dynamic>{'weekStart': w3, 'spendTotal': 1480000.0},
+        <String, dynamic>{'weekStart': weekStart, 'spendTotal': 1250000.0},
+      ],
+      'memberInsights': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'memberId': ownerId,
+          'calorieAvg': 1820.0,
+          'calorieGoal': 1800.0,
+          'compliancePct': 95.0,
+          'badge': 'CONSISTENCY',
+          'topNutrientGap': 'Chất xơ',
+          'highlight': 'Duy trì năng lượng calo đạt 95% mục tiêu cả tuần',
+          'tip': 'Nên ăn thêm hoa quả giàu vitamin C vào bữa phụ',
+        },
+        <String, dynamic>{
+          'memberId': 'demo-user-0002',
+          'calorieAvg': 1650.0,
+          'calorieGoal': 1600.0,
+          'compliancePct': 92.0,
+          'badge': 'GREEN_WARRIOR',
+          'topNutrientGap': 'Canxi',
+          'highlight': 'Tích cực ăn các món luộc và thanh đạm lành mạnh',
+          'tip': 'Bổ sung sữa tươi tiệt trùng hoặc sữa chua',
+        },
+      ],
+    };
+  }
+
+  static Map<String, dynamic> householdStreak() {
+    final now = DateTime.now();
+    final monday = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - DateTime.monday));
+    return <String, dynamic>{
+      'householdId': householdId,
+      'currentStreak': 4,
+      'bestStreak': 6,
+      'lastComputedWeekStart': _dateOnly(monday),
+    };
+  }
+
+  static List<Map<String, dynamic>> weeklyNutrition() => <Map<String, dynamic>>[
+        <String, dynamic>{
+          'memberId': ownerId,
+          'avgCaloriesKcal': 1820.0,
+          'loggedCount': 14,
+        },
+        <String, dynamic>{
+          'memberId': 'demo-user-0002',
+          'avgCaloriesKcal': 1650.0,
+          'loggedCount': 12,
+        },
+      ];
+
+  static List<Map<String, dynamic>> mealLogs() {
+    final now = DateTime.now();
+    final today = _dateOnly(now);
+    final d1 = _dateOnly(now.subtract(const Duration(days: 1)));
+    final d2 = _dateOnly(now.subtract(const Duration(days: 2)));
+    final d3 = _dateOnly(now.subtract(const Duration(days: 3)));
+    final d4 = _dateOnly(now.subtract(const Duration(days: 4)));
+    final d5 = _dateOnly(now.subtract(const Duration(days: 5)));
+    return <Map<String, dynamic>>[
+      <String, dynamic>{
+        'id': 'demo-meal-log-001',
+        'householdId': householdId,
+        'memberId': ownerId,
+        'loggedBy': ownerId,
+        'sessionId': null,
+        'description': '[Bữa sáng] Phở bò tái nạm',
+        'caloriesKcal': 520.0,
+        'nutrition': <String, dynamic>{
+          'proteinG': 28.0,
+          'carbsG': 60.0,
+          'fatG': 12.0,
+        },
+        'foodItemsDetected': <Map<String, dynamic>>[
+          <String, dynamic>{'name': 'Phở bò', 'quantity': 1.0, 'confidence': 0.98},
+        ],
+        'requiresConfirmation': false,
+        'confirmedByUser': true,
+        'loggedAt': '${today}T07:30:00.000Z',
+        'confirmedAt': '${today}T07:35:00.000Z',
+      },
+      <String, dynamic>{
+        'id': 'demo-meal-log-002',
+        'householdId': householdId,
+        'memberId': ownerId,
+        'loggedBy': ownerId,
+        'sessionId': null,
+        'description': '[Bữa trưa] Cơm gà áp chảo + Canh chua cá lóc',
+        'caloriesKcal': 680.0,
+        'nutrition': <String, dynamic>{
+          'proteinG': 38.0,
+          'carbsG': 75.0,
+          'fatG': 18.0,
+        },
+        'foodItemsDetected': <Map<String, dynamic>>[
+          <String, dynamic>{'name': 'Cơm gà', 'quantity': 1.0, 'confidence': 0.95},
+          <String, dynamic>{'name': 'Canh chua cá lóc', 'quantity': 1.0, 'confidence': 0.92},
+        ],
+        'requiresConfirmation': false,
+        'confirmedByUser': true,
+        'loggedAt': '${today}T12:15:00.000Z',
+        'confirmedAt': '${today}T12:20:00.000Z',
+      },
+      <String, dynamic>{
+        'id': 'demo-meal-log-003',
+        'householdId': householdId,
+        'memberId': ownerId,
+        'loggedBy': ownerId,
+        'sessionId': null,
+        'description': '[Bữa tối] Cá lóc kho tộ + Rau luộc',
+        'caloriesKcal': 550.0,
+        'nutrition': <String, dynamic>{
+          'proteinG': 34.0,
+          'carbsG': 55.0,
+          'fatG': 14.0,
+        },
+        'foodItemsDetected': <Map<String, dynamic>>[
+          <String, dynamic>{'name': 'Cá lóc kho tộ', 'quantity': 1.0, 'confidence': 0.96},
+        ],
+        'requiresConfirmation': false,
+        'confirmedByUser': true,
+        'loggedAt': '${d1}T19:00:00.000Z',
+        'confirmedAt': '${d1}T19:05:00.000Z',
+      },
+      <String, dynamic>{
+        'id': 'demo-meal-log-004',
+        'householdId': householdId,
+        'memberId': ownerId,
+        'loggedBy': ownerId,
+        'sessionId': null,
+        'description': '[Bữa trưa] Bún chả Hà Nội',
+        'caloriesKcal': 620.0,
+        'nutrition': <String, dynamic>{
+          'proteinG': 30.0,
+          'carbsG': 72.0,
+          'fatG': 16.0,
+        },
+        'foodItemsDetected': <Map<String, dynamic>>[
+          <String, dynamic>{'name': 'Bún chả', 'quantity': 1.0, 'confidence': 0.94},
+        ],
+        'requiresConfirmation': false,
+        'confirmedByUser': true,
+        'loggedAt': '${d2}T12:30:00.000Z',
+        'confirmedAt': '${d2}T12:35:00.000Z',
+      },
+      <String, dynamic>{
+        'id': 'demo-meal-log-005',
+        'householdId': householdId,
+        'memberId': ownerId,
+        'loggedBy': ownerId,
+        'sessionId': null,
+        'description': '[Bữa tối] Canh cải thịt băm + Thịt kho tàu',
+        'caloriesKcal': 640.0,
+        'nutrition': <String, dynamic>{
+          'proteinG': 32.0,
+          'carbsG': 60.0,
+          'fatG': 20.0,
+        },
+        'foodItemsDetected': <Map<String, dynamic>>[
+          <String, dynamic>{'name': 'Thịt kho', 'quantity': 1.0, 'confidence': 0.93},
+        ],
+        'requiresConfirmation': false,
+        'confirmedByUser': true,
+        'loggedAt': '${d3}T19:15:00.000Z',
+        'confirmedAt': '${d3}T19:20:00.000Z',
+      },
+      <String, dynamic>{
+        'id': 'demo-meal-log-006',
+        'householdId': householdId,
+        'memberId': ownerId,
+        'loggedBy': ownerId,
+        'sessionId': null,
+        'description': '[Bữa trưa] Cơm sườn nướng mỡ hành',
+        'caloriesKcal': 710.0,
+        'nutrition': <String, dynamic>{
+          'proteinG': 36.0,
+          'carbsG': 80.0,
+          'fatG': 22.0,
+        },
+        'foodItemsDetected': <Map<String, dynamic>>[
+          <String, dynamic>{'name': 'Cơm sườn', 'quantity': 1.0, 'confidence': 0.97},
+        ],
+        'requiresConfirmation': false,
+        'confirmedByUser': true,
+        'loggedAt': '${d4}T12:00:00.000Z',
+        'confirmedAt': '${d4}T12:05:00.000Z',
+      },
+      <String, dynamic>{
+        'id': 'demo-meal-log-007',
+        'householdId': householdId,
+        'memberId': ownerId,
+        'loggedBy': ownerId,
+        'sessionId': null,
+        'description': '[Bữa trưa] Mì Quảng tôm thịt',
+        'caloriesKcal': 590.0,
+        'nutrition': <String, dynamic>{
+          'proteinG': 29.0,
+          'carbsG': 68.0,
+          'fatG': 15.0,
+        },
+        'foodItemsDetected': <Map<String, dynamic>>[
+          <String, dynamic>{'name': 'Mì Quảng', 'quantity': 1.0, 'confidence': 0.95},
+        ],
+        'requiresConfirmation': false,
+        'confirmedByUser': true,
+        'loggedAt': '${d5}T12:45:00.000Z',
+        'confirmedAt': '${d5}T12:50:00.000Z',
+      },
+    ];
+  }
+
   static List<Map<String, dynamic>> suggestions() =>
       <Map<String, dynamic>>[
         <String, dynamic>{

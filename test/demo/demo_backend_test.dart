@@ -7,12 +7,15 @@ import 'package:smart_kitchen_mobile/data/network/dio_client.dart';
 import 'package:smart_kitchen_mobile/demo/demo_backend_adapter.dart';
 import 'package:smart_kitchen_mobile/scenes/auth/api/auth_api.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/data/cooking_session_api.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/data/meal_log_api.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/data/recipe_api.dart';
 import 'package:smart_kitchen_mobile/scenes/household/api/household_api.dart';
+import 'package:smart_kitchen_mobile/scenes/insights/data/history_api.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/data/inventory_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_plan_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/vote_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
+import 'package:smart_kitchen_mobile/scenes/recap/data/recap_api.dart';
 import 'package:smart_kitchen_mobile/utils/dio_exception_x.dart';
 
 import '../helpers/secure_storage_channel.dart';
@@ -33,6 +36,9 @@ void main() {
   late VoteApi voteApi;
   late RecipeApi recipeApi;
   late CookingSessionApi cookingApi;
+  late RecapApi recapApi;
+  late MealLogApi mealLogApi;
+  late HistoryApi historyApi;
 
   setUp(() {
     storageChannel.install();
@@ -48,6 +54,9 @@ void main() {
     voteApi = VoteApiImpl(client);
     recipeApi = RecipeApiImpl(client);
     cookingApi = CookingSessionApiImpl(client);
+    recapApi = RecapApi(client);
+    mealLogApi = MealLogApiImpl(client);
+    historyApi = HistoryApi(client);
   });
 
   tearDown(storageChannel.uninstall);
@@ -238,5 +247,35 @@ void main() {
 
     expect(completed.session.recipeId, recipeId);
     expect(completed.deductions, isNotEmpty);
+  });
+
+  test('tổng kết tuần và chuỗi demo parse chuẩn model production', () async {
+    final recap = await recapApi.getWeeklyRecap();
+    expect(recap.mealsLoggedCount, greaterThan(0));
+    expect(recap.householdSummary, isNotEmpty);
+    expect(recap.memberInsights, isNotEmpty);
+
+    final streak = await recapApi.getHouseholdStreak(memberId: 'user-primary-1');
+    expect(streak.currentStreak, greaterThanOrEqualTo(0));
+    expect(streak.bestStreak, greaterThanOrEqualTo(0));
+  });
+
+  test('nhật ký bữa ăn và lịch sử demo đọc và ghi được', () async {
+    final now = DateTime.now();
+    final from = DateTime(now.year, now.month, 1);
+    final to = DateTime(now.year, now.month + 1, 0);
+
+    final logs = await mealLogApi.listLogs(from: from, to: to);
+    expect(logs, isNotEmpty);
+
+    final newLog = await mealLogApi.logMeal(description: 'Cơm tấm sườn bì chả');
+    expect(newLog.description, contains('Cơm tấm sườn bì chả'));
+
+    final historyLogs = await historyApi.listAllLogsInRange(
+      memberId: 'user-primary-1',
+      from: from,
+      to: to,
+    );
+    expect(historyLogs, isNotEmpty);
   });
 }
