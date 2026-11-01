@@ -13,6 +13,9 @@ import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
 import '../auth/stores/auth_store.dart';
+import '../cooking/scenes/cooking_routes.dart';
+import '../insights/scenes/insights_routes.dart';
+import '../recap/scenes/recap_routes.dart';
 import 'stores/profile_store.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -118,6 +121,27 @@ class ProfileScreen extends StatelessWidget {
               iconColor: const Color(0xFF6A5AE0),
               title: context.l10n.familyTitle,
               onPressed: () => Get.toNamed(AppRoutes.family),
+            ),
+            const SizedBox(height: AppDimens.sm),
+            _ProfileNavigationTile(
+              icon: Icons.auto_awesome,
+              iconColor: const Color(0xFFFFB300),
+              title: 'Tổng kết tuần',
+              onPressed: () => Get.toNamed(RecapRoutes.root),
+            ),
+            const SizedBox(height: AppDimens.sm),
+            _ProfileNavigationTile(
+              icon: Icons.menu_book_rounded,
+              iconColor: const Color(0xFF43A047),
+              title: context.l10n.mealLogTitle,
+              onPressed: () => Get.toNamed(CookingRoutes.mealLog),
+            ),
+            const SizedBox(height: AppDimens.sm),
+            _ProfileNavigationTile(
+              icon: Icons.insights_rounded,
+              iconColor: const Color(0xFF00ACC1),
+              title: context.l10n.insightsHistoryTooltip,
+              onPressed: () => Get.toNamed(InsightsRoutes.history),
             ),
             const SizedBox(height: AppDimens.lg),
             AppButton(

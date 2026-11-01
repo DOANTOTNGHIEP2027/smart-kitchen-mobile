@@ -74,6 +74,13 @@ class DemoBackendAdapter implements HttpClientAdapter {
       .toList(growable: true);
   var _depSequence = 2;
 
+  final Map<String, dynamic> _weeklyRecap = DemoFixtures.weeklyRecap();
+  final Map<String, dynamic> _householdStreak = DemoFixtures.householdStreak();
+  final List<Map<String, dynamic>> _mealLogs = DemoFixtures.mealLogs()
+      .map((item) => Map<String, dynamic>.from(item))
+      .toList(growable: true);
+  var _mealLogSequence = 8;
+
   var _inventorySequence = 9;
   var _dishSequence = 1;
   var _voteSequence = 1;
@@ -400,6 +407,33 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final depMatch = RegExp(r'^/api/v1/dependents/([^/]+)$').firstMatch(path);
     if (depMatch != null && method == 'GET') {
       return _getDependent(depMatch.group(1)!);
+    }
+
+    // ── Insights & Weekly Recap (Demo Mode) ─────────────────────────
+    if (path == '/api/v1/insights/weekly' && method == 'GET') {
+      return _getWeeklyRecap(options);
+    }
+    if (path == '/api/v1/insights/streaks' && method == 'GET') {
+      return _getHouseholdStreak();
+    }
+    if (path == '/api/v1/insights/adherence' && method == 'GET') {
+      return _getAdherence(options);
+    }
+
+    // ── Meal Logs & Nutrition (Demo Mode) ───────────────────────────
+    if (path == '/api/v1/cooking/log-meal' && method == 'POST') {
+      return _createMealLog(body);
+    }
+    if (path == '/api/v1/cooking/logs' && method == 'GET') {
+      return _listMealLogs(options);
+    }
+    if (path == '/api/v1/cooking/nutrition/weekly' && method == 'GET') {
+      return _getWeeklyNutrition();
+    }
+    final logConfirmMatch =
+        RegExp(r'^/api/v1/cooking/logs/([^/]+)/confirm$').firstMatch(path);
+    if (logConfirmMatch != null && method == 'PATCH') {
+      return _confirmMealLog(logConfirmMatch.group(1)!, body);
     }
 
     return null;
@@ -1581,6 +1615,131 @@ class DemoBackendAdapter implements HttpClientAdapter {
     dep['allergens'] = matched;
     return _ok(200, matched);
   }
+
+  // ── Insights Handlers ────────────────────────────────────────────
+
+  ResponseBody _getWeeklyRecap(RequestOptions options) {
+    final copy = _copyMap(_weeklyRecap);
+    copy['householdId'] = _householdId ?? DemoFixtures.householdId;
+    final members = (copy['memberInsights'] as List<dynamic>?)
+        ?.cast<Map<String, dynamic>>();
+    if (members != null && members.isNotEmpty) {
+      members.first['memberId'] = _userId;
+    }
+    return _ok(200, copy);
+  }
+
+  ResponseBody _getHouseholdStreak() {
+    final copy = _copyMap(_householdStreak);
+    copy['householdId'] = _householdId ?? DemoFixtures.householdId;
+    return _ok(200, copy);
+  }
+
+  ResponseBody _getAdherence(RequestOptions options) => _ok(200, <String, dynamic>{
+        'adherencePercent': 92.5,
+      });
+
+  // ── Meal Log Handlers ────────────────────────────────────────────
+
+  ResponseBody _createMealLog(Map<String, dynamic> body) {
+    final description = body['description'] as String? ?? 'Bữa ăn';
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+    final cleanName = description.replaceAll(RegExp(r'\[.*?\]'), '').trim();
+    final name = cleanName.isEmpty ? 'Món ăn tự chọn' : cleanName;
+
+    final entry = <String, dynamic>{
+      'id': 'demo-meal-log-${_mealLogSequence++}',
+      'householdId': _householdId ?? DemoFixtures.householdId,
+      'memberId': _userId,
+      'loggedBy': _userId,
+      'sessionId': null,
+      'description': description,
+      'caloriesKcal': 580.0,
+      'nutrition': <String, dynamic>{
+        'proteinG': 26.0,
+        'carbsG': 68.0,
+        'fatG': 14.0,
+      },
+      'foodItemsDetected': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'name': name,
+          'quantity': 1.0,
+          'confidence': 0.94,
+        },
+      ],
+      'requiresConfirmation': true,
+      'confirmedByUser': false,
+      'loggedAt': nowIso,
+      'confirmedAt': null,
+    };
+    _mealLogs.insert(0, entry);
+    return _ok(201, entry);
+  }
+
+  ResponseBody _listMealLogs(RequestOptions options) {
+    final query = options.queryParameters;
+    final memberId = query['memberId'] as String?;
+    final fromStr = query['from'] as String?;
+    final toStr = query['to'] as String?;
+    final page = int.tryParse('${query['page'] ?? 0}') ?? 0;
+    final size = int.tryParse('${query['size'] ?? 20}') ?? 20;
+
+    final filtered = _mealLogs.where((item) {
+      if (memberId != null &&
+          memberId.isNotEmpty &&
+          item['memberId'] != memberId &&
+          item['memberId'] != _userId &&
+          item['memberId'] != DemoFixtures.ownerId) {
+        return false;
+      }
+      if (fromStr != null && fromStr.isNotEmpty) {
+        final loggedDate = (item['loggedAt'] as String).substring(0, 10);
+        if (loggedDate.compareTo(fromStr) < 0) return false;
+      }
+      if (toStr != null && toStr.isNotEmpty) {
+        final loggedDate = (item['loggedAt'] as String).substring(0, 10);
+        if (loggedDate.compareTo(toStr) > 0) return false;
+      }
+      return true;
+    }).toList(growable: false);
+
+    final start = page * size;
+    final end = start + size > filtered.length ? filtered.length : start + size;
+    final pagedItems = start >= filtered.length
+        ? <Map<String, dynamic>>[]
+        : filtered.sublist(start, end).map(_copyMap).toList();
+
+    return _ok(200, <String, dynamic>{
+      'items': pagedItems,
+      'page': page,
+      'size': size,
+      'totalElements': filtered.length,
+      'totalPages': filtered.isEmpty ? 0 : (filtered.length / size).ceil(),
+    });
+  }
+
+  ResponseBody _confirmMealLog(String id, Map<String, dynamic> body) {
+    final index = _mealLogs.indexWhere((item) => item['id'] == id);
+    if (index < 0) {
+      return _error(404, 'ERR_LOG_NOT_FOUND', 'Không tìm thấy nhật ký bữa ăn.');
+    }
+    final item = _mealLogs[index];
+    final calo = body.containsKey('caloriesKcal') && body['caloriesKcal'] != null
+        ? (body['caloriesKcal'] as num).toDouble()
+        : item['caloriesKcal'];
+    final updated = <String, dynamic>{
+      ...item,
+      'caloriesKcal': calo,
+      'requiresConfirmation': false,
+      'confirmedByUser': true,
+      'confirmedAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    _mealLogs[index] = updated;
+    return _ok(200, updated);
+  }
+
+  ResponseBody _getWeeklyNutrition() =>
+      _ok(200, DemoFixtures.weeklyNutrition());
 
   ResponseBody _ok(int status, Object? data) => _json(status, {
         'success': true,

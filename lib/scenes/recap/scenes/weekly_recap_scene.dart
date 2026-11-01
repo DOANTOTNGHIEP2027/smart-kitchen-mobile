@@ -14,6 +14,8 @@ import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
+import '../../cooking/scenes/cooking_routes.dart';
+import '../../insights/scenes/insights_routes.dart';
 import '../../profile/profile_family_routes.dart';
 import '../stores/weekly_recap_store.dart';
 import '../widgets/insight_card.dart';
@@ -44,7 +46,19 @@ class _WeeklyRecapSceneState extends State<WeeklyRecapScene> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return AppScaffold(
-      title: l10n.recapTitle,
+      title: 'Tổng kết tuần',
+      actions: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.menu_book_rounded),
+          tooltip: l10n.mealLogTitle,
+          onPressed: () => Get.toNamed(CookingRoutes.mealLog),
+        ),
+        IconButton(
+          icon: const Icon(Icons.insights_rounded),
+          tooltip: l10n.insightsHistoryTooltip,
+          onPressed: () => Get.toNamed(InsightsRoutes.history),
+        ),
+      ],
       body: Observer(builder: (context) {
         switch (_store.status) {
           case RecapLoadStatus.loading:
