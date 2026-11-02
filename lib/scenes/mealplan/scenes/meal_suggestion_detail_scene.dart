@@ -109,8 +109,9 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                               color: Theme.of(context).colorScheme.error))),
                 GestureDetector(
                   onHorizontalDragEnd: (details) {
-                    if (_store.actionStatus != SuggestionActionStatus.idle)
+                    if (_store.actionStatus != SuggestionActionStatus.idle) {
                       return;
+                    }
                     final velocity = details.primaryVelocity ?? 0;
                     if (velocity <= -240) {
                       _store.viewNext();

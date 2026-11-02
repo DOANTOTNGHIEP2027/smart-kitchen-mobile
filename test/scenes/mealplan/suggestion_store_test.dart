@@ -1,3 +1,11 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:smart_kitchen_mobile/l10n/app_localizations.dart';
+import 'package:smart_kitchen_mobile/scenes/mealplan/scenes/meal_suggestion_detail_scene.dart';
+import 'package:smart_kitchen_mobile/scenes/shopping/data/shopping_api.dart';
+import 'package:smart_kitchen_mobile/scenes/shopping/stores/shopping_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_plan_slot.dart';
@@ -7,12 +15,58 @@ import 'package:smart_kitchen_mobile/scenes/mealplan/stores/meal_plan_store.dart
 import 'package:smart_kitchen_mobile/scenes/mealplan/stores/suggestion_store.dart';
 import 'fake_meal_plan_api.dart';
 
+class MockShoppingApi extends Mock implements ShoppingApi {}
+
+class MockShoppingStore extends Mock implements ShoppingStore {}
+
 class Sink implements ShoppingListSink {
   @override
   Future<int> addItems(List<IngredientItem> items) async => items.length;
 }
 
 void main() {
+  tearDown(Get.reset);
+  testWidgets(
+      'saved suggestions can regenerate; failed request keeps the card visible',
+      (tester) async {
+    final gate = Completer<List<MealSuggestion>>();
+    final suggestions = FakeMealSuggestionApi()
+      ..onList = () async =>
+          [const MealSuggestion(id: 'uuid', recipeId: 'r', mealName: 'Soup')];
+    suggestions.onGenerate = () => gate.future;
+    final plan =
+        MealPlanStore(api: FakeMealPlanApi(), suggestionApi: suggestions);
+    plan.currentPlanIdForTesting = 'p';
+    Get.put<MealPlanStore>(plan);
+    Get.put<ShoppingApi>(MockShoppingApi());
+    Get.put<ShoppingStore>(MockShoppingStore());
+    Get.put<ShoppingListSink>(Sink());
+    await tester.pumpWidget(GetMaterialApp(
+      locale: const Locale('vi'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      initialRoute: '/suggestion/s/d',
+      getPages: [
+        GetPage(
+            name: '/suggestion/:slotId/:dishId',
+            page: () => const MealSuggestionDetailScene())
+      ],
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Soup'), findsOneWidget);
+    final l10n = AppLocalizations.of(
+        tester.element(find.byType(MealSuggestionDetailScene)));
+    final regenerate = find.text(l10n.mealPlanGenerateSuggestions);
+    await tester.ensureVisible(regenerate);
+    await tester.tap(regenerate);
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsWidgets);
+    gate.completeError(ServerException('ERR_AI_TIMEOUT', 'timeout'));
+    await tester.pumpAndSettle();
+    expect(find.text('Soup'), findsOneWidget);
+    expect(find.text(l10n.mealplanSuggestionsUnavailable), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
   test(
       'selection uses persisted suggestion UUID, commits source AI only after server succeeds',
       () async {
