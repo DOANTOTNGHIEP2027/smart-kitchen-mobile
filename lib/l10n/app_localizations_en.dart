@@ -912,8 +912,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealplanDeleteDishTitle => 'Delete this dish?';
 
   @override
-  String get mealplanDeleteDishMessage =>
-      'If there is an active vote, it will be cancelled.';
+  String get mealplanDeleteDishMessage => 'Remove this dish from the meal?';
 
   @override
   String get mealplanDeleteDish => 'Delete dish';
@@ -944,11 +943,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealplanSuggestionsUnavailable =>
-      'The session exists, but suggestions could not be reloaded.';
+      'Could not load suggestions. Retry or choose a recipe.';
 
   @override
   String get mealplanSuggestionsExhausted =>
-      'You have viewed all suggestions. Wait for votes or try re-rolling.';
+      'No suggestions to choose. Generate suggestions to continue.';
 
   @override
   String get mealplanAddShoppingList => 'Add to shopping list';
@@ -964,7 +963,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealplanUnableToChoose => 'Could not choose dish';
 
   @override
-  String get mealplanActionRolledBack => 'The action was rolled back.';
+  String get mealplanActionRolledBack =>
+      'Selection was not saved. Refresh suggestions and retry.';
 
   @override
   String get mealplanVoteSession => 'Vote session';
@@ -2532,4 +2532,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shoppingShareTextFooter => 'Made with Smart Kitchen App';
+
+  @override
+  String get attendanceTitle => 'Meal attendance';
+
+  @override
+  String get attendanceYes => 'Attending';
+
+  @override
+  String get attendanceNo => 'Not attending';
+
+  @override
+  String get attendanceUnknown => 'Not answered';
+
+  @override
+  String get attendanceClear => 'Clear response';
+
+  @override
+  String get attendanceClosed => 'Attendance for this meal is read-only.';
+
+  @override
+  String get attendanceLoadFailed => 'Could not load attendance';
+
+  @override
+  String get attendanceSaveFailed => 'Response was not saved. Please retry.';
+
+  @override
+  String get attendanceMember => 'Member';
+
+  @override
+  String attendanceSummary(int yes, int unknown) {
+    return '$yes members attending · $unknown unanswered';
+  }
+
+  @override
+  String get mealPlanConfirm => 'Confirm weekly menu';
+
+  @override
+  String get mealPlanConfirmed => 'Weekly menu confirmed';
+
+  @override
+  String get mealPlanConfirmFailed =>
+      'Could not confirm. Choose at least one recipe and complete or remove empty dishes.';
+
+  @override
+  String get mealPlanGenerateSuggestions => 'Generate suggestions';
+
+  @override
+  String get mealPlanChooseRecipe => 'Choose a recipe';
 }

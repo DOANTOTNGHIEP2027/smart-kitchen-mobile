@@ -1800,7 +1800,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealplanDeleteDishMessage.
   ///
   /// In en, this message translates to:
-  /// **'If there is an active vote, it will be cancelled.'**
+  /// **'Remove this dish from the meal?'**
   String get mealplanDeleteDishMessage;
 
   /// No description provided for @mealplanDeleteDish.
@@ -1854,13 +1854,13 @@ abstract class AppLocalizations {
   /// No description provided for @mealplanSuggestionsUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'The session exists, but suggestions could not be reloaded.'**
+  /// **'Could not load suggestions. Retry or choose a recipe.'**
   String get mealplanSuggestionsUnavailable;
 
   /// No description provided for @mealplanSuggestionsExhausted.
   ///
   /// In en, this message translates to:
-  /// **'You have viewed all suggestions. Wait for votes or try re-rolling.'**
+  /// **'No suggestions to choose. Generate suggestions to continue.'**
   String get mealplanSuggestionsExhausted;
 
   /// No description provided for @mealplanAddShoppingList.
@@ -1890,7 +1890,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealplanActionRolledBack.
   ///
   /// In en, this message translates to:
-  /// **'The action was rolled back.'**
+  /// **'Selection was not saved. Refresh suggestions and retry.'**
   String get mealplanActionRolledBack;
 
   /// No description provided for @mealplanVoteSession.
@@ -4556,6 +4556,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Made with Smart Kitchen App'**
   String get shoppingShareTextFooter;
+
+  /// No description provided for @attendanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal attendance'**
+  String get attendanceTitle;
+
+  /// No description provided for @attendanceYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Attending'**
+  String get attendanceYes;
+
+  /// No description provided for @attendanceNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Not attending'**
+  String get attendanceNo;
+
+  /// No description provided for @attendanceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not answered'**
+  String get attendanceUnknown;
+
+  /// No description provided for @attendanceClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear response'**
+  String get attendanceClear;
+
+  /// No description provided for @attendanceClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance for this meal is read-only.'**
+  String get attendanceClosed;
+
+  /// No description provided for @attendanceLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load attendance'**
+  String get attendanceLoadFailed;
+
+  /// No description provided for @attendanceSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Response was not saved. Please retry.'**
+  String get attendanceSaveFailed;
+
+  /// No description provided for @attendanceMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get attendanceMember;
+
+  /// No description provided for @attendanceSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{yes} members attending · {unknown} unanswered'**
+  String attendanceSummary(int yes, int unknown);
+
+  /// No description provided for @mealPlanConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm weekly menu'**
+  String get mealPlanConfirm;
+
+  /// No description provided for @mealPlanConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly menu confirmed'**
+  String get mealPlanConfirmed;
+
+  /// No description provided for @mealPlanConfirmFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not confirm. Choose at least one recipe and complete or remove empty dishes.'**
+  String get mealPlanConfirmFailed;
+
+  /// No description provided for @mealPlanGenerateSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate suggestions'**
+  String get mealPlanGenerateSuggestions;
+
+  /// No description provided for @mealPlanChooseRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a recipe'**
+  String get mealPlanChooseRecipe;
 }
 
 class _AppLocalizationsDelegate

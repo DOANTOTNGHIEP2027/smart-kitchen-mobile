@@ -905,8 +905,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get mealplanDeleteDishTitle => 'Xoá món này?';
 
   @override
-  String get mealplanDeleteDishMessage =>
-      'Nếu đang có phiên vote, phiên đó sẽ bị huỷ.';
+  String get mealplanDeleteDishMessage => 'Xóa món này khỏi bữa ăn?';
 
   @override
   String get mealplanDeleteDish => 'Xoá món';
@@ -936,11 +935,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get mealplanSuggestionsUnavailable =>
-      'Phiên đã tồn tại nhưng chưa tải lại được danh sách gợi ý.';
+      'Không tải được gợi ý món. Bạn có thể thử lại hoặc chọn từ công thức.';
 
   @override
   String get mealplanSuggestionsExhausted =>
-      'Đã xem hết gợi ý. Chờ vote hoặc thử re-roll.';
+      'Chưa có gợi ý để chọn. Bạn có thể tạo gợi ý mới.';
 
   @override
   String get mealplanAddShoppingList => 'Thêm vào danh sách mua sắm';
@@ -956,7 +955,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get mealplanUnableToChoose => 'Không chọn được';
 
   @override
-  String get mealplanActionRolledBack => 'Đã hoàn tác thao tác.';
+  String get mealplanActionRolledBack =>
+      'Chưa lưu được lựa chọn. Hãy tải lại gợi ý và thử lại.';
 
   @override
   String get mealplanVoteSession => 'Phiên vote';
@@ -2501,4 +2501,52 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get shoppingShareTextFooter => 'Tạo từ Smart Kitchen App';
+
+  @override
+  String get attendanceTitle => 'Xác nhận ăn';
+
+  @override
+  String get attendanceYes => 'Có ăn';
+
+  @override
+  String get attendanceNo => 'Không ăn';
+
+  @override
+  String get attendanceUnknown => 'Chưa phản hồi';
+
+  @override
+  String get attendanceClear => 'Bỏ phản hồi';
+
+  @override
+  String get attendanceClosed => 'Không thể thay đổi xác nhận ăn cho bữa này.';
+
+  @override
+  String get attendanceLoadFailed => 'Không tải được xác nhận ăn';
+
+  @override
+  String get attendanceSaveFailed => 'Chưa lưu được phản hồi. Hãy thử lại.';
+
+  @override
+  String get attendanceMember => 'Thành viên';
+
+  @override
+  String attendanceSummary(int yes, int unknown) {
+    return '$yes thành viên có ăn · $unknown chưa phản hồi';
+  }
+
+  @override
+  String get mealPlanConfirm => 'Chốt thực đơn tuần';
+
+  @override
+  String get mealPlanConfirmed => 'Thực đơn tuần đã chốt';
+
+  @override
+  String get mealPlanConfirmFailed =>
+      'Chưa chốt được. Cần có món đã chọn và không còn món để trống.';
+
+  @override
+  String get mealPlanGenerateSuggestions => 'Tạo gợi ý món';
+
+  @override
+  String get mealPlanChooseRecipe => 'Chọn từ công thức';
 }

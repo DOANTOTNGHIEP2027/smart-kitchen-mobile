@@ -8,8 +8,11 @@ import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../planning/scenes/planning_routes.dart';
 import '../domain/meal_plan_slot.dart';
+import '../../recipe/domain/recipe.dart';
+import '../../recipe/scenes/recipe_list_scene.dart';
 import '../stores/meal_plan_store.dart';
 import '../widgets/recipe_cover_image.dart';
+import '../widgets/meal_attendance_panel.dart';
 import 'meal_plan_routes.dart';
 
 /// Chỉnh một bữa của ngày đã chọn trong lịch tuần — Phong cách Tasty.
@@ -53,8 +56,6 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
 
   Future<void> _openSuggestions(String dishId) async {
     try {
-      final store = Get.find<MealPlanStore>();
-      await store.openVoteSession(widget.slotId, dishId);
       if (!mounted) return;
       await Get.toNamed<void>(
         MealPlanRoutes.detailOf(widget.slotId, dishId),
@@ -75,17 +76,17 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
       _showActionError(context.l10n.planningPlanNotReady);
       return;
     }
-    final session = store.activeSessions[dish.id];
-    // Món đã chốt không được mở phiên mới (cùng luật với `onChoose`) → không
-    // truyền slotId/dishId để màn insight không hiện nút sinh gợi ý.
-    final canChoose = dish.status != DishUiStatus.confirmed;
-    Get.toNamed<void>(PlanningRoutes.candidatesOf(
-      planId,
-      sessionId: session?.sessionId,
-      slotId: canChoose ? widget.slotId : null,
-      dishId: canChoose ? dish.id : null,
-      dishHasNoSession: session == null && dish.status == DishUiStatus.empty,
-    ));
+    Get.toNamed<void>(PlanningRoutes.candidatesOf(planId,
+        slotId: widget.slotId, dishId: dish.id));
+  }
+
+  Future<void> _chooseManual(String dishId) async {
+    final recipe = await Get.to<Recipe>(() =>
+        RecipeListScene(onSelect: (value) => Get.back<Recipe>(result: value)));
+    if (recipe == null || !mounted) return;
+    final ok = await Get.find<MealPlanStore>()
+        .assignManual(widget.slotId, dishId, recipe.id, recipe.name);
+    if (!ok && mounted) _showActionError(context.l10n.mealplanUnableToChoose);
   }
 
   void _showActionError(String message) {
@@ -107,6 +108,9 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
           return ListView(
             padding: const EdgeInsets.all(AppDimens.lg),
             children: <Widget>[
+              if (store.currentPlanId != null)
+                MealAttendancePanel(
+                    planId: store.currentPlanId!, slotId: widget.slotId),
               Text(
                 widget.mealLabel,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -125,14 +129,33 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
               ...dishes.map(
                 (dish) => Padding(
                   padding: const EdgeInsets.only(bottom: AppDimens.sm),
-                  child: _EditableDishCard(
-                    dish: dish,
-                    onDelete: () => store.removeDish(widget.slotId, dish.id),
-                    onInsights: () => _openCandidates(dish),
-                    onChoose: dish.status == DishUiStatus.confirmed
-                        ? null
-                        : () => _openSuggestions(dish.id),
-                  ),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _EditableDishCard(
+                          dish: dish,
+                          onDelete: store.isConfirmed
+                              ? null
+                              : () => store.removeDish(widget.slotId, dish.id),
+                          onInsights: () => _openCandidates(dish),
+                          onChoose: store.isConfirmed
+                              ? null
+                              : () => _openSuggestions(dish.id),
+                        ),
+                        if (!store.isConfirmed)
+                          Wrap(spacing: 8, children: [
+                            if (dish.recipe != null)
+                              TextButton.icon(
+                                  onPressed: () => _openSuggestions(dish.id),
+                                  icon: const Icon(Icons.auto_awesome),
+                                  label: Text(context
+                                      .l10n.mealPlanGenerateSuggestions)),
+                            TextButton.icon(
+                                onPressed: () => _chooseManual(dish.id),
+                                icon: const Icon(Icons.menu_book_outlined),
+                                label: Text(context.l10n.mealPlanChooseRecipe)),
+                          ]),
+                      ]),
                 ),
               ),
               const SizedBox(height: AppDimens.sm),
@@ -161,7 +184,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                     fontSize: 15,
                   ),
                 ),
-                onPressed: _isAdding ? null : _addDish,
+                onPressed: _isAdding || store.isConfirmed ? null : _addDish,
               ),
             ],
           );
@@ -180,7 +203,7 @@ class _EditableDishCard extends StatelessWidget {
   });
 
   final MealPlanDish dish;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
   final VoidCallback onInsights;
   final VoidCallback? onChoose;
 
@@ -275,7 +298,7 @@ class _PendingDishCard extends StatelessWidget {
     this.onChoose,
   });
 
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
   final VoidCallback onInsights;
   final VoidCallback? onChoose;
 

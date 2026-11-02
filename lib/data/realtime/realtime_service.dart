@@ -61,8 +61,7 @@ class RealtimeService {
   WebSocketChannel? _channel;
   StreamSubscription<dynamic>? _channelSub;
 
-  final _stateController =
-      StreamController<WsConnectionState>.broadcast();
+  final _stateController = StreamController<WsConnectionState>.broadcast();
   final _eventController = StreamController<WsEventEnvelope>.broadcast();
 
   WsConnectionState _state = WsConnectionState.disconnected;
@@ -234,7 +233,6 @@ class RealtimeService {
   void _subscribeHousehold(String householdId) {
     final topics = <String>[
       '/topic/household/$householdId/inventory',
-      '/topic/household/$householdId/vote',
       '/topic/household/$householdId/shopping',
     ];
     for (int i = 0; i < topics.length; i++) {

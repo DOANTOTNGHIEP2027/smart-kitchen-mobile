@@ -5,9 +5,9 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
-import '../../cooking/scenes/cooking_routes.dart' show CookingArgs, CookingRoutes;
+import '../../cooking/scenes/cooking_routes.dart'
+    show CookingArgs, CookingRoutes;
 import '../domain/meal_plan_slot.dart';
-import '../domain/vote_session_summary.dart';
 import '../stores/meal_plan_store.dart';
 import '../scenes/meal_plan_routes.dart';
 
@@ -62,13 +62,15 @@ class MealCard extends StatelessWidget {
                   ...currentSlot.dishes.map(
                     (MealPlanDish dish) => _DishChip(
                       dish: dish,
-                      voteTallyCount: _voteCount(dish.id),
+                      voteTallyCount: null,
                       onTap: () => _handleDishTap(dish),
                     ),
                   ),
                   if (currentSlot.id.isNotEmpty)
                     TextButton.icon(
-                      onPressed: () => _confirmAddDish(currentSlot.id),
+                      onPressed: store.isConfirmed
+                          ? null
+                          : () => _confirmAddDish(currentSlot.id),
                       icon: const Icon(Icons.add, size: 16),
                       label: Text(context.l10n.mealPlanAddDish,
                           style: const TextStyle(fontSize: 11)),
@@ -89,24 +91,10 @@ class MealCard extends StatelessWidget {
     );
   }
 
-  int? _voteCount(String dishId) {
-    final session = store.activeSessions[dishId];
-    if (session == null) return null;
-    final total = session.tally.fold<int>(
-      0,
-      (int prev, VoteTallyItem t) => prev + t.count,
-    );
-    return total == 0 ? null : total;
-  }
-
   void _handleDishTap(MealPlanDish dish) {
     switch (dish.status) {
       case DishUiStatus.empty:
       case DishUiStatus.suggested:
-        Get.toNamed<void>(
-          MealPlanRoutes.voteOf(dish.slotId, dish.id),
-        );
-      case DishUiStatus.voting:
         Get.toNamed<void>(
           MealPlanRoutes.detailOf(dish.slotId, dish.id),
         );
@@ -120,8 +108,8 @@ class MealCard extends StatelessWidget {
           ),
           backgroundColor: Theme.of(Get.context!).colorScheme.surface,
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-                top: Radius.circular(AppDimens.radiusLg)),
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(AppDimens.radiusLg)),
           ),
         );
     }
@@ -135,8 +123,6 @@ class MealCard extends StatelessWidget {
     switch (status) {
       case SlotUiStatus.empty:
         return Colors.transparent;
-      case SlotUiStatus.voting:
-        return AppColors.secondary.withValues(alpha: 0.05);
       case SlotUiStatus.inProgress:
         return AppColors.warning.withValues(alpha: 0.05);
       case SlotUiStatus.confirmed:
@@ -148,8 +134,6 @@ class MealCard extends StatelessWidget {
     switch (status) {
       case SlotUiStatus.empty:
         return AppColors.border;
-      case SlotUiStatus.voting:
-        return AppColors.secondary.withValues(alpha: 0.4);
       case SlotUiStatus.inProgress:
         return AppColors.warning.withValues(alpha: 0.4);
       case SlotUiStatus.confirmed:
@@ -184,8 +168,7 @@ class _DishChip extends StatelessWidget {
             ),
             if (voteTallyCount != null)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
@@ -213,9 +196,7 @@ class _DishChip extends StatelessWidget {
       case DishUiStatus.empty:
         return context.l10n.mealplanAddSuggestion;
       case DishUiStatus.suggested:
-        return context.l10n.mealplanWaitingForVote;
-      case DishUiStatus.voting:
-        return context.l10n.mealplanVoting;
+        return context.l10n.mealPlanStatusSuggested;
       case DishUiStatus.confirmed:
         return dish.recipe?.recipeName ?? '';
     }

@@ -528,7 +528,8 @@ abstract final class DemoFixtures {
         'steps': <Map<String, dynamic>>[
           <String, dynamic>{
             'step_number': 1,
-            'instruction': 'Làm sạch cá lóc, cắt khúc và ướp với nước mắm, tiêu.',
+            'instruction':
+                'Làm sạch cá lóc, cắt khúc và ướp với nước mắm, tiêu.',
             'duration_minutes': 10,
           },
           <String, dynamic>{
@@ -641,7 +642,8 @@ abstract final class DemoFixtures {
           },
           <String, dynamic>{
             'step_number': 2,
-            'instruction': 'Làm nóng dầu, cho sốt tương cà đường chanh xào sệt.',
+            'instruction':
+                'Làm nóng dầu, cho sốt tương cà đường chanh xào sệt.',
             'duration_minutes': 5,
           },
           <String, dynamic>{
@@ -851,7 +853,7 @@ abstract final class DemoFixtures {
             'id': 'demo-dish-3',
             'slotId': 'demo-slot-$dateText-LUNCH',
             'sortOrder': 0,
-            'status': 'VOTING',
+            'status': 'SUGGESTED',
             'recipe': <String, dynamic>{
               'recipeId': 'demo-recipe-com-ga',
               'recipeName': 'Cơm gà áp chảo',
@@ -910,7 +912,8 @@ abstract final class DemoFixtures {
         'expiryDate': expiryDate,
         'note': null,
         'version': 1,
-        'isLowStock': lowStockThreshold != null && quantity <= lowStockThreshold,
+        'isLowStock':
+            lowStockThreshold != null && quantity <= lowStockThreshold,
         'isExpiringSoon': expiryDate == '2026-09-22',
         'createdBy': ownerId,
         'createdAt': '2026-09-20T08:00:00.000Z',

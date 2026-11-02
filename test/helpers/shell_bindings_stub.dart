@@ -1,3 +1,4 @@
+import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_attendance.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:get/get.dart';
@@ -11,7 +12,8 @@ import 'package:smart_kitchen_mobile/scenes/inventory/data/inventory_api.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/data/inventory_dao.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/domain/inventory_item.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_plan_api.dart';
-import 'package:smart_kitchen_mobile/scenes/mealplan/data/vote_api.dart';
+import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_suggestion_api.dart';
+import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_attendance_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_plan_slot.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/family_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
@@ -50,10 +52,12 @@ void registerShellStubBindings({
     );
   }
   if (!Get.isRegistered<ReadCacheDao>()) {
-    Get.put<ReadCacheDao>(ReadCacheDao(Get.find<AppDatabase>()), permanent: true);
+    Get.put<ReadCacheDao>(ReadCacheDao(Get.find<AppDatabase>()),
+        permanent: true);
   }
   if (!Get.isRegistered<InventoryDao>()) {
-    Get.put<InventoryDao>(InventoryDao(Get.find<AppDatabase>()), permanent: true);
+    Get.put<InventoryDao>(InventoryDao(Get.find<AppDatabase>()),
+        permanent: true);
   }
   if (!Get.isRegistered<InventoryApi>()) {
     Get.put<InventoryApi>(_MockInventoryApi(), permanent: true);
@@ -61,8 +65,11 @@ void registerShellStubBindings({
   if (!Get.isRegistered<MealPlanApi>()) {
     Get.put<MealPlanApi>(_MockMealPlanApi(), permanent: true);
   }
-  if (!Get.isRegistered<VoteApi>()) {
-    Get.put<VoteApi>(_MockVoteApi(), permanent: true);
+  if (!Get.isRegistered<MealSuggestionApi>()) {
+    Get.put<MealSuggestionApi>(_MockMealSuggestionApi(), permanent: true);
+  }
+  if (!Get.isRegistered<MealAttendanceApi>()) {
+    Get.put<MealAttendanceApi>(_MockMealAttendanceApi(), permanent: true);
   }
   if (!Get.isRegistered<HealthApi>()) {
     Get.put<HealthApi>(_MockHealthApi(), permanent: true);
@@ -106,11 +113,25 @@ void registerShellStubBindings({
 // không ném Null và chạy tới empty state.
 
 class _MockInventoryApi extends Mock implements InventoryApi {}
-class _MockMealPlanApi extends Mock implements MealPlanApi {}
-class _MockVoteApi extends Mock implements VoteApi {}
+
+class _MockMealPlanApi extends Mock implements MealPlanApi {
+  @override
+  Future<MealPlanDto> getWeek(DateTime week) => getCurrent();
+}
+
+class _MockMealSuggestionApi extends Mock implements MealSuggestionApi {}
+
+class _MockMealAttendanceApi extends Mock implements MealAttendanceApi {
+  @override
+  Future<List<MealAttendance>> list(String pid) async => [];
+}
+
 class _MockHealthApi extends Mock implements HealthApi {}
+
 class _MockProfileApi extends Mock implements ProfileApi {}
+
 class _MockFamilyApi extends Mock implements FamilyApi {}
+
 class _MockShoppingApi extends Mock implements ShoppingApi {}
 
 /// Stub các method mà shell render sẽ chạm tới (tránh `Null` crash và
@@ -122,14 +143,14 @@ void _wireStubResponses() {
 
   when(() => inventory.list(page: any(named: 'page'), size: any(named: 'size')))
       .thenAnswer(
-        (_) async => const InventoryListPage(
-          items: <InventoryItemModel>[],
-          page: 0,
-          size: 100,
-          totalElements: 0,
-          totalPages: 0,
-        ),
-      );
+    (_) async => const InventoryListPage(
+      items: <InventoryItemModel>[],
+      page: 0,
+      size: 100,
+      totalElements: 0,
+      totalPages: 0,
+    ),
+  );
   when(() => mealPlan.getCurrent()).thenAnswer(
     (_) async => MealPlanDto(
       id: 'mp-1',

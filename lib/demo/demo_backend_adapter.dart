@@ -54,8 +54,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   final Map<String, String> _processedInventory = <String, String>{};
   final Map<String, Map<String, dynamic>> _plans =
       <String, Map<String, dynamic>>{};
-  final Map<String, Map<String, dynamic>> _votes =
-      <String, Map<String, dynamic>>{};
+  final Map<String, List<Map<String, dynamic>>> _suggestions = {};
+  final Map<String, String> _attendance = {};
   final Map<String, Map<String, dynamic>> _cookingSessions =
       <String, Map<String, dynamic>>{};
   final Map<String, bool> _recipeFavorites = <String, bool>{};
@@ -83,7 +83,7 @@ class DemoBackendAdapter implements HttpClientAdapter {
 
   var _inventorySequence = 9;
   var _dishSequence = 1;
-  var _voteSequence = 1;
+
   var _cookingSequence = 1;
 
   void _initTransactions() {
@@ -271,18 +271,75 @@ class DemoBackendAdapter implements HttpClientAdapter {
       final weekStart = body['weekStart'] as String? ?? _currentWeekStart();
       return _ok(201, _planForWeek(weekStart));
     }
-    final voteMatch = RegExp(
-      r'^/api/v1/meal-plans/([^/]+)/slots/([^/]+)/dishes/([^/]+)/vote(?:/(open|result|close))?$',
-    ).firstMatch(path);
-    if (voteMatch != null) {
-      return _routeVote(
-        method: method,
-        planId: voteMatch.group(1)!,
-        slotId: voteMatch.group(2)!,
-        dishId: voteMatch.group(3)!,
-        action: voteMatch.group(4),
-        body: body,
-      );
+    if (path == '/api/v1/meal-plans' && method == 'GET') {
+      return _ok(
+          200,
+          _planForWeek(options.queryParameters['weekStart'] as String? ??
+              _currentWeekStart()));
+    }
+    final suggestionMatch = RegExp(
+            r'^/api/v1/meal-plans/([^/]+)/slots/([^/]+)/dishes/([^/]+)/(suggestions|selection)$')
+        .firstMatch(path);
+    if (suggestionMatch != null) {
+      return _routeSuggestion(
+          method,
+          suggestionMatch.group(1)!,
+          suggestionMatch.group(2)!,
+          suggestionMatch.group(3)!,
+          suggestionMatch.group(4)!,
+          body);
+    }
+    final attendanceMatch =
+        RegExp(r'^/api/v1/meal-plans/([^/]+)/slots/([^/]+)/attendance(?:/me)?$')
+            .firstMatch(path);
+    if (attendanceMatch != null) {
+      final plan = _plans[attendanceMatch.group(1)];
+      final slot =
+          plan == null ? null : _slotOf(plan, attendanceMatch.group(2)!);
+      if (slot == null) {
+        return _error(404, 'ERR_PLAN_SLOT_NOT_FOUND', 'Missing meal');
+      }
+      final sid = attendanceMatch.group(2)!;
+      if (method == 'PUT') _attendance[sid] = body['status'] as String;
+      if (method == 'DELETE') _attendance.remove(sid);
+      return _ok(200, _attendanceOf(slot));
+    }
+    final attendanceBatch =
+        RegExp(r'^/api/v1/meal-plans/([^/]+)/attendance$').firstMatch(path);
+    if (attendanceBatch != null) {
+      final plan = _plans[attendanceBatch.group(1)];
+      if (plan == null) {
+        return _error(404, 'ERR_PLAN_NOT_FOUND', 'Missing plan');
+      }
+      return _ok(
+          200,
+          (plan['slots'] as List<dynamic>)
+              .map((s) => _attendanceOf(s as Map<String, dynamic>))
+              .toList());
+    }
+    final confirmMatch =
+        RegExp(r'^/api/v1/meal-plans/([^/]+)/confirm$').firstMatch(path);
+    if (confirmMatch != null && method == 'POST') {
+      final plan = _plans[confirmMatch.group(1)];
+      if (plan == null) {
+        return _error(404, 'ERR_PLAN_NOT_FOUND', 'Missing plan');
+      }
+      if (_role != 'OWNER') {
+        return _error(403, 'ERR_PLAN_OWNER_ONLY', 'Owner only');
+      }
+      final dishes = (plan['slots'] as List<dynamic>)
+          .expand((s) => (s as Map<String, dynamic>)['dishes'] as List<dynamic>)
+          .cast<Map<String, dynamic>>()
+          .toList();
+      if (dishes.isEmpty || dishes.any((d) => d['recipe'] == null)) {
+        return _error(409, 'ERR_PLAN_INCOMPLETE', 'Incomplete menu');
+      }
+      plan['status'] = 'CONFIRMED';
+      return _ok(200, <String, dynamic>{
+        'id': plan['id'],
+        'status': 'CONFIRMED',
+        'confirmedAt': DateTime.now().toUtc().toIso8601String()
+      });
     }
     final dishMatch = RegExp(
       r'^/api/v1/meal-plans/([^/]+)/slots/([^/]+)/dishes(?:/([^/]+))?$',
@@ -1102,6 +1159,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
       return _error(
           404, 'ERR_PLAN_NOT_FOUND', 'Không tìm thấy kế hoạch bữa ăn.');
     }
+    if (plan['status'] == 'CONFIRMED') {
+      return _error(409, 'ERR_PLAN_003', 'Menu confirmed');
+    }
     final slot = _slotOf(plan, slotId);
     if (slot == null) {
       return _error(404, 'ERR_SLOT_NOT_FOUND', 'Không tìm thấy khung bữa ăn.');
@@ -1135,7 +1195,7 @@ class DemoBackendAdapter implements HttpClientAdapter {
         ..['recipe'] = <String, dynamic>{
           'recipeId': recipeId,
           'recipeName': recipeName,
-          'source': 'AI',
+          'source': 'MANUAL',
         };
       return _ok(200, dish);
     }
@@ -1143,138 +1203,71 @@ class DemoBackendAdapter implements HttpClientAdapter {
       (slot['dishes'] as List<dynamic>).removeWhere(
         (candidate) => (candidate as Map<String, dynamic>)['id'] == dishId,
       );
-      _votes.remove(dishId);
+      _suggestions.remove(dishId);
       return _empty(204);
     }
     return _error(405, 'ERR_DEMO_METHOD',
         'Phương thức này chưa được hỗ trợ trong bản demo.');
   }
 
-  ResponseBody _routeVote({
-    required String method,
-    required String planId,
-    required String slotId,
-    required String dishId,
-    required String? action,
-    required Map<String, dynamic> body,
-  }) {
-    final plan = _plans[planId];
-    final slot = plan == null ? null : _slotOf(plan, slotId);
-    final dish = slot == null ? null : _dishOf(slot, dishId);
-    if (dish == null) {
-      return _error(
-          404, 'ERR_DISH_NOT_FOUND', 'Không tìm thấy món để mở bình chọn.');
-    }
-    if (action == 'open' && method == 'POST') {
-      if (_votes.containsKey(dishId)) {
-        return _error(
-            409, 'ERR_PLAN_002', 'Phiên bình chọn cho món này đang mở.');
-      }
-      final session = <String, dynamic>{
-        'sessionId': 'demo-vote-${_voteSequence++}',
-        'deadlineAt': DateTime.now()
-            .toUtc()
-            .add(const Duration(hours: 24))
-            .toIso8601String(),
-        'suggestions':
-            DemoFixtures.suggestions().map(_copyMap).toList(growable: false),
-        'counts': <String, int>{},
-        'myVote': null,
-        'closed': false,
-      };
-      _votes[dishId] = session;
-      dish['status'] = 'VOTING';
-      return _ok(201, <String, dynamic>{
-        'sessionId': session['sessionId'],
-        'deadlineAt': session['deadlineAt'],
-        'suggestions': session['suggestions'],
-      });
-    }
-    final session = _votes[dishId];
-    if (session == null) {
-      return _error(
-          404, 'ERR_VOTE_NOT_FOUND', 'Chưa có phiên bình chọn cho món này.');
-    }
-    if (action == null && method == 'POST') {
-      final recipeId = body['recipeId'] as String?;
-      final suggestions = session['suggestions'] as List<dynamic>;
-      final exists = suggestions.any(
-        (suggestion) =>
-            (suggestion as Map<String, dynamic>)['recipeId'] == recipeId,
-      );
-      if (recipeId == null || !exists) {
-        return _error(
-            400, 'ERR_VOTE_CANDIDATE', 'Lựa chọn món ăn không hợp lệ.');
-      }
-      final counts = session['counts'] as Map<String, int>;
-      final oldVote = session['myVote'] as String?;
-      if (oldVote != null &&
-          oldVote != recipeId &&
-          (counts[oldVote] ?? 0) > 0) {
-        counts[oldVote] = counts[oldVote]! - 1;
-      }
-      if (oldVote != recipeId) counts[recipeId] = (counts[recipeId] ?? 0) + 1;
-      session['myVote'] = recipeId;
-      return _ok(200, _voteResult(session));
-    }
-    if (action == 'result' && method == 'GET') {
-      return _ok(200, _voteResult(session));
-    }
-    if (action == 'close' && method == 'POST') {
-      final winner = _winnerOf(session);
-      final suggestion = (session['suggestions'] as List<dynamic>)
-          .cast<Map<String, dynamic>>()
-          .firstWhere((candidate) => candidate['recipeId'] == winner);
-      session['closed'] = true;
-      dish
-        ..['status'] = 'CONFIRMED'
-        ..['recipe'] = <String, dynamic>{
-          'recipeId': winner,
-          'recipeName': suggestion['recipeName'],
-          'source': 'AI',
-        };
-      return _ok(200, <String, dynamic>{
-        'sessionId': session['sessionId'],
-        'status': 'CLOSED',
-        'winnerRecipeId': winner,
-      });
-    }
-    return _error(405, 'ERR_DEMO_METHOD',
-        'Phương thức này chưa được hỗ trợ trong bản demo.');
-  }
-
-  Map<String, dynamic> _voteResult(Map<String, dynamic> session) {
-    final counts = session['counts'] as Map<String, int>;
-    final votes = (session['suggestions'] as List<dynamic>)
-        .cast<Map<String, dynamic>>()
-        .map((suggestion) => <String, dynamic>{
-              'recipeId': suggestion['recipeId'],
-              'recipeName': suggestion['recipeName'],
-              'count': counts[suggestion['recipeId']] ?? 0,
-            })
-        .toList(growable: false);
+  Map<String, dynamic> _attendanceOf(Map<String, dynamic> slot) {
+    final status = _attendance[slot['id']] ?? 'UNKNOWN';
+    final date = DateTime.parse(slot['slotDate'] as String);
+    final now = DateTime.now().toUtc().add(const Duration(hours: 7));
+    final editable = !date.isBefore(DateTime(now.year, now.month, now.day)) &&
+        _role != 'REMOTE_VIEWER';
     return <String, dynamic>{
-      'votes': votes,
-      'totalMembers': 3,
-      'myVote': session['myVote'],
+      'slotId': slot['id'],
+      'members': [
+        <String, dynamic>{
+          'userId': _userId,
+          'fullName': _fullName,
+          'status': status
+        }
+      ],
+      'attendingCount': status == 'ATTENDING' ? 1 : 0,
+      'notAttendingCount': status == 'NOT_ATTENDING' ? 1 : 0,
+      'unknownCount': status == 'UNKNOWN' ? 1 : 0,
+      'myStatus': status,
+      'editable': editable
     };
   }
 
-  String _winnerOf(Map<String, dynamic> session) {
-    final suggestions =
-        (session['suggestions'] as List<dynamic>).cast<Map<String, dynamic>>();
-    final counts = session['counts'] as Map<String, int>;
-    var winner = suggestions.first['recipeId'] as String;
-    var maxVotes = -1;
-    for (final suggestion in suggestions) {
-      final recipeId = suggestion['recipeId'] as String;
-      final count = counts[recipeId] ?? 0;
-      if (count > maxVotes) {
-        winner = recipeId;
-        maxVotes = count;
-      }
+  ResponseBody _routeSuggestion(String method, String pid, String sid,
+      String did, String action, Map<String, dynamic> body) {
+    final plan = _plans[pid];
+    final slot = plan == null ? null : _slotOf(plan, sid);
+    final dish = slot == null ? null : _dishOf(slot, did);
+    if (plan == null || dish == null) {
+      return _error(404, 'ERR_PLAN_DISH_NOT_FOUND', 'Missing dish');
     }
-    return winner;
+    if (method != 'GET' && plan['status'] == 'CONFIRMED') {
+      return _error(409, 'ERR_PLAN_003', 'Menu confirmed');
+    }
+    if (action == 'suggestions') {
+      if (method == 'POST') {
+        _suggestions[did] = DemoFixtures.suggestions().map((m) {
+          final row = _copyMap(m);
+          row['id'] = 'suggestion-${_dishSequence++}';
+          row['hardConstraintStatus'] = 'PASSED';
+          return row;
+        }).toList();
+      }
+      return _ok(200, _suggestions[did] ?? <Map<String, dynamic>>[]);
+    }
+    final row = (_suggestions[did] ?? [])
+        .where((r) => r['id'] == body['suggestionId'])
+        .firstOrNull;
+    if (row == null) {
+      return _error(404, 'ERR_PLAN_SUGGESTION_NOT_FOUND', 'Missing suggestion');
+    }
+    dish['status'] = 'CONFIRMED';
+    dish['recipe'] = <String, dynamic>{
+      'recipeId': row['recipeId'],
+      'recipeName': row['recipeName'],
+      'source': 'AI'
+    };
+    return _ok(200, dish);
   }
 
   // ── Cooking ──────────────────────────────────────────────────────

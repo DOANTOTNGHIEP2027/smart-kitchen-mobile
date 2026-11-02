@@ -1,8 +1,7 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_suggestion_api.dart';
+import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_suggestion.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_plan_api.dart';
-import 'package:smart_kitchen_mobile/scenes/mealplan/data/vote_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_plan_slot.dart';
-import 'package:smart_kitchen_mobile/scenes/mealplan/domain/vote_session_summary.dart';
 
 class FakeMealPlanApi implements MealPlanApi {
   Future<MealPlanDto> Function()? onGetCurrent;
@@ -11,14 +10,21 @@ class FakeMealPlanApi implements MealPlanApi {
   Future<MealPlanDish> Function(String planId, String slotId)? onAddDish;
   Future<void> Function(String planId, String slotId, String dishId)?
       onRemoveDish;
-  Future<MealPlanDish> Function(
-      String planId,
-      String slotId,
-      String dishId,
+  Future<MealPlanDish> Function(String planId, String slotId, String dishId,
       {required String recipeId,
       required String recipeName})? onAssignDishRecipe;
 
   Object? onGetCurrentError;
+
+  Future<MealPlanDto> Function(DateTime week)? onGetWeek;
+  Future<void> Function(String id)? onConfirm;
+  @override
+  Future<MealPlanDto> getWeek(DateTime week) =>
+      onGetWeek != null ? onGetWeek!(week) : getCurrent();
+  @override
+  Future<void> confirm(String id) async {
+    if (onConfirm != null) await onConfirm!(id);
+  }
 
   @override
   Future<MealPlanDto> getCurrent() async {
@@ -46,8 +52,7 @@ class FakeMealPlanApi implements MealPlanApi {
   }
 
   @override
-  Future<void> removeDish(
-      String planId, String slotId, String dishId) async {
+  Future<void> removeDish(String planId, String slotId, String dishId) async {
     if (onRemoveDish != null) {
       await onRemoveDish!(planId, slotId, dishId);
       return;
@@ -71,60 +76,16 @@ class FakeMealPlanApi implements MealPlanApi {
   }
 }
 
-class FakeVoteApi implements VoteApi {
-  Future<VoteSessionSummary> Function(
-      String planId, String slotId, String dishId,
-      {required int deadlineHours})? onOpen;
-  Future<Map<String, dynamic>> Function(String planId, String slotId,
-          String dishId,
-          {required String recipeId})? onCast;
-  Future<Map<String, dynamic>> Function(
-      String planId, String slotId, String dishId)? onGetResult;
-  Future<void> Function(String planId, String slotId, String dishId)?
-      onClose;
-
-  Object? onOpenError;
-
+class FakeMealSuggestionApi implements MealSuggestionApi {
+  Future<List<MealSuggestion>> Function()? onList, onGenerate;
+  Future<MealPlanDish> Function(String id)? onSelect;
   @override
-  Future<VoteSessionSummary> open(
-    String planId,
-    String slotId,
-    String dishId, {
-    required int deadlineHours,
-  }) async {
-    if (onOpenError != null) throw onOpenError!;
-    if (onOpen != null) {
-      return onOpen!(planId, slotId, dishId, deadlineHours: deadlineHours);
-    }
-    throw UnimplementedError();
-  }
-
+  Future<List<MealSuggestion>> list(String p, String s, String d) async =>
+      onList == null ? <MealSuggestion>[] : onList!();
   @override
-  Future<Map<String, dynamic>> cast(
-    String planId,
-    String slotId,
-    String dishId, {
-    required String recipeId,
-  }) async {
-    if (onCast != null) {
-      return onCast!(planId, slotId, dishId, recipeId: recipeId);
-    }
-    throw UnimplementedError();
-  }
-
+  Future<List<MealSuggestion>> generate(String p, String s, String d) async =>
+      onGenerate == null ? <MealSuggestion>[] : onGenerate!();
   @override
-  Future<Map<String, dynamic>> getResult(
-      String planId, String slotId, String dishId) async {
-    if (onGetResult != null) return onGetResult!(planId, slotId, dishId);
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> close(String planId, String slotId, String dishId) async {
-    if (onClose != null) {
-      await onClose!(planId, slotId, dishId);
-      return;
-    }
-    throw UnimplementedError();
-  }
+  Future<MealPlanDish> select(String p, String s, String d, String id) async =>
+      onSelect!(id);
 }

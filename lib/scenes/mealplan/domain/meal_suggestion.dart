@@ -55,6 +55,9 @@ class IngredientItem {
 class MealSuggestion {
   const MealSuggestion({
     required this.recipeId,
+    this.id,
+    this.blockedReason,
+    this.isBlocked = false,
     required this.mealName,
     this.aiReasoning,
     this.description,
@@ -73,6 +76,9 @@ class MealSuggestion {
     this.allergenDerivation = AllergenDerivation.unknown,
   });
 
+  final String? id;
+  final bool isBlocked;
+  final String? blockedReason;
   final String recipeId;
   final String mealName;
   final String? aiReasoning;
@@ -114,6 +120,9 @@ class MealSuggestion {
   /// meal-plan-voting-lifecycle.yaml và `VoteWsPublisher` BE).
   factory MealSuggestion.fromVoteOpen(Map<String, dynamic> json) {
     return MealSuggestion(
+      id: json['id'] as String?,
+      isBlocked: json['hardConstraintStatus'] == 'BLOCKED',
+      blockedReason: json['blockedReason'] as String?,
       recipeId: json['recipeId'] as String,
       mealName: json['recipeName'] as String,
       confidenceScore: (json['confidence'] as num?)?.toDouble(),
@@ -122,24 +131,26 @@ class MealSuggestion {
       rankReason: json['rankReason'] as String?,
       aiReasoning: json['rankReason'] as String?,
       tradeoffNote: json['tradeoffNote'] as String?,
-      missingIngredients: ((json['missingIngredients'] as List<dynamic>?) ??
-              const <dynamic>[])
-          .map((Object? e) => IngredientItem(
-                name: (e as Map<String, dynamic>)['name'] as String,
-                quantity:
-                    (((e)['quantity']) as num).toDouble(),
-                unit: (e)['unit'] as String,
-                role: (e)['role'] as String?,
-              ))
-          .toList(growable: false),
-      allergenTags: ((json['allergenTags'] as List<dynamic>?) ??
-              const <dynamic>[])
-          .map((Object? e) => e as String)
-          .toList(growable: false),
+      missingIngredients:
+          ((json['missingIngredients'] as List<dynamic>?) ?? const <dynamic>[])
+              .map((Object? e) => IngredientItem(
+                    name: (e as Map<String, dynamic>)['name'] as String,
+                    quantity: (((e)['quantity']) as num).toDouble(),
+                    unit: (e)['unit'] as String,
+                    role: (e)['role'] as String?,
+                  ))
+              .toList(growable: false),
+      allergenTags:
+          ((json['allergenTags'] as List<dynamic>?) ?? const <dynamic>[])
+              .map((Object? e) => e as String)
+              .toList(growable: false),
       allergenDerivation:
           parseAllergenDerivation(json['allergenDerivation'] as String?),
     );
   }
+
+  factory MealSuggestion.fromJson(Map<String, dynamic> json) =>
+      MealSuggestion.fromVoteOpen(json);
 
   /// Nguồn `GET vote/result` (join phiên đã tồn tại) — **vẫn nghèo** pha 2 B1.
   /// Mọi field rich giữ default `null`/`[]`/`unknown`. `allergenDerivation =

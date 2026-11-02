@@ -14,7 +14,7 @@ class AssignedRecipeSummary {
 /// Status của 1 `MealPlanDish` (FE-7 §5.1). Đọc TRỰC TIẾP từ field `status` JSON
 /// BE trả (DishStatusResolver phía BE tính tại thời điểm đọc), KHÔNG suy dẫn
 /// lại ở FE cho "giá trị tĩnh" này — khác [SlotUiStatus] bên dưới.
-enum DishUiStatus { empty, suggested, voting, confirmed }
+enum DishUiStatus { empty, suggested, confirmed }
 
 /// 1 món ăn trong 1 slot (FE-7 §5.1, [AMEND] 1 slot có N dish).
 class MealPlanDish {
@@ -54,7 +54,7 @@ class MealPlanDish {
 /// Status aggregate của 1 SLOT — suy dẫn tại client từ `dishes` (FE-7 §5.1,
 /// mirror `SlotStatusResolver` BE). KHÔNG đọc thẳng field `status` mà BE trả
 /// kèm slot (lệch ngay sau optimistic-update/WS nếu không có lượt GET mới).
-enum SlotUiStatus { empty, voting, inProgress, confirmed }
+enum SlotUiStatus { empty, inProgress, confirmed }
 
 /// 1 bữa trong tuần — giờ chứa danh sách dish (FE-7 §5.1, [AMEND]).
 class MealPlanSlot {
@@ -85,10 +85,12 @@ class MealPlanDto {
     required this.householdId,
     required this.weekStart,
     required this.slots,
+    this.status = 'DRAFT',
   });
 
   final String id;
   final String householdId;
   final DateTime weekStart;
   final List<MealPlanSlot> slots;
+  final String status;
 }

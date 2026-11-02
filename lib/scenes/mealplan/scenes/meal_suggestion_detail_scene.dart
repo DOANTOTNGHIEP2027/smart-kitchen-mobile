@@ -9,7 +9,6 @@ import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
-import '../data/meal_plan_api.dart';
 import '../domain/shopping_list_sink.dart';
 import '../../shopping/scenes/shopping_list_binding.dart';
 import '../../shell/app_shell_store.dart';
@@ -18,7 +17,7 @@ import '../stores/meal_plan_store.dart';
 import '../stores/suggestion_store.dart';
 import '../widgets/suggestion_card.dart';
 
-/// Chi tiết 1 suggestion (FE-7 §12). Route chỉ từ dish VOTING.
+/// Chi tiết gợi ý đã lưu của một món, độc lập với trạng thái attendance.
 /// Hiển thị: SuggestionCard đầy đủ + AllergenBanner + nút Accept/Reject/Re-roll.
 class MealSuggestionDetailScene extends StatefulWidget {
   const MealSuggestionDetailScene({super.key});
@@ -40,9 +39,9 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
       slotId: slotId,
       dishId: dishId,
       mealPlanStore: Get.find<MealPlanStore>(),
-      api: Get.find<MealPlanApi>(),
       shoppingSink: _shoppingSink(),
     );
+    _store.load();
   }
 
   @override
@@ -51,6 +50,9 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
       title: context.l10n.mealplanSuggestionsTitle,
       body: Observer(
         builder: (_) {
+          if (_store.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
           final suggestion = _store.currentSuggestion;
           if (_store.suggestionsUnavailable) {
             return Center(
@@ -66,24 +68,49 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                     label: context.l10n.refresh,
                     expanded: false,
                     icon: Icons.refresh,
-                    onPressed: () => _store.refreshSuggestions(),
+                    isLoading:
+                        _store.actionStatus == SuggestionActionStatus.rerolling,
+                    onPressed:
+                        _store.actionStatus != SuggestionActionStatus.idle
+                            ? null
+                            : () => _store.refreshSuggestions(),
                   ),
                 ],
               ),
             );
           }
           if (suggestion == null) {
-            return AppEmptyView(
-              icon: Icons.search_off,
-              message: context.l10n.mealplanSuggestionsExhausted,
-            );
+            return Center(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(context.l10n.mealplanSuggestionsExhausted),
+              AppButton(
+                  label: context.l10n.mealPlanGenerateSuggestions,
+                  expanded: false,
+                  isLoading:
+                      _store.actionStatus == SuggestionActionStatus.rerolling,
+                  onPressed: _store.actionStatus != SuggestionActionStatus.idle
+                      ? null
+                      : () => _store.refreshSuggestions()),
+            ]));
           }
+
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
+                if (suggestion.isBlocked)
+                  Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                          context.l10n.planningCandidateBlocked(
+                              suggestion.blockedReason ??
+                                  context.l10n.planningCandidateBlockedUnknown),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.error))),
                 GestureDetector(
                   onHorizontalDragEnd: (details) {
+                    if (_store.actionStatus != SuggestionActionStatus.idle)
+                      return;
                     final velocity = details.primaryVelocity ?? 0;
                     if (velocity <= -240) {
                       _store.viewNext();
@@ -96,10 +123,26 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                 _SuggestionPager(
                   current: _store.index + 1,
                   total: _store.suggestionCount,
-                  canGoPrevious: _store.hasPrevious,
-                  canGoNext: _store.hasNext,
+                  canGoPrevious: _store.hasPrevious &&
+                      _store.actionStatus == SuggestionActionStatus.idle,
+                  canGoNext: _store.hasNext &&
+                      _store.actionStatus == SuggestionActionStatus.idle,
                   onPrevious: _store.viewPrevious,
                   onNext: _store.viewNext,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(AppDimens.md),
+                  child: AppButton(
+                    label: context.l10n.mealPlanGenerateSuggestions,
+                    variant: AppButtonVariant.secondary,
+                    icon: Icons.refresh,
+                    isLoading:
+                        _store.actionStatus == SuggestionActionStatus.rerolling,
+                    onPressed:
+                        _store.actionStatus != SuggestionActionStatus.idle
+                            ? null
+                            : () => _store.refreshSuggestions(),
+                  ),
                 ),
                 if (suggestion.missingIngredients.isNotEmpty) ...<Widget>[
                   const SizedBox(height: AppDimens.md),
@@ -135,8 +178,7 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                           variant: AppButtonVariant.secondary,
                           icon: Icons.close,
                           onPressed:
-                              _store.actionStatus ==
-                                      SuggestionActionStatus.accepting
+                              _store.actionStatus != SuggestionActionStatus.idle
                                   ? null
                                   : () => _store.rejectSuggestion(),
                         ),
@@ -148,8 +190,9 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene> {
                           icon: Icons.check,
                           isLoading: _store.actionStatus ==
                               SuggestionActionStatus.accepting,
-                          onPressed: _store.actionStatus ==
-                                  SuggestionActionStatus.accepting
+                          onPressed: suggestion.isBlocked ||
+                                  _store.actionStatus !=
+                                      SuggestionActionStatus.idle
                               ? null
                               : () async {
                                   final ok = await _store.acceptSuggestion();
