@@ -2,14 +2,13 @@ import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
 import '../../../widgets/states/view_state.dart';
-import '../../mealplan/domain/vote_session_summary.dart';
 import '../../profile/stores/form_status.dart';
 import '../../profile/stores/store_error.dart';
 import '../data/candidate_api.dart';
 import '../domain/meal_plan_candidate.dart';
 
 /// Mở vote session cho đúng 1 món = sinh gợi ý AI (`POST .../vote/open`).
-typedef OpenCandidateSession = Future<VoteSessionSummary> Function();
+typedef OpenCandidateSession = Future<void> Function();
 
 /// State cho `CandidateInsightScene` (flexible-meal-planning-screens.md §7.3,
 /// chỉnh theo BE thật — OD-08). MobX thủ công.
@@ -22,12 +21,14 @@ class CandidateStore {
     this._api,
     this.mealPlanId, {
     String? sessionId,
+    this.dishId,
     OpenCandidateSession? openSession,
     bool dishHasNoSession = false,
   })  : _openSession = openSession,
         _sessionId = Observable<String?>(_realSessionId(sessionId)),
         _dishHasNoSession = dishHasNoSession;
 
+  final String? dishId;
   final CandidateApi _api;
   final String mealPlanId;
   final OpenCandidateSession? _openSession;
@@ -58,16 +59,18 @@ class CandidateStore {
   Future<void> load() async {
     final seq = ++_loadSeq;
     if (_dishHasNoSession && _sessionId.value == null) {
-      runInAction(() =>
-          _groupsState.value = const EmptyState<List<CandidateGroup>>());
+      runInAction(
+          () => _groupsState.value = const EmptyState<List<CandidateGroup>>());
       return;
     }
-    runInAction(() =>
-        _groupsState.value = const LoadingState<List<CandidateGroup>>());
+    runInAction(
+        () => _groupsState.value = const LoadingState<List<CandidateGroup>>());
     try {
       final all = await _api.list(mealPlanId);
       if (seq != _loadSeq) return;
-      final groups = _group(all, _sessionId.value);
+      final groups = _group(
+          dishId == null ? all : all.where((c) => c.dishId == dishId).toList(),
+          dishId == null ? _sessionId.value : null);
       runInAction(() => _groupsState.value = groups.isEmpty
           ? const EmptyState<List<CandidateGroup>>()
           : SuccessState<List<CandidateGroup>>(groups));
@@ -91,10 +94,10 @@ class CandidateStore {
       _generateError.value = null;
     });
     try {
-      final session = await open();
+      await open();
       _dishHasNoSession = false;
       runInAction(() {
-        _sessionId.value = _realSessionId(session.sessionId);
+        _sessionId.value = null;
         _generateStatus.value = FormStatus.success;
       });
       await load();
@@ -142,5 +145,5 @@ class CandidateStore {
   /// Sentinel `__unknown__` (session join qua `GET vote/result`) không phải id
   /// thật — không lọc theo nó.
   static String? _realSessionId(String? id) =>
-      id == null || id == VoteSessionSummary.unknownSessionId ? null : id;
+      id == null || id == '__unknown__' ? null : id;
 }

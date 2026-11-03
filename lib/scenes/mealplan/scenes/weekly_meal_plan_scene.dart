@@ -27,13 +27,28 @@ class WeeklyMealPlanScene extends StatefulWidget {
   State<WeeklyMealPlanScene> createState() => _WeeklyMealPlanSceneState();
 }
 
-class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
+class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene>
+    with WidgetsBindingObserver {
   DateTime? _selectedDate;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     Get.find<MealPlanStore>().loadWeekPlan();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      Get.find<MealPlanStore>().loadWeekPlan();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _navigateWeek(MealPlanStore store, int direction) async {
@@ -50,6 +65,24 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
     return AppScaffold(
       title: context.l10n.mealPlanTitle,
       actions: <Widget>[
+        Observer(
+            builder: (_) => TextButton(
+                onPressed: store.status != MealPlanLoadStatus.ready ||
+                        store.isConfirmed ||
+                        store.isConfirming ||
+                        session.role != 'OWNER'
+                    ? null
+                    : () async {
+                        final ok = await store.confirm();
+                        if (!ok && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content:
+                                  Text(context.l10n.mealPlanConfirmFailed)));
+                        }
+                      },
+                child: Text(store.isConfirmed
+                    ? context.l10n.mealPlanConfirmed
+                    : context.l10n.mealPlanConfirm))),
         Observer(builder: (_) {
           // `currentPlanId` không bị xoá khi tải tuần mới lỗi/đang tải — chỉ
           // tin khi status ready, tránh mở khách của tuần TRƯỚC.
@@ -100,9 +133,8 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene> {
               final dateInCurrentWeek = selectedDate != null &&
                   selectedDate.difference(store.currentWeekStart).inDays >= 0 &&
                   selectedDate.difference(store.currentWeekStart).inDays < 7;
-              final effectiveSelectedDate = dateInCurrentWeek
-                  ? selectedDate
-                  : store.currentWeekStart;
+              final effectiveSelectedDate =
+                  dateInCurrentWeek ? selectedDate : store.currentWeekStart;
               return _WeekCalendar(
                 store: store,
                 selectedDate: effectiveSelectedDate,
@@ -146,11 +178,6 @@ class _WeekCalendar extends StatelessWidget {
               onNext: () => onNavigateWeek(1),
             ),
             const SizedBox(height: AppDimens.sm),
-
-            if (store.pendingVoteCount > 0) ...<Widget>[
-              _PendingVoteBanner(count: store.pendingVoteCount),
-              const SizedBox(height: AppDimens.sm),
-            ],
 
             // 7 Days Calendar Strip
             Container(
@@ -223,8 +250,7 @@ class _WeekCalendar extends StatelessWidget {
 
   static bool _hasDishes(MealPlanStore store, DateTime date) =>
       const <String>['BREAKFAST', 'LUNCH', 'DINNER'].any(
-        (meal) =>
-            store.slots[_slotKey(date, meal)]?.dishes.isNotEmpty ?? false,
+        (meal) => store.slots[_slotKey(date, meal)]?.dishes.isNotEmpty ?? false,
       );
 
   static bool _isSameDay(DateTime a, DateTime b) =>
@@ -370,44 +396,6 @@ class _CalendarDay extends StatelessWidget {
       );
 }
 
-class _PendingVoteBanner extends StatelessWidget {
-  const _PendingVoteBanner({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.md,
-          vertical: AppDimens.sm,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.sageLight,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-          border: Border.all(color: AppColors.sageBorder),
-        ),
-        child: Row(
-          children: <Widget>[
-            const Icon(
-              Icons.how_to_vote_rounded,
-              color: AppColors.sageDark,
-              size: 20,
-            ),
-            const SizedBox(width: AppDimens.sm),
-            Expanded(
-              child: Text(
-                context.l10n.mealPlanOpenVotes(count),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.sageDark,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ),
-          ],
-        ),
-      );
-}
-
 class _MealPeriod {
   const _MealPeriod(this.wireValue, this.icon);
 
@@ -457,14 +445,17 @@ class _MealScheduleCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
         child: InkWell(
           onTap: canEdit
-              ? () => Get.to<void>(
+              ? () async {
+                  await Get.to<void>(
                     () => MealSlotEditorScene(
                       slotId: slotId!,
                       mealLabel: periodLabel,
                       dateLabel:
                           context.l10n.mealPlanDateShort(date.day, date.month),
                     ),
-                  )
+                  );
+                  await store.refreshAttendance();
+                }
               : null,
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
           child: Padding(
@@ -479,8 +470,7 @@ class _MealScheduleCard extends StatelessWidget {
                       height: 32,
                       decoration: BoxDecoration(
                         color: AppColors.sageLight,
-                        borderRadius:
-                            BorderRadius.circular(AppDimens.radiusSm),
+                        borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                       ),
                       child: Icon(
                         period.icon,
@@ -491,11 +481,10 @@ class _MealScheduleCard extends StatelessWidget {
                     const SizedBox(width: AppDimens.sm),
                     Text(
                       periodLabel,
-                      style:
-                          Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w800,
-                              ),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                     const Spacer(),
                     Icon(
@@ -508,6 +497,12 @@ class _MealScheduleCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppDimens.sm),
+                if (slot != null && store.attendances[slot.id] != null)
+                  Text(context.l10n.attendanceSummary(
+                      store.attendances[slot.id]!.attendingCount,
+                      store.attendances[slot.id]!.unknownCount)),
+                if (store.attendanceError != null)
+                  Text(context.l10n.attendanceLoadFailed),
                 if (slot == null || slot.dishes.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
@@ -534,7 +529,9 @@ class _MealScheduleCard extends StatelessWidget {
                   ...slot.dishes.map(
                     (dish) => _ScheduledDishCard(
                       dish: dish,
-                      onDelete: () => store.removeDish(slotId!, dish.id),
+                      onDelete: store.isConfirmed
+                          ? null
+                          : () => store.removeDish(slotId!, dish.id),
                     ),
                   ),
               ],
@@ -550,7 +547,7 @@ class _ScheduledDishCard extends StatelessWidget {
   const _ScheduledDishCard({required this.dish, required this.onDelete});
 
   final MealPlanDish dish;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -635,8 +632,10 @@ class _ScheduledDishCard extends StatelessWidget {
     final l10n = context.l10n;
     final (label, color) = switch (status) {
       DishUiStatus.confirmed => (l10n.mealPlanStatusConfirmed, AppColors.sage),
-      DishUiStatus.voting => (l10n.mealPlanStatusVoting, const Color(0xFF0284C7)),
-      DishUiStatus.suggested => (l10n.mealPlanStatusSuggested, const Color(0xFFD97706)),
+      DishUiStatus.suggested => (
+          l10n.mealPlanStatusSuggested,
+          const Color(0xFFD97706)
+        ),
       DishUiStatus.empty => (l10n.mealPlanStatusEmpty, AppColors.textSecondary),
     };
 

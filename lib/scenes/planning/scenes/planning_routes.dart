@@ -84,16 +84,17 @@ class CandidateInsightBinding extends Bindings {
     final slotId = Get.parameters['slotId'];
     final dishId = Get.parameters['dishId'];
     // Route chỉ push từ trong nav stack còn `/meal-plan` → MealPlanStore có sẵn.
-    final canGenerate = slotId != null &&
-        dishId != null &&
-        Get.isRegistered<MealPlanStore>();
+    final canGenerate =
+        slotId != null && dishId != null && Get.isRegistered<MealPlanStore>();
     Get.lazyPut<CandidateStore>(() => CandidateStore(
           Get.find<CandidateApi>(),
           Get.parameters['planId']!,
           sessionId: Get.parameters['sessionId'],
+          dishId: dishId,
           dishHasNoSession: Get.parameters['noSession'] == '1',
           openSession: canGenerate
-              ? () => Get.find<MealPlanStore>().openVoteSession(slotId, dishId)
+              ? () => Get.find<MealPlanStore>()
+                  .loadSuggestions(slotId, dishId, regenerate: true)
               : null,
         ));
   }

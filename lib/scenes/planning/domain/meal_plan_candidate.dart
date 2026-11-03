@@ -26,6 +26,7 @@ class MealPlanCandidate {
   const MealPlanCandidate({
     required this.id,
     required this.sessionId,
+    this.dishId,
     required this.recipeId,
     required this.recipeName,
     required this.hardConstraintStatus,
@@ -41,6 +42,7 @@ class MealPlanCandidate {
 
   final String id;
   final String sessionId;
+  final String? dishId;
   final String recipeId;
   final String recipeName;
   final HardConstraintStatus hardConstraintStatus;
@@ -91,7 +93,8 @@ class MealPlanCandidate {
     ];
     return MealPlanCandidate(
       id: json['id'] as String,
-      sessionId: json['sessionId'] as String,
+      sessionId: json['sessionId'] as String? ?? json['dishId'] as String,
+      dishId: json['dishId'] as String?,
       recipeId: json['recipeId'] as String,
       recipeName: json['recipeName'] as String,
       // Fail-safe: chỉ đúng `PASSED` mới là đã qua kiểm tra; null/giá trị lạ

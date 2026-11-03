@@ -30,7 +30,8 @@ import '../scenes/cooking/data/cooking_session_api.dart';
 import '../scenes/cooking/data/recipe_api.dart';
 import '../scenes/recipe/data/recipe_catalog_api.dart';
 import '../scenes/mealplan/data/meal_plan_api.dart';
-import '../scenes/mealplan/data/vote_api.dart';
+import '../scenes/mealplan/data/meal_suggestion_api.dart';
+import '../scenes/mealplan/data/meal_attendance_api.dart';
 import '../data/notification/device_api.dart';
 import '../data/notification/notification_service.dart';
 import '../data/notification/quick_action_api.dart';
@@ -108,14 +109,14 @@ Future<void> bootstrap() async {
   Get.put<InventoryDao>(InventoryDao(Get.find<AppDatabase>()), permanent: true);
 
   // FE-6: CookingApi + RecipeApi — cả CookingSessionStore đều dùng.
-  Get.put<CookingSessionApi>(CookingSessionApiImpl(dioClient),
-      permanent: true);
+  Get.put<CookingSessionApi>(CookingSessionApiImpl(dioClient), permanent: true);
   Get.put<RecipeApi>(RecipeApiImpl(dioClient), permanent: true);
   Get.put<RecipeCatalogApi>(RecipeCatalogApiImpl(dioClient), permanent: true);
 
   // FE-7: MealPlanApi + VoteApi — MealPlanStore/VoteSessionStore dùng.
   Get.put<MealPlanApi>(MealPlanApiImpl(dioClient), permanent: true);
-  Get.put<VoteApi>(VoteApiImpl(dioClient), permanent: true);
+  Get.put<MealSuggestionApi>(MealSuggestionApi(dioClient), permanent: true);
+  Get.put<MealAttendanceApi>(MealAttendanceApi(dioClient), permanent: true);
 
   // FE-3: Realtime WebSocket + FCM notification + Connectivity.
   final connectivityService = ConnectivityService();
@@ -131,7 +132,8 @@ Future<void> bootstrap() async {
   final onDeviceEngine = OnDeviceInferenceEngineImpl(modelRegistry);
   Get.put<OnDeviceInferenceEngine>(onDeviceEngine, permanent: true);
   Get.put<HybridAIRunner>(
-    HybridAIRunner(ConnectivityGate(connectivityService), onDeviceEngine, modelRegistry),
+    HybridAIRunner(
+        ConnectivityGate(connectivityService), onDeviceEngine, modelRegistry),
     permanent: true,
   );
 

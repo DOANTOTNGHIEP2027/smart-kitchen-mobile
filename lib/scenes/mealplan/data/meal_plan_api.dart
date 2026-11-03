@@ -12,6 +12,8 @@ import 'meal_plan_mapper.dart';
 /// Implementation Guard §15.8). Thiếu bước này → mọi `catch` ở store k matching.
 abstract interface class MealPlanApi {
   Future<MealPlanDto> getCurrent();
+  Future<MealPlanDto> getWeek(DateTime weekStart);
+  Future<void> confirm(String planId);
   Future<MealPlanDto> getById(String id);
   Future<MealPlanDto> create(DateTime weekStart);
   Future<MealPlanDish> addDish(String planId, String slotId);
@@ -29,6 +31,21 @@ class MealPlanApiImpl implements MealPlanApi {
   MealPlanApiImpl(this._client);
 
   final DioClient _client;
+
+  @override
+  Future<MealPlanDto> getWeek(DateTime weekStart) => _unwrap(() async {
+        final res = await _client.dio.get<Map<String, dynamic>>(
+            '/api/v1/meal-plans',
+            queryParameters: <String, dynamic>{
+              'weekStart': _isoDate(weekStart)
+            });
+        return MealPlanMapper.planFromJson(_data(res.data));
+      });
+  @override
+  Future<void> confirm(String planId) => _unwrap(() async {
+        await _client.dio
+            .post<Map<String, dynamic>>('/api/v1/meal-plans/$planId/confirm');
+      });
 
   @override
   Future<MealPlanDto> getCurrent() {

@@ -13,10 +13,12 @@ import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/app_loading_view.dart';
 import '../domain/recipe.dart';
+import '../data/recipe_catalog_api.dart';
 import '../stores/recipe_store.dart';
 
 class RecipeListScene extends StatefulWidget {
-  const RecipeListScene({super.key});
+  const RecipeListScene({super.key, this.onSelect});
+  final ValueChanged<Recipe>? onSelect;
 
   @override
   State<RecipeListScene> createState() => _RecipeListSceneState();
@@ -28,7 +30,9 @@ class _RecipeListSceneState extends State<RecipeListScene> {
   @override
   void initState() {
     super.initState();
-    _store = Get.find<RecipeStore>();
+    _store = widget.onSelect == null
+        ? Get.find<RecipeStore>()
+        : RecipeStore(Get.find<RecipeCatalogApi>());
     _store.init();
   }
 
@@ -118,9 +122,12 @@ class _RecipeListSceneState extends State<RecipeListScene> {
                   return _RecipeCard(
                     recipe: recipe,
                     isFavoritePending: _store.isFavoritePending(recipe.id),
-                    onOpen: () => Get.toNamed(
-                      AppRoutes.recipeDetail.replaceFirst(':id', recipe.id),
-                    ),
+                    onOpen: widget.onSelect != null
+                        ? () => widget.onSelect!(recipe)
+                        : () => Get.toNamed(
+                              AppRoutes.recipeDetail
+                                  .replaceFirst(':id', recipe.id),
+                            ),
                     onToggleFavorite: () => _store.toggleFavorite(recipe.id),
                   );
                 }
@@ -164,7 +171,8 @@ class _RecipeListSceneState extends State<RecipeListScene> {
             children: <Widget>[
               DropdownButtonFormField<String?>(
                 initialValue: dietType,
-                decoration: InputDecoration(labelText: context.l10n.recipesFilterDiet),
+                decoration:
+                    InputDecoration(labelText: context.l10n.recipesFilterDiet),
                 items: <DropdownMenuItem<String?>>[
                   DropdownMenuItem<String?>(
                     value: null,
@@ -459,8 +467,8 @@ class _RecipeCard extends StatelessWidget {
                         children: <Widget>[
                           if (recipe.difficulty != null)
                             _Badge(
-                              label: _difficultyLabel(
-                                  context, recipe.difficulty!),
+                              label:
+                                  _difficultyLabel(context, recipe.difficulty!),
                             ),
                           for (final diet in recipe.dietTypes.take(1))
                             _Badge(
@@ -566,7 +574,8 @@ class _Badge extends StatelessWidget {
 }
 
 class _LoadMoreCard extends StatelessWidget {
-  const _LoadMoreCard({required this.isLoading, required this.label, required this.onPressed});
+  const _LoadMoreCard(
+      {required this.isLoading, required this.label, required this.onPressed});
 
   final bool isLoading;
   final String label;
@@ -576,13 +585,17 @@ class _LoadMoreCard extends StatelessWidget {
   Widget build(BuildContext context) => OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         child: isLoading
-            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2))
             : Text(label),
       );
 }
 
 class _ReloadCard extends StatelessWidget {
-  const _ReloadCard({required this.message, required this.label, required this.onPressed});
+  const _ReloadCard(
+      {required this.message, required this.label, required this.onPressed});
 
   final String message;
   final String label;
@@ -612,7 +625,9 @@ class _InlineError extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialBanner(
         content: Text(message),
-        actions: <Widget>[TextButton(onPressed: onRetry, child: Text(context.l10n.retry))],
+        actions: <Widget>[
+          TextButton(onPressed: onRetry, child: Text(context.l10n.retry))
+        ],
       );
 }
 
@@ -632,13 +647,18 @@ Map<String, String> _difficultyLabels(BuildContext context) => <String, String>{
       'HARD': context.l10n.recipeDifficultyHard,
     };
 
-String _dietLabel(BuildContext context, String value) => _dietTypes(context)[value] ?? value;
+String _dietLabel(BuildContext context, String value) =>
+    _dietTypes(context)[value] ?? value;
 String _difficultyLabel(BuildContext context, String value) =>
     _difficultyLabels(context)[value] ?? value;
 
 String _meta(BuildContext context, Recipe recipe) {
   final parts = <String>[];
-  if (recipe.prepTimeMinutes != null) parts.add(context.l10n.homeRecipeMinutes(recipe.prepTimeMinutes!));
-  if (recipe.cuisine != null && recipe.cuisine!.isNotEmpty) parts.add(recipe.cuisine!);
+  if (recipe.prepTimeMinutes != null) {
+    parts.add(context.l10n.homeRecipeMinutes(recipe.prepTimeMinutes!));
+  }
+  if (recipe.cuisine != null && recipe.cuisine!.isNotEmpty) {
+    parts.add(recipe.cuisine!);
+  }
   return parts.join(' · ');
 }

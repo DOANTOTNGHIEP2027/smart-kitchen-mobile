@@ -13,7 +13,7 @@ import 'package:smart_kitchen_mobile/scenes/household/api/household_api.dart';
 import 'package:smart_kitchen_mobile/scenes/insights/data/history_api.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/data/inventory_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_plan_api.dart';
-import 'package:smart_kitchen_mobile/scenes/mealplan/data/vote_api.dart';
+import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_suggestion_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
 import 'package:smart_kitchen_mobile/scenes/recap/data/recap_api.dart';
 import 'package:smart_kitchen_mobile/utils/dio_exception_x.dart';
@@ -33,7 +33,7 @@ void main() {
   late HealthApi healthApi;
   late InventoryApi inventoryApi;
   late MealPlanApi mealPlanApi;
-  late VoteApi voteApi;
+  late MealSuggestionApi suggestionApi;
   late RecipeApi recipeApi;
   late CookingSessionApi cookingApi;
   late RecapApi recapApi;
@@ -51,7 +51,7 @@ void main() {
     healthApi = HealthApiImpl(client);
     inventoryApi = InventoryApiImpl(client);
     mealPlanApi = MealPlanApiImpl(client);
-    voteApi = VoteApiImpl(client);
+    suggestionApi = MealSuggestionApi(client);
     recipeApi = RecipeApiImpl(client);
     cookingApi = CookingSessionApiImpl(client);
     recapApi = RecapApi(client);
@@ -214,27 +214,17 @@ void main() {
     expect((await inventoryApi.list()).totalElements, before.totalElements + 1);
   });
 
-  test('kế hoạch, gợi ý AI, vote và chọn món demo giữ state', () async {
+  test('plan → suggestions → direct selection keeps demo state', () async {
     final plan = await mealPlanApi.getCurrent();
-    final slot = plan.slots.firstWhere((slot) => slot.mealTime == 'LUNCH');
+    final slot = plan.slots.firstWhere((s) => s.mealTime == 'LUNCH');
     final dish = await mealPlanApi.addDish(plan.id, slot.id);
-    final session =
-        await voteApi.open(plan.id, slot.id, dish.id, deadlineHours: 24);
-
-    expect(session.suggestions, hasLength(3));
-    final selectedRecipeId = session.suggestions.first.recipeId;
-    await voteApi.cast(plan.id, slot.id, dish.id, recipeId: selectedRecipeId);
-    final result = await voteApi.getResult(plan.id, slot.id, dish.id);
-    expect(result['myVote'], selectedRecipeId);
-
-    final assigned = await mealPlanApi.assignDishRecipe(
-      plan.id,
-      slot.id,
-      dish.id,
-      recipeId: selectedRecipeId,
-      recipeName: session.suggestions.first.mealName,
-    );
-    expect(assigned.recipe?.recipeId, selectedRecipeId);
+    final rows = await suggestionApi.generate(plan.id, slot.id, dish.id);
+    expect(rows, hasLength(3));
+    final assigned =
+        await suggestionApi.select(plan.id, slot.id, dish.id, rows.first.id!);
+    expect(assigned.recipe?.source, 'AI');
+    final fetched = await suggestionApi.list(plan.id, slot.id, dish.id);
+    expect(fetched.first.id, rows.first.id);
   });
 
   test('công thức và phiên nấu demo chạy được đến hoàn tất', () async {

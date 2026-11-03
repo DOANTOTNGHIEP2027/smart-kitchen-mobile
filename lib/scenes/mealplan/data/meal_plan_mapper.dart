@@ -11,6 +11,7 @@ class MealPlanMapper {
   static MealPlanDto planFromJson(Map<String, dynamic> json) {
     final slotsJson = json['slots'] as List<dynamic>? ?? const <dynamic>[];
     return MealPlanDto(
+      status: json['status'] as String? ?? 'DRAFT',
       id: json['id'] as String,
       householdId: json['householdId'] as String,
       weekStart: DateTime.parse('${json['weekStart']}T00:00:00Z'),
@@ -21,8 +22,7 @@ class MealPlanMapper {
   }
 
   static MealPlanSlot slotFromJson(Map<String, dynamic> json) {
-    final dishesJson =
-        json['dishes'] as List<dynamic>? ?? const <dynamic>[];
+    final dishesJson = json['dishes'] as List<dynamic>? ?? const <dynamic>[];
     return MealPlanSlot(
       id: json['id'] as String,
       slotDate: DateTime.parse('${json['slotDate']}T00:00:00Z'),
@@ -40,8 +40,8 @@ class MealPlanMapper {
     return MealPlanDish(
       id: json['id'] as String,
       slotId: json['slotId'] as String,
-      sortOrder: (json['sortOrder'] as num?)?.toInt() ??
-          MealPlanDish.unknownSortOrder,
+      sortOrder:
+          (json['sortOrder'] as num?)?.toInt() ?? MealPlanDish.unknownSortOrder,
       status: _parseDishStatus(json['status'] as String?),
       recipe: recipeJson == null
           ? null
@@ -60,7 +60,7 @@ class MealPlanMapper {
       case 'SUGGESTED':
         return DishUiStatus.suggested;
       case 'VOTING':
-        return DishUiStatus.voting;
+        return DishUiStatus.suggested;
       case 'CONFIRMED':
         return DishUiStatus.confirmed;
       default:
