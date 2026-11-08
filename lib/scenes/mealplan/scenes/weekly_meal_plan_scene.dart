@@ -353,8 +353,17 @@ class _CalendarDay extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              color: selected ? AppColors.sage : Colors.transparent,
-              borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+              color: selected ? AppColors.primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: selected
+                  ? const <BoxShadow>[
+                      BoxShadow(
+                        color: AppColors.primaryShadow,
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -384,7 +393,7 @@ class _CalendarDay extends StatelessWidget {
                   height: 5,
                   decoration: BoxDecoration(
                     color: hasDishes
-                        ? (selected ? Colors.white : AppColors.sage)
+                        ? (selected ? Colors.white : AppColors.primary)
                         : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
@@ -431,18 +440,19 @@ class _MealScheduleCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        borderRadius: BorderRadius.circular(AppDimens.radiusCard),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: const <BoxShadow>[
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 6,
-            offset: Offset(0, 1),
+            color: Color(0x04000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        borderRadius: BorderRadius.circular(AppDimens.radiusCard),
         child: InkWell(
           onTap: canEdit
               ? () async {
@@ -457,7 +467,7 @@ class _MealScheduleCard extends StatelessWidget {
                   await store.refreshAttendance();
                 }
               : null,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+          borderRadius: BorderRadius.circular(AppDimens.radiusCard),
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.md),
             child: Column(
@@ -466,15 +476,15 @@ class _MealScheduleCard extends StatelessWidget {
                 Row(
                   children: <Widget>[
                     Container(
-                      width: 32,
-                      height: 32,
+                      width: 34,
+                      height: 34,
                       decoration: BoxDecoration(
-                        color: AppColors.sageLight,
+                        color: AppColors.primaryContainer,
                         borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                       ),
                       child: Icon(
                         period.icon,
-                        color: AppColors.sage,
+                        color: AppColors.primary,
                         size: 18,
                       ),
                     ),
@@ -508,17 +518,17 @@ class _MealScheduleCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: <Widget>[
-                        Icon(
+                        const Icon(
                           Icons.add_circle_outline_rounded,
                           size: 16,
-                          color: AppColors.sage.withValues(alpha: 0.8),
+                          color: AppColors.primary,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           context.l10n.mealPlanTapToAdd,
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.sage,
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w600,
                                   ),
                         ),
@@ -631,7 +641,7 @@ class _ScheduledDishCard extends StatelessWidget {
   Widget _dishStatusChip(BuildContext context, DishUiStatus status) {
     final l10n = context.l10n;
     final (label, color) = switch (status) {
-      DishUiStatus.confirmed => (l10n.mealPlanStatusConfirmed, AppColors.sage),
+      DishUiStatus.confirmed => (l10n.mealPlanStatusConfirmed, AppColors.primary),
       DishUiStatus.suggested => (
           l10n.mealPlanStatusSuggested,
           const Color(0xFFD97706)

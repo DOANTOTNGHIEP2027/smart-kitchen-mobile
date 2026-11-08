@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/api_error_l10n.dart';
@@ -75,6 +76,7 @@ class _WeeklyRecapSceneState extends State<WeeklyRecapScene> {
           case RecapLoadStatus.ready:
             final s = _store.summary!;
             return RefreshIndicator(
+              color: AppColors.primary,
               onRefresh: () => _store.fetchAll(),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -89,18 +91,45 @@ class _WeeklyRecapSceneState extends State<WeeklyRecapScene> {
                       onRetryStreak: _store.retryStreak,
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      tooltip: l10n.recapShareTooltip,
-                      icon: _isSharing
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.share),
-                      onPressed: _isSharing ? null : _shareRecap,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimens.md,
+                      vertical: AppDimens.xs,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: const BorderSide(color: AppColors.primary),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(AppDimens.radiusPill),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimens.md,
+                              vertical: 8,
+                            ),
+                          ),
+                          onPressed: _isSharing ? null : _shareRecap,
+                          icon: _isSharing
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColors.primary),
+                                  ),
+                                )
+                              : const Icon(Icons.share_rounded, size: 18),
+                          label: Text(
+                            l10n.recapShareTooltip,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   InsightCardList(

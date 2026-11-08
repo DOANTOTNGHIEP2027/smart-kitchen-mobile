@@ -6,43 +6,49 @@ import 'package:flutter/material.dart';
 /// accent cam, surface trắng, nền xám nhạt. Trước đây mặc Material green
 /// `#2E7D32` — lệch hoàn toàn so với mock.
 abstract class AppColors {
-  // Brand — mock dùng accent cam `--accent: #ff7a45`, nút primary có gradient
-  // `linear-gradient(135deg, #ff9d6e → #ff7a45)`.
+  // Brand — Cam tươi mới (#FF7A45) theo DESIGN_SYSTEM.md và mockups gốc
   static const Color primary = Color(0xFFFF7A45);
-  static const Color primaryDark = Color(0xFFE85F2A);
+  static const Color onPrimary = Color(0xFFFFFFFF);
+  static const Color primaryDark = Color(0xFFE65A20);
+  static const Color primaryContainer = Color(0xFFFFF2EA); // Soft Warm Peach
+  static const Color onPrimaryContainer = Color(0xFF9A3412);
   static const Color primaryLight = Color(0xFFFFE4D6);
-  static const Color primaryGradientStart = Color(0xFFFF9D6E);
+  static const Color primaryGradientStart = Color(0xFFFF9D6E); // Legacy fallback
   static const Color secondary = Color(0xFFFF9500);
 
-  // `--bg: #f2f2f5` — nền xám tím nhạt theo mock (trước đây #F6F8F4 xanh nhạt).
-  static const Color background = Color(0xFFF2F2F5);
-  // `--surface: #ffffff`.
+  // Background & Surfaces — Nền sáng, thoáng, ấm áp (#F8F9FA)
+  static const Color background = Color(0xFFF8F9FA);
   static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceSubtle = Color(0xFFF4F4F7);
+  static const Color surfaceWarm = Color(0xFFFFFBF8);
 
-  // `--border: #e5e5ea`.
-  static const Color border = Color(0xFFE5E5EA);
+  // Borders & Dividers — Hairline mảnh tinh tế (#EBEBEF)
+  static const Color border = Color(0xFFEBEBEF);
 
-  // `.btn-secondary` của mock — nền be ấm `#f1eeea` (trắng ngà).
+  // Secondary fill
   static const Color secondaryFill = Color(0xFFF1EEEA);
 
-  // `--text: #1c1c1e` — đen gần đen pur.
+  // Typography
   static const Color textPrimary = Color(0xFF1C1C1E);
-  // `--muted: #8e8e93`.
-  static const Color textSecondary = Color(0xFF8E8E93);
+  static const Color textSecondary = Color(0xFF71717A);
   static const Color textOnPrimary = Color(0xFFFFFFFF);
-  static const Color textDisabled = Color(0xFFC7C7CC);
+  static const Color textDisabled = Color(0xFFA1A1AA);
 
-  // `--danger: #d64545` (thay Material `#BA1A1A`).
-  static const Color error = Color(0xFFD64545);
-  /// Nền nhạt cho banner/nhãn lỗi (FeatureBanner, badge bị loại).
-  static const Color errorSurface = Color(0xFFFFEEEE);
-  static const Color warning = Color(0xFFFF9500);
-  static const Color success = Color(0xFF34C759);
+  // Semantic Status
+  static const Color error = Color(0xFFEF4444);
+  static const Color errorSurface = Color(0xFFFDECEC);
+  static const Color warning = Color(0xFFD97706);
+  static const Color warningSurface = Color(0xFFFEF7EA);
+  static const Color success = Color(0xFF22C55E);
+  static const Color successSurface = Color(0xFFEAF7EE);
+  static const Color info = Color(0xFF2563EB);
+  static const Color infoSurface = Color(0xFFEFF6FF);
 
-  // Bóng nút primary theo mock: `rgba(255,122,64,0.32)` (~ 0x52 alpha).
-  static const Color primaryShadow = Color(0x52FF7A45);
+  // Ambient Soft Shadows (Không gắt, không gradient)
+  static const Color primaryShadow = Color(0x2EFF7A45);
+  static const Color ambientShadow = Color(0x08000000);
 
-  // Sage green tokens (Tasty-inspired UI style: bright, airy, clean, modern)
+  // Sage green tokens
   static const Color sage = Color(0xFF4A7C59);
   static const Color sageDark = Color(0xFF385E43);
   static const Color sageLight = Color(0xFFEFF6F0);

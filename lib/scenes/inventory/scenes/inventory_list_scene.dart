@@ -101,7 +101,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                 return const LinearProgressIndicator(
                   minHeight: 2,
                   backgroundColor: Colors.transparent,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.sage),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 );
               }
               return const SizedBox.shrink();
@@ -132,11 +132,12 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           borderRadius:
-                              BorderRadius.circular(AppDimens.radiusMd),
+                              BorderRadius.circular(AppDimens.radiusCard),
+                          border: Border.all(color: AppColors.border, width: 1),
                           boxShadow: const <BoxShadow>[
                             BoxShadow(
-                              color: Color(0x08000000),
-                              blurRadius: 8,
+                              color: Color(0x06000000),
+                              blurRadius: 10,
                               offset: Offset(0, 2),
                             ),
                           ],
@@ -148,7 +149,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                               label: context.l10n.inventoryStatTotal,
                               value: '${allItems.length}',
                               icon: Icons.inventory_2_outlined,
-                              color: AppColors.sage,
+                              color: AppColors.primary,
                             ),
                             Container(
                               width: 1,
@@ -193,7 +194,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                           color: AppColors.textSecondary,
                         ),
                         filled: true,
-                        fillColor: AppColors.surface,
+                        fillColor: AppColors.surfaceSubtle,
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
                           vertical: AppDimens.sm,
@@ -201,8 +202,27 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                         ),
                         border: OutlineInputBorder(
                           borderRadius:
-                              BorderRadius.circular(AppDimens.radiusXl),
-                          borderSide: BorderSide.none,
+                              BorderRadius.circular(AppDimens.radiusPill),
+                          borderSide: const BorderSide(
+                            color: AppColors.border,
+                            width: 1,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppDimens.radiusPill),
+                          borderSide: const BorderSide(
+                            color: AppColors.border,
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppDimens.radiusPill),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                       onChanged: store.setSearchQuery,
@@ -286,7 +306,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                   );
                 }
                 return RefreshIndicator(
-                  color: AppColors.sage,
+                  color: AppColors.primary,
                   onRefresh: () => store.syncFromServer(),
                   child: ListView.builder(
                     padding: const EdgeInsets.only(
@@ -315,9 +335,12 @@ class _InventoryListSceneState extends State<InventoryListScene> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'inventory-list-fab',
-        backgroundColor: AppColors.sage,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        elevation: 2,
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+        ),
         onPressed: () => Get.toNamed('/inventory/add'),
         icon: const Icon(Icons.add_rounded),
         label: Text(
@@ -391,21 +414,30 @@ class _CategoryPill extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: Material(
-        color: selected ? AppColors.sage : AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+        color: selected ? AppColors.primary : AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimens.radiusPill),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
           child: Container(
             padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 6,
+              horizontal: 14,
+              vertical: 7,
             ),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+              borderRadius: BorderRadius.circular(AppDimens.radiusPill),
               border: Border.all(
-                color: selected ? AppColors.sage : AppColors.border,
+                color: selected ? AppColors.primary : AppColors.border,
               ),
+              boxShadow: selected
+                  ? const <BoxShadow>[
+                      BoxShadow(
+                        color: AppColors.primaryShadow,
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
             child: Text(
               label,

@@ -21,15 +21,9 @@ class AppBottomNavDestination {
   final String label;
 }
 
-/// Bottom navigation theo mock `docs/design/frontend/mockups/fe-app-shell.html`
-/// (đối chiếu 2026-09-16).
-///
-/// Mock dùng "dot" 22×22 với border-radius 6 (trông như ô vuông bo góc, không
-/// phải Material pill indicator): màu xám khi inactive, accent cam khi active.
-/// Label dưới nhỏ 11px — active đậm màu cam.
-///
-/// Trước đây dùng `NavigationBar` mặc định → lệch hoàn toàn (indicator pill
-/// Material 3, label 12-14px).
+/// Bottom navigation theo chuẩn DESIGN_SYSTEM.md:
+/// Bo tròn mềm mại cạnh trên (20dp), đổ bóng môi trường hắt lên trên nhẹ,
+/// mục active có pill container màu cam ấm `#FFF2EA` và icon cam tươi `#FF7A45`.
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({
     super.key,
@@ -47,9 +41,22 @@ class AppBottomNav extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: AppDimens.borderWidth)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 18,
+            offset: Offset(0, -4),
+          ),
+        ],
+        border: Border(
+          top: BorderSide(
+            color: AppColors.border,
+            width: AppDimens.borderWidth,
+          ),
+        ),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: SafeArea(
         top: false,
         child: Row(
@@ -62,21 +69,29 @@ class AppBottomNav extends StatelessWidget {
                 radius: 36,
                 highlightShape: BoxShape.circle,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      Container(
-                        width: 22,
-                        height: 22,
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        width: isActive ? 46 : 28,
+                        height: 28,
                         decoration: BoxDecoration(
-                          color: isActive ? AppColors.primary : AppColors.border,
-                          borderRadius: const BorderRadius.all(Radius.circular(6)),
+                          color: isActive
+                              ? AppColors.primaryContainer
+                              : Colors.transparent,
+                          borderRadius:
+                              BorderRadius.circular(AppDimens.radiusPill),
                         ),
+                        alignment: Alignment.center,
                         child: Icon(
                           isActive ? d.activeIcon : d.icon,
-                          size: 14,
-                          color: AppColors.surface,
+                          size: 20,
+                          color: isActive
+                              ? AppColors.primary
+                              : AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -84,8 +99,11 @@ class AppBottomNav extends StatelessWidget {
                         d.label,
                         style: AppTextStyles.label.copyWith(
                           fontSize: 11,
-                          fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                          color: isActive ? AppColors.primary : AppColors.textSecondary,
+                          fontWeight:
+                              isActive ? FontWeight.w700 : FontWeight.w500,
+                          color: isActive
+                              ? AppColors.primaryDark
+                              : AppColors.textSecondary,
                         ),
                       ),
                     ],

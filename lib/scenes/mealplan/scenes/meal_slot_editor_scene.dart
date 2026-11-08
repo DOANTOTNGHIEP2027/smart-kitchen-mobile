@@ -161,10 +161,11 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
               const SizedBox(height: AppDimens.sm),
               FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.sage,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: AppDimens.md),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+                    borderRadius: BorderRadius.circular(AppDimens.radiusCard),
                   ),
                 ),
                 icon: _isAdding
@@ -263,7 +264,7 @@ class _EditableDishCard extends StatelessWidget {
                       const Icon(
                         Icons.access_time_rounded,
                         size: 14,
-                        color: AppColors.sage,
+                        color: AppColors.primaryDark,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -322,12 +323,12 @@ class _PendingDishCard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: const BoxDecoration(
-                color: AppColors.sageLight,
+                color: AppColors.primaryContainer,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.restaurant_menu_rounded,
-                color: AppColors.sage,
+                color: AppColors.primary,
                 size: 20,
               ),
             ),
@@ -346,8 +347,8 @@ class _PendingDishCard extends StatelessWidget {
                 onPressed: onChoose,
                 icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                 style: IconButton.styleFrom(
-                  backgroundColor: AppColors.sageLight,
-                  foregroundColor: AppColors.sageDark,
+                  backgroundColor: AppColors.primaryContainer,
+                  foregroundColor: AppColors.onPrimaryContainer,
                 ),
               ),
             _InsightsButton(onPressed: onInsights),
@@ -372,7 +373,7 @@ class _InsightsButton extends StatelessWidget {
         key: const ValueKey<String>('dish-candidate-insights'),
         onPressed: onPressed,
         icon: const Icon(Icons.auto_awesome_outlined),
-        color: AppColors.sage,
+        color: AppColors.primary,
         tooltip: context.l10n.planningCandidateTooltip,
       );
 }

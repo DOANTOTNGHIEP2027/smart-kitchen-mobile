@@ -49,10 +49,13 @@ class HomeRecipeDetailScene extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              RecipeCoverImage(
-                recipeId: recipeId,
-                recipeName: recipeName,
-                height: 196,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppDimens.radiusCard),
+                child: RecipeCoverImage(
+                  recipeId: recipeId,
+                  recipeName: recipeName,
+                  height: 200,
+                ),
               ),
               const SizedBox(height: AppDimens.lg),
               Text(
@@ -91,6 +94,7 @@ class HomeRecipeDetailScene extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w800,
+                      fontSize: 18,
                     ),
               ),
               const SizedBox(height: AppDimens.sm),
@@ -135,34 +139,63 @@ class _RecipeMetaRow extends StatelessWidget {
             horizontal: AppDimens.md, vertical: AppDimens.sm),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+          borderRadius: BorderRadius.circular(AppDimens.radiusCard),
           border: Border.all(
-              color: AppColors.textSecondary.withValues(alpha: 0.32),
-              width: 1.2),
+            color: AppColors.border,
+            width: 1.0,
+          ),
           boxShadow: const <BoxShadow>[
             BoxShadow(
-              color: Color(0x0AFF7622),
+              color: Color(0x08000000),
               blurRadius: 14,
-              offset: Offset(0, 6),
+              offset: Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Icon(Icons.local_fire_department_outlined,
-                size: 19, color: AppColors.primaryDark),
-            const SizedBox(width: AppDimens.xs),
-            Text(calories,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
-            const SizedBox(width: AppDimens.md),
-            const Icon(Icons.timer_outlined,
-                size: 19, color: AppColors.primaryDark),
-            const SizedBox(width: AppDimens.xs),
-            Text(duration,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: AppColors.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.local_fire_department_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: AppDimens.sm),
+            Text(
+              calories,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(width: AppDimens.lg),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceSubtle,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.timer_outlined,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: AppDimens.sm),
+            Text(
+              duration,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
           ],
         ),
       );
@@ -175,16 +208,15 @@ class _TagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.md, vertical: AppDimens.sm),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.secondaryFill,
-          borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+          color: AppColors.primaryContainer,
+          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
         ),
         child: Text(
           label,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: AppColors.textPrimary,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: AppColors.primaryDark,
                 fontWeight: FontWeight.w700,
               ),
         ),
@@ -201,13 +233,21 @@ class _IngredientRow extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: AppDimens.sm),
         child: Container(
           padding: const EdgeInsets.symmetric(
-              horizontal: AppDimens.md, vertical: AppDimens.sm),
+              horizontal: AppDimens.md, vertical: 10),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+            borderRadius: BorderRadius.circular(AppDimens.radiusCard),
             border: Border.all(
-                color: AppColors.textSecondary.withValues(alpha: 0.28),
-                width: 1.15),
+              color: AppColors.border,
+              width: 1.0,
+            ),
+            boxShadow: const <BoxShadow>[
+              BoxShadow(
+                color: Color(0x06000000),
+                blurRadius: 10,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: <Widget>[
@@ -215,17 +255,20 @@ class _IngredientRow extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.restaurant_outlined,
-                    size: 18, color: AppColors.primaryDark),
+                child: const Icon(
+                  Icons.restaurant_outlined,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: AppDimens.sm),
               Expanded(
                 child: Text(
                   label,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
@@ -247,14 +290,14 @@ class _RecipeGuide extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(AppDimens.md),
         decoration: BoxDecoration(
-          color: AppColors.secondaryFill,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+          color: AppColors.surfaceSubtle,
+          borderRadius: BorderRadius.circular(AppDimens.radiusCard),
           border: Border.all(color: AppColors.border),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const Icon(Icons.link_rounded, color: AppColors.primaryDark),
+            const Icon(Icons.link_rounded, color: AppColors.primary),
             const SizedBox(width: AppDimens.sm),
             Expanded(
               child: Column(

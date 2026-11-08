@@ -4,21 +4,21 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
 import '../../constants/app_text_styles.dart';
 
-/// Kiểu nút bấm — bám mock `docs/design/frontend/mockups/*.html` (`.btn-*`).
+/// Kiểu nút bấm — bám mock và quy chuẩn DESIGN_SYSTEM.md (100% Solid Color, No Gradient).
 enum AppButtonVariant {
-  /// `.btn-primary` — gradient cam + shadow hồng cam.
+  /// `.btn-primary` — Solid Cam (#FF7A45) + soft ambient shadow.
   primary,
 
-  /// `.btn-secondary` — nền be `#f1eeea`, text đen.
+  /// `.btn-secondary` — Nền cam kem ấm (#FFF2EA), text cam đậm (#FF7A45).
   secondary,
 
-  /// `.btn-outline` — nền trắng, border xám, text đen.
+  /// `.btn-outline` — Nền trắng, viền hairline (#EBEBEF), text đen.
   outline,
 
-  /// `.btn-google` — nền trắng, border xám, shadow rất nhẹ.
+  /// `.btn-google` — Nền trắng, viền hairline, shadow rất nhẹ.
   google,
 
-  /// `.link` (trong mock) — text-only, màu cam.
+  /// `.link` (trong mock) — Text-only, màu cam.
   text,
 }
 
@@ -53,7 +53,7 @@ class AppButton extends StatelessWidget {
             height: AppDimens.buttonSpinner,
             width: AppDimens.buttonSpinner,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
+              strokeWidth: 2.2,
               valueColor: AlwaysStoppedAnimation<Color>(_foregroundColor),
             ),
           )
@@ -68,27 +68,22 @@ class AppButton extends StatelessWidget {
           decoration: _isDisabled
               ? null
               : const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: <Color>[
-                      AppColors.primaryGradientStart,
-                      AppColors.primary,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.all(Radius.circular(AppDimens.radiusMd)),
+                  color: AppColors.primary, // 100% Solid Color — Không Gradient
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(AppDimens.radiusCard)),
                   boxShadow: <BoxShadow>[
                     BoxShadow(
                       color: AppColors.primaryShadow,
-                      blurRadius: 18,
-                      offset: Offset(0, 8),
+                      blurRadius: 16,
+                      offset: Offset(0, 6),
                     ),
                   ],
                 ),
           child: ElevatedButton(
             onPressed: _isDisabled ? null : onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _isDisabled ? AppColors.textDisabled : Colors.transparent,
+              backgroundColor:
+                  _isDisabled ? AppColors.textDisabled : Colors.transparent,
               foregroundColor: AppColors.textOnPrimary,
               disabledBackgroundColor: AppColors.textDisabled,
               disabledForegroundColor: AppColors.textOnPrimary,
@@ -102,8 +97,8 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.secondary => ElevatedButton(
           onPressed: _isDisabled ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.secondaryFill,
-            foregroundColor: AppColors.textPrimary,
+            backgroundColor: AppColors.primaryContainer,
+            foregroundColor: AppColors.primary,
             disabledBackgroundColor: AppColors.textDisabled,
             disabledForegroundColor: AppColors.textOnPrimary,
             elevation: 0,
@@ -115,13 +110,13 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.google => DecoratedBox(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+            borderRadius: BorderRadius.circular(AppDimens.radiusCard),
             border: Border.all(color: AppColors.border),
             boxShadow: const <BoxShadow>[
               BoxShadow(
-                color: Color(0x14111111),
-                blurRadius: 3,
-                offset: Offset(0, 1),
+                color: Color(0x08000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
               ),
             ],
           ),
@@ -162,18 +157,22 @@ class AppButton extends StatelessWidget {
     };
 
     final Widget sized = SizedBox(
-      height: AppDimens.buttonHeight,
+      height: 52, // Chiều cao chuẩn 52dp theo DESIGN_SYSTEM.md
       width: expanded ? double.infinity : null,
       child: button,
     );
 
-    return Semantics(button: true, enabled: !_isDisabled, label: label, child: sized);
+    return Semantics(
+        button: true, enabled: !_isDisabled, label: label, child: sized);
   }
 
   Widget _buildLabel() {
     final text = Text(
       label,
-      style: AppTextStyles.button,
+      style: AppTextStyles.button.copyWith(
+        color: _foregroundColor,
+        fontWeight: FontWeight.w700,
+      ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
@@ -182,7 +181,7 @@ class AppButton extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(iconData, size: 18),
+        Icon(iconData, size: 18, color: _foregroundColor),
         const SizedBox(width: AppDimens.sm),
         Flexible(child: text),
       ],
@@ -191,7 +190,7 @@ class AppButton extends StatelessWidget {
 
   Color get _foregroundColor => switch (variant) {
         AppButtonVariant.primary => AppColors.textOnPrimary,
-        AppButtonVariant.secondary => AppColors.textPrimary,
+        AppButtonVariant.secondary => AppColors.primary,
         AppButtonVariant.outline => AppColors.textPrimary,
         AppButtonVariant.google => AppColors.textPrimary,
         AppButtonVariant.text => AppColors.primary,
@@ -199,6 +198,6 @@ class AppButton extends StatelessWidget {
 
   double get _radiusForVariant => switch (variant) {
         AppButtonVariant.text => AppDimens.radiusSm,
-        _ => AppDimens.radiusMd,
+        _ => AppDimens.radiusCard,
       };
 }

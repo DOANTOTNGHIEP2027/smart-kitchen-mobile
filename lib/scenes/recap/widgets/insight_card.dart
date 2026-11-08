@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
-import '../../../constants/app_text_styles.dart';
 import '../../../utils/l10n_x.dart';
 import '../domain/recap_badge.dart';
 import '../domain/weekly_recap_summary.dart';
@@ -31,8 +30,15 @@ class InsightCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppDimens.md),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(AppDimens.radiusCard),
+          border: Border.all(color: AppColors.border, width: 1),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: Color(0x04000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,12 +54,16 @@ class InsightCard extends StatelessWidget {
                   badge: insight.badge,
                 ),
                 child: SizedBox(
-                  width: 56,
-                  height: 56,
+                  width: 58,
+                  height: 58,
                   child: Center(
                     child: Text(
                       '${insight.compliancePct.round()}%',
-                      style: AppTextStyles.label,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                 ),
@@ -66,17 +76,51 @@ class InsightCard extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     insight.highlight,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontStyle: FontStyle.italic,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: AppDimens.xs),
-                  Text(insight.tip, style: AppTextStyles.bodyMedium),
-                  const SizedBox(height: AppDimens.xs),
+                  const SizedBox(height: 4),
                   Text(
-                    l10n.recapNutrientGap(insight.topNutrientGap),
-                    style: AppTextStyles.label.copyWith(
-                      color: AppColors.textSecondary,
+                    insight.tip,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: Color(0xFF374151),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryContainer,
+                      borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        const Icon(
+                          Icons.tips_and_updates_outlined,
+                          size: 13,
+                          color: AppColors.onPrimaryContainer,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            l10n.recapNutrientGap(insight.topNutrientGap),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -106,7 +150,13 @@ class InsightCardList extends StatelessWidget {
     if (insights.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(AppDimens.md),
-        child: Text(emptyText, style: AppTextStyles.bodyMedium),
+        child: Text(
+          emptyText,
+          style: const TextStyle(
+            fontSize: 13.5,
+            color: AppColors.textSecondary,
+          ),
+        ),
       );
     }
     return Column(
@@ -128,13 +178,13 @@ class _ComplianceRingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const stroke = 5.0;
+    const stroke = 5.5;
     final center = size.center(Offset.zero);
     final radius = (size.shortestSide - stroke) / 2;
     final background = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = stroke
-      ..color = AppColors.border;
+      ..color = AppColors.surfaceSubtle;
     canvas.drawCircle(center, radius, background);
     final arc = Paint()
       ..style = PaintingStyle.stroke

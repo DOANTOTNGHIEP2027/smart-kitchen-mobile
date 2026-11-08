@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
+import '../../app/env_config.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
-import '../../app/env_config.dart';
 import '../../demo/fixtures/demo_fixtures.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
 import '../../stores/session_store.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../cooking/scenes/cooking_routes.dart';
 import '../inventory/scenes/inventory_list_binding.dart';
 import '../inventory/scenes/inventory_list_scene.dart';
 import '../mealplan/scenes/meal_plan_routes.dart' show WeeklyMealPlanBinding;
@@ -110,11 +111,11 @@ class AppShellScene extends StatelessWidget {
   }
 }
 
-/// Tab Home — dashboard cho bản demo, dùng các flow đã ship làm lối tắt.
+/// Tab Home — Trang chủ thiết kế theo DESIGN_SYSTEM.md (Soft Modern Kitchen).
 ///
-/// Không gọi endpoint mới ở đây: trong Demo Mode, recipe fixture mở thẳng
-/// cooking session; với backend thật, người dùng được dẫn tới kế hoạch tuần
-/// để chọn recipe hợp lệ của chính household.
+/// Áp dụng màu Cam tươi mới (#FF7A45), 100% Solid Color (không dùng gradient),
+/// bo góc tròn mềm mại 18dp, bóng ambient đổ nhẹ tự nhiên.
+/// Danh sách gợi ý món ăn hiển thị trong chế độ Demo Mode (theo kế hoạch backend).
 class _HomeTab extends StatelessWidget {
   const _HomeTab();
 
@@ -123,7 +124,7 @@ class _HomeTab extends StatelessWidget {
     final session =
         Get.isRegistered<SessionStore>() ? Get.find<SessionStore>() : null;
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -147,6 +148,7 @@ class _HomeTab extends StatelessWidget {
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.w800,
+                    fontSize: 18,
                   ),
             ),
             const SizedBox(height: AppDimens.sm),
@@ -164,7 +166,7 @@ class _HomeTab extends StatelessWidget {
                   child: _HomeActionCard(
                     title: context.l10n.homeInventoryTitle,
                     subtitle: context.l10n.homeInventorySubtitle,
-                    icon: Icons.inventory_2_outlined,
+                    icon: Icons.kitchen_outlined,
                     onTap: () => Get.find<AppShellStore>().selectTab(1),
                   ),
                 ),
@@ -179,6 +181,28 @@ class _HomeTab extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: AppDimens.sm),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: _HomeActionCard(
+                    title: context.l10n.navShopping,
+                    subtitle: 'Danh sách đồ cần mua sắm',
+                    icon: Icons.shopping_cart_outlined,
+                    onTap: () => Get.find<AppShellStore>().selectTab(3),
+                  ),
+                ),
+                const SizedBox(width: AppDimens.sm),
+                Expanded(
+                  child: _HomeActionCard(
+                    title: context.l10n.mealLogTitle,
+                    subtitle: 'Theo dõi dinh dưỡng & calo',
+                    icon: Icons.analytics_outlined,
+                    onTap: () => Get.toNamed<void>(CookingRoutes.mealLog),
+                  ),
+                ),
+              ],
+            ),
             if (EnvConfig.isDemoMode) ...<Widget>[
               const SizedBox(height: AppDimens.xl),
               Text(
@@ -186,6 +210,7 @@ class _HomeTab extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w800,
+                      fontSize: 18,
                     ),
               ),
               const SizedBox(height: AppDimens.sm),
@@ -229,9 +254,17 @@ class _HomeHeader extends StatelessWidget {
         Container(
           width: 48,
           height: 48,
-          decoration: const BoxDecoration(
-            color: AppColors.primaryLight,
+          decoration: BoxDecoration(
+            color: AppColors.primaryContainer,
             shape: BoxShape.circle,
+            border: Border.all(color: AppColors.primaryLight, width: 1.5),
+            boxShadow: const <BoxShadow>[
+              BoxShadow(
+                color: Color(0x10FF7A45),
+                blurRadius: 10,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
           alignment: Alignment.center,
           child: Text(
@@ -239,20 +272,24 @@ class _HomeHeader extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.primaryDark,
                   fontWeight: FontWeight.w800,
+                  fontSize: 18,
                 ),
           ),
         ),
-        const SizedBox(width: AppDimens.sm),
+        const SizedBox(width: AppDimens.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
                 greeting,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
                     ),
               ),
+              const SizedBox(height: 2),
               Text(
                 displayName,
                 maxLines: 1,
@@ -260,24 +297,38 @@ class _HomeHeader extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w800,
+                      fontSize: 20,
                     ),
               ),
             ],
           ),
         ),
-        Container(
-          width: 44,
-          height: 44,
-          decoration: const BoxDecoration(
-            color: AppColors.textPrimary,
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            tooltip: context.l10n.recipesTitle,
-            onPressed: () => Get.toNamed(AppRoutes.recipes),
-            icon: const Icon(
-              Icons.restaurant_menu_rounded,
-              color: AppColors.textOnPrimary,
+        Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+            onTap: () => Get.toNamed<void>(AppRoutes.recipes),
+            child: Ink(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border, width: 1.0),
+                boxShadow: const <BoxShadow>[
+                  BoxShadow(
+                    color: Color(0x08000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.menu_book_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
             ),
           ),
         ),
@@ -296,21 +347,40 @@ class _GuestProfileCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(AppDimens.md),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
+          color: AppColors.primaryContainer,
+          borderRadius: BorderRadius.circular(AppDimens.radiusCard),
+          border: Border.all(color: AppColors.primaryLight, width: 1.0),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: Color(0x08000000),
+              blurRadius: 12,
+              offset: Offset(0, 3),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
+            Row(
+              children: <Widget>[
+                const Icon(
+                  Icons.info_outline_rounded,
+                  color: AppColors.primaryDark,
+                  size: 20,
+                ),
+                const SizedBox(width: AppDimens.sm),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.onPrimaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppDimens.sm),
+            const SizedBox(height: AppDimens.md),
             AppButton(
               label: actionLabel,
               icon: Icons.person_add_alt_1_outlined,
@@ -338,7 +408,7 @@ class _HomeActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppDimens.radiusMd);
+    final radius = BorderRadius.circular(AppDimens.radiusCard);
     final foreground =
         primary ? AppColors.textOnPrimary : AppColors.textPrimary;
     return Material(
@@ -348,94 +418,102 @@ class _HomeActionCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: radius,
         child: Ink(
-          padding: const EdgeInsets.all(AppDimens.md),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: primary ? null : AppColors.surface,
-            gradient: primary
-                ? const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: <Color>[
-                      AppColors.primaryGradientStart,
-                      AppColors.primary,
-                    ],
-                  )
-                : null,
+            color: primary ? AppColors.primary : AppColors.surface,
+            // 100% Solid Color — Tuyệt đối không dùng gradient theo DESIGN_SYSTEM.md
             borderRadius: radius,
             border: primary
                 ? null
                 : Border.all(
-                    color: AppColors.textSecondary.withValues(alpha: 0.32),
-                    width: 1.2,
+                    color: AppColors.border,
+                    width: 1.0,
                   ),
             boxShadow: primary
                 ? const <BoxShadow>[
                     BoxShadow(
                       color: AppColors.primaryShadow,
                       blurRadius: 18,
-                      offset: Offset(0, 8),
+                      offset: Offset(0, 6),
                     ),
                   ]
                 : const <BoxShadow>[
                     BoxShadow(
-                      color: Color(0x0D111111),
-                      blurRadius: 8,
-                      offset: Offset(0, 3),
+                      color: Color(0x08000000),
+                      blurRadius: 14,
+                      offset: Offset(0, 4),
                     ),
                   ],
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Container(
-                width: primary ? 46 : 38,
-                height: primary ? 46 : 38,
+                width: primary ? 46 : 40,
+                height: primary ? 46 : 40,
                 decoration: BoxDecoration(
                   color: primary
-                      ? AppColors.textOnPrimary.withValues(alpha: 0.2)
-                      : AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+                      ? AppColors.textOnPrimary.withValues(alpha: 0.18)
+                      : AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon,
-                    color: primary
-                        ? AppColors.textOnPrimary
-                        : AppColors.primaryDark),
+                child: Icon(
+                  icon,
+                  size: primary ? 24 : 20,
+                  color: primary
+                      ? AppColors.textOnPrimary
+                      : AppColors.primary,
+                ),
               ),
-              const SizedBox(width: AppDimens.sm),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(
                       title,
-                      maxLines: primary ? 1 : 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: foreground,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
                           ),
                     ),
-                    const SizedBox(height: AppDimens.xs),
+                    const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      maxLines: primary ? 2 : 3,
+                      maxLines: primary ? 1 : 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: primary
-                                ? AppColors.textOnPrimary
-                                    .withValues(alpha: 0.86)
+                                ? AppColors.textOnPrimary.withValues(alpha: 0.88)
                                 : AppColors.textSecondary,
-                            height: 1.3,
+                            height: 1.25,
+                            fontSize: 12,
                           ),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_rounded,
-                color:
-                    primary ? AppColors.textOnPrimary : AppColors.textSecondary,
-                size: 19,
+              const SizedBox(width: 6),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: primary
+                      ? AppColors.textOnPrimary.withValues(alpha: 0.15)
+                      : AppColors.surfaceSubtle,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  color: primary
+                      ? AppColors.textOnPrimary
+                      : AppColors.textSecondary,
+                  size: 15,
+                ),
               ),
             ],
           ),
@@ -460,7 +538,9 @@ class _HomeRecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppDimens.radiusMd);
+    final radius = BorderRadius.circular(AppDimens.radiusCard);
+    final prepTime = RecipeCoverImage.demoPrepTimeMinutes(recipeId);
+
     return Material(
       color: AppColors.surface,
       borderRadius: radius,
@@ -468,53 +548,135 @@ class _HomeRecipeCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: radius,
         child: Container(
-          padding: const EdgeInsets.all(AppDimens.sm),
           decoration: BoxDecoration(
             borderRadius: radius,
             border: Border.all(
-              color: AppColors.textSecondary.withValues(alpha: 0.32),
-              width: 1.2,
+              color: AppColors.border,
+              width: 1.0,
             ),
             boxShadow: const <BoxShadow>[
               BoxShadow(
-                color: Color(0x0D111111),
-                blurRadius: 10,
-                offset: Offset(0, 3),
+                color: Color(0x08000000),
+                blurRadius: 14,
+                offset: Offset(0, 4),
               ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              RecipeCoverImage(
-                recipeId: recipeId,
-                recipeName: recipeName,
-                height: 184,
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimens.radiusCard)),
+                child: RecipeCoverImage(
+                  recipeId: recipeId,
+                  recipeName: recipeName,
+                  height: 180,
+                ),
               ),
-              const SizedBox(height: AppDimens.sm),
-              Text(
-                recipeName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              const SizedBox(height: AppDimens.sm),
-              Row(
-                children: <Widget>[
-                  const Icon(Icons.play_circle_outline_rounded,
-                      size: 18, color: AppColors.primaryDark),
-                  const SizedBox(width: AppDimens.xs),
-                  Text(
-                    actionLabel,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.primaryDark,
-                          fontWeight: FontWeight.w800,
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            recipeName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                          ),
                         ),
-                  ),
-                ],
+                        if (prepTime != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryContainer,
+                              borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                const Icon(
+                                  Icons.timer_outlined,
+                                  size: 13,
+                                  color: AppColors.primaryDark,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$prepTime phút',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceSubtle,
+                            borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                          ),
+                          child: const Text(
+                            'Gợi ý cho gia đình',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                            boxShadow: const <BoxShadow>[
+                              BoxShadow(
+                                color: AppColors.primaryShadow,
+                                blurRadius: 10,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              const Icon(
+                                Icons.play_arrow_rounded,
+                                size: 16,
+                                color: AppColors.onPrimary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                actionLabel,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.onPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

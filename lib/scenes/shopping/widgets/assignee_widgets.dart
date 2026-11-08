@@ -80,16 +80,16 @@ class AssigneeChip extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: id == null ? Colors.transparent : AppColors.sageLight,
+            color: id == null ? Colors.transparent : AppColors.primaryContainer,
             borderRadius: BorderRadius.circular(AppDimens.radiusLg),
             border: Border.all(
-                color: id == null ? AppColors.border : AppColors.sageBorder),
+                color: id == null ? AppColors.border : AppColors.primaryLight),
           ),
           child: DefaultTextStyle.merge(
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: id == null ? AppColors.textSecondary : AppColors.sageDark,
+              color: id == null ? AppColors.textSecondary : AppColors.onPrimaryContainer,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -97,7 +97,7 @@ class AssigneeChip extends StatelessWidget {
                 Icon(
                   id == null ? Icons.person_add_alt_1_outlined : Icons.person,
                   size: 12,
-                  color: id == null ? AppColors.textSecondary : AppColors.sageDark,
+                  color: id == null ? AppColors.textSecondary : AppColors.onPrimaryContainer,
                 ),
                 const SizedBox(width: 4),
                 label,
@@ -224,7 +224,7 @@ class AssigneePickerSheet extends StatelessWidget {
               _canSelfAssign())
             ListTile(
               key: const ValueKey<String>('assignee-me'),
-              leading: const Icon(Icons.front_hand_outlined, color: AppColors.sage),
+              leading: const Icon(Icons.front_hand_outlined, color: AppColors.primary),
               title: Text(l10n.shoppingAssignToMe),
               onTap: () => Navigator.of(context).pop(_AssigneeChoice(currentUserId)),
             ),
