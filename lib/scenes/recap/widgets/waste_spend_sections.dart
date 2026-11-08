@@ -678,7 +678,7 @@ class SpendTrendSparkline extends StatelessWidget {
                   ? BarChartRodData(
                       toY: maxY * 0.25,
                       width: 16,
-                      color: AppColors.surfaceSubtle.withValues(alpha: 0.5),
+                      color: Colors.transparent,
                       borderSide: const BorderSide(color: AppColors.border, width: 1.5),
                       borderDashArray: const <int>[3, 3],
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
