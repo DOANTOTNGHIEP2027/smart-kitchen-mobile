@@ -566,7 +566,7 @@ class _HomeRecipeCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radiusCard)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimens.radiusCard)),
                 child: RecipeCoverImage(
                   recipeId: recipeId,
                   recipeName: recipeName,

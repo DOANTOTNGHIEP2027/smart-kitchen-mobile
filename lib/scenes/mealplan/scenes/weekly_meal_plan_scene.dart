@@ -518,7 +518,7 @@ class _MealScheduleCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: <Widget>[
-                        Icon(
+                        const Icon(
                           Icons.add_circle_outline_rounded,
                           size: 16,
                           color: AppColors.primary,

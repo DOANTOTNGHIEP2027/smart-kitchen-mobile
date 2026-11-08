@@ -4,13 +4,11 @@ import 'package:intl/intl.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
-import '../../../constants/app_text_styles.dart';
 import '../../../domain/shared/budget_period.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/money_format.dart';
 import '../../../widgets/buttons/app_button.dart';
-import '../../../widgets/cards/app_card.dart';
 import '../domain/waste_spend.dart';
 import '../domain/weekly_recap_summary.dart';
 import '../stores/weekly_recap_store.dart';
@@ -23,8 +21,6 @@ import '../stores/weekly_recap_store.dart';
 /// (lịch tuần thật), không cho HouseholdStatsStrip (Guard #18).
 String recapWeekRange(AppLocalizations l10n, DateTime weekStart) {
   final f = DateFormat('dd/MM');
-  // Cộng theo NGÀY lịch, không `add(Duration(days: 6))` — máy ở múi giờ có DST
-  // lùi giờ trong tuần sẽ ra Thứ Bảy 23:00 → nhãn lệch 1 ngày.
   final end = DateTime(weekStart.year, weekStart.month, weekStart.day + 6);
   return l10n.recapWeekRange(f.format(weekStart), f.format(end));
 }
@@ -38,7 +34,27 @@ class RecapSectionTitle extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.fromLTRB(
             AppDimens.md, AppDimens.lg, AppDimens.md, AppDimens.xs),
-        child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 4,
+              height: 18,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
       );
 }
 
@@ -53,16 +69,66 @@ class _Block extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(
             horizontal: AppDimens.md, vertical: AppDimens.xs),
-        child: AppCard(
+        child: Container(
+          padding: const EdgeInsets.all(AppDimens.md),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppDimens.radiusCard),
+            border: Border.all(color: AppColors.border, width: 1),
+            boxShadow: const <BoxShadow>[
+              BoxShadow(
+                color: Color(0x04000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text(title, style: Theme.of(context).textTheme.titleSmall),
-              if (subtitle != null)
-                Text(subtitle!,
-                    style: AppTextStyles.label
-                        .copyWith(color: AppColors.textSecondary)),
-              const SizedBox(height: AppDimens.sm),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        if (subtitle != null) ...<Widget>[
+                          const SizedBox(height: 3),
+                          Row(
+                            children: <Widget>[
+                              const Icon(
+                                Icons.calendar_month_outlined,
+                                size: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                subtitle!,
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppDimens.md),
               ...children,
             ],
           ),
@@ -76,7 +142,7 @@ class _RatioRow extends StatelessWidget {
     required this.label,
     required this.value,
     required this.ratio,
-    this.color = AppColors.sage,
+    this.color = AppColors.primary,
   });
 
   final String label;
@@ -86,25 +152,41 @@ class _RatioRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: AppDimens.xs),
-        child: Row(
+        padding: const EdgeInsets.only(bottom: AppDimens.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            SizedBox(
-                width: 130,
-                child: Text(label, style: AppTextStyles.bodyMedium)),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppDimens.radiusSm),
-                child: LinearProgressIndicator(
-                  value: ratio.clamp(0.0, 1.0),
-                  minHeight: 8,
-                  backgroundColor: AppColors.secondaryFill,
-                  color: color,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: color == AppColors.warning ? AppColors.textPrimary : color,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+              child: LinearProgressIndicator(
+                value: ratio.clamp(0.0, 1.0),
+                minHeight: 8,
+                backgroundColor: AppColors.surfaceSubtle,
+                color: color,
               ),
             ),
-            const SizedBox(width: AppDimens.sm),
-            Text(value, style: AppTextStyles.label),
           ],
         ),
       );
@@ -131,9 +213,30 @@ class WasteSection extends StatelessWidget {
         title: l10n.recapWasteTitle,
         subtitle: recapWeekRange(l10n, weekStart),
         children: <Widget>[
-          Text(l10n.recapWasteNone,
-              key: const ValueKey<String>('waste-none'),
-              style: AppTextStyles.bodyMedium),
+          Container(
+            padding: const EdgeInsets.all(AppDimens.md),
+            decoration: BoxDecoration(
+              color: AppColors.successSurface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: <Widget>[
+                const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.recapWasteNone,
+                    key: const ValueKey<String>('waste-none'),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF166534),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       );
     }
@@ -150,16 +253,37 @@ class WasteSection extends StatelessWidget {
       title: l10n.recapWasteTitle,
       subtitle: recapWeekRange(l10n, weekStart),
       children: <Widget>[
-        Text(l10n.recapWasteCount(count),
-            key: const ValueKey<String>('waste-count'),
-            style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: AppDimens.sm),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.warningSurface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFFDE68A), width: 1),
+          ),
+          child: Row(
+            children: <Widget>[
+              const Icon(Icons.delete_sweep_outlined, color: AppColors.warning, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                l10n.recapWasteCount(count),
+                key: const ValueKey<String>('waste-count'),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.warning,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppDimens.md),
         for (final (label, v) in rows)
           _RatioRow(
-              label: label,
-              value: '$v',
-              ratio: r(v),
-              color: AppColors.warning),
+            label: label,
+            value: '$v món',
+            ratio: r(v),
+            color: AppColors.warning,
+          ),
       ],
     );
   }
@@ -192,72 +316,118 @@ class SpendSection extends StatelessWidget {
     final children = <Widget>[];
 
     if (spend == null) {
-      // Guard #13: null ≠ 0 — KHÔNG hiển thị "0 ₫".
       children.addAll(<Widget>[
-        Text(l10n.recapSpendNone,
-            key: const ValueKey<String>('spend-none'),
-            style: AppTextStyles.bodyMedium),
-        Text(l10n.recapSpendNoneHint,
-            style:
-                AppTextStyles.label.copyWith(color: AppColors.textSecondary)),
+        Text(
+          l10n.recapSpendNone,
+          key: const ValueKey<String>('spend-none'),
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          l10n.recapSpendNoneHint,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
       ]);
     } else if (budget != null) {
       children.add(Text(
         l10n.recapSpendOfBudget(formatVnd(spend), formatVnd(budget)),
         key: const ValueKey<String>('spend-of-budget'),
-        style: Theme.of(context).textTheme.titleMedium,
+        style: const TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w800,
+          color: AppColors.textPrimary,
+        ),
       ));
       if (ratio != null) {
-        // % là giá trị GỐC (có thể > 100%, §17.4); "Vượt" chỉ khi phần vượt
-        // làm tròn còn >= 1 ₫ — tránh "Vượt 0 ₫" với ngân sách quy đổi lẻ.
-        // Màu đỏ đi cùng nhãn "Vượt" — không đỏ khi câu chữ nói chưa vượt.
         final over = (spend - budget).round() > 0;
         final color = over ? AppColors.error : colorFor(ratio.clamp(0.0, 1.0));
         children.addAll(<Widget>[
-          const SizedBox(height: AppDimens.xs),
+          const SizedBox(height: AppDimens.sm),
           ClipRRect(
-            borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+            borderRadius: BorderRadius.circular(AppDimens.radiusPill),
             child: LinearProgressIndicator(
               key: const ValueKey<String>('spend-progress'),
               value: ratio.clamp(0.0, 1.0),
               minHeight: 10,
-              backgroundColor: AppColors.secondaryFill,
+              backgroundColor: AppColors.surfaceSubtle,
               color: color,
             ),
           ),
-          const SizedBox(height: AppDimens.xs),
-          Text(
-            over
-                ? l10n.recapSpendOver(
-                    (ratio * 100).round(), formatVnd(spend - budget))
-                : l10n.recapSpendPercent((ratio * 100).round()),
-            key: const ValueKey<String>('spend-percent'),
-            style: AppTextStyles.label.copyWith(color: color),
+          const SizedBox(height: AppDimens.sm),
+          Row(
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: over
+                      ? AppColors.errorSurface
+                      : (ratio > 0.8 ? AppColors.warningSurface : AppColors.successSurface),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                ),
+                child: Text(
+                  over
+                      ? l10n.recapSpendOver(
+                          (ratio * 100).round(), formatVnd(spend - budget))
+                      : l10n.recapSpendPercent((ratio * 100).round()),
+                  key: const ValueKey<String>('spend-percent'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (s.shoppingCompletedItemCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceSubtle,
+                    borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      const Icon(Icons.receipt_long_outlined, size: 12, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n.recapSpendCoverage(
+                            s.spendItemCount, s.shoppingCompletedItemCount),
+                        key: const ValueKey<String>('spend-coverage'),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         ]);
       }
     } else {
-      children.add(Text(formatVnd(spend),
-          key: const ValueKey<String>('spend-total'),
-          style: Theme.of(context).textTheme.titleMedium));
-    }
-
-    // Guard #17: mẫu số 0 → ẩn hẳn, không "0/0".
-    if (s.shoppingCompletedItemCount > 0) {
-      children.addAll(<Widget>[
-        const SizedBox(height: AppDimens.xs),
-        Text(
-          l10n.recapSpendCoverage(
-              s.spendItemCount, s.shoppingCompletedItemCount),
-          key: const ValueKey<String>('spend-coverage'),
-          style: AppTextStyles.label.copyWith(color: AppColors.textSecondary),
+      children.add(Text(
+        formatVnd(spend),
+        key: const ValueKey<String>('spend-total'),
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: AppColors.textPrimary,
         ),
-      ]);
+      ));
     }
 
     final budgetAmount = s.budgetAmount;
     if (budgetAmount != null && s.budgetPeriod != BudgetPeriod.weekly) {
-      // Neo theo con số, không đoán tên chu kỳ FE chưa biết (FIX LOW-A9).
       children.addAll(<Widget>[
         const SizedBox(height: AppDimens.xs),
         Text(
@@ -265,7 +435,7 @@ class SpendSection extends StatelessWidget {
               ? l10n.recapBudgetConvertedMonthly(formatVnd(budgetAmount))
               : l10n.recapBudgetConvertedOther(formatVnd(budgetAmount)),
           key: const ValueKey<String>('spend-converted'),
-          style: AppTextStyles.label.copyWith(color: AppColors.textSecondary),
+          style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
         ),
       ]);
     }
@@ -283,10 +453,11 @@ class SpendSection extends StatelessWidget {
                 onPressed: onSetBudget,
               ),
             )
-          : Text(l10n.recapNoBudgetMember,
+          : Text(
+              l10n.recapNoBudgetMember,
               key: const ValueKey<String>('spend-no-budget-member'),
-              style: AppTextStyles.label
-                  .copyWith(color: AppColors.textSecondary)));
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ));
     }
 
     return _Block(
@@ -319,14 +490,21 @@ class SpendDetailSection extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                const Icon(Icons.lock_outline, color: AppColors.textSecondary),
+                const Icon(Icons.lock_outline_rounded, color: AppColors.primary),
                 const SizedBox(width: AppDimens.sm),
                 Expanded(
-                    child: Text(l10n.recapSpendUpsell,
-                        style: AppTextStyles.bodyMedium)),
+                  child: Text(
+                    l10n.recapSpendUpsell,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: AppDimens.sm),
+            const SizedBox(height: AppDimens.md),
             AppButton(
               key: const ValueKey<String>('spend-upsell-cta'),
               label: l10n.recapUpgradePremium,
@@ -335,13 +513,14 @@ class SpendDetailSection extends StatelessWidget {
           ],
         );
       case SpendDetailGate.lockedNeutral:
-        // Claim nói PREMIUM mà BE không trả — KHÔNG mời nâng cấp.
         return _Block(
           title: l10n.recapSpendByCategory,
           children: <Widget>[
-            Text(l10n.recapSpendDetailNeutral,
-                key: const ValueKey<String>('spend-detail-neutral'),
-                style: AppTextStyles.bodyMedium),
+            Text(
+              l10n.recapSpendDetailNeutral,
+              key: const ValueKey<String>('spend-detail-neutral'),
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
           ],
         );
       case SpendDetailGate.unlocked:
@@ -354,9 +533,11 @@ class SpendDetailSection extends StatelessWidget {
           title: l10n.recapSpendByCategory,
           children: <Widget>[
             if (sorted.isEmpty)
-              Text(l10n.recapSpendCategoryEmpty,
-                  key: const ValueKey<String>('spend-category-empty'),
-                  style: AppTextStyles.bodyMedium)
+              Text(
+                l10n.recapSpendCategoryEmpty,
+                key: const ValueKey<String>('spend-category-empty'),
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              )
             else
               Column(
                 key: const ValueKey<String>('spend-category-list'),
@@ -368,17 +549,56 @@ class SpendDetailSection extends StatelessWidget {
                           : e.key,
                       value: formatVnd(e.value),
                       ratio: total <= 0 ? 0 : e.value / total,
+                      color: AppColors.primary,
                     ),
                 ],
               ),
-            // FIX LOW-A6: trend null/[] → bỏ hẳn sparkline, không vẽ khung rỗng.
             if (trend != null && trend.isNotEmpty) ...<Widget>[
               const SizedBox(height: AppDimens.md),
-              Text(l10n.recapSpendTrend,
-                  style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: AppDimens.sm),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                    l10n.recapSpendTrend,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Chi tiêu',
+                        style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 12,
+                        height: 2,
+                        color: AppColors.primaryDark,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Ngân sách',
+                        style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppDimens.md),
               SizedBox(
-                height: 140,
+                height: 150,
                 child: SpendTrendSparkline(points: trend),
               ),
             ],
@@ -388,8 +608,7 @@ class SpendDetailSection extends StatelessWidget {
   }
 }
 
-/// Cột chi tiêu tối đa 8 tuần + đường ngân sách tuần gần nhất. Tuần
-/// `spendTotal == null` vẽ cột rỗng viền đứt — KHÔNG vẽ cột 0 (Guard #13).
+/// Cột chi tiêu tối đa 8 tuần + đường ngân sách tuần gần nhất.
 class SpendTrendSparkline extends StatelessWidget {
   const SpendTrendSparkline({super.key, required this.points});
 
@@ -405,8 +624,6 @@ class SpendTrendSparkline extends StatelessWidget {
           .whereType<double>(),
     ];
     final peak = values.isEmpty ? 0.0 : values.reduce((a, b) => a > b ? a : b);
-    // peak 0 (mọi tuần chi 0 ₫, chưa có ngân sách) → maxY 0 làm cột rỗng của
-    // tuần null cao 0, biến mất — mất phân biệt null ≠ 0 (Guard #13).
     final maxY = peak > 0 ? peak * 1.15 : 1.0;
     final budgetLine = shown.reversed
         .map((p) => p.budgetWeeklyAmount)
@@ -417,8 +634,6 @@ class SpendTrendSparkline extends StatelessWidget {
         maxY: maxY,
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
-        // Nhãn tuần d/M dưới mỗi cột (mock-up state 10) — không có thì không
-        // biết cột nào là tuần nào, kể cả cột rỗng của tuần chưa nhập giá.
         titlesData: FlTitlesData(
           leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -426,7 +641,7 @@ class SpendTrendSparkline extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 20,
+              reservedSize: 22,
               getTitlesWidget: (value, meta) {
                 final i = value.toInt();
                 if (i < 0 || i >= shown.length) return const SizedBox.shrink();
@@ -435,7 +650,10 @@ class SpendTrendSparkline extends StatelessWidget {
                   child: Text(
                     DateFormat('d/M').format(shown[i].weekStart),
                     style: const TextStyle(
-                        fontSize: 10, color: AppColors.textSecondary),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 );
               },
@@ -448,8 +666,8 @@ class SpendTrendSparkline extends StatelessWidget {
             : ExtraLinesData(horizontalLines: <HorizontalLine>[
                 HorizontalLine(
                   y: budgetLine,
-                  color: AppColors.textSecondary,
-                  strokeWidth: 1,
+                  color: AppColors.primaryDark,
+                  strokeWidth: 1.5,
                   dashArray: const <int>[4, 3],
                 ),
               ]),
@@ -458,18 +676,18 @@ class SpendTrendSparkline extends StatelessWidget {
             BarChartGroupData(x: i, barRods: <BarChartRodData>[
               shown[i].spendTotal == null
                   ? BarChartRodData(
-                      toY: maxY * 0.3,
-                      width: 14,
-                      color: Colors.transparent,
-                      borderSide: const BorderSide(color: AppColors.border),
+                      toY: maxY * 0.25,
+                      width: 16,
+                      color: AppColors.surfaceSubtle.withValues(alpha: 0.5),
+                      borderSide: const BorderSide(color: AppColors.border, width: 1.5),
                       borderDashArray: const <int>[3, 3],
-                      borderRadius: BorderRadius.zero,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
                     )
                   : BarChartRodData(
                       toY: shown[i].spendTotal!,
-                      width: 14,
-                      color: AppColors.sage,
-                      borderRadius: BorderRadius.zero,
+                      width: 16,
+                      color: AppColors.primary,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
                     ),
             ]),
         ],
