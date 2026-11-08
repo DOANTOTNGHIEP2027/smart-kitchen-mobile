@@ -26,7 +26,7 @@ class CategoryManagerScene extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         heroTag: 'category-fab',
         tooltip: l10n.shoppingCategoryAdd,
-        backgroundColor: AppColors.sage,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         onPressed: () => showCategoryEditDialog(context, store),
         child: const Icon(Icons.add),

@@ -26,7 +26,7 @@ enum ShoppingFilter { all, pending, completed }
 
 /// Màn hình danh sách mua sắm — phong cách Tasty:
 /// Sáng sủa, mềm mại, thoáng, solid-color cards với subtle shadow,
-/// typography rõ ràng, phân vùng Cần mua / Đã mua, accent sage-green.
+/// typography rõ ràng, phân vùng Cần mua / Đã mua, accent cam ấm áp (#FF7A45).
 class ShoppingListScene extends StatefulWidget {
   const ShoppingListScene({super.key});
 
@@ -163,12 +163,12 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
           List<ShoppingItem> mine(List<ShoppingItem> l) => _mineOnly
               ? l.where((e) => e.isAssignedTo(me)).toList()
               : l;
-          final allItems = store.items;
+          final allItems = mine(store.items);
           final pendingItems = mine(store.pending);
           final completedItems = mine(store.completed);
           final myCount = store.assignedToMeCount;
 
-          if (allItems.isEmpty) {
+          if (store.items.isEmpty) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(AppDimens.xl),
@@ -179,13 +179,13 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                       width: 80,
                       height: 80,
                       decoration: const BoxDecoration(
-                        color: AppColors.sageLight,
+                        color: AppColors.primaryContainer,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.shopping_basket_outlined,
                         size: 40,
-                        color: AppColors.sage,
+                        color: AppColors.primary,
                       ),
                     ),
                     const SizedBox(height: AppDimens.md),
@@ -207,14 +207,15 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     const SizedBox(height: AppDimens.lg),
                     FilledButton.icon(
                       style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.sage,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.onPrimary,
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppDimens.lg,
                           vertical: AppDimens.md,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius:
-                              BorderRadius.circular(AppDimens.radiusMd),
+                              BorderRadius.circular(AppDimens.radiusCard),
                         ),
                       ),
                       onPressed: () => _showAddDialog(context, store),
@@ -314,12 +315,49 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   Padding(
                     padding: const EdgeInsets.all(AppDimens.xl),
                     child: Center(
-                      child: Text(
-                        context.l10n.shoppingMineEmpty,
-                        key: const ValueKey<String>('shopping-mine-empty'),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: const BoxDecoration(
+                              color: AppColors.surfaceSubtle,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.person_outline_rounded,
+                              size: 32,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: AppDimens.md),
+                          Text(
+                            context.l10n.shoppingMineEmpty,
+                            key: const ValueKey<String>('shopping-mine-empty'),
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: AppDimens.md),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: const BorderSide(color: AppColors.primary),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppDimens.radiusPill),
+                              ),
+                            ),
+                            onPressed: () => setState(() {
+                              _mineOnly = false;
+                              _filter = ShoppingFilter.all;
+                            }),
+                            icon: const Icon(Icons.refresh_rounded, size: 18),
+                            label: Text(context.l10n.shoppingFilterAll(store.items.length)),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -328,15 +366,40 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   Padding(
                     padding: const EdgeInsets.all(AppDimens.xl),
                     child: Center(
-                      child: Text(
-                        _mineOnly
-                            ? context.l10n.shoppingMineEmpty
-                            : _filter == ShoppingFilter.pending
-                                ? context.l10n.shoppingAllBought
-                                : context.l10n.shoppingNoneBought,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            _mineOnly
+                                ? context.l10n.shoppingMineEmpty
+                                : _filter == ShoppingFilter.pending
+                                    ? context.l10n.shoppingAllBought
+                                    : context.l10n.shoppingNoneBought,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          if (_mineOnly) ...<Widget>[
+                            const SizedBox(height: AppDimens.md),
+                            OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(color: AppColors.primary),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(AppDimens.radiusPill),
+                                ),
+                              ),
+                              onPressed: () => setState(() {
+                                _mineOnly = false;
+                                _filter = ShoppingFilter.all;
+                              }),
+                              icon: const Icon(Icons.refresh_rounded, size: 18),
+                              label: Text(context.l10n.shoppingFilterAll(store.items.length)),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   )
@@ -358,9 +421,12 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'shopping-list-fab',
-        backgroundColor: AppColors.sage,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        elevation: 2,
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+        ),
         onPressed: () => _showAddDialog(context, store),
         icon: const Icon(Icons.add_rounded),
         label: Text(
@@ -384,11 +450,12 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
       padding: const EdgeInsets.all(AppDimens.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        borderRadius: BorderRadius.circular(AppDimens.radiusCard),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: const <BoxShadow>[
           BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
+            color: Color(0x06000000),
+            blurRadius: 10,
             offset: Offset(0, 2),
           ),
         ],
@@ -425,13 +492,13 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.sageLight,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppDimens.radiusPill),
                 ),
                 child: Text(
                   context.l10n.shoppingPendingBadge(pendingCount),
                   style: const TextStyle(
-                    color: AppColors.sage,
+                    color: AppColors.onPrimaryContainer,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
@@ -445,8 +512,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
             child: LinearProgressIndicator(
               value: total == 0 ? 0 : completedCount / total,
               minHeight: 6,
-              backgroundColor: AppColors.background,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.sage),
+              backgroundColor: AppColors.surfaceSubtle,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
         ],
@@ -467,20 +534,29 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
           _FilterChip(
             label: context.l10n
                 .shoppingFilterAll(pendingCount + completedCount),
-            isSelected: _filter == ShoppingFilter.all,
-            onTap: () => setState(() => _filter = ShoppingFilter.all),
+            isSelected: _filter == ShoppingFilter.all && !_mineOnly,
+            onTap: () => setState(() {
+              _filter = ShoppingFilter.all;
+              _mineOnly = false;
+            }),
           ),
           const SizedBox(width: AppDimens.xs),
           _FilterChip(
             label: context.l10n.shoppingPendingCount(pendingCount),
-            isSelected: _filter == ShoppingFilter.pending,
-            onTap: () => setState(() => _filter = ShoppingFilter.pending),
+            isSelected: _filter == ShoppingFilter.pending && !_mineOnly,
+            onTap: () => setState(() {
+              _filter = ShoppingFilter.pending;
+              _mineOnly = false;
+            }),
           ),
           const SizedBox(width: AppDimens.xs),
           _FilterChip(
             label: context.l10n.shoppingCompletedCount(completedCount),
-            isSelected: _filter == ShoppingFilter.completed,
-            onTap: () => setState(() => _filter = ShoppingFilter.completed),
+            isSelected: _filter == ShoppingFilter.completed && !_mineOnly,
+            onTap: () => setState(() {
+              _filter = ShoppingFilter.completed;
+              _mineOnly = false;
+            }),
           ),
           const SizedBox(width: AppDimens.xs),
           _FilterChip(
@@ -490,7 +566,12 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 ? context.l10n.shoppingFilterMine(myCount)
                 : context.l10n.shoppingFilterMineNoCount,
             isSelected: _mineOnly,
-            onTap: () => setState(() => _mineOnly = !_mineOnly),
+            onTap: () => setState(() {
+              _mineOnly = !_mineOnly;
+              if (!_mineOnly) {
+                _filter = ShoppingFilter.all;
+              }
+            }),
           ),
         ],
       ),
@@ -536,10 +617,11 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
       margin: const EdgeInsets.only(bottom: AppDimens.xs),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        borderRadius: BorderRadius.circular(AppDimens.radiusCard),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: const <BoxShadow>[
           BoxShadow(
-            color: Color(0x06000000),
+            color: Color(0x04000000),
             blurRadius: 6,
             offset: Offset(0, 1),
           ),
@@ -547,14 +629,14 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        borderRadius: BorderRadius.circular(AppDimens.radiusCard),
         child: InkWell(
           // Đang PATCH gán thì không cho tick — 2 thao tác cùng version, bên
           // về sau sẽ ghi đè/ăn 409 làm mất lần tick (Guard #18).
           onTap: item.canToggle && !store.isAssigning(item.id)
               ? () => toggleShoppingItemWithPrice(context, store, item)
               : null,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+          borderRadius: BorderRadius.circular(AppDimens.radiusCard),
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppDimens.md,
@@ -568,10 +650,10 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: isCompleted ? AppColors.sage : Colors.transparent,
+                    color: isCompleted ? AppColors.primary : Colors.transparent,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isCompleted ? AppColors.sage : AppColors.border,
+                      color: isCompleted ? AppColors.primary : AppColors.border,
                       width: 2,
                     ),
                   ),
@@ -622,13 +704,13 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                 vertical: 1,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.sageLight,
+                                color: AppColors.primaryContainer,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 context.l10n.shoppingWeeklyMenuBadge,
                                 style: const TextStyle(
-                                  color: AppColors.sage,
+                                  color: AppColors.onPrimaryContainer,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -640,7 +722,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                               formatVnd(item.price!),
                               key: ValueKey<String>('shopping-price-${item.id}'),
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: AppColors.sageDark,
+                                color: AppColors.primaryDark,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -715,9 +797,9 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                   ),
                   decoration: BoxDecoration(
                     color: isCompleted
-                        ? AppColors.background
-                        : AppColors.sageLight,
-                    borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+                        ? AppColors.surfaceSubtle
+                        : AppColors.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppDimens.radiusPill),
                   ),
                   child: Text(
                     formatQuantityWithUnit(item.displayQuantity, item.displayUnit),
@@ -726,7 +808,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                       fontSize: 12,
                       color: isCompleted
                           ? AppColors.textSecondary
-                          : AppColors.sageDark,
+                          : AppColors.onPrimaryContainer,
                     ),
                   ),
                 ),
@@ -885,10 +967,10 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                         selected: selected,
                         // #69: màu category local (xám nếu chưa đặt).
                         backgroundColor: categoryColor(s.colorHex).withValues(alpha: 0.15),
-                        selectedColor: AppColors.sageLight,
+                        selectedColor: AppColors.primaryContainer,
                         labelStyle: TextStyle(
                           color: selected
-                              ? AppColors.sageDark
+                              ? AppColors.onPrimaryContainer
                               : AppColors.textPrimary,
                           fontWeight:
                               selected ? FontWeight.w700 : FontWeight.w500,
@@ -906,10 +988,11 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
               const SizedBox(height: AppDimens.lg),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.sage,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: AppDimens.md),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+                    borderRadius: BorderRadius.circular(AppDimens.radiusCard),
                   ),
                 ),
                 onPressed: () async {
@@ -947,21 +1030,30 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: isSelected ? AppColors.sage : AppColors.surface,
-      borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+      color: isSelected ? AppColors.primary : AppColors.surface,
+      borderRadius: BorderRadius.circular(AppDimens.radiusPill),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+        borderRadius: BorderRadius.circular(AppDimens.radiusPill),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimens.md,
             vertical: 8,
           ),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDimens.radiusXl),
+            borderRadius: BorderRadius.circular(AppDimens.radiusPill),
             border: Border.all(
-              color: isSelected ? AppColors.sage : AppColors.border,
+              color: isSelected ? AppColors.primary : AppColors.border,
             ),
+            boxShadow: isSelected
+                ? const <BoxShadow>[
+                    BoxShadow(
+                      color: AppColors.primaryShadow,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Text(
             label,

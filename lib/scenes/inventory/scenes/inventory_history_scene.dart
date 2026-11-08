@@ -64,7 +64,7 @@ class _InventoryHistorySceneState extends State<InventoryHistoryScene> {
                       );
                     }
                     return RefreshIndicator(
-                      color: AppColors.sage,
+                      color: AppColors.primary,
                       onRefresh: () => store.load(refresh: true),
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(
@@ -142,12 +142,12 @@ class _ItemSummary extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.sageLight,
+              color: AppColors.primaryContainer,
               borderRadius: BorderRadius.circular(AppDimens.radiusSm),
             ),
             child: const Icon(
               Icons.inventory_2_outlined,
-              color: AppColors.sage,
+              color: AppColors.primary,
               size: 22,
             ),
           ),
@@ -182,7 +182,7 @@ class _ItemSummary extends StatelessWidget {
               vertical: 4,
             ),
             decoration: BoxDecoration(
-              color: AppColors.sageLight,
+              color: AppColors.primaryContainer,
               borderRadius: BorderRadius.circular(AppDimens.radiusSm),
             ),
             child: Text(
@@ -190,7 +190,7 @@ class _ItemSummary extends StatelessWidget {
               style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 13,
-                color: AppColors.sageDark,
+                color: AppColors.onPrimaryContainer,
               ),
             ),
           ),
@@ -301,14 +301,14 @@ class _TransactionTile extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isPositive
-                        ? AppColors.sageLight
+                        ? AppColors.primaryContainer
                         : AppColors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     deltaText,
                     style: TextStyle(
-                      color: isPositive ? AppColors.sageDark : AppColors.error,
+                      color: isPositive ? AppColors.onPrimaryContainer : AppColors.error,
                       fontWeight: FontWeight.w800,
                       fontSize: 13,
                     ),
@@ -336,7 +336,7 @@ class _TransactionTile extends StatelessWidget {
     switch (reason) {
       case 'BOUGHT':
       case 'RESTOCKED':
-        return AppColors.sage;
+        return AppColors.primary;
       case 'COOKED':
         return const Color(0xFF0284C7);
       case 'WASTE':

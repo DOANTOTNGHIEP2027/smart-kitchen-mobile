@@ -101,6 +101,7 @@ abstract final class DemoFixtures {
   static List<Map<String, dynamic>> shoppingItems() => <Map<String, dynamic>>[
         <String, dynamic>{
           'id': 'demo-shop-001',
+          'assignedTo': ownerId,
           'shoppingListId': null,
           'name': 'Nước dừa',
           'quantity': 200.0,
@@ -133,6 +134,7 @@ abstract final class DemoFixtures {
         },
         <String, dynamic>{
           'id': 'demo-shop-003',
+          'assignedTo': ownerId,
           'shoppingListId': null,
           'name': 'Ức gà',
           'quantity': 400.0,

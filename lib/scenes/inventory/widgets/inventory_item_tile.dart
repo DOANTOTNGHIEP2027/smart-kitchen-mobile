@@ -35,10 +35,11 @@ class InventoryItemTile extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        borderRadius: BorderRadius.circular(AppDimens.radiusCard),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: const <BoxShadow>[
           BoxShadow(
-            color: Color(0x08000000),
+            color: Color(0x06000000),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -46,10 +47,10 @@ class InventoryItemTile extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        borderRadius: BorderRadius.circular(AppDimens.radiusCard),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+          borderRadius: BorderRadius.circular(AppDimens.radiusCard),
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.md),
             child: Row(
@@ -95,9 +96,9 @@ class InventoryItemTile extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: item.isLowStock
                                   ? AppColors.error.withValues(alpha: 0.1)
-                                  : AppColors.sageLight,
+                                  : AppColors.primaryContainer,
                               borderRadius:
-                                  BorderRadius.circular(AppDimens.radiusSm),
+                                  BorderRadius.circular(AppDimens.radiusPill),
                             ),
                             child: Text(
                               '${formatQuantity(displayQty)} $displayUnitStr',
@@ -106,7 +107,7 @@ class InventoryItemTile extends StatelessWidget {
                                 fontSize: 13,
                                 color: item.isLowStock
                                     ? AppColors.error
-                                    : AppColors.sageDark,
+                                    : AppColors.onPrimaryContainer,
                               ),
                             ),
                           ),
@@ -207,7 +208,7 @@ class InventoryItemTile extends StatelessWidget {
   Color _categoryBackgroundColor(String? category) {
     switch (category) {
       case 'Rau củ':
-        return AppColors.sageLight;
+        return AppColors.successSurface;
       case 'Thịt cá':
         return const Color(0xFFFFECE5);
       case 'Trứng sữa':
@@ -225,7 +226,7 @@ class InventoryItemTile extends StatelessWidget {
   Color _categoryIconColor(String? category) {
     switch (category) {
       case 'Rau củ':
-        return AppColors.sage;
+        return AppColors.success;
       case 'Thịt cá':
         return const Color(0xFFE85F2A);
       case 'Trứng sữa':
@@ -270,12 +271,12 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 6,
+        horizontal: 8,
         vertical: 2,
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppDimens.radiusPill),
       ),
       child: Text(
         label,
