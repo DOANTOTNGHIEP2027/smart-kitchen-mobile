@@ -11,6 +11,9 @@ import '../domain/meal_plan_slot.dart';
 import '../../recipe/domain/recipe.dart';
 import '../../recipe/scenes/recipe_list_scene.dart';
 import '../stores/meal_plan_store.dart';
+import '../stores/meal_composition_store.dart';
+import '../widgets/meal_composition_panel.dart';
+import '../../../app/env_config.dart';
 import '../widgets/recipe_cover_image.dart';
 import '../widgets/meal_attendance_panel.dart';
 import 'meal_plan_routes.dart';
@@ -57,9 +60,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
   Future<void> _openSuggestions(String dishId) async {
     try {
       if (!mounted) return;
-      await Get.toNamed<void>(
-        MealPlanRoutes.detailOf(widget.slotId, dishId),
-      );
+      await Get.toNamed<void>(MealPlanRoutes.detailOf(widget.slotId, dishId));
     } catch (_) {
       if (mounted) {
         _showActionError(context.l10n.mealPlanOpenSuggestionsFailed);
@@ -76,16 +77,27 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
       _showActionError(context.l10n.planningPlanNotReady);
       return;
     }
-    Get.toNamed<void>(PlanningRoutes.candidatesOf(planId,
-        slotId: widget.slotId, dishId: dish.id));
+    Get.toNamed<void>(
+      PlanningRoutes.candidatesOf(
+        planId,
+        slotId: widget.slotId,
+        dishId: dish.id,
+      ),
+    );
   }
 
   Future<void> _chooseManual(String dishId) async {
-    final recipe = await Get.to<Recipe>(() =>
-        RecipeListScene(onSelect: (value) => Get.back<Recipe>(result: value)));
+    final recipe = await Get.to<Recipe>(
+      () =>
+          RecipeListScene(onSelect: (value) => Get.back<Recipe>(result: value)),
+    );
     if (recipe == null || !mounted) return;
-    final ok = await Get.find<MealPlanStore>()
-        .assignManual(widget.slotId, dishId, recipe.id, recipe.name);
+    final ok = await Get.find<MealPlanStore>().assignManual(
+      widget.slotId,
+      dishId,
+      recipe.id,
+      recipe.name,
+    );
     if (!ok && mounted) _showActionError(context.l10n.mealplanUnableToChoose);
   }
 
@@ -110,7 +122,9 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
             children: <Widget>[
               if (store.currentPlanId != null)
                 MealAttendancePanel(
-                    planId: store.currentPlanId!, slotId: widget.slotId),
+                  planId: store.currentPlanId!,
+                  slotId: widget.slotId,
+                ),
               Text(
                 widget.mealLabel,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -121,15 +135,28 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
               const SizedBox(height: AppDimens.xs),
               Text(
                 widget.dateLabel,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.textSecondary),
               ),
               const SizedBox(height: AppDimens.lg),
-              ...dishes.map(
-                (dish) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppDimens.sm),
-                  child: Column(
+              if (EnvConfig.automaticMealComposition)
+                MealCompositionPanel(
+                  store: Get.find<MealCompositionStore>(),
+                  slotId: widget.slotId,
+                  hasDishes: dishes.isNotEmpty,
+                  readOnly: store.isConfirmed,
+                ),
+              if (!EnvConfig.automaticMealComposition ||
+                  Get.find<MealCompositionStore>()
+                          .contexts[widget.slotId]
+                          ?.menu ==
+                      null)
+                ...dishes.map(
+                  (dish) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppDimens.sm),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _EditableDishCard(
@@ -143,21 +170,29 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                               : () => _openSuggestions(dish.id),
                         ),
                         if (!store.isConfirmed)
-                          Wrap(spacing: 8, children: [
-                            if (dish.recipe != null)
-                              TextButton.icon(
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              if (dish.recipe != null &&
+                                  !EnvConfig.automaticMealComposition)
+                                TextButton.icon(
                                   onPressed: () => _openSuggestions(dish.id),
                                   icon: const Icon(Icons.auto_awesome),
-                                  label: Text(context
-                                      .l10n.mealPlanGenerateSuggestions)),
-                            TextButton.icon(
+                                  label: Text(
+                                    context.l10n.mealPlanGenerateSuggestions,
+                                  ),
+                                ),
+                              TextButton.icon(
                                 onPressed: () => _chooseManual(dish.id),
                                 icon: const Icon(Icons.menu_book_outlined),
-                                label: Text(context.l10n.mealPlanChooseRecipe)),
-                          ]),
-                      ]),
+                                label: Text(context.l10n.mealPlanChooseRecipe),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
               const SizedBox(height: AppDimens.sm),
               FilledButton.icon(
                 style: FilledButton.styleFrom(
@@ -269,9 +304,10 @@ class _EditableDishCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         context.l10n.homeRecipeMinutes(minutes),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: AppColors.textSecondary),
                       ),
                     ],
                   ),

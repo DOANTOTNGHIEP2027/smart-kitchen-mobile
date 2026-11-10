@@ -2549,4 +2549,76 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get mealPlanChooseRecipe => 'Chọn từ công thức';
+
+  @override
+  String get mealComposeTitle => 'Thực đơn tự động';
+
+  @override
+  String get mealComposePeoplePolicy =>
+      'Thành viên chưa phản hồi được tính là có ăn. Có thể mua toàn bộ nguyên liệu.';
+
+  @override
+  String mealComposePeopleCount(int count) {
+    return '$count người ăn';
+  }
+
+  @override
+  String get mealComposeReplaceTitle => 'Thay toàn bộ thực đơn bữa này?';
+
+  @override
+  String get mealComposeReplaceBody =>
+      'Chỉ thay món hiện có sau khi tạo xong bộ thực đơn mới.';
+
+  @override
+  String get mealComposeRegenerate => 'Tạo lại thực đơn';
+
+  @override
+  String get mealComposeGenerate => 'Tạo thực đơn';
+
+  @override
+  String get mealComposeLoading => 'Đang chọn thực đơn hoàn chỉnh…';
+
+  @override
+  String get mealComposeRunning =>
+      'Yêu cầu vẫn đang xử lý. Bấm kiểm tra để tải kết quả; thực đơn cũ được giữ nguyên.';
+
+  @override
+  String get mealComposeIncomplete =>
+      'Chưa tìm được bộ thực đơn phù hợp. Thực đơn cũ được giữ nguyên.';
+
+  @override
+  String get mealComposeStale =>
+      'Bữa ăn hoặc người ăn đã thay đổi. Tải lại trước khi tạo tiếp.';
+
+  @override
+  String get mealComposeDisabled =>
+      'Máy chủ chưa bật tính năng tạo thực đơn tự động.';
+
+  @override
+  String get mealComposeFailed =>
+      'Chưa hoàn tất. Kiểm tra kết quả yêu cầu trước khi thử lại.';
+
+  @override
+  String get mealComposeRefresh => 'Kiểm tra hoặc tải lại';
+
+  @override
+  String get mealComposeShopping => 'Nguyên liệu cần mua';
+
+  @override
+  String get mealComposeNutritionWarning =>
+      'Dinh dưỡng hoặc mục tiêu calo đang được ước tính, chưa đủ dữ liệu hoặc ngoài khoảng mục tiêu.';
+
+  @override
+  String mealComposeDishServings(String name, String servings) {
+    return '$name · $servings khẩu phần công thức';
+  }
+
+  @override
+  String mealComposeCalories(int calories) {
+    return 'Tổng dự kiến: $calories kcal';
+  }
+
+  @override
+  String get mealComposeSyncPending =>
+      'Thực đơn đã được lưu. Hãy làm mới để đồng bộ lại lịch ăn.';
 }

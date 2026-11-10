@@ -2580,4 +2580,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealPlanChooseRecipe => 'Choose a recipe';
+
+  @override
+  String get mealComposeTitle => 'Automatic meal menu';
+
+  @override
+  String get mealComposePeoplePolicy =>
+      'Members who have not replied are included. Ingredients can all be purchased.';
+
+  @override
+  String mealComposePeopleCount(int count) {
+    return '$count diners';
+  }
+
+  @override
+  String get mealComposeReplaceTitle => 'Replace this meal menu?';
+
+  @override
+  String get mealComposeReplaceBody =>
+      'Existing dishes will only be replaced after a complete new menu is ready.';
+
+  @override
+  String get mealComposeRegenerate => 'Create another menu';
+
+  @override
+  String get mealComposeGenerate => 'Create meal menu';
+
+  @override
+  String get mealComposeLoading => 'Choosing a complete menu…';
+
+  @override
+  String get mealComposeRunning =>
+      'The request is still processing. Refresh to check; your existing menu is preserved.';
+
+  @override
+  String get mealComposeIncomplete =>
+      'No complete suitable menu was found. Your existing menu is preserved.';
+
+  @override
+  String get mealComposeStale =>
+      'The meal or diners changed. Refresh before trying again.';
+
+  @override
+  String get mealComposeDisabled =>
+      'Automatic menus are not enabled on this server yet.';
+
+  @override
+  String get mealComposeFailed =>
+      'Could not finish. Refresh to recover the request before trying again.';
+
+  @override
+  String get mealComposeRefresh => 'Check or refresh';
+
+  @override
+  String get mealComposeShopping => 'Ingredients to buy';
+
+  @override
+  String get mealComposeNutritionWarning =>
+      'Nutrition or calorie targets are estimated, incomplete, or outside the target range.';
+
+  @override
+  String mealComposeDishServings(String name, String servings) {
+    return '$name · $servings recipe servings';
+  }
+
+  @override
+  String mealComposeCalories(int calories) {
+    return 'Estimated total: $calories kcal';
+  }
+
+  @override
+  String get mealComposeSyncPending =>
+      'Your menu was saved. Refresh to finish syncing the meal plan.';
 }

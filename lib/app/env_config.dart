@@ -12,14 +12,23 @@
 ///                   --dart-define=APP_ENV=prod
 /// ```
 abstract class EnvConfig {
-  static const String appEnv =
-      String.fromEnvironment('APP_ENV', defaultValue: 'dev');
+  static const bool automaticMealComposition = bool.fromEnvironment(
+    'MEAL_COMPOSITION_ENABLED',
+  );
+  static const String appEnv = String.fromEnvironment(
+    'APP_ENV',
+    defaultValue: 'dev',
+  );
 
-  static const String apiBaseUrl =
-      String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8080');
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8080',
+  );
 
-  static const String aiBaseUrl =
-      String.fromEnvironment('AI_BASE_URL', defaultValue: 'http://localhost:8000');
+  static const String aiBaseUrl = String.fromEnvironment(
+    'AI_BASE_URL',
+    defaultValue: 'http://localhost:8000',
+  );
 
   /// Bật backend giả lập trong app (`DemoBackendAdapter`) thay cho HTTP thật.
   ///

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:mobx/mobx.dart';
+
 import '../../../data/network/api_exception.dart';
 import '../data/meal_plan_api.dart';
 import '../data/meal_attendance_api.dart';
@@ -12,11 +13,11 @@ enum MealPlanLoadStatus { loading, ready, error }
 
 /// Plan state is independent of attendance and AI request lifecycle.
 class MealPlanStore {
-  MealPlanStore(
-      {required MealPlanApi api,
-      required MealSuggestionApi suggestionApi,
-      MealAttendanceApi? attendanceApi})
-      : _api = api,
+  MealPlanStore({
+    required MealPlanApi api,
+    required MealSuggestionApi suggestionApi,
+    MealAttendanceApi? attendanceApi,
+  })  : _api = api,
         _suggestionApi = suggestionApi,
         _attendanceApi = attendanceApi;
   final MealAttendanceApi? _attendanceApi;
@@ -25,11 +26,13 @@ class MealPlanStore {
   ApiException? get attendanceError => _attendanceError.value;
   final MealPlanApi _api;
   final MealSuggestionApi _suggestionApi;
-  final Observable<MealPlanLoadStatus> _status =
-      Observable(MealPlanLoadStatus.loading);
+  final Observable<MealPlanLoadStatus> _status = Observable(
+    MealPlanLoadStatus.loading,
+  );
   final Observable<ApiException?> _loadError = Observable(null);
-  final Observable<DateTime> _currentWeekStart =
-      Observable(_mondayOf(DateTime.now()));
+  final Observable<DateTime> _currentWeekStart = Observable(
+    _mondayOf(DateTime.now()),
+  );
   final Observable<String?> _currentPlanId = Observable(null);
   final Observable<String> _planStatus = Observable('DRAFT');
   final Observable<bool> _confirming = Observable(false);
@@ -37,6 +40,7 @@ class MealPlanStore {
   final ObservableMap<String, List<MealSuggestion>> suggestions =
       ObservableMap();
   int _loadSequence = 0;
+  int _refreshSequence = 0;
   int _attendanceSequence = 0;
   final Map<String, int> _suggestionSequences = {};
   MealPlanLoadStatus get status => _status.value;
@@ -71,6 +75,7 @@ class MealPlanStore {
 
   Future<void> _load(DateTime week) async {
     final sequence = ++_loadSequence;
+    ++_refreshSequence;
     runInAction(() {
       _status.value = MealPlanLoadStatus.loading;
       _loadError.value = null;
@@ -111,6 +116,27 @@ class MealPlanStore {
     }
   }
 
+  Future<bool> refreshPlan() async {
+    final pid = currentPlanId;
+    if (pid == null) return false;
+    final epoch = _loadSequence;
+    final refresh = ++_refreshSequence;
+    final plan = await _api.getById(pid);
+    if (currentPlanId != pid ||
+        _loadSequence != epoch ||
+        _refreshSequence != refresh) {
+      return false;
+    }
+    runInAction(() {
+      _slots.clear();
+      for (final slot in plan.slots) {
+        _slots['${_isoDate(slot.slotDate)}_${slot.mealTime}'] = slot;
+      }
+      _planStatus.value = plan.status;
+    });
+    return true;
+  }
+
   Future<void> refreshAttendance() async {
     final pid = currentPlanId;
     final api = _attendanceApi;
@@ -133,8 +159,11 @@ class MealPlanStore {
     }
   }
 
-  Future<void> loadSuggestions(String sid, String did,
-      {bool regenerate = false}) async {
+  Future<void> loadSuggestions(
+    String sid,
+    String did, {
+    bool regenerate = false,
+  }) async {
     final pid = currentPlanId;
     if (pid == null) return;
     final epoch = _loadSequence;
@@ -158,12 +187,21 @@ class MealPlanStore {
   }
 
   Future<bool> assignManual(
-      String sid, String did, String recipeId, String name) async {
+    String sid,
+    String did,
+    String recipeId,
+    String name,
+  ) async {
     final pid = currentPlanId;
     if (pid == null || isConfirmed) return false;
     try {
-      final dish = await _api.assignDishRecipe(pid, sid, did,
-          recipeId: recipeId, recipeName: name);
+      final dish = await _api.assignDishRecipe(
+        pid,
+        sid,
+        did,
+        recipeId: recipeId,
+        recipeName: name,
+      );
       if (currentPlanId == pid) applyServerDish(dish);
       return true;
     } on ApiException catch (e) {
