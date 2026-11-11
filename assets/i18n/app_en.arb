@@ -887,5 +887,48 @@
       }
     }
   },
-  "mealPlanChooseRecipe": "Choose a recipe"
+  "mealPlanChooseRecipe": "Choose a recipe",
+  "mealComposeTitle": "Automatic meal menu",
+  "mealComposePeoplePolicy": "Members who have not replied are included. Ingredients can all be purchased.",
+  "mealComposePeopleCount": "{count} diners",
+  "@mealComposePeopleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealComposeReplaceTitle": "Replace this meal menu?",
+  "mealComposeReplaceBody": "Existing dishes will only be replaced after a complete new menu is ready.",
+  "mealComposeRegenerate": "Create another menu",
+  "mealComposeGenerate": "Create meal menu",
+  "mealComposeLoading": "Choosing a complete menu…",
+  "mealComposeRunning": "The request is still processing. Refresh to check; your existing menu is preserved.",
+  "mealComposeIncomplete": "No complete suitable menu was found. Your existing menu is preserved.",
+  "mealComposeStale": "The meal or diners changed. Refresh before trying again.",
+  "mealComposeDisabled": "Automatic menus are not enabled on this server yet.",
+  "mealComposeFailed": "Could not finish. Refresh to recover the request before trying again.",
+  "mealComposeRefresh": "Check or refresh",
+  "mealComposeShopping": "Ingredients to buy",
+  "mealComposeNutritionWarning": "Nutrition or calorie targets are estimated, incomplete, or outside the target range.",
+  "mealComposeDishServings": "{name} · {servings} recipe servings",
+  "@mealComposeDishServings": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "servings": {
+        "type": "String"
+      }
+    }
+  },
+  "mealComposeCalories": "Estimated total: {calories} kcal",
+  "@mealComposeCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "mealComposeSyncPending": "Your menu was saved. Refresh to finish syncing the meal plan."
 }

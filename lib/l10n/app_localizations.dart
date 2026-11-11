@@ -4646,6 +4646,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a recipe'**
   String get mealPlanChooseRecipe;
+
+  /// No description provided for @mealComposeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic meal menu'**
+  String get mealComposeTitle;
+
+  /// No description provided for @mealComposePeoplePolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Members who have not replied are included. Ingredients can all be purchased.'**
+  String get mealComposePeoplePolicy;
+
+  /// No description provided for @mealComposePeopleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} diners'**
+  String mealComposePeopleCount(int count);
+
+  /// No description provided for @mealComposeReplaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace this meal menu?'**
+  String get mealComposeReplaceTitle;
+
+  /// No description provided for @mealComposeReplaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing dishes will only be replaced after a complete new menu is ready.'**
+  String get mealComposeReplaceBody;
+
+  /// No description provided for @mealComposeRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create another menu'**
+  String get mealComposeRegenerate;
+
+  /// No description provided for @mealComposeGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create meal menu'**
+  String get mealComposeGenerate;
+
+  /// No description provided for @mealComposeLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Choosing a complete menu…'**
+  String get mealComposeLoading;
+
+  /// No description provided for @mealComposeRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'The request is still processing. Refresh to check; your existing menu is preserved.'**
+  String get mealComposeRunning;
+
+  /// No description provided for @mealComposeIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'No complete suitable menu was found. Your existing menu is preserved.'**
+  String get mealComposeIncomplete;
+
+  /// No description provided for @mealComposeStale.
+  ///
+  /// In en, this message translates to:
+  /// **'The meal or diners changed. Refresh before trying again.'**
+  String get mealComposeStale;
+
+  /// No description provided for @mealComposeDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic menus are not enabled on this server yet.'**
+  String get mealComposeDisabled;
+
+  /// No description provided for @mealComposeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not finish. Refresh to recover the request before trying again.'**
+  String get mealComposeFailed;
+
+  /// No description provided for @mealComposeRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Check or refresh'**
+  String get mealComposeRefresh;
+
+  /// No description provided for @mealComposeShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients to buy'**
+  String get mealComposeShopping;
+
+  /// No description provided for @mealComposeNutritionWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition or calorie targets are estimated, incomplete, or outside the target range.'**
+  String get mealComposeNutritionWarning;
+
+  /// No description provided for @mealComposeDishServings.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {servings} recipe servings'**
+  String mealComposeDishServings(String name, String servings);
+
+  /// No description provided for @mealComposeCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated total: {calories} kcal'**
+  String mealComposeCalories(int calories);
+
+  /// No description provided for @mealComposeSyncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Your menu was saved. Refresh to finish syncing the meal plan.'**
+  String get mealComposeSyncPending;
 }
 
 class _AppLocalizationsDelegate

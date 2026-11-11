@@ -759,5 +759,48 @@
       }
     }
   },
-  "mealPlanChooseRecipe": "Chọn từ công thức"
+  "mealPlanChooseRecipe": "Chọn từ công thức",
+  "mealComposeTitle": "Thực đơn tự động",
+  "mealComposePeoplePolicy": "Thành viên chưa phản hồi được tính là có ăn. Có thể mua toàn bộ nguyên liệu.",
+  "mealComposePeopleCount": "{count} người ăn",
+  "@mealComposePeopleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealComposeReplaceTitle": "Thay toàn bộ thực đơn bữa này?",
+  "mealComposeReplaceBody": "Chỉ thay món hiện có sau khi tạo xong bộ thực đơn mới.",
+  "mealComposeRegenerate": "Tạo lại thực đơn",
+  "mealComposeGenerate": "Tạo thực đơn",
+  "mealComposeLoading": "Đang chọn thực đơn hoàn chỉnh…",
+  "mealComposeRunning": "Yêu cầu vẫn đang xử lý. Bấm kiểm tra để tải kết quả; thực đơn cũ được giữ nguyên.",
+  "mealComposeIncomplete": "Chưa tìm được bộ thực đơn phù hợp. Thực đơn cũ được giữ nguyên.",
+  "mealComposeStale": "Bữa ăn hoặc người ăn đã thay đổi. Tải lại trước khi tạo tiếp.",
+  "mealComposeDisabled": "Máy chủ chưa bật tính năng tạo thực đơn tự động.",
+  "mealComposeFailed": "Chưa hoàn tất. Kiểm tra kết quả yêu cầu trước khi thử lại.",
+  "mealComposeRefresh": "Kiểm tra hoặc tải lại",
+  "mealComposeShopping": "Nguyên liệu cần mua",
+  "mealComposeNutritionWarning": "Dinh dưỡng hoặc mục tiêu calo đang được ước tính, chưa đủ dữ liệu hoặc ngoài khoảng mục tiêu.",
+  "mealComposeDishServings": "{name} · {servings} khẩu phần công thức",
+  "@mealComposeDishServings": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "servings": {
+        "type": "String"
+      }
+    }
+  },
+  "mealComposeCalories": "Tổng dự kiến: {calories} kcal",
+  "@mealComposeCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "mealComposeSyncPending": "Thực đơn đã được lưu. Hãy làm mới để đồng bộ lại lịch ăn."
 }
