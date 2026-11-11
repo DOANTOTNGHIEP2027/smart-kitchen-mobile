@@ -802,5 +802,9 @@
       }
     }
   },
-  "mealComposeSyncPending": "Thực đơn đã được lưu. Hãy làm mới để đồng bộ lại lịch ăn."
+  "mealComposeSyncPending": "Thực đơn đã được lưu. Hãy làm mới để đồng bộ lại lịch ăn.",
+  "mealplanOutcomeUnknown": "Chưa xác định kết quả thao tác. Đọc lại để xem dữ liệu đã lưu; dữ liệu vẫn có thể thay đổi nếu yêu cầu trước đó hoàn tất. Tiếp tục chỉ dùng dữ liệu bạn vừa đọc.",
+  "mealplanReadAgain": "Đọc lại",
+  "mealplanContinueSnapshot": "Tiếp tục từ dữ liệu vừa đọc",
+  "mealplanSuggestionsChanged": "Gợi ý đã thay đổi. Đọc lại gợi ý đã lưu trước khi chọn lại."
 }

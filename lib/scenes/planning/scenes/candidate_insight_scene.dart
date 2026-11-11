@@ -14,6 +14,7 @@ import '../../../widgets/feature_banner.dart';
 import '../../../widgets/states/app_state_view.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../profile/stores/form_status.dart';
+import '../../mealplan/scenes/meal_plan_routes.dart';
 import '../domain/meal_plan_candidate.dart';
 import '../stores/candidate_store.dart';
 import '../widgets/candidate_card.dart';
@@ -56,25 +57,48 @@ class _CandidateInsightSceneState extends State<CandidateInsightScene> {
             ),
           ),
           Observer(builder: (_) {
-            if (_store.generateStatus != FormStatus.failure) {
+            if (_store.generateStatus != FormStatus.failure &&
+                !_store.outcomeUnknown) {
               return const SizedBox.shrink();
             }
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppDimens.md),
               child: FeatureBanner(
                 key: const ValueKey<String>('candidate-generate-error'),
-                message: apiErrorMessage(l10n, _store.generateError,
-                    fallback: l10n.planningCandidateGenerateFailed),
+                message: _store.outcomeUnknown
+                    ? l10n.mealplanOutcomeUnknown
+                    : apiErrorMessage(l10n, _store.generateError,
+                        fallback: l10n.planningCandidateGenerateFailed),
                 margin: const EdgeInsets.only(bottom: AppDimens.sm),
               ),
             );
           }),
+          if (_store.generationState != null)
+            Observer(builder: (_) {
+              final sid = _store.slotId;
+              final did = _store.dishId;
+              if (!_store.outcomeUnknown || sid == null || did == null) {
+                return const SizedBox.shrink();
+              }
+              return TextButton(
+                key: const ValueKey<String>('candidate-recover-generation'),
+                onPressed: () async {
+                  await Get.toNamed<void>(MealPlanRoutes.detailOf(sid, did));
+                  if (mounted && _store.generationState?.active != false) {
+                    if (!_store.outcomeUnknown) _store.clearGenerateError();
+                    await _store.load(force: true);
+                  }
+                },
+                child: Text(l10n.mealplanReadAgain),
+              );
+            }),
           Expanded(
             child: Observer(builder: (_) {
               // Đọc observable ở đây để Observer theo dõi — successBuilder
               // chạy ngoài phạm vi theo dõi của Observer.
               final state = _store.groupsState;
               final generating = _store.isGenerating;
+              final canSubmit = _store.canSubmitGeneration;
               // Không lọc theo phiên (chế độ cả tuần) → luôn hiện tiêu đề phiên,
               // kể cả khi chỉ có 1 nhóm, để không lẫn ứng viên của món khác.
               final weekMode = _store.sessionId == null;
@@ -86,18 +110,7 @@ class _CandidateInsightSceneState extends State<CandidateInsightScene> {
               return Column(
                 children: <Widget>[
                   Expanded(
-                    child: AppStateView<List<CandidateGroup>>(
-                      state: state,
-                      onRetry: _store.load,
-                      emptyMessage: _store.canGenerate
-                          ? l10n.planningCandidateEmpty
-                          : l10n.planningCandidateEmptyWeek,
-                      emptyIcon: Icons.auto_awesome_outlined,
-                      successBuilder: (_, groups) => _GroupList(
-                        groups: groups,
-                        showHeaders: weekMode || groups.length > 1,
-                      ),
-                    ),
+                    child: _candidateBody(context, state, weekMode),
                   ),
                   if (showGenerate)
                     Padding(
@@ -107,10 +120,12 @@ class _CandidateInsightSceneState extends State<CandidateInsightScene> {
                         label: l10n.planningCandidateGenerate,
                         icon: Icons.auto_awesome,
                         isLoading: generating,
-                        onPressed: () {
-                          _store.clearGenerateError();
-                          _store.generate();
-                        },
+                        onPressed: canSubmit
+                            ? () {
+                                _store.clearGenerateError();
+                                _store.generate();
+                              }
+                            : null,
                       ),
                     ),
                 ],
@@ -120,6 +135,25 @@ class _CandidateInsightSceneState extends State<CandidateInsightScene> {
         ],
       ),
     );
+  }
+
+  Widget _candidateBody(BuildContext context,
+      ViewState<List<CandidateGroup>> state, bool weekMode) {
+    final l10n = context.l10n;
+    final content = AppStateView<List<CandidateGroup>>(
+      state: state,
+      onRetry: _store.load,
+      emptyMessage: _store.canGenerate
+          ? l10n.planningCandidateEmpty
+          : l10n.planningCandidateEmptyWeek,
+      emptyIcon: Icons.auto_awesome_outlined,
+      successBuilder: (_, groups) => _GroupList(
+          groups: groups, showHeaders: weekMode || groups.length > 1),
+    );
+    // Recovery feedback can reduce the remaining height on a small screen.
+    return state is SuccessState<List<CandidateGroup>>
+        ? content
+        : SingleChildScrollView(child: content);
   }
 }
 
@@ -161,7 +195,8 @@ class _GroupList extends StatelessWidget {
               // Key theo id: state mở/gập không bị gán nhầm sang ứng viên khác
               // khi danh sách tải lại.
               child: CandidateCard(
-                  key: ValueKey<String>('candidate-card-${c.id}'), candidate: c),
+                  key: ValueKey<String>('candidate-card-${c.id}'),
+                  candidate: c),
             ),
         ],
       ],

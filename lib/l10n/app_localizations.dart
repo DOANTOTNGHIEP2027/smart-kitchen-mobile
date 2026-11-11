@@ -4760,6 +4760,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your menu was saved. Refresh to finish syncing the meal plan.'**
   String get mealComposeSyncPending;
+
+  /// No description provided for @mealplanOutcomeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'The result is not yet known. Read again to view saved data; it may still change if the earlier request finishes. Continuing uses only the data you have just read.'**
+  String get mealplanOutcomeUnknown;
+
+  /// No description provided for @mealplanReadAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Read again'**
+  String get mealplanReadAgain;
+
+  /// No description provided for @mealplanContinueSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue from the data just read'**
+  String get mealplanContinueSnapshot;
+
+  /// No description provided for @mealplanSuggestionsChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'These suggestions have changed. Read the saved suggestions before choosing again.'**
+  String get mealplanSuggestionsChanged;
 }
 
 class _AppLocalizationsDelegate

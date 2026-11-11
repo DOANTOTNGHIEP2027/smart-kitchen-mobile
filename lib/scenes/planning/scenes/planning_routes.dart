@@ -91,6 +91,10 @@ class CandidateInsightBinding extends Bindings {
           Get.parameters['planId']!,
           sessionId: Get.parameters['sessionId'],
           dishId: dishId,
+          slotId: slotId,
+          generationState: canGenerate
+              ? Get.find<MealPlanStore>().suggestionState(dishId)
+              : null,
           dishHasNoSession: Get.parameters['noSession'] == '1',
           openSession: canGenerate
               ? () => Get.find<MealPlanStore>()
