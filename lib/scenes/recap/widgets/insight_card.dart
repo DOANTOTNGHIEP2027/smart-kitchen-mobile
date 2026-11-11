@@ -54,17 +54,42 @@ class InsightCard extends StatelessWidget {
                   badge: insight.badge,
                 ),
                 child: SizedBox(
-                  width: 58,
-                  height: 58,
-                  child: Center(
-                    child: Text(
-                      '${insight.compliancePct.round()}%',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
+                  width: 64,
+                  height: 64,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        '${insight.compliancePct.round()}%',
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                          color: RecapBadgeColors.of(insight.badge),
+                          height: 1.1,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 2),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 9,
+                            color: RecapBadgeColors.of(insight.badge),
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            'AI ĐẠT',
+                            style: TextStyle(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w800,
+                              color: RecapBadgeColors.of(insight.badge),
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -74,13 +99,37 @@ class InsightCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(
-                    insight.highlight,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          insight.highlight,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: RecapBadgeColors.containerOf(insight.badge),
+                          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                        ),
+                        child: Text(
+                          RecapBadgeColors.labelOf(insight.badge),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: RecapBadgeColors.of(insight.badge),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -178,26 +227,38 @@ class _ComplianceRingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const stroke = 5.5;
+    const stroke = 6.0;
     final center = size.center(Offset.zero);
     final radius = (size.shortestSide - stroke) / 2;
+
+    // 1. Nền tròn mềm container mang sắc thái badge
+    final fillPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = RecapBadgeColors.containerOf(badge).withValues(alpha: 0.65);
+    canvas.drawCircle(center, radius, fillPaint);
+
+    // 2. Viền track nền mờ
     final background = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = stroke
-      ..color = AppColors.surfaceSubtle;
+      ..color = RecapBadgeColors.trackOf(badge);
     canvas.drawCircle(center, radius, background);
-    final arc = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round
-      ..color = RecapBadgeColors.of(badge);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2,
-      2 * math.pi * ratio,
-      false,
-      arc,
-    );
+
+    // 3. Vòng cung tiến độ AI đánh giá
+    if (ratio > 0) {
+      final arc = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round
+        ..color = RecapBadgeColors.of(badge);
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -math.pi / 2,
+        2 * math.pi * ratio,
+        false,
+        arc,
+      );
+    }
   }
 
   @override

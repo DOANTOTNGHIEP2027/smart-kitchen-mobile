@@ -554,58 +554,177 @@ class SpendDetailSection extends StatelessWidget {
                 ],
               ),
             if (trend != null && trend.isNotEmpty) ...<Widget>[
-              const SizedBox(height: AppDimens.md),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text(
-                    l10n.recapSpendTrend,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+              const SizedBox(height: AppDimens.lg),
+              Container(
+                padding: const EdgeInsets.all(AppDimens.md),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: const <BoxShadow>[
+                    BoxShadow(
+                      color: Color(0x06000000),
+                      blurRadius: 10,
+                      offset: Offset(0, 3),
                     ),
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.trending_up_rounded,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
                         ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                '${l10n.recapSpendTrend} (VNĐ)',
+                                style: const TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 1),
+                              const Text(
+                                'So sánh chi tiêu thực tế với ngân sách tuần',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppDimens.sm),
+                    // Legend
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 4,
+                      children: <Widget>[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Chi tiêu',
+                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: AppColors.error,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Vượt ngân sách',
+                              style: TextStyle(fontSize: 11, color: AppColors.error),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Container(
+                              width: 14,
+                              height: 2,
+                              color: const Color(0xFF10B981),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Ngân sách',
+                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceSubtle,
+                                borderRadius: BorderRadius.circular(2),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Chưa có giá',
+                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      '💡 Chạm vào từng cột để xem chi tiết tiền chi và chênh lệch',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.textSecondary,
                       ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Chi tiêu',
-                        style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 12,
-                        height: 2,
-                        color: AppColors.primaryDark,
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Ngân sách',
-                        style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppDimens.md),
-              SizedBox(
-                height: 150,
-                child: SpendTrendSparkline(points: trend),
+                    ),
+                    const SizedBox(height: AppDimens.md),
+                    SizedBox(
+                      height: 190,
+                      child: SpendTrendSparkline(points: trend),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
         );
     }
   }
+}
+
+String formatVndCompact(double value) {
+  if (value <= 0) return '0';
+  if (value >= 1000000) {
+    final m = value / 1000000;
+    return '${m.toStringAsFixed(m.truncateToDouble() == m ? 0 : 1)}tr';
+  }
+  if (value >= 1000) {
+    final k = value / 1000;
+    return '${k.toStringAsFixed(k.truncateToDouble() == k ? 0 : 0)}k';
+  }
+  return '${value.round()}';
 }
 
 /// Cột chi tiêu tối đa 8 tuần + đường ngân sách tuần gần nhất.
@@ -624,33 +743,44 @@ class SpendTrendSparkline extends StatelessWidget {
           .whereType<double>(),
     ];
     final peak = values.isEmpty ? 0.0 : values.reduce((a, b) => a > b ? a : b);
-    final maxY = peak > 0 ? peak * 1.15 : 1.0;
+    final maxY = peak > 0 ? peak * 1.25 : 1.0;
     final budgetLine = shown.reversed
         .map((p) => p.budgetWeeklyAmount)
         .whereType<double>()
         .firstOrNull;
+
     return BarChart(
       BarChartData(
         maxY: maxY,
-        gridData: const FlGridData(show: false),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          drawHorizontalLine: true,
+          horizontalInterval: maxY > 0 ? maxY / 3 : 1,
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: AppColors.border.withValues(alpha: 0.8),
+            strokeWidth: 1,
+            dashArray: const <int>[4, 4],
+          ),
+        ),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
+          leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 22,
+              reservedSize: 42,
+              interval: maxY > 0 ? maxY / 3 : 1,
               getTitlesWidget: (value, meta) {
-                final i = value.toInt();
-                if (i < 0 || i >= shown.length) return const SizedBox.shrink();
+                if (value <= 0) return const SizedBox.shrink();
                 return Padding(
-                  padding: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.only(right: 4),
                   child: Text(
-                    DateFormat('d/M').format(shown[i].weekStart),
+                    formatVndCompact(value),
+                    textAlign: TextAlign.right,
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 9.5,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textSecondary,
                     ),
@@ -659,18 +789,99 @@ class SpendTrendSparkline extends StatelessWidget {
               },
             ),
           ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 26,
+              getTitlesWidget: (value, meta) {
+                final i = value.toInt();
+                if (i < 0 || i >= shown.length) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    DateFormat('d/M').format(shown[i].weekStart),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ),
-        barTouchData: BarTouchData(enabled: false),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            tooltipPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            tooltipMargin: 6,
+            fitInsideHorizontally: true,
+            fitInsideVertically: true,
+            getTooltipColor: (_) => const Color(0xFF1E293B),
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              if (groupIndex < 0 || groupIndex >= shown.length) return null;
+              final p = shown[groupIndex];
+              final weekStart = p.weekStart;
+              final weekEnd = weekStart.add(const Duration(days: 6));
+              final dateStr = 'Tuần ${DateFormat('d/M').format(weekStart)} - ${DateFormat('d/M').format(weekEnd)}';
+
+              final spend = p.spendTotal;
+              final budget = p.budgetWeeklyAmount ?? budgetLine;
+
+              final lines = <String>[dateStr];
+              if (spend != null) {
+                lines.add('Chi tiêu: ${formatVnd(spend)}');
+                if (budget != null) {
+                  lines.add('Ngân sách: ${formatVnd(budget)}');
+                  final diff = budget - spend;
+                  if (diff >= 0) {
+                    lines.add('✓ Tiết kiệm: ${formatVnd(diff)}');
+                  } else {
+                    lines.add('⚠ Vượt: +${formatVnd(-diff)}');
+                  }
+                }
+              } else {
+                lines.add('Chưa có dữ liệu giá');
+                if (budget != null) {
+                  lines.add('Ngân sách: ${formatVnd(budget)}');
+                }
+              }
+              return BarTooltipItem(
+                lines.join('\n'),
+                const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  height: 1.35,
+                ),
+              );
+            },
+          ),
+        ),
         extraLinesData: budgetLine == null
             ? null
-            : ExtraLinesData(horizontalLines: <HorizontalLine>[
-                HorizontalLine(
-                  y: budgetLine,
-                  color: AppColors.primaryDark,
-                  strokeWidth: 1.5,
-                  dashArray: const <int>[4, 3],
-                ),
-              ]),
+            : ExtraLinesData(
+                horizontalLines: <HorizontalLine>[
+                  HorizontalLine(
+                    y: budgetLine,
+                    color: const Color(0xFF10B981),
+                    strokeWidth: 1.5,
+                    dashArray: const <int>[6, 4],
+                    label: HorizontalLineLabel(
+                      show: true,
+                      alignment: Alignment.topRight,
+                      padding: const EdgeInsets.only(bottom: 2, right: 4),
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF10B981),
+                      ),
+                      labelResolver: (_) => 'Mục tiêu: ${formatVndCompact(budgetLine)}',
+                    ),
+                  ),
+                ],
+              ),
         barGroups: <BarChartGroupData>[
           for (var i = 0; i < shown.length; i++)
             BarChartGroupData(x: i, barRods: <BarChartRodData>[
@@ -686,8 +897,10 @@ class SpendTrendSparkline extends StatelessWidget {
                   : BarChartRodData(
                       toY: shown[i].spendTotal!,
                       width: 16,
-                      color: AppColors.primary,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                      color: (budgetLine != null && shown[i].spendTotal! > budgetLine)
+                          ? AppColors.error
+                          : AppColors.primary,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
                     ),
             ]),
         ],

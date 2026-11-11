@@ -193,9 +193,13 @@ abstract final class DemoFixtures {
     final monday = DateTime(now.year, now.month, now.day)
         .subtract(Duration(days: now.weekday - DateTime.monday));
     final weekStart = _dateOnly(monday);
-    final w1 = _dateOnly(monday.subtract(const Duration(days: 21)));
+    final w1 = _dateOnly(monday.subtract(const Duration(days: 7)));
     final w2 = _dateOnly(monday.subtract(const Duration(days: 14)));
-    final w3 = _dateOnly(monday.subtract(const Duration(days: 7)));
+    final w3 = _dateOnly(monday.subtract(const Duration(days: 21)));
+    final w4 = _dateOnly(monday.subtract(const Duration(days: 28)));
+    final w5 = _dateOnly(monday.subtract(const Duration(days: 35)));
+    final w6 = _dateOnly(monday.subtract(const Duration(days: 42)));
+    final w7 = _dateOnly(monday.subtract(const Duration(days: 49)));
 
     return <String, dynamic>{
       'householdId': householdId,
@@ -229,10 +233,14 @@ abstract final class DemoFixtures {
         'Khác': 200000.0,
       },
       'spendTrend': <Map<String, dynamic>>[
-        <String, dynamic>{'weekStart': w1, 'spendTotal': 1400000.0},
-        <String, dynamic>{'weekStart': w2, 'spendTotal': 1350000.0},
-        <String, dynamic>{'weekStart': w3, 'spendTotal': 1480000.0},
-        <String, dynamic>{'weekStart': weekStart, 'spendTotal': 1250000.0},
+        <String, dynamic>{'weekStart': w7, 'spendTotal': 1420000.0, 'budgetWeeklyAmount': 1500000.0},
+        <String, dynamic>{'weekStart': w6, 'spendTotal': 1620000.0, 'budgetWeeklyAmount': 1500000.0},
+        <String, dynamic>{'weekStart': w5, 'spendTotal': 1380000.0, 'budgetWeeklyAmount': 1500000.0},
+        <String, dynamic>{'weekStart': w4, 'spendTotal': null, 'budgetWeeklyAmount': 1500000.0},
+        <String, dynamic>{'weekStart': w3, 'spendTotal': 1400000.0, 'budgetWeeklyAmount': 1500000.0},
+        <String, dynamic>{'weekStart': w2, 'spendTotal': 1350000.0, 'budgetWeeklyAmount': 1500000.0},
+        <String, dynamic>{'weekStart': w1, 'spendTotal': 1480000.0, 'budgetWeeklyAmount': 1500000.0},
+        <String, dynamic>{'weekStart': weekStart, 'spendTotal': 1250000.0, 'budgetWeeklyAmount': 1500000.0},
       ],
       'memberInsights': <Map<String, dynamic>>[
         <String, dynamic>{

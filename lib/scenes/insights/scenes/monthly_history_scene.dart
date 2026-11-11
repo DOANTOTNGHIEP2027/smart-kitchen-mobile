@@ -75,6 +75,12 @@ class _MonthlyHistorySceneState extends State<MonthlyHistoryScene>
           children: [
             TabBar(
               controller: _tabController,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textSecondary,
+              indicatorColor: AppColors.primary,
+              indicatorWeight: 3,
+              labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
               tabs: [
                 Tab(text: context.l10n.insightsTitleCalorie),
                 Tab(text: context.l10n.insightsTitleMacro),
@@ -240,17 +246,22 @@ class _WeekQuickStatPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(
             horizontal: AppDimens.md, vertical: AppDimens.sm),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+          color: AppColors.primaryContainer,
+          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+          border: Border.all(color: AppColors.primaryLight),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.trending_up, color: AppColors.primaryDark),
+            const Icon(Icons.trending_up, color: AppColors.onPrimaryContainer, size: 18),
             const SizedBox(width: AppDimens.sm),
             Text(
               '${context.l10n.insightsLast7Days}: ${parts.join(' · ')}',
-              style: const TextStyle(fontSize: 12, color: AppColors.primaryDark),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onPrimaryContainer,
+              ),
             ),
           ],
         ),
