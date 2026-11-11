@@ -296,7 +296,7 @@ class _TabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppColors.sage : AppColors.surface,
+      color: selected ? AppColors.primary : AppColors.surface,
       borderRadius: BorderRadius.circular(AppDimens.radiusXl),
       child: InkWell(
         onTap: onTap,
@@ -306,7 +306,7 @@ class _TabButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppDimens.radiusXl),
             border: Border.all(
-              color: selected ? AppColors.sage : AppColors.border,
+              color: selected ? AppColors.primary : AppColors.border,
             ),
           ),
           alignment: Alignment.center,
@@ -417,7 +417,7 @@ class _RecipeCard extends StatelessWidget {
                                       height: 16,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        color: AppColors.sage,
+                                        color: AppColors.primary,
                                       ),
                                     )
                                   : Icon(
@@ -473,8 +473,8 @@ class _RecipeCard extends StatelessWidget {
                           for (final diet in recipe.dietTypes.take(1))
                             _Badge(
                               label: _dietLabel(context, diet),
-                              color: AppColors.sageLight,
-                              textColor: AppColors.sageDark,
+                              color: AppColors.primaryContainer,
+                              textColor: AppColors.onPrimaryContainer,
                             ),
                           if (recipe.favorite.avgRating != null)
                             _Badge(
@@ -529,12 +529,12 @@ class _RecipeArtworkFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.sageLight,
+          color: AppColors.primaryContainer,
         ),
         child: Center(
           child: Icon(
             Icons.restaurant_menu_rounded,
-            color: AppColors.sage,
+            color: AppColors.primary,
             size: 32,
           ),
         ),

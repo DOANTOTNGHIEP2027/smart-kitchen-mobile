@@ -85,6 +85,45 @@ class MealLogStore {
     return (target - consumed).round();
   }
 
+  int? get targetDailyCalories => _targetDailyCalories.value;
+
+  int get consumedCaloriesToday {
+    final state = _todayLogsState.value;
+    if (state is! SuccessState<List<MealLogEntry>>) return 0;
+    return state.data
+        .where((e) =>
+            e.status == MealEntryStatus.saved && e.countsTowardDailyTotal)
+        .fold<double>(0, (sum, e) => sum + (e.caloriesKcal ?? 0))
+        .round();
+  }
+
+  double get consumedProteinToday {
+    final state = _todayLogsState.value;
+    if (state is! SuccessState<List<MealLogEntry>>) return 0.0;
+    return state.data
+        .where((e) =>
+            e.status == MealEntryStatus.saved && e.countsTowardDailyTotal)
+        .fold<double>(0, (sum, e) => sum + (e.nutrition?.proteinG ?? 0));
+  }
+
+  double get consumedCarbsToday {
+    final state = _todayLogsState.value;
+    if (state is! SuccessState<List<MealLogEntry>>) return 0.0;
+    return state.data
+        .where((e) =>
+            e.status == MealEntryStatus.saved && e.countsTowardDailyTotal)
+        .fold<double>(0, (sum, e) => sum + (e.nutrition?.carbsG ?? 0));
+  }
+
+  double get consumedFatToday {
+    final state = _todayLogsState.value;
+    if (state is! SuccessState<List<MealLogEntry>>) return 0.0;
+    return state.data
+        .where((e) =>
+            e.status == MealEntryStatus.saved && e.countsTowardDailyTotal)
+        .fold<double>(0, (sum, e) => sum + (e.nutrition?.fatG ?? 0));
+  }
+
   // ── Load ─────────────────────────────────────────────────────────────────
 
   /// Load log hôm nay + calo target.

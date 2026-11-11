@@ -115,6 +115,11 @@ class _MealLogSceneState extends State<MealLogScene> {
                 Observer(
                   builder: (_) => CalorieGoalWidget(
                     remainingKcal: _store.calorieGoalRemaining,
+                    targetKcal: _store.targetDailyCalories,
+                    consumedKcal: _store.consumedCaloriesToday,
+                    proteinG: _store.consumedProteinToday,
+                    carbsG: _store.consumedCarbsToday,
+                    fatG: _store.consumedFatToday,
                   ),
                 ),
                 Expanded(

@@ -187,14 +187,14 @@ class _DetailArtwork extends StatelessWidget {
   Widget build(BuildContext context) {
     const placeholder = DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.sageLight,
+        color: AppColors.primaryContainer,
         borderRadius: BorderRadius.all(Radius.circular(AppDimens.radiusLg)),
       ),
       child: Center(
         child: Icon(
           Icons.restaurant_menu_rounded,
           size: 64,
-          color: AppColors.sage,
+          color: AppColors.primary,
         ),
       ),
     );
@@ -296,7 +296,7 @@ class _Ingredients extends StatelessWidget {
               (ingredient) => ListTile(
                 leading: const Icon(
                   Icons.check_circle_rounded,
-                  color: AppColors.sage,
+                  color: AppColors.primary,
                   size: 20,
                 ),
                 title: Text(
@@ -313,14 +313,14 @@ class _Ingredients extends StatelessWidget {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.sageLight,
+                          color: AppColors.primaryContainer,
                           borderRadius:
                               BorderRadius.circular(AppDimens.radiusSm),
                         ),
                         child: Text(
                           _quantity(ingredient.quantity!, ingredient.unit),
                           style: const TextStyle(
-                            color: AppColors.sageDark,
+                            color: AppColors.onPrimaryContainer,
                             fontWeight: FontWeight.w700,
                             fontSize: 12,
                           ),
@@ -363,14 +363,14 @@ class _Steps extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.sageLight,
+                    color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
                     child: Text(
                       '${step.stepNumber}',
                       style: const TextStyle(
-                        color: AppColors.sageDark,
+                        color: AppColors.primaryDark,
                         fontWeight: FontWeight.w800,
                         fontSize: 14,
                       ),
@@ -393,7 +393,7 @@ class _Steps extends StatelessWidget {
                             const Icon(
                               Icons.access_time_rounded,
                               size: 13,
-                              color: AppColors.sage,
+                              color: AppColors.primary,
                             ),
                             const SizedBox(width: 4),
                             Text(
