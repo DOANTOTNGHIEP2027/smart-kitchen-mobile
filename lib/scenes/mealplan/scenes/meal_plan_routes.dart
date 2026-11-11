@@ -6,6 +6,7 @@ import '../data/meal_composition_api.dart';
 import '../stores/meal_composition_store.dart';
 import '../../../data/network/dio_client.dart';
 import '../../../app/env_config.dart';
+import '../../../stores/session_store.dart';
 import '../data/meal_attendance_api.dart';
 import '../data/meal_suggestion_api.dart';
 import '../stores/meal_plan_store.dart';
@@ -38,6 +39,9 @@ class WeeklyMealPlanBinding extends Bindings {
           api: Get.find<MealPlanApi>(),
           suggestionApi: Get.find<MealSuggestionApi>(),
           attendanceApi: Get.find<MealAttendanceApi>(),
+          session: Get.isRegistered<SessionStore>()
+              ? Get.find<SessionStore>()
+              : null,
         ),
         permanent: false,
       );
