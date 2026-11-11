@@ -161,7 +161,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                       children: [
                         _EditableDishCard(
                           dish: dish,
-                          onDelete: store.isConfirmed
+                          onDelete: !store.canEditDish(dish.id)
                               ? null
                               : () => store.removeDish(widget.slotId, dish.id),
                           onInsights: () => _openCandidates(dish),
@@ -183,7 +183,9 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                                   ),
                                 ),
                               TextButton.icon(
-                                onPressed: () => _chooseManual(dish.id),
+                                onPressed: store.canEditDish(dish.id)
+                                    ? () => _chooseManual(dish.id)
+                                    : null,
                                 icon: const Icon(Icons.menu_book_outlined),
                                 label: Text(context.l10n.mealPlanChooseRecipe),
                               ),

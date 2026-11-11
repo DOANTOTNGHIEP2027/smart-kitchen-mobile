@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:smart_kitchen_mobile/scenes/mealplan/stores/meal_plan_store.dart'
+    show DishRequestResult;
 import 'package:smart_kitchen_mobile/constants/app_colors.dart';
 import 'package:smart_kitchen_mobile/data/auth/token_storage.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
@@ -306,7 +308,8 @@ void main() {
         () async {
       api.items = <MealPlanCandidate>[candidate('x', sessionId: 'other-dish')];
       final store = CandidateStore(api, 'plan-1',
-          dishHasNoSession: true, openSession: () async => session('s9'));
+          dishHasNoSession: true,
+          openSession: () async => DishRequestResult.applied);
       await store.load();
       expect(store.groupsState, isA<EmptyState<List<CandidateGroup>>>());
       expect(api.calls, 0);
@@ -322,7 +325,7 @@ void main() {
       final store = CandidateStore(api, 'plan-1',
           dishId: 'dish-1',
           dishHasNoSession: true,
-          openSession: () async => session('s9'));
+          openSession: () async => DishRequestResult.applied);
       await store.load();
 
       final ok = await store.generate();
@@ -356,7 +359,7 @@ void main() {
       final store =
           CandidateStore(api, 'plan-1', sessionId: 's1', openSession: () async {
         opened++;
-        return session('__unknown__');
+        return DishRequestResult.applied;
       });
       await store.load();
       expect(await store.generate(), isFalse);
@@ -583,7 +586,7 @@ void main() {
         'CandidateInsightScene: đã biết phiên nhưng rỗng → KHÔNG hiện nút Sinh',
         (tester) async {
       Get.put<CandidateStore>(CandidateStore(FakeCandidateApi(), 'plan-1',
-          sessionId: 's1', openSession: () async => session('s1')));
+          sessionId: 's1', openSession: () async => DishRequestResult.applied));
       await tester.pumpAppWidget(const CandidateInsightScene(),
           wrapInScaffold: false);
       await tester.pumpAndSettle();
@@ -600,7 +603,8 @@ void main() {
           candidate('mine', sessionId: 's9', recommended: true)
         ];
       Get.put<CandidateStore>(CandidateStore(api, 'plan-1',
-          dishHasNoSession: true, openSession: () async => session('s9')));
+          dishHasNoSession: true,
+          openSession: () async => DishRequestResult.applied));
       await tester.pumpAppWidget(const CandidateInsightScene(),
           wrapInScaffold: false);
       await tester.pumpAndSettle();

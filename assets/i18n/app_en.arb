@@ -930,5 +930,9 @@
       }
     }
   },
-  "mealComposeSyncPending": "Your menu was saved. Refresh to finish syncing the meal plan."
+  "mealComposeSyncPending": "Your menu was saved. Refresh to finish syncing the meal plan.",
+  "mealplanOutcomeUnknown": "The result is not yet known. Read again to view saved data; it may still change if the earlier request finishes. Continuing uses only the data you have just read.",
+  "mealplanReadAgain": "Read again",
+  "mealplanContinueSnapshot": "Continue from the data just read",
+  "mealplanSuggestionsChanged": "These suggestions have changed. Read the saved suggestions before choosing again."
 }

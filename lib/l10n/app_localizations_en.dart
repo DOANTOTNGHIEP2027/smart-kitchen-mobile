@@ -2652,4 +2652,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mealComposeSyncPending =>
       'Your menu was saved. Refresh to finish syncing the meal plan.';
+
+  @override
+  String get mealplanOutcomeUnknown =>
+      'The result is not yet known. Read again to view saved data; it may still change if the earlier request finishes. Continuing uses only the data you have just read.';
+
+  @override
+  String get mealplanReadAgain => 'Read again';
+
+  @override
+  String get mealplanContinueSnapshot => 'Continue from the data just read';
+
+  @override
+  String get mealplanSuggestionsChanged =>
+      'These suggestions have changed. Read the saved suggestions before choosing again.';
 }

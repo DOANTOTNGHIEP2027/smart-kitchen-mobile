@@ -2621,4 +2621,18 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get mealComposeSyncPending =>
       'Thực đơn đã được lưu. Hãy làm mới để đồng bộ lại lịch ăn.';
+
+  @override
+  String get mealplanOutcomeUnknown =>
+      'Chưa xác định kết quả thao tác. Đọc lại để xem dữ liệu đã lưu; dữ liệu vẫn có thể thay đổi nếu yêu cầu trước đó hoàn tất. Tiếp tục chỉ dùng dữ liệu bạn vừa đọc.';
+
+  @override
+  String get mealplanReadAgain => 'Đọc lại';
+
+  @override
+  String get mealplanContinueSnapshot => 'Tiếp tục từ dữ liệu vừa đọc';
+
+  @override
+  String get mealplanSuggestionsChanged =>
+      'Gợi ý đã thay đổi. Đọc lại gợi ý đã lưu trước khi chọn lại.';
 }
