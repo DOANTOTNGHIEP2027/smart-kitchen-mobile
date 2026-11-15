@@ -80,6 +80,9 @@ jobs:
       - name: Enable web platform
         run: flutter create . --platforms web
 
+      - name: Prepare web database assets
+        run: dart run tool/prepare_web.dart
+
       # Tên biến phải khớp ĐÚNG String.fromEnvironment trong
       # lib/app/env_config.dart (APP_ENV / API_BASE_URL / AI_BASE_URL). Sai tên
       # thì build im lặng rơi về default dev → bật LoggingInterceptor và trỏ
