@@ -26,6 +26,7 @@ class HealthProfileScreen extends StatefulWidget {
 
 class _HealthProfileScreenState extends State<HealthProfileScreen> {
   late final ProfileStore store = Get.find<ProfileStore>();
+  final _formKey = GlobalKey<FormState>();
   final caloriesCtl = TextEditingController();
   final heightCtl = TextEditingController();
   final weightCtl = TextEditingController();
@@ -54,10 +55,43 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     caloriesCtl.text = p.targetDailyCalories?.toString() ?? '';
     heightCtl.text = p.heightCm?.toString() ?? '';
     weightCtl.text = p.weightKg?.toString() ?? '';
-    setState(() => diet = p.dietType);
+    diet = p.dietType;
+  }
+
+  String? _validateCalories(String? value) {
+    final raw = value?.trim() ?? '';
+    if (raw.isEmpty) return null;
+    final calories = int.tryParse(raw);
+    if (!RegExp(r'^[0-9]+$').hasMatch(raw) ||
+        calories == null ||
+        calories > 10000) {
+      return context.l10n.healthProfileCaloriesInvalid;
+    }
+    return null;
+  }
+
+  String? _validateMeasurement(String? value, double maximum, String error) {
+    final raw = value?.trim() ?? '';
+    if (raw.isEmpty) return null;
+    final measurement = double.tryParse(raw);
+    return measurement == null ||
+            !measurement.isFinite ||
+            measurement < 1 ||
+            measurement > maximum
+        ? error
+        : null;
+  }
+
+  void _clearDraft() {
+    _formKey.currentState?.reset();
+    caloriesCtl.clear();
+    heightCtl.clear();
+    weightCtl.clear();
+    setState(() => diet = null);
   }
 
   Future<void> _save() async {
+    if (_formKey.currentState?.validate() != true) return;
     final ok = await store.saveHealthProfile(
       targetDailyCalories: int.tryParse(caloriesCtl.text.trim()),
       dietTypeWire: diet == null ? null : dietTypeToWire(diet!),
@@ -87,6 +121,10 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     return AppScaffold(
       title: context.l10n.healthProfileTitle,
       body: Observer(builder: (_) {
+        // Read observable state here; AppStateView's builder runs outside this Observer.
+        final profileState = store.healthProfileState;
+        final error = store.mutationError;
+        final isSaving = store.healthSaveStatus == FormStatus.submitting;
         return Column(
           children: <Widget>[
             if (store.healthProfileIsFromCache) const StaleDataBanner(),
@@ -94,88 +132,130 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
               child: RefreshIndicator(
                 onRefresh: () => store.loadHealthProfile(),
                 child: AppStateView<HealthProfile>(
-                  state: store.healthProfileState,
+                  state: profileState,
                   onRetry: () => store.loadHealthProfile(),
                   emptyMessage: context.l10n.healthProfileEmpty,
                   successBuilder: (_, HealthProfile p) {
                     _seed(p);
-                    return ListView(
-                      padding: const EdgeInsets.all(AppDimens.md),
-                      children: <Widget>[
-                        if (store.mutationError != null) ...<Widget>[
-                          _InlineError(
-                            message: apiErrorMessage(
-                                context.l10n, store.mutationError),
-                            fieldErrors: store.mutationError!.fieldErrors,
-                          ),
-                          const SizedBox(height: AppDimens.md),
-                        ],
-                        TextField(
-                          controller: weightCtl,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          decoration: InputDecoration(
-                            labelText:
-                                context.l10n.healthProfileWeight,
-                            prefixIcon: const Icon(Icons.monitor_weight_outlined),
-                          ),
-                        ),
-                        const SizedBox(height: AppDimens.sm),
-                        TextField(
-                          controller: heightCtl,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          decoration: InputDecoration(
-                            labelText:
-                                context.l10n.healthProfileHeight,
-                            prefixIcon: const Icon(Icons.height_rounded),
-                          ),
-                        ),
-                        const SizedBox(height: AppDimens.sm),
-                        DropdownButtonFormField<DietType?>(
-                          initialValue: diet,
-                          decoration: InputDecoration(
-                            labelText: context.l10n.healthProfileDietType,
-                            prefixIcon: const Icon(Icons.restaurant_menu_outlined),
-                          ),
-                          items: <DropdownMenuItem<DietType?>>[
-                            for (final DietType d in DietType.values)
-                              DropdownMenuItem<DietType?>(
-                                value: d,
-                                child: Text(_dietLabel(context, d)),
+                    return Form(
+                      key: _formKey,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(AppDimens.md),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            if (error != null) ...<Widget>[
+                              _InlineError(
+                                message: apiErrorMessage(context.l10n, error),
+                                fieldErrors: error.fieldErrors,
                               ),
+                              const SizedBox(height: AppDimens.md),
+                            ],
+                            TextFormField(
+                              key: const ValueKey<String>('health-weight'),
+                              controller: weightCtl,
+                              enabled: !isSaving,
+                              validator: (value) => _validateMeasurement(value,
+                                  500, context.l10n.healthProfileWeightInvalid),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              decoration: InputDecoration(
+                                labelText: context.l10n.healthProfileWeight,
+                                prefixIcon:
+                                    const Icon(Icons.monitor_weight_outlined),
+                              ),
+                            ),
+                            const SizedBox(height: AppDimens.sm),
+                            TextFormField(
+                              key: const ValueKey<String>('health-height'),
+                              controller: heightCtl,
+                              enabled: !isSaving,
+                              validator: (value) => _validateMeasurement(value,
+                                  300, context.l10n.healthProfileHeightInvalid),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              decoration: InputDecoration(
+                                labelText: context.l10n.healthProfileHeight,
+                                prefixIcon: const Icon(Icons.height_rounded),
+                              ),
+                            ),
+                            const SizedBox(height: AppDimens.sm),
+                            KeyedSubtree(
+                              key: ValueKey<DietType?>(diet),
+                              child: DropdownButtonFormField<DietType?>(
+                                key: const ValueKey<String>('health-diet'),
+                                initialValue: diet,
+                                isExpanded: true,
+                                hint: Text(context.l10n.healthProfileDietUnset),
+                                decoration: InputDecoration(
+                                  labelText: context.l10n.healthProfileDietType,
+                                  helperText:
+                                      context.l10n.healthProfileDietHelp,
+                                  helperMaxLines: 4,
+                                  prefixIcon: const Icon(
+                                      Icons.restaurant_menu_outlined),
+                                ),
+                                items: <DropdownMenuItem<DietType?>>[
+                                  DropdownMenuItem<DietType?>(
+                                    value: null,
+                                    child: Text(
+                                        context.l10n.healthProfileDietUnset),
+                                  ),
+                                  for (final DietType d in DietType.values)
+                                    DropdownMenuItem<DietType?>(
+                                      value: d,
+                                      child: Text(_dietLabel(context, d)),
+                                    ),
+                                ],
+                                onChanged: isSaving
+                                    ? null
+                                    : (DietType? v) => setState(() => diet = v),
+                              ),
+                            ),
+                            const SizedBox(height: AppDimens.sm),
+                            TextFormField(
+                              key: const ValueKey<String>('health-calories'),
+                              controller: caloriesCtl,
+                              enabled: !isSaving,
+                              validator: _validateCalories,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText:
+                                    context.l10n.healthProfileTargetCalories,
+                                helperText:
+                                    context.l10n.healthProfileCaloriesHelp,
+                                helperMaxLines: 2,
+                                prefixIcon: const Icon(
+                                    Icons.local_fire_department_outlined),
+                                suffixText: context.l10n.unitKcal,
+                              ),
+                            ),
+                            const SizedBox(height: AppDimens.md),
+                            _AllergensSummary(
+                              store: store,
+                              onEdit: isSaving
+                                  ? null
+                                  : () =>
+                                      Get.toNamed(AppRoutes.profileAllergens),
+                            ),
+                            const SizedBox(height: AppDimens.lg),
+                            AppButton(
+                              label: context.l10n.healthSave,
+                              isLoading: isSaving,
+                              onPressed: isSaving ? null : _save,
+                            ),
+                            TextButton.icon(
+                              onPressed: isSaving ? null : _clearDraft,
+                              icon: const Icon(Icons.clear_all),
+                              label:
+                                  Text(context.l10n.healthProfileClearFields),
+                            ),
                           ],
-                          onChanged: (DietType? v) =>
-                              setState(() => diet = v),
                         ),
-                        const SizedBox(height: AppDimens.sm),
-                        TextField(
-                          controller: caloriesCtl,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText:
-                                context.l10n.healthProfileTargetCalories,
-                            prefixIcon: const Icon(Icons.local_fire_department_outlined),
-                            suffixText: 'kcal',
-                          ),
-                        ),
-                        const SizedBox(height: AppDimens.md),
-                        _AllergensSummary(
-                          store: store,
-                          onEdit: () =>
-                              Get.toNamed(AppRoutes.profileAllergens),
-                        ),
-                        const SizedBox(height: AppDimens.lg),
-                        AppButton(
-                          label: context.l10n.healthSave,
-                          isLoading: store.healthSaveStatus ==
-                              FormStatus.submitting,
-                          onPressed: store.healthSaveStatus ==
-                                  FormStatus.submitting
-                              ? null
-                              : _save,
-                        ),
-                      ],
+                      ),
                     );
                   },
                 ),
@@ -192,7 +272,7 @@ class _AllergensSummary extends StatelessWidget {
   const _AllergensSummary({required this.store, required this.onEdit});
 
   final ProfileStore store;
-  final VoidCallback onEdit;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -262,8 +342,7 @@ class _InlineError extends StatelessWidget {
             const SizedBox(height: 4),
             for (final entry in fieldErrors!.entries)
               Text('• ${_fieldLabel(context, entry.key)}: ${entry.value}',
-                  style:
-                      const TextStyle(color: Colors.red, fontSize: 12)),
+                  style: const TextStyle(color: Colors.red, fontSize: 12)),
           ],
         ],
       ),
@@ -288,7 +367,7 @@ String _fieldLabel(BuildContext context, String field) {
 String _dietLabel(BuildContext context, DietType t) {
   final l = context.l10n;
   return switch (t) {
-    DietType.none => l.dietTypeNone,
+    DietType.none => l.healthProfileDietNone,
     DietType.keto => l.dietTypeKeto,
     DietType.vegetarian => l.dietTypeVegetarian,
     DietType.vegan => l.dietTypeVegan,

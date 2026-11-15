@@ -1014,7 +1014,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthProfileAllergensEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No allergens selected.'**
+  /// **'No allergen entries saved'**
   String get healthProfileAllergensEmpty;
 
   /// No description provided for @healthProfileAllergensEdit.
@@ -1398,7 +1398,7 @@ abstract class AppLocalizations {
   /// No description provided for @memberDetailAllergensEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No allergens registered.'**
+  /// **'No allergen entries saved'**
   String get memberDetailAllergensEmpty;
 
   /// No description provided for @staleDataBanner.
@@ -4784,6 +4784,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These suggestions have changed. Read the saved suggestions before choosing again.'**
   String get mealplanSuggestionsChanged;
+
+  /// No description provided for @healthProfileDietUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet not selected'**
+  String get healthProfileDietUnset;
+
+  /// No description provided for @healthProfileDietNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No special diet preference'**
+  String get healthProfileDietNone;
+
+  /// No description provided for @healthProfileDietHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet rules depend on the meal planning mode. Declare allergies separately; a gluten-free diet does not declare a gluten allergy.'**
+  String get healthProfileDietHelp;
+
+  /// No description provided for @healthProfileCaloriesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank or enter 0 if no calorie goal is set.'**
+  String get healthProfileCaloriesHelp;
+
+  /// No description provided for @healthProfileCaloriesInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number from 0 to 10000, or leave blank'**
+  String get healthProfileCaloriesInvalid;
+
+  /// No description provided for @healthProfileHeightInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a height from 1 to 300 cm, or leave blank'**
+  String get healthProfileHeightInvalid;
+
+  /// No description provided for @healthProfileWeightInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a weight from 1 to 500 kg, or leave blank'**
+  String get healthProfileWeightInvalid;
+
+  /// No description provided for @healthProfileClearFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear profile fields'**
+  String get healthProfileClearFields;
+
+  /// No description provided for @unitKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal'**
+  String get unitKcal;
 }
 
 class _AppLocalizationsDelegate

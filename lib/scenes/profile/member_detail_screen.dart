@@ -21,10 +21,10 @@ class MemberDetailScreen extends StatefulWidget {
 class _MemberDetailScreenState extends State<MemberDetailScreen> {
   late final FamilyStore store = Get.find<FamilyStore>();
   late final String userId = Get.parameters['userId'] ?? '';
-  late final String fullName =
-      (Get.arguments is Map ? (Get.arguments as Map)['fullName'] : null)
-              as String? ??
-          '';
+  late final String fullName = (Get.arguments is Map
+          ? (Get.arguments as Map)['fullName']
+          : null) as String? ??
+      '';
 
   @override
   void initState() {
@@ -49,7 +49,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                 _Row(
                   label: context.l10n.memberDetailDietType,
                   value: s.dietType == null
-                      ? context.l10n.dietTypeNone
+                      ? context.l10n.healthProfileDietUnset
                       : _dietLabel(context, s.dietType!),
                 ),
                 const SizedBox(height: AppDimens.md),
@@ -85,7 +85,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
   String _dietLabel(BuildContext context, DietType t) {
     final l = context.l10n;
     return switch (t) {
-      DietType.none => l.dietTypeNone,
+      DietType.none => l.healthProfileDietNone,
       DietType.keto => l.dietTypeKeto,
       DietType.vegetarian => l.dietTypeVegetarian,
       DietType.vegan => l.dietTypeVegan,

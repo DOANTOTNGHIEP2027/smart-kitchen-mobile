@@ -19,6 +19,8 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          # Match the SDK used to validate this app; upgrade deliberately.
+          flutter-version: "3.47.4"
           channel: "stable"
           cache: true
 
@@ -67,6 +69,8 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          # Match the SDK used to validate this app; upgrade deliberately.
+          flutter-version: "3.47.4"
           channel: "stable"
           cache: true
 
@@ -75,6 +79,9 @@ jobs:
 
       - name: Enable web platform
         run: flutter create . --platforms web
+
+      - name: Prepare web database assets
+        run: dart run tool/prepare_web.dart
 
       # Tên biến phải khớp ĐÚNG String.fromEnvironment trong
       # lib/app/env_config.dart (APP_ENV / API_BASE_URL / AI_BASE_URL). Sai tên

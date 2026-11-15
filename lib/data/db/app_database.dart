@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
+import 'database_connection_native.dart'
+    if (dart.library.js_interop) 'database_connection_web.dart';
 import 'inventory_items_table.dart';
 import 'inventory_sync_queue_table.dart';
 import 'read_cache_table.dart';
@@ -35,7 +32,7 @@ part 'app_database.g.dart';
   ShoppingCategories,
 ])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_filesystemBackend());
+  AppDatabase() : super(openDatabaseConnection());
 
   /// Cho test — truyền executor tuỳ ý (vd `NativeDatabase.memory()`).
   AppDatabase.forTesting(super.e);
@@ -71,12 +68,4 @@ class AppDatabase extends _$AppDatabase {
           }
         },
       );
-}
-
-LazyDatabase _filesystemBackend() {
-  return LazyDatabase(() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dir.path, 'smart_kitchen.sqlite'));
-    return NativeDatabase(file);
-  });
 }

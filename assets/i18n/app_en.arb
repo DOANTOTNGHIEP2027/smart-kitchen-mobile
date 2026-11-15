@@ -243,7 +243,7 @@
   "@healthProfileWeight": {},
   "healthProfileAllergensSection": "Allergens",
   "@healthProfileAllergensSection": {},
-  "healthProfileAllergensEmpty": "No allergens selected.",
+  "healthProfileAllergensEmpty": "No allergen entries saved",
   "@healthProfileAllergensEmpty": {},
   "healthProfileAllergensEdit": "Edit allergens",
   "@healthProfileAllergensEdit": {},
@@ -348,7 +348,7 @@
   "@memberDetailDietType": {},
   "memberDetailAllergensSection": "Allergens",
   "@memberDetailAllergensSection": {},
-  "memberDetailAllergensEmpty": "No allergens registered.",
+  "memberDetailAllergensEmpty": "No allergen entries saved",
   "@memberDetailAllergensEmpty": {},
 
   "staleDataBanner": "Data may be out of date — showing the latest saved copy.",
@@ -934,5 +934,14 @@
   "mealplanOutcomeUnknown": "The result is not yet known. Read again to view saved data; it may still change if the earlier request finishes. Continuing uses only the data you have just read.",
   "mealplanReadAgain": "Read again",
   "mealplanContinueSnapshot": "Continue from the data just read",
-  "mealplanSuggestionsChanged": "These suggestions have changed. Read the saved suggestions before choosing again."
+  "mealplanSuggestionsChanged": "These suggestions have changed. Read the saved suggestions before choosing again.",
+  "healthProfileDietUnset": "Diet not selected",
+  "healthProfileDietNone": "No special diet preference",
+  "healthProfileDietHelp": "Diet rules depend on the meal planning mode. Declare allergies separately; a gluten-free diet does not declare a gluten allergy.",
+  "healthProfileCaloriesHelp": "Leave blank or enter 0 if no calorie goal is set.",
+  "healthProfileCaloriesInvalid": "Enter a whole number from 0 to 10000, or leave blank",
+  "healthProfileHeightInvalid": "Enter a height from 1 to 300 cm, or leave blank",
+  "healthProfileWeightInvalid": "Enter a weight from 1 to 500 kg, or leave blank",
+  "healthProfileClearFields": "Clear profile fields",
+  "unitKcal": "kcal"
 }
