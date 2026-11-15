@@ -486,7 +486,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get healthProfileAllergensSection => 'Dị ứng';
 
   @override
-  String get healthProfileAllergensEmpty => 'Chưa chọn dị ứng nào.';
+  String get healthProfileAllergensEmpty => 'Chưa có mục dị ứng được lưu';
 
   @override
   String get healthProfileAllergensEdit => 'Sửa dị ứng';
@@ -698,7 +698,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get memberDetailAllergensSection => 'Dị ứng';
 
   @override
-  String get memberDetailAllergensEmpty => 'Chưa có dị ứng.';
+  String get memberDetailAllergensEmpty => 'Chưa có mục dị ứng được lưu';
 
   @override
   String get staleDataBanner =>
@@ -2635,4 +2635,36 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get mealplanSuggestionsChanged =>
       'Gợi ý đã thay đổi. Đọc lại gợi ý đã lưu trước khi chọn lại.';
+
+  @override
+  String get healthProfileDietUnset => 'Chưa chọn chế độ ăn';
+
+  @override
+  String get healthProfileDietNone => 'Không chọn chế độ ăn đặc biệt';
+
+  @override
+  String get healthProfileDietHelp =>
+      'Ràng buộc chế độ ăn tùy luồng lập thực đơn. Khai dị ứng riêng; chọn không gluten không đồng nghĩa đã khai dị ứng Gluten.';
+
+  @override
+  String get healthProfileCaloriesHelp =>
+      'Để trống hoặc nhập 0 nếu chưa đặt mục tiêu calo.';
+
+  @override
+  String get healthProfileCaloriesInvalid =>
+      'Nhập số nguyên từ 0 đến 10000 hoặc để trống';
+
+  @override
+  String get healthProfileHeightInvalid =>
+      'Nhập chiều cao từ 1 đến 300 cm hoặc để trống';
+
+  @override
+  String get healthProfileWeightInvalid =>
+      'Nhập cân nặng từ 1 đến 500 kg hoặc để trống';
+
+  @override
+  String get healthProfileClearFields => 'Xóa các trường hồ sơ';
+
+  @override
+  String get unitKcal => 'kcal';
 }

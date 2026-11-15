@@ -492,7 +492,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthProfileAllergensSection => 'Allergens';
 
   @override
-  String get healthProfileAllergensEmpty => 'No allergens selected.';
+  String get healthProfileAllergensEmpty => 'No allergen entries saved';
 
   @override
   String get healthProfileAllergensEdit => 'Edit allergens';
@@ -705,7 +705,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memberDetailAllergensSection => 'Allergens';
 
   @override
-  String get memberDetailAllergensEmpty => 'No allergens registered.';
+  String get memberDetailAllergensEmpty => 'No allergen entries saved';
 
   @override
   String get staleDataBanner =>
@@ -2666,4 +2666,36 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mealplanSuggestionsChanged =>
       'These suggestions have changed. Read the saved suggestions before choosing again.';
+
+  @override
+  String get healthProfileDietUnset => 'Diet not selected';
+
+  @override
+  String get healthProfileDietNone => 'No special diet preference';
+
+  @override
+  String get healthProfileDietHelp =>
+      'Diet rules depend on the meal planning mode. Declare allergies separately; a gluten-free diet does not declare a gluten allergy.';
+
+  @override
+  String get healthProfileCaloriesHelp =>
+      'Leave blank or enter 0 if no calorie goal is set.';
+
+  @override
+  String get healthProfileCaloriesInvalid =>
+      'Enter a whole number from 0 to 10000, or leave blank';
+
+  @override
+  String get healthProfileHeightInvalid =>
+      'Enter a height from 1 to 300 cm, or leave blank';
+
+  @override
+  String get healthProfileWeightInvalid =>
+      'Enter a weight from 1 to 500 kg, or leave blank';
+
+  @override
+  String get healthProfileClearFields => 'Clear profile fields';
+
+  @override
+  String get unitKcal => 'kcal';
 }

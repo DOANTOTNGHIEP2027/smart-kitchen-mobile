@@ -199,7 +199,7 @@
   "healthProfileHeight": "Chiều cao (cm)",
   "healthProfileWeight": "Cân nặng (kg)",
   "healthProfileAllergensSection": "Dị ứng",
-  "healthProfileAllergensEmpty": "Chưa chọn dị ứng nào.",
+  "healthProfileAllergensEmpty": "Chưa có mục dị ứng được lưu",
   "healthProfileAllergensEdit": "Sửa dị ứng",
   "healthSave": "Lưu hồ sơ sức khoẻ",
   "healthSavedToast": "Đã lưu hồ sơ sức khoẻ",
@@ -268,7 +268,7 @@
   "memberDetailTitle": "Thành viên",
   "memberDetailDietType": "Chế độ ăn",
   "memberDetailAllergensSection": "Dị ứng",
-  "memberDetailAllergensEmpty": "Chưa có dị ứng.",
+  "memberDetailAllergensEmpty": "Chưa có mục dị ứng được lưu",
 
   "staleDataBanner": "Dữ liệu có thể chưa cập nhật — đang hiển thị bản lưu gần nhất.",
 
@@ -806,5 +806,14 @@
   "mealplanOutcomeUnknown": "Chưa xác định kết quả thao tác. Đọc lại để xem dữ liệu đã lưu; dữ liệu vẫn có thể thay đổi nếu yêu cầu trước đó hoàn tất. Tiếp tục chỉ dùng dữ liệu bạn vừa đọc.",
   "mealplanReadAgain": "Đọc lại",
   "mealplanContinueSnapshot": "Tiếp tục từ dữ liệu vừa đọc",
-  "mealplanSuggestionsChanged": "Gợi ý đã thay đổi. Đọc lại gợi ý đã lưu trước khi chọn lại."
+  "mealplanSuggestionsChanged": "Gợi ý đã thay đổi. Đọc lại gợi ý đã lưu trước khi chọn lại.",
+  "healthProfileDietUnset": "Chưa chọn chế độ ăn",
+  "healthProfileDietNone": "Không chọn chế độ ăn đặc biệt",
+  "healthProfileDietHelp": "Ràng buộc chế độ ăn tùy luồng lập thực đơn. Khai dị ứng riêng; chọn không gluten không đồng nghĩa đã khai dị ứng Gluten.",
+  "healthProfileCaloriesHelp": "Để trống hoặc nhập 0 nếu chưa đặt mục tiêu calo.",
+  "healthProfileCaloriesInvalid": "Nhập số nguyên từ 0 đến 10000 hoặc để trống",
+  "healthProfileHeightInvalid": "Nhập chiều cao từ 1 đến 300 cm hoặc để trống",
+  "healthProfileWeightInvalid": "Nhập cân nặng từ 1 đến 500 kg hoặc để trống",
+  "healthProfileClearFields": "Xóa các trường hồ sơ",
+  "unitKcal": "kcal"
 }
