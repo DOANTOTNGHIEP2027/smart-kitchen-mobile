@@ -112,7 +112,7 @@ class FakeRepetitionApi implements RepetitionApi {
     if (error != null) throw error!;
     return RepetitionSummary(
       windowDays: windowDays,
-      windowStart: DateTime(2026, 10, 5),
+      windowStart: DateTime(2026, 10, 19).subtract(Duration(days: windowDays)),
       windowEnd: DateTime(2026, 10, 19),
       repeatedDishes: dishes,
     );
@@ -659,13 +659,15 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey<String>('repetition-empty')),
           findsOneWidget);
-      expect(find.textContaining('14 ngày qua'), findsOneWidget);
+      expect(
+          find.textContaining('từ 14 ngày trước đến hôm nay'), findsOneWidget);
 
       await tester
           .tap(find.byKey(const ValueKey<String>('repetition-window-7')));
       await tester.pumpAndSettle();
       expect(api.requested.last, 7);
-      expect(find.textContaining('7 ngày qua'), findsOneWidget);
+      expect(
+          find.textContaining('từ 7 ngày trước đến hôm nay'), findsOneWidget);
     });
 
     testWidgets(
@@ -678,7 +680,7 @@ void main() {
           wrapInScaffold: false);
       await tester.pumpAndSettle();
       expect(find.byType(RepetitionBarChart), findsOneWidget);
-      expect(find.text('3 lần'), findsOneWidget);
+      expect(find.text('Được gán 3 lần'), findsOneWidget);
       expect(find.byKey(const ValueKey<String>('repetition-dish-r-Canh')),
           findsOneWidget);
 

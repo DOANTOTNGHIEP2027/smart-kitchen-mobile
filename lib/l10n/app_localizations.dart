@@ -3162,7 +3162,7 @@ abstract class AppLocalizations {
   /// No description provided for @planningCandidateExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Everything below is a RAW suggestion from AI. The system then filters by allergies (mandatory) and ranks by diet, expiring food and variety — only the dish marked ⭐ is the FINAL pick confirmed by the algorithm.'**
+  /// **'The list shows allergy check results, scores and suggestion signals. ⭐ marks the algorithm\'s recommendation; repetition is an advisory signal.'**
   String get planningCandidateExplainer;
 
   /// No description provided for @planningCandidateEmpty.
@@ -3240,7 +3240,7 @@ abstract class AppLocalizations {
   /// No description provided for @planningCandidateBreakdown.
   ///
   /// In en, this message translates to:
-  /// **'Score breakdown'**
+  /// **'Suggestion signals'**
   String get planningCandidateBreakdown;
 
   /// No description provided for @planningCandidateWeight.
@@ -3252,7 +3252,7 @@ abstract class AppLocalizations {
   /// No description provided for @planningCandidateNoBreakdown.
   ///
   /// In en, this message translates to:
-  /// **'The engine returned no score breakdown.'**
+  /// **'No suggestion signal data is available.'**
   String get planningCandidateNoBreakdown;
 
   /// No description provided for @planningCandidateSession.
@@ -3276,7 +3276,7 @@ abstract class AppLocalizations {
   /// No description provided for @planningFeatureRepetitionPenalty.
   ///
   /// In en, this message translates to:
-  /// **'Recent repetition'**
+  /// **'Planned repetition signal'**
   String get planningFeatureRepetitionPenalty;
 
   /// No description provided for @planningFeatureNutritionFit.
@@ -3336,31 +3336,31 @@ abstract class AppLocalizations {
   /// No description provided for @planningRepetitionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Repeated dishes'**
+  /// **'Repeated dishes in the plan'**
   String get planningRepetitionTitle;
 
   /// No description provided for @planningRepetitionTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Repeated dishes'**
+  /// **'View planned dish repetition'**
   String get planningRepetitionTooltip;
 
   /// No description provided for @planningRepetitionWindow.
   ///
   /// In en, this message translates to:
-  /// **'{days} days'**
+  /// **'{days}-day lookback'**
   String planningRepetitionWindow(int days);
 
   /// No description provided for @planningRepetitionEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No dish repeated in the last {days} days 🎉'**
+  /// **'No assigned dish repeats from {days} days ago through today.'**
   String planningRepetitionEmpty(int days);
 
   /// No description provided for @planningRepetitionCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} times'**
+  /// **'Assigned {count} times'**
   String planningRepetitionCount(int count);
 
   /// No description provided for @tierFree.
@@ -4838,6 +4838,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'kcal'**
   String get unitKcal;
+
+  /// No description provided for @planningRepetitionWindowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Counts assigned dishes in the plan, including both the start and end dates.'**
+  String get planningRepetitionWindowHint;
+
+  /// No description provided for @planningRepetitionRange.
+  ///
+  /// In en, this message translates to:
+  /// **'From {start} to {end}'**
+  String planningRepetitionRange(String start, String end);
+
+  /// No description provided for @planningCandidateSignalsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bars show advisory signal levels.'**
+  String get planningCandidateSignalsHint;
+
+  /// No description provided for @planningRepetitionContextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Repetition information reflects dishes assigned in the plan.'**
+  String get planningRepetitionContextHint;
 }
 
 class _AppLocalizationsDelegate

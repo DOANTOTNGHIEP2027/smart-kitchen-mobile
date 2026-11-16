@@ -1681,7 +1681,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get planningCandidateExplainer =>
-      'Toàn bộ danh sách dưới đây là gợi ý THÔ do AI sinh ra. Hệ thống sau đó lọc theo dị ứng (bắt buộc) rồi xếp hạng theo chế độ ăn, thực phẩm sắp hết hạn và chống lặp món — chỉ món có ⭐ là LỰA CHỌN CUỐI CÙNG được thuật toán xác nhận.';
+      'Danh sách hiển thị kết quả kiểm tra dị ứng, điểm và các tín hiệu gợi ý. Món có ⭐ được thuật toán đề xuất; tín hiệu lặp món mang tính tham khảo.';
 
   @override
   String get planningCandidateEmpty => 'Chưa có gợi ý nào cho món này.';
@@ -1729,7 +1729,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get planningCandidateBreakdown => 'Chi tiết điểm';
+  String get planningCandidateBreakdown => 'Tín hiệu gợi ý';
 
   @override
   String planningCandidateWeight(String weight) {
@@ -1737,7 +1737,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get planningCandidateNoBreakdown => 'Engine không trả chi tiết điểm.';
+  String get planningCandidateNoBreakdown => 'Chưa có dữ liệu tín hiệu gợi ý.';
 
   @override
   String planningCandidateSession(String time) {
@@ -1751,7 +1751,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get planningFeatureExpiryUrgency => 'Thực phẩm sắp hết hạn';
 
   @override
-  String get planningFeatureRepetitionPenalty => 'Lặp món gần đây';
+  String get planningFeatureRepetitionPenalty => 'Tín hiệu lặp trong kế hoạch';
 
   @override
   String get planningFeatureNutritionFit => 'Phù hợp dinh dưỡng';
@@ -1781,24 +1781,24 @@ class AppLocalizationsVi extends AppLocalizations {
   String get planningFeatureGraphPath => 'Bằng chứng tri thức';
 
   @override
-  String get planningRepetitionTitle => 'Món lặp lại';
+  String get planningRepetitionTitle => 'Món lặp trong kế hoạch';
 
   @override
-  String get planningRepetitionTooltip => 'Thống kê món lặp lại';
+  String get planningRepetitionTooltip => 'Xem món lặp trong kế hoạch';
 
   @override
   String planningRepetitionWindow(int days) {
-    return '$days ngày';
+    return 'Lùi $days ngày';
   }
 
   @override
   String planningRepetitionEmpty(int days) {
-    return 'Chưa phát hiện món nào lặp lại trong $days ngày qua 🎉';
+    return 'Không có món được gán lặp từ $days ngày trước đến hôm nay.';
   }
 
   @override
   String planningRepetitionCount(int count) {
-    return '$count lần';
+    return 'Được gán $count lần';
   }
 
   @override
@@ -2667,4 +2667,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get unitKcal => 'kcal';
+
+  @override
+  String get planningRepetitionWindowHint =>
+      'Thống kê món đã gán trong kế hoạch; gồm cả ngày bắt đầu và ngày kết thúc.';
+
+  @override
+  String planningRepetitionRange(String start, String end) {
+    return 'Từ $start đến $end';
+  }
+
+  @override
+  String get planningCandidateSignalsHint =>
+      'Các thanh thể hiện mức tín hiệu tham khảo.';
+
+  @override
+  String get planningRepetitionContextHint =>
+      'Thông tin lặp món phản ánh các món đã gán trong kế hoạch.';
 }

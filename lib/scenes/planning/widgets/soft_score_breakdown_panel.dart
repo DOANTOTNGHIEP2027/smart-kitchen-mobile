@@ -25,8 +25,7 @@ String softScoreFeatureLabel(AppLocalizations l10n, String key) =>
       _ => key,
     };
 
-/// Bảng điểm mềm của 1 ứng viên PASSED — mỗi feature 1 thanh 0..1 kèm trọng
-/// số đọc từ response (thiết kế §8.3, không hardcode trọng số).
+/// Raw suggestion signals for a PASSED candidate, with upstream weights only.
 class SoftScoreBreakdownPanel extends StatelessWidget {
   const SoftScoreBreakdownPanel({super.key, required this.features});
 
@@ -45,6 +44,13 @@ class SoftScoreBreakdownPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
+        Text(
+          l10n.planningCandidateSignalsHint,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+        ),
+        const SizedBox(height: AppDimens.sm),
         for (final f in shown)
           Padding(
             padding: const EdgeInsets.only(bottom: AppDimens.sm),
