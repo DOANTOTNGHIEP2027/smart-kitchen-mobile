@@ -38,8 +38,7 @@ class SuggestionCard extends StatelessWidget {
       elevation: 0,
       shape: isMyVote
           ? RoundedRectangleBorder(
-              side: BorderSide(
-                  color: theme.colorScheme.primary, width: 2),
+              side: BorderSide(color: theme.colorScheme.primary, width: 2),
               borderRadius: BorderRadius.circular(AppDimens.radiusMd),
             )
           : RoundedRectangleBorder(
@@ -71,7 +70,8 @@ class SuggestionCard extends StatelessWidget {
                   ),
                 ],
               ),
-            if (compact) AllergenBanner(suggestion: suggestion)
+            if (compact)
+              AllergenBanner(suggestion: suggestion)
             else ...<Widget>[
               RecipeCoverImage(
                 recipeId: suggestion.recipeId,
@@ -86,7 +86,8 @@ class SuggestionCard extends StatelessWidget {
               AllergenBanner(suggestion: suggestion),
               if (suggestion.missingIngredients.isNotEmpty) ...<Widget>[
                 const SizedBox(height: AppDimens.sm),
-                Text(context.l10n.mealplanNeedsMore, style: theme.textTheme.titleSmall),
+                Text(context.l10n.mealplanNeedsMore,
+                    style: theme.textTheme.titleSmall),
                 ...suggestion.missingIngredients.map(
                   (IngredientItem i) => Padding(
                     padding: const EdgeInsets.only(left: AppDimens.md, top: 2),
@@ -141,6 +142,12 @@ class _SuggestionSummary extends StatelessWidget {
             suggestion.rankReason ?? context.l10n.mealplanNoReason,
             style: theme.textTheme.bodyMedium,
           ),
+          const SizedBox(height: AppDimens.xs),
+          Text(
+            context.l10n.planningRepetitionContextHint,
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: AppColors.textSecondary),
+          ),
           if (suggestion.tradeoffNote != null) ...<Widget>[
             const SizedBox(height: AppDimens.xs),
             Text(
@@ -183,8 +190,8 @@ class _TallyBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.sm, vertical: 2),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppDimens.sm, vertical: 2),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(12),

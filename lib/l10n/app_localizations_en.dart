@@ -1695,7 +1695,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planningCandidateExplainer =>
-      'Everything below is a RAW suggestion from AI. The system then filters by allergies (mandatory) and ranks by diet, expiring food and variety — only the dish marked ⭐ is the FINAL pick confirmed by the algorithm.';
+      'The list shows allergy check results, scores and suggestion signals. ⭐ marks the algorithm\'s recommendation; repetition is an advisory signal.';
 
   @override
   String get planningCandidateEmpty => 'No suggestions for this dish yet.';
@@ -1744,7 +1744,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get planningCandidateBreakdown => 'Score breakdown';
+  String get planningCandidateBreakdown => 'Suggestion signals';
 
   @override
   String planningCandidateWeight(String weight) {
@@ -1753,7 +1753,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planningCandidateNoBreakdown =>
-      'The engine returned no score breakdown.';
+      'No suggestion signal data is available.';
 
   @override
   String planningCandidateSession(String time) {
@@ -1767,7 +1767,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planningFeatureExpiryUrgency => 'Expiring food';
 
   @override
-  String get planningFeatureRepetitionPenalty => 'Recent repetition';
+  String get planningFeatureRepetitionPenalty => 'Planned repetition signal';
 
   @override
   String get planningFeatureNutritionFit => 'Nutrition fit';
@@ -1797,24 +1797,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planningFeatureGraphPath => 'Knowledge-graph evidence';
 
   @override
-  String get planningRepetitionTitle => 'Repeated dishes';
+  String get planningRepetitionTitle => 'Repeated dishes in the plan';
 
   @override
-  String get planningRepetitionTooltip => 'Repeated dishes';
+  String get planningRepetitionTooltip => 'View planned dish repetition';
 
   @override
   String planningRepetitionWindow(int days) {
-    return '$days days';
+    return '$days-day lookback';
   }
 
   @override
   String planningRepetitionEmpty(int days) {
-    return 'No dish repeated in the last $days days 🎉';
+    return 'No assigned dish repeats from $days days ago through today.';
   }
 
   @override
   String planningRepetitionCount(int count) {
-    return '$count times';
+    return 'Assigned $count times';
   }
 
   @override
@@ -2698,4 +2698,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unitKcal => 'kcal';
+
+  @override
+  String get planningRepetitionWindowHint =>
+      'Counts assigned dishes in the plan, including both the start and end dates.';
+
+  @override
+  String planningRepetitionRange(String start, String end) {
+    return 'From $start to $end';
+  }
+
+  @override
+  String get planningCandidateSignalsHint =>
+      'Bars show advisory signal levels.';
+
+  @override
+  String get planningRepetitionContextHint =>
+      'Repetition information reflects dishes assigned in the plan.';
 }
