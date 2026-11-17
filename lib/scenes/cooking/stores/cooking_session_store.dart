@@ -211,7 +211,9 @@ class CookingSessionStore {
       await _clearProgress(s);
       return;
     }
-    final bundle = await _recipeApi.getSteps(s.recipeId);
+    // #157: session có snapshot → bước đã chụp lúc start, KHÔNG gọi
+    // GET /recipes/{id}. `null` (session cũ) giữ luồng đọc recipe live.
+    final bundle = s.stepsSnapshot ?? await _recipeApi.getSteps(s.recipeId);
     if (_disposed) return;
     final count = math.min(s.totalSteps, bundle.length);
     if (count < 1) {
@@ -275,6 +277,24 @@ class CookingSessionStore {
     if (_viewedStep.value <= 1) return;
     _cancelTimer();
     runInAction(() => _viewedStep.value -= 1);
+  }
+
+  /// Vị trí 0-based của bước có `stepNumber` (trùng số ⇒ phần tử đầu tiên);
+  /// `-1` nếu không có — chip `stepRef` của trợ lý ẩn (§14.4).
+  int indexOfStepNumber(int stepNumber) =>
+      _steps.value.indexWhere((s) => s.stepNumber == stepNumber);
+
+  /// Chip "Bước N" của trợ lý: chỉ đổi bước ĐANG XEM, không đổi tiến độ.
+  void viewStepNumber(int stepNumber) {
+    final idx = indexOfStepNumber(stepNumber);
+    if (idx < 0 || _phase.value != CookingScreenPhase.active) return;
+    if (idx + 1 == currentStep) {
+      returnToCurrentStep();
+      return;
+    }
+    if (idx + 1 == _viewedStep.value) return;
+    _cancelTimer();
+    runInAction(() => _viewedStep.value = idx + 1);
   }
 
   void returnToCurrentStep() {

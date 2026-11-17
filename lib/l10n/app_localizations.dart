@@ -1257,6 +1257,114 @@ abstract class AppLocalizations {
   /// **'Reset'**
   String get cookingReset;
 
+  /// No description provided for @cookingAssistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking assistant'**
+  String get cookingAssistTitle;
+
+  /// No description provided for @cookingAssistHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about this step, substitutes, servings…'**
+  String get cookingAssistHint;
+
+  /// No description provided for @cookingAssistGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'How can I help with this step?'**
+  String get cookingAssistGreeting;
+
+  /// No description provided for @cookingAssistSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get cookingAssistSend;
+
+  /// No description provided for @cookingAssistSending.
+  ///
+  /// In en, this message translates to:
+  /// **'answering…'**
+  String get cookingAssistSending;
+
+  /// No description provided for @cookingAssistSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'This question needs a little more time'**
+  String get cookingAssistSlow;
+
+  /// No description provided for @cookingAssistOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline — the assistant needs a connection'**
+  String get cookingAssistOffline;
+
+  /// No description provided for @cookingAssistBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The assistant is busy, try again later'**
+  String get cookingAssistBusy;
+
+  /// No description provided for @cookingAssistRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get cookingAssistRetry;
+
+  /// No description provided for @cookingAssistFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t answer this question.'**
+  String get cookingAssistFiltered;
+
+  /// No description provided for @cookingAssistUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The assistant isn\'t available for this cooking session. You can keep cooking as usual.'**
+  String get cookingAssistUnavailable;
+
+  /// No description provided for @cookingAssistInStock.
+  ///
+  /// In en, this message translates to:
+  /// **'In your pantry'**
+  String get cookingAssistInStock;
+
+  /// No description provided for @cookingAssistUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion not checked for allergens'**
+  String get cookingAssistUnverified;
+
+  /// No description provided for @cookingAssistGuestsUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Guests\' allergies are not taken into account'**
+  String get cookingAssistGuestsUnknown;
+
+  /// No description provided for @cookingAssistBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not suggested because of allergies'**
+  String get cookingAssistBlocked;
+
+  /// No description provided for @cookingAssistFoodSafety.
+  ///
+  /// In en, this message translates to:
+  /// **'Check doneness and food safety yourself.'**
+  String get cookingAssistFoodSafety;
+
+  /// No description provided for @cookingAssistDegraded.
+  ///
+  /// In en, this message translates to:
+  /// **'Short answer — the assistant is limited'**
+  String get cookingAssistDegraded;
+
+  /// No description provided for @cookingAssistStepChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {step}'**
+  String cookingAssistStepChip(int step);
+
   /// No description provided for @allergensTitle.
   ///
   /// In en, this message translates to:
