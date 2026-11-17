@@ -1,5 +1,7 @@
+import 'package:smart_kitchen_mobile/scenes/cooking/data/cooking_assist_api.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/data/cooking_session_api.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/data/recipe_api.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_assist.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session_result.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session_step.dart';
@@ -48,11 +50,68 @@ class FakeCookingApi implements CookingSessionApi {
 class FakeRecipeApi implements RecipeApi {
   Future<List<CookingSessionStep>> Function(String recipeId)? onGetSteps;
   Object? onGetStepsError;
+  int getStepsCalls = 0;
 
   @override
   Future<List<CookingSessionStep>> getSteps(String recipeId) async {
+    getStepsCalls++;
     if (onGetStepsError != null) throw onGetStepsError!;
     if (onGetSteps != null) return onGetSteps!(recipeId);
     throw UnimplementedError();
   }
 }
+
+/// Một lần gọi `ask` đã ghi lại — test đối chiếu payload gửi lên.
+class AssistCall {
+  AssistCall(this.sessionId, this.message, this.viewedStep, this.chatHistory);
+
+  final String sessionId;
+  final String message;
+  final int viewedStep;
+  final List<ChatTurn> chatHistory;
+}
+
+class FakeCookingAssistApi implements CookingAssistApi {
+  final List<AssistCall> calls = <AssistCall>[];
+  Future<CookingAssistData> Function(AssistCall call)? onAsk;
+
+  @override
+  Future<CookingAssistData> ask(
+    String sessionId, {
+    required String message,
+    required int viewedStep,
+    required List<ChatTurn> chatHistory,
+  }) async {
+    final call = AssistCall(sessionId, message, viewedStep, chatHistory);
+    calls.add(call);
+    if (onAsk != null) return onAsk!(call);
+    throw UnimplementedError();
+  }
+}
+
+CookingAssistData assistData({
+  String answer = 'OK',
+  AssistIntent intent = AssistIntent.stepQa,
+  int? stepRef,
+  bool fallback = false,
+  List<SubstituteOption> substitutes = const <SubstituteOption>[],
+  List<BlockedSubstitute> blocked = const <BlockedSubstitute>[],
+  List<ScaledIngredient> scaled = const <ScaledIngredient>[],
+  bool guestsUnknown = true,
+}) =>
+    CookingAssistData(
+      requestId: 'req-1',
+      intent: intent,
+      answer: answer,
+      stepRef: stepRef,
+      substitutes: substitutes,
+      blockedSubstitutes: blocked,
+      scaledIngredients: scaled,
+      fallback: fallback,
+      contextSource: AssistContextSource.snapshot,
+      allergenScope: AllergenScope(
+        householdMembers: true,
+        dependents: false,
+        guestsUnknown: guestsUnknown,
+      ),
+    );

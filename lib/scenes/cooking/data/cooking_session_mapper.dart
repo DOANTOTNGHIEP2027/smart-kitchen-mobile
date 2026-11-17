@@ -32,6 +32,11 @@ CookingSession mapCookingSession(Map<String, dynamic> json) {
     endedAt: json['endedAt'] == null
         ? null
         : DateTime.parse(json['endedAt'] as String),
+    // `StepSnapshot` (cooking-session.yaml) cùng shape camelCase với Step
+    // của recipe-core → dùng chung mapper, vẫn quy đổi phút → giây.
+    stepsSnapshot: (json['stepsSnapshot'] as List<dynamic>?)
+        ?.map((Object? e) => mapCookingSessionStep(e as Map<String, dynamic>))
+        .toList(growable: false),
   );
 }
 

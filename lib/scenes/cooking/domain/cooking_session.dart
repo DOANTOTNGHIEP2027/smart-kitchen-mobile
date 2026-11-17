@@ -1,3 +1,5 @@
+import 'cooking_session_step.dart';
+
 /// Trạng thái cooking session (FE-6 §5, #76).
 ///
 /// Wire format ghép với BE:
@@ -49,6 +51,7 @@ class CookingSession {
     required this.totalSteps,
     required this.startedAt,
     this.endedAt,
+    this.stepsSnapshot,
   });
 
   final String id;
@@ -60,6 +63,9 @@ class CookingSession {
   final int totalSteps;
   final DateTime startedAt;
   final DateTime? endedAt;
+
+  /// Bước chụp lúc start (#157). `null` = session cũ → đọc recipe live.
+  final List<CookingSessionStep>? stepsSnapshot;
 
   CookingSession copyWith({
     CookingSessionStatusWire? status,
@@ -75,5 +81,6 @@ class CookingSession {
         totalSteps: totalSteps,
         startedAt: startedAt,
         endedAt: endedAt ?? this.endedAt,
+        stepsSnapshot: stepsSnapshot,
       );
 }

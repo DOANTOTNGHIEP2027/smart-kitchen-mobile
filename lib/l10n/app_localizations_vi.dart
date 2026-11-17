@@ -629,6 +629,65 @@ class AppLocalizationsVi extends AppLocalizations {
   String get cookingReset => 'Đặt lại';
 
   @override
+  String get cookingAssistTitle => 'Trợ lý nấu ăn';
+
+  @override
+  String get cookingAssistHint =>
+      'Hỏi về bước này, thay nguyên liệu, đổi khẩu phần…';
+
+  @override
+  String get cookingAssistGreeting => 'Mình có thể giúp gì cho bước này?';
+
+  @override
+  String get cookingAssistSend => 'Gửi';
+
+  @override
+  String get cookingAssistSending => 'đang trả lời…';
+
+  @override
+  String get cookingAssistSlow => 'Câu hỏi này cần thêm chút thời gian';
+
+  @override
+  String get cookingAssistOffline => 'Bạn đang offline — trợ lý cần mạng';
+
+  @override
+  String get cookingAssistBusy => 'Trợ lý đang bận, thử lại sau';
+
+  @override
+  String get cookingAssistRetry => 'Thử lại';
+
+  @override
+  String get cookingAssistFiltered => 'Không trả lời được câu này.';
+
+  @override
+  String get cookingAssistUnavailable =>
+      'Trợ lý không dùng được cho buổi nấu này. Bạn vẫn nấu tiếp bình thường.';
+
+  @override
+  String get cookingAssistInStock => 'Có trong kho';
+
+  @override
+  String get cookingAssistUnverified => 'Gợi ý chưa kiểm chứng dị ứng';
+
+  @override
+  String get cookingAssistGuestsUnknown => 'Chưa tính dị ứng của khách ăn cùng';
+
+  @override
+  String get cookingAssistBlocked => 'Không gợi ý vì dị ứng';
+
+  @override
+  String get cookingAssistFoodSafety =>
+      'Hãy tự kiểm tra độ chín và an toàn thực phẩm.';
+
+  @override
+  String get cookingAssistDegraded => 'Trả lời rút gọn — trợ lý đang hạn chế';
+
+  @override
+  String cookingAssistStepChip(int step) {
+    return 'Bước $step';
+  }
+
+  @override
   String get allergensTitle => 'Dị ứng của tôi';
 
   @override

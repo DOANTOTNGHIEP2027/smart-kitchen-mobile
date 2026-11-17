@@ -509,6 +509,11 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (cookingAbandon != null && method == 'POST') {
       return _abandonCooking(cookingAbandon.group(1)!);
     }
+    final cookingAssist =
+        RegExp(r'^/api/v1/cooking/sessions/([^/]+)/assist$').firstMatch(path);
+    if (cookingAssist != null && method == 'POST') {
+      return _assistCooking(cookingAssist.group(1)!, body);
+    }
     final cookingSession =
         RegExp(r'^/api/v1/cooking/sessions/([^/]+)$').firstMatch(path);
     if (cookingSession != null && method == 'GET') {
@@ -1487,6 +1492,42 @@ class DemoBackendAdapter implements HttpClientAdapter {
       ..['status'] = 'ABANDONED'
       ..['endedAt'] = DateTime.now().toUtc().toIso8601String();
     return _ok(200, session);
+  }
+
+  /// Trợ lý nấu ăn (#157) — demo chỉ trả lời STEP_QA dạng rút gọn theo bước
+  /// đang xem, đủ để đi hết luồng FAB → sheet → bubble.
+  ResponseBody _assistCooking(String sessionId, Map<String, dynamic> body) {
+    final session = _cookingSessions[sessionId];
+    if (session == null) {
+      return _error(
+          404, 'ERR_SESSION_NOT_FOUND', 'Không tìm thấy phiên nấu ăn.');
+    }
+    if (session['status'] == 'COMPLETED' || session['status'] == 'ABANDONED') {
+      return _error(409, 'ERR_SESSION_ALREADY_ENDED', 'Phiên nấu đã kết thúc.');
+    }
+    final viewedStep = body['viewedStep'] as int? ?? 1;
+    final steps = DemoFixtures.recipe(session['recipeId'] as String)['steps']
+        as List<dynamic>;
+    final step = steps.cast<Map<String, dynamic>>().firstWhere(
+          (s) => s['step_number'] == viewedStep,
+          orElse: () => steps.first as Map<String, dynamic>,
+        );
+    return _ok(200, <String, dynamic>{
+      'requestId': 'demo-assist-${_cookingSequence++}',
+      'intent': 'STEP_QA',
+      'answer': 'Bước ${step['step_number']}: ${step['instruction']}',
+      'stepRef': step['step_number'],
+      'substitutes': <Object>[],
+      'blockedSubstitutes': <Object>[],
+      'scaledIngredients': <Object>[],
+      'fallback': true,
+      'contextSource': 'LIVE_RECIPE',
+      'allergenScope': <String, dynamic>{
+        'householdMembers': true,
+        'dependents': false,
+        'guestsUnknown': true,
+      },
+    });
   }
 
   ResponseBody _getCookingSession(String sessionId) {

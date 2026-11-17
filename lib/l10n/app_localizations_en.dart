@@ -636,6 +636,66 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cookingReset => 'Reset';
 
   @override
+  String get cookingAssistTitle => 'Cooking assistant';
+
+  @override
+  String get cookingAssistHint => 'Ask about this step, substitutes, servings…';
+
+  @override
+  String get cookingAssistGreeting => 'How can I help with this step?';
+
+  @override
+  String get cookingAssistSend => 'Send';
+
+  @override
+  String get cookingAssistSending => 'answering…';
+
+  @override
+  String get cookingAssistSlow => 'This question needs a little more time';
+
+  @override
+  String get cookingAssistOffline =>
+      'You\'re offline — the assistant needs a connection';
+
+  @override
+  String get cookingAssistBusy => 'The assistant is busy, try again later';
+
+  @override
+  String get cookingAssistRetry => 'Try again';
+
+  @override
+  String get cookingAssistFiltered => 'Can\'t answer this question.';
+
+  @override
+  String get cookingAssistUnavailable =>
+      'The assistant isn\'t available for this cooking session. You can keep cooking as usual.';
+
+  @override
+  String get cookingAssistInStock => 'In your pantry';
+
+  @override
+  String get cookingAssistUnverified => 'Suggestion not checked for allergens';
+
+  @override
+  String get cookingAssistGuestsUnknown =>
+      'Guests\' allergies are not taken into account';
+
+  @override
+  String get cookingAssistBlocked => 'Not suggested because of allergies';
+
+  @override
+  String get cookingAssistFoodSafety =>
+      'Check doneness and food safety yourself.';
+
+  @override
+  String get cookingAssistDegraded => 'Short answer — the assistant is limited';
+
+  @override
+  String cookingAssistStepChip(int step) {
+    return 'Step $step';
+  }
+
+  @override
   String get allergensTitle => 'My allergens';
 
   @override

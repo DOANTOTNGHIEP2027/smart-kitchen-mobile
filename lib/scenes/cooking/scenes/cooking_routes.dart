@@ -4,11 +4,14 @@ import '../../../data/network/dio_client.dart';
 import '../../../data/db/read_cache_dao.dart';
 import '../data/cooking_progress_store.dart';
 import '../../../routing/route_guards.dart';
+import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
 import '../../profile/api/health_api.dart';
+import '../data/cooking_assist_api.dart';
 import '../data/cooking_session_api.dart';
 import '../data/meal_log_api.dart';
 import '../data/recipe_api.dart';
+import '../stores/cooking_assist_store.dart';
 import '../stores/cooking_session_store.dart';
 import '../stores/meal_log_store.dart';
 import 'cooking_session_scene.dart';
@@ -102,6 +105,25 @@ class CookingSessionBinding extends Bindings {
         };
       },
     );
+    // Trợ lý (#157): sống/chết cùng màn nấu, scene gọi dispose().
+    Get.lazyPut<CookingAssistStore>(() {
+      if (!Get.isRegistered<CookingAssistApi>()) {
+        Get.put<CookingAssistApi>(CookingAssistApiImpl(Get.find<DioClient>()),
+            permanent: true);
+      }
+      final cooking = Get.find<CookingSessionStore>();
+      final session = Get.find<SessionStore>();
+      final connectivity = Get.isRegistered<ConnectivityService>()
+          ? Get.find<ConnectivityService>()
+          : null;
+      return CookingAssistStore(
+        api: Get.find<CookingAssistApi>(),
+        sessionId: () => cooking.session?.id,
+        viewedStepNumber: () => cooking.viewedStepDef?.stepNumber,
+        isOnline: () => connectivity?.isOnlineNow ?? true,
+        accountScope: () => '${session.currentUser?.id}|${session.householdId}',
+      );
+    });
   }
 }
 

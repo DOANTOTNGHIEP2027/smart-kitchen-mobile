@@ -13,7 +13,9 @@ import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/cards/app_card.dart';
 import '../../../widgets/states/app_loading_view.dart';
+import '../stores/cooking_assist_store.dart';
 import '../stores/cooking_session_store.dart';
+import '../widgets/cooking_assist_sheet.dart';
 import '../widgets/ingredient_deduction_list.dart';
 import '../widgets/step_progress_bar.dart';
 import '../widgets/step_timer_view.dart';
@@ -36,6 +38,9 @@ class CookingSessionScene extends StatefulWidget {
 class _CookingSessionSceneState extends State<CookingSessionScene>
     with WidgetsBindingObserver {
   late final CookingSessionStore _store;
+
+  /// Trợ lý (#157) — `null` khi binding không đăng ký (vd. test cũ).
+  CookingAssistStore? _assist;
   ReactionDisposer? _wakelockReaction;
   ReactionDisposer? _actionErrorReaction;
 
@@ -48,6 +53,9 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
   void initState() {
     super.initState();
     _store = Get.find<CookingSessionStore>();
+    if (Get.isRegistered<CookingAssistStore>()) {
+      _assist = Get.find<CookingAssistStore>();
+    }
     WidgetsBinding.instance.addObserver(this);
 
     // Bật WakeLock ngay khi vào màn hình — mục đích của cả màn hình là screen-on
@@ -157,6 +165,8 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable(); // idempotent-safe dù reaction đã tắt trước đó
     _store.dispose();
+    // Rời màn → history trợ lý bị xoá, response muộn bị bỏ (§14.2).
+    _assist?.dispose();
     super.dispose();
   }
 
@@ -226,6 +236,7 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
       case CookingScreenPhase.active:
         return _ActiveStepView(
           store: store,
+          assist: _assist,
           onAbandon: _showAbandonConfirmDialog,
         );
       case CookingScreenPhase.completed:
@@ -282,9 +293,14 @@ class _ErrorPhaseView extends StatelessWidget {
 
 /// Phase `active` — top bar + progress + nội dung bước + timer + nút hành động.
 class _ActiveStepView extends StatelessWidget {
-  const _ActiveStepView({required this.store, required this.onAbandon});
+  const _ActiveStepView({
+    required this.store,
+    required this.assist,
+    required this.onAbandon,
+  });
 
   final CookingSessionStore store;
+  final CookingAssistStore? assist;
   final Future<void> Function() onAbandon;
 
   @override
@@ -299,6 +315,7 @@ class _ActiveStepView extends StatelessWidget {
           onPressed: onAbandon,
         ),
       ],
+      floatingActionButton: _assistFab(context, store, assist),
       body: Observer(
         builder: (_) {
           final busy =
@@ -394,6 +411,27 @@ class _ActiveStepView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// FAB trợ lý — chỉ ở `phase=active` (view này) và khi trợ lý chưa bị tắt
+/// (409/404). Đẩy lên trên hàng nút "Bước tiếp" để không che nút.
+Widget? _assistFab(BuildContext context, CookingSessionStore store,
+    CookingAssistStore? assist) {
+  if (assist == null) return null;
+  return Observer(
+    builder: (_) => assist.isDisabled
+        ? const SizedBox.shrink()
+        : Padding(
+            padding:
+                const EdgeInsets.only(bottom: AppDimens.xxl + AppDimens.lg),
+            child: FloatingActionButton(
+              tooltip: context.l10n.cookingAssistTitle,
+              onPressed: () => showCookingAssistSheet(context,
+                  assist: assist, cooking: store),
+              child: const Icon(Icons.chat_bubble_outline),
+            ),
+          ),
+  );
 }
 
 /// Phase `completed` — hiển thị danh sách ingredient_deductions + nút "Xong".
