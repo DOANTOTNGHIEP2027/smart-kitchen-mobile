@@ -1,11 +1,10 @@
 /// Kết quả trừ kho cho 1 ingredient sau khi complete() (#76, OAS
 /// `IngredientDeduction`).
 ///
-/// `shortfallQuantity > 0` nghĩa là kho KHÔNG đủ để trừ hết lượng yêu cầu —
-/// BE FIFO nearest-expiry trừ đến đâu hết rồi dừng, không raise lỗi
-/// (complete() luôn trả 200 khi session hợp lệ, xem OAS POST /complete).
-/// FE dùng [hasShortfall] để badge cảnh báo trên UI kết quả — đây là cách FE
-/// biểu diễn "thiếu nguyên liệu" mà không văng lỗi đỏ.
+/// `shortfallQuantity > 0` chỉ xuất hiện khi người dùng đã xác nhận
+/// "Hoàn tất dù thiếu" (`allowShortfall=true`) — BE FIFO nearest-expiry trừ
+/// đến đâu hết rồi dừng. Không xác nhận thì BE trả 409 và không trừ gì
+/// (OD-36). FE dùng [hasShortfall] để badge cảnh báo trên UI kết quả.
 class IngredientDeduction {
   const IngredientDeduction({
     required this.ingredientName,

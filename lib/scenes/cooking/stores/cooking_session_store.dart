@@ -12,6 +12,8 @@ import '../../cooking/data/recipe_api.dart';
 import '../../cooking/domain/cooking_session.dart';
 import '../../cooking/domain/cooking_session_step.dart';
 import '../../cooking/domain/ingredient_deduction.dart';
+import '../data/cooking_session_mapper.dart';
+import '../domain/missing_ingredient.dart';
 
 /// Phase của màn hình cooking (FE-6 §6.1 — state machine 5 nhánh).
 ///
@@ -76,6 +78,12 @@ class CookingSessionStore {
   final Observable<ApiException?> _actionError =
       Observable<ApiException?>(null);
 
+  /// Khác `null` khi `complete()` vừa nhận 409 thiếu kho (OD-36) — màn hình
+  /// mở sheet hỏi "Hoàn tất dù thiếu" / "Quay lại nấu". List rỗng = BE không
+  /// gửi được chi tiết, sheet vẫn phải hiện.
+  final Observable<List<MissingIngredient>?> _shortfall =
+      Observable<List<MissingIngredient>?>(null);
+
   /// Thao tác vừa sinh [actionError] — "Thử lại" gọi lại đúng nó (OD-18).
   /// `null` với abandon (dialog Huỷ bỏ vẫn mở, người dùng bấm lại ở đó) và
   /// với lỗi chắc chắn lặp lại ([_isRetryableActionError]).
@@ -100,7 +108,13 @@ class CookingSessionStore {
   static const Set<String> _nonRetryableActionErrorCodes = <String>{
     'ERR_SESSION_NOT_FOUND',
     'ERR_SESSION_NO_HOUSEHOLD',
+    // Chỉ tới đây khi BE vẫn trả mã này dù đã `allowShortfall=true` — gọi lại
+    // y nguyên chỉ lặp (OD-36).
+    _insufficientStockCode,
   };
+
+  static const String _insufficientStockCode =
+      'ERR_INSUFFICIENT_STOCK_FOR_RECIPE';
 
   // ── Getters ──────────────────────────────────────────────────────────────
 
@@ -118,6 +132,7 @@ class CookingSessionStore {
   bool get isAbandoning => _isAbandoning.value;
   ApiException? get loadError => _loadError.value;
   ApiException? get actionError => _actionError.value;
+  List<MissingIngredient>? get shortfall => _shortfall.value;
   bool get canRetryAction => _retryAction.value != null;
 
   /// Đang GET lại session (resync) — nút chính phải khoá như khi advance.
@@ -264,10 +279,18 @@ class CookingSessionStore {
     switch (status) {
       case CookingSessionStatusWire.inProgress:
         runInAction(() => _phase.value = CookingScreenPhase.active);
+      // Session đã kết thúc (vd. resync sau ALREADY_ENDED) → câu hỏi "hoàn
+      // tất dù thiếu" không còn ý nghĩa, đóng sheet.
       case CookingSessionStatusWire.completed:
-        runInAction(() => _phase.value = CookingScreenPhase.completed);
+        runInAction(() {
+          _shortfall.value = null;
+          _phase.value = CookingScreenPhase.completed;
+        });
       case CookingSessionStatusWire.abandoned:
-        runInAction(() => _phase.value = CookingScreenPhase.abandoned);
+        runInAction(() {
+          _shortfall.value = null;
+          _phase.value = CookingScreenPhase.abandoned;
+        });
     }
   }
 
@@ -340,9 +363,14 @@ class CookingSessionStore {
   }
 
   /// Hoàn thành — trừ kho FIFO nearest-expiry, atomic (#76 D1).
-  /// BE luôn trả 200 khi session hợp lệ — shortfall nằm trong deductions, FE
-  /// dùng [IngredientDeduction.hasShortfall] để render cảnh báo (OD-04).
-  Future<void> complete() async {
+  ///
+  /// Thiếu kho mà `allowShortfall == false` → BE trả 409
+  /// `ERR_INSUFFICIENT_STOCK_FOR_RECIPE`, rollback toàn bộ (kho không đổi,
+  /// session vẫn IN_PROGRESS) → set [shortfall] để màn hình hỏi người dùng,
+  /// KHÔNG phải [actionError] — "Thử lại" y nguyên sẽ nhận lại đúng 409 đó
+  /// (OD-36). `allowShortfall == true` → BE trừ tới đâu hay tới đó, shortfall
+  /// nằm trong deductions ([IngredientDeduction.hasShortfall]).
+  Future<void> complete({bool allowShortfall = false}) async {
     final s = _session.value;
     if (s == null ||
         phase != CookingScreenPhase.active ||
@@ -354,29 +382,67 @@ class CookingSessionStore {
       _retryAction.value = null;
       _isCompleting.value = true;
       _actionError.value = null;
+      // Về null trước — 409 lần sau set lại giá trị mới, reaction của màn
+      // hình luôn thấy thay đổi và mở lại sheet.
+      _shortfall.value = null;
     });
     try {
-      final result = await _cookingApi.complete(s.id);
+      final result =
+          await _cookingApi.complete(s.id, allowShortfall: allowShortfall);
       runInAction(() {
         _session.value = result.session;
         _deductions.value = result.deductions;
+        _shortfall.value = null;
       });
       _cancelTimer();
       runInAction(() => _phase.value = CookingScreenPhase.completed);
       await _clearProgress(result.session);
     } catch (e) {
-      if (e is BusinessException && e.code == 'ERR_SESSION_ALREADY_ENDED') {
+      if (e is BusinessException &&
+          e.code == _insufficientStockCode &&
+          !allowShortfall) {
+        if (!_disposed) {
+          runInAction(
+              () => _shortfall.value = mapMissingIngredients(e.details));
+        }
+      } else if (e is BusinessException &&
+          e.code == 'ERR_SESSION_ALREADY_ENDED') {
         await _resyncSessionFromServer();
       } else if (e is ApiException) {
         // Bao gồm ERR_SESSION_COMPLETE_CONFLICT (deadlock, retry an toàn) và
-        // mọi mã khác — UI hiện banner retry.
-        _setActionError(e, _retryComplete);
+        // mọi mã khác — UI hiện banner retry. Retry giữ nguyên
+        // `allowShortfall` người dùng đã xác nhận.
+        _setActionError(e,
+            allowShortfall ? _retryCompleteWithShortfall : _retryComplete);
       } else {
         rethrow;
       }
     } finally {
       runInAction(() => _isCompleting.value = false);
     }
+  }
+
+  /// "Hoàn tất dù thiếu" trên sheet thiếu nguyên liệu (OD-36).
+  /// Chỉ người dùng bấm xác nhận mới tới đây — KHÔNG bao giờ tự gửi
+  /// `allowShortfall=true`.
+  Future<void> completeWithShortfall() async {
+    if (_disposed || _shortfall.value == null) return;
+    if (phase != CookingScreenPhase.active ||
+        isCompleting ||
+        isAbandoning ||
+        isResyncing) {
+      // Sheet đã đóng — không để câu hỏi treo; người dùng bấm Hoàn thành lại.
+      dismissShortfall();
+      return;
+    }
+    runInAction(() => _shortfall.value = null);
+    await complete(allowShortfall: true);
+  }
+
+  /// "Quay lại nấu" / đóng sheet — kho chưa bị trừ, tiếp tục nấu bình thường.
+  void dismissShortfall() {
+    if (_shortfall.value == null) return;
+    runInAction(() => _shortfall.value = null);
   }
 
   /// Abandon — đóng session, KHÔNG đụng kho (#76).
@@ -397,7 +463,10 @@ class CookingSessionStore {
       final updated = await _cookingApi.abandon(s.id);
       runInAction(() => _session.value = updated);
       _cancelTimer();
-      runInAction(() => _phase.value = CookingScreenPhase.abandoned);
+      runInAction(() {
+        _shortfall.value = null;
+        _phase.value = CookingScreenPhase.abandoned;
+      });
       await _clearProgress(updated);
     } catch (e) {
       if (e is BusinessException && e.code == 'ERR_SESSION_ALREADY_ENDED') {
@@ -529,6 +598,11 @@ class CookingSessionStore {
   Future<void> _retryComplete() async {
     returnToCurrentStep();
     await complete();
+  }
+
+  Future<void> _retryCompleteWithShortfall() async {
+    returnToCurrentStep();
+    await complete(allowShortfall: true);
   }
 
   /// "Thử lại" trên snackbar: xoá lỗi rồi gọi lại đúng thao tác vừa lỗi.

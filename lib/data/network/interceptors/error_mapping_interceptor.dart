@@ -52,6 +52,7 @@ class ErrorMappingInterceptor extends Interceptor {
       mapped = BusinessException(
         apiError?.code ?? 'ERR_UNKNOWN',
         apiError?.message ?? 'Request failed',
+        details: apiError?.details,
       );
     }
     handler.reject(_wrap(err, mapped));

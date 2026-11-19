@@ -1221,6 +1221,67 @@ abstract class AppLocalizations {
   /// **'Insufficient'**
   String get cookingInsufficient;
 
+  /// No description provided for @cookingShortfallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough ingredients in stock'**
+  String get cookingShortfallTitle;
+
+  /// No description provided for @cookingShortfallMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has been deducted from inventory yet. Restock and tap Complete again, or complete now — inventory will be deducted as far as it goes.'**
+  String get cookingShortfallMessage;
+
+  /// No description provided for @cookingShortfallLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Need {required} · Have {available} · Short {shortfall} {unit}'**
+  String cookingShortfallLine(
+      String required, String available, String shortfall, String unit);
+
+  /// No description provided for @cookingShortfallNoDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The list of missing ingredients is unavailable.'**
+  String get cookingShortfallNoDetail;
+
+  /// No description provided for @cookingShortfallConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete anyway (deduct what is in stock)'**
+  String get cookingShortfallConfirm;
+
+  /// No description provided for @cookingShortfallBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to cooking'**
+  String get cookingShortfallBack;
+
+  /// No description provided for @cookingUnitGram.
+  ///
+  /// In en, this message translates to:
+  /// **'g'**
+  String get cookingUnitGram;
+
+  /// No description provided for @cookingUnitMilliliter.
+  ///
+  /// In en, this message translates to:
+  /// **'ml'**
+  String get cookingUnitMilliliter;
+
+  /// No description provided for @cookingUnitPiece.
+  ///
+  /// In en, this message translates to:
+  /// **'pcs'**
+  String get cookingUnitPiece;
+
+  /// No description provided for @cookingUnitUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'units'**
+  String get cookingUnitUnit;
+
   /// No description provided for @cookingStepProgress.
   ///
   /// In en, this message translates to:

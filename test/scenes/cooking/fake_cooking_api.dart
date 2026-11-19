@@ -25,9 +25,21 @@ class FakeCookingApi implements CookingSessionApi {
     throw UnimplementedError();
   }
 
+  /// Ưu tiên hơn [onComplete] khi test cần phân biệt `allowShortfall`.
+  Future<CookingSessionResult> Function(String id, bool allowShortfall)?
+      onCompleteWith;
+
+  /// Giá trị `allowShortfall` của từng lần gọi `complete` — theo thứ tự.
+  final List<bool> completeCalls = <bool>[];
+
   @override
-  Future<CookingSessionResult> complete(String sessionId) async {
+  Future<CookingSessionResult> complete(String sessionId,
+      {bool allowShortfall = false}) async {
+    completeCalls.add(allowShortfall);
     if (onCompleteError != null) throw onCompleteError!;
+    if (onCompleteWith != null) {
+      return onCompleteWith!(sessionId, allowShortfall);
+    }
     if (onComplete != null) return onComplete!(sessionId);
     throw UnimplementedError();
   }

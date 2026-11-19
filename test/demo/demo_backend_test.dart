@@ -7,6 +7,7 @@ import 'package:smart_kitchen_mobile/data/network/dio_client.dart';
 import 'package:smart_kitchen_mobile/demo/demo_backend_adapter.dart';
 import 'package:smart_kitchen_mobile/scenes/auth/api/auth_api.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/data/cooking_session_api.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/data/cooking_session_mapper.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/data/meal_log_api.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/data/recipe_api.dart';
 import 'package:smart_kitchen_mobile/scenes/household/api/household_api.dart';
@@ -237,6 +238,23 @@ void main() {
 
     expect(completed.session.recipeId, recipeId);
     expect(completed.deductions, isNotEmpty);
+  });
+
+  test('phiên nấu demo thiếu kho → 409 kèm chi tiết, xác nhận thì hoàn tất',
+      () async {
+    final started = await cookingApi.start('demo-recipe-canh-chua');
+
+    await expectLater(
+      cookingApi.complete(started.id),
+      throwsA(isA<BusinessException>()
+          .having((e) => e.code, 'code', 'ERR_INSUFFICIENT_STOCK_FOR_RECIPE')
+          .having((e) => mapMissingIngredients(e.details), 'missing',
+              isNotEmpty)),
+    );
+
+    final completed =
+        await cookingApi.complete(started.id, allowShortfall: true);
+    expect(completed.deductions.any((d) => d.hasShortfall), isTrue);
   });
 
   test('tổng kết tuần và chuỗi demo parse chuẩn model production', () async {

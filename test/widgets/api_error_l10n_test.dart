@@ -19,4 +19,8 @@ void main() {
   test('mã nghiệp vụ khác → giữ message BE', () {
     expect(apiErrorMessage(l10n, BusinessException('ERR_HH_004', 'Chỉ chủ hộ')), 'Chỉ chủ hộ');
   });
+
+  test('ERR_INSUFFICIENT_STOCK_FOR_RECIPE → copy l10n (OD-36)', () {
+    expect(apiErrorMessage(l10n, BusinessException('ERR_INSUFFICIENT_STOCK_FOR_RECIPE', 'Not enough stock')), l10n.cookingShortfallTitle);
+  });
 }

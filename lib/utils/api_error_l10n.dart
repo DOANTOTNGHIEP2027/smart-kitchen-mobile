@@ -17,6 +17,8 @@ String apiErrorMessage(AppLocalizations l10n, ApiException? error,
   return switch (error.code) {
     'ERR_NETWORK' => l10n.networkError,
     'ERR_UNKNOWN' || 'ERR_INTERNAL' => fallback ?? l10n.genericRetryError,
+    // Message BE là tiếng Anh kỹ thuật (OD-36).
+    'ERR_INSUFFICIENT_STOCK_FOR_RECIPE' => l10n.cookingShortfallTitle,
     _ => error.message,
   };
 }

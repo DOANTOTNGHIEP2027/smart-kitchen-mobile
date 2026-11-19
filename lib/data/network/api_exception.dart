@@ -4,12 +4,15 @@
 /// liệt kê từng chuỗi `ERR_*` của BE. Code gốc luôn được giữ nguyên ở [code]
 /// để feature tự diễn giải code của module mình.
 sealed class ApiException implements Exception {
-  ApiException(this.code, this.message, {this.fieldErrors});
+  ApiException(this.code, this.message, {this.fieldErrors, this.details});
 
   /// Error code gốc từ BE, luôn được giữ nguyên.
   final String code;
   final String message;
   final Map<String, String>? fieldErrors;
+
+  /// `error.details` gốc của BE — feature tự diễn giải theo [code].
+  final Map<String, dynamic>? details;
 
   @override
   String toString() => '$runtimeType($code): $message';
@@ -43,5 +46,5 @@ class ServerException extends ApiException {
 /// Mọi trường hợp còn lại có envelope hợp lệ: 403/404/409/429/4xx khác chưa
 /// được liệt kê ở trên. Code của feature switch theo [code] để xử lý chi tiết.
 class BusinessException extends ApiException {
-  BusinessException(super.code, super.message);
+  BusinessException(super.code, super.message, {super.details});
 }

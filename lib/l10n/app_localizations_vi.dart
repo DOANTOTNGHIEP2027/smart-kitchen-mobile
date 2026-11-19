@@ -605,6 +605,41 @@ class AppLocalizationsVi extends AppLocalizations {
   String get cookingInsufficient => 'Không đủ';
 
   @override
+  String get cookingShortfallTitle => 'Kho không đủ nguyên liệu';
+
+  @override
+  String get cookingShortfallMessage =>
+      'Chưa trừ gì khỏi kho. Bạn có thể bổ sung kho rồi bấm Hoàn thành lại, hoặc hoàn tất ngay — kho sẽ trừ tới đâu hay tới đó.';
+
+  @override
+  String cookingShortfallLine(
+      String required, String available, String shortfall, String unit) {
+    return 'Cần $required · Có $available · Thiếu $shortfall $unit';
+  }
+
+  @override
+  String get cookingShortfallNoDetail =>
+      'Không lấy được danh sách nguyên liệu thiếu.';
+
+  @override
+  String get cookingShortfallConfirm => 'Hoàn tất dù thiếu (trừ phần đang có)';
+
+  @override
+  String get cookingShortfallBack => 'Quay lại nấu';
+
+  @override
+  String get cookingUnitGram => 'g';
+
+  @override
+  String get cookingUnitMilliliter => 'ml';
+
+  @override
+  String get cookingUnitPiece => 'quả';
+
+  @override
+  String get cookingUnitUnit => 'cái';
+
+  @override
   String cookingStepProgress(int viewedStep, int totalSteps) {
     return 'Bước $viewedStep/$totalSteps';
   }
