@@ -502,7 +502,11 @@ class DemoBackendAdapter implements HttpClientAdapter {
       r'^/api/v1/cooking/sessions/([^/]+)/complete$',
     ).firstMatch(path);
     if (cookingComplete != null && method == 'POST') {
-      return _completeCooking(cookingComplete.group(1)!);
+      final allow = options.queryParameters['allowShortfall'];
+      return _completeCooking(
+        cookingComplete.group(1)!,
+        allowShortfall: allow == true || allow == 'true',
+      );
     }
     final cookingAbandon =
         RegExp(r'^/api/v1/cooking/sessions/([^/]+)/abandon$').firstMatch(path);
@@ -1464,13 +1468,38 @@ class DemoBackendAdapter implements HttpClientAdapter {
     return _ok(201, session);
   }
 
-  ResponseBody _completeCooking(String sessionId) {
+  /// Mô phỏng OAS [AMEND OD-04]: thiếu kho mà chưa xác nhận → 409 kèm
+  /// `details.missingIngredients`, session/kho KHÔNG đổi (rollback).
+  ResponseBody _completeCooking(String sessionId,
+      {required bool allowShortfall}) {
     final session = _cookingSessions[sessionId];
     if (session == null) {
       return _error(
         404,
         'ERR_COOKING_NOT_FOUND',
         'Không tìm thấy phiên nấu ăn.',
+      );
+    }
+    if (session['status'] == 'COMPLETED' || session['status'] == 'ABANDONED') {
+      return _error(409, 'ERR_SESSION_ALREADY_ENDED', 'Phiên nấu đã kết thúc.');
+    }
+    final deductions = _cookingDeductions(session['recipeId'] as String);
+    final missing = deductions
+        .where((d) => (d['shortfallQuantity'] as double) > 0)
+        .map((d) => <String, dynamic>{
+              'ingredientName': d['ingredientName'],
+              'requiredQuantity': d['requiredQuantity'],
+              'availableQuantity': d['deductedQuantity'],
+              'shortfallQuantity': d['shortfallQuantity'],
+              'unit': d['requiredUnit'],
+            })
+        .toList();
+    if (missing.isNotEmpty && !allowShortfall) {
+      return _error(
+        409,
+        'ERR_INSUFFICIENT_STOCK_FOR_RECIPE',
+        'Not enough stock for this recipe; inventory was not changed',
+        details: <String, dynamic>{'missingIngredients': missing},
       );
     }
     session
@@ -1540,24 +1569,33 @@ class DemoBackendAdapter implements HttpClientAdapter {
   Map<String, dynamic> _cookingResult(Map<String, dynamic> session) =>
       <String, dynamic>{
         'session': session,
-        'ingredientDeductions': <Map<String, dynamic>>[
-          <String, dynamic>{
-            'ingredientName': 'Cá lóc',
-            'requiredQuantity': 0.5,
-            'requiredUnit': 'KG',
-            'deductedQuantity': 0.5,
-            'shortfallQuantity': 0.0,
-            'matchedItemCount': 1,
-          },
-          <String, dynamic>{
-            'ingredientName': 'Nước dừa',
-            'requiredQuantity': 200.0,
-            'requiredUnit': 'ML',
-            'deductedQuantity': 0.0,
-            'shortfallQuantity': 200.0,
-            'matchedItemCount': 0,
-          },
-        ],
+        'ingredientDeductions':
+            _cookingDeductions(session['recipeId'] as String),
+      };
+
+  /// Canh chua thiếu nguyên liệu (để demo nhánh 409/"Hoàn tất dù thiếu"),
+  /// các món khác đủ kho. Đơn vị theo enum chuẩn của OAS.
+  List<Map<String, dynamic>> _cookingDeductions(String recipeId) =>
+      recipeId == 'demo-recipe-canh-chua'
+          ? <Map<String, dynamic>>[
+              _deduction('Cá lóc', 500, 'GRAM', 500),
+              _deduction('Cà chua', 200, 'GRAM', 120),
+              _deduction('Nước dừa', 200, 'MILLILITER', 0),
+            ]
+          : <Map<String, dynamic>>[
+              _deduction('Cá lóc', 500, 'GRAM', 500),
+              _deduction('Nước dừa', 200, 'MILLILITER', 200),
+            ];
+
+  Map<String, dynamic> _deduction(
+          String name, double required, String unit, double deducted) =>
+      <String, dynamic>{
+        'ingredientName': name,
+        'requiredQuantity': required,
+        'requiredUnit': unit,
+        'deductedQuantity': deducted,
+        'shortfallQuantity': required - deducted,
+        'matchedItemCount': deducted > 0 ? 1 : 0,
       };
 
   // ── Helpers ──────────────────────────────────────────────────────
@@ -1972,11 +2010,16 @@ class DemoBackendAdapter implements HttpClientAdapter {
         'timestamp': DateTime.now().toUtc().toIso8601String(),
       });
 
-  ResponseBody _error(int status, String code, String message) =>
+  ResponseBody _error(int status, String code, String message,
+          {Map<String, dynamic>? details}) =>
       _json(status, {
         'success': false,
         'data': null,
-        'error': <String, dynamic>{'code': code, 'message': message},
+        'error': <String, dynamic>{
+          'code': code,
+          'message': message,
+          if (details != null) 'details': details,
+        },
         'timestamp': DateTime.now().toUtc().toIso8601String(),
       });
 

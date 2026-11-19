@@ -34,16 +34,30 @@ class ApiResponse<T> {
 }
 
 class ApiError {
-  ApiError({required this.code, required this.message, this.fieldErrors});
+  ApiError({
+    required this.code,
+    required this.message,
+    this.fieldErrors,
+    this.details,
+  });
 
   final String code;
   final String message;
   final Map<String, String>? fieldErrors;
 
-  factory ApiError.fromJson(Map<String, dynamic> json) => ApiError(
-        code: json['code'] as String,
-        message: json['message'] as String,
-        fieldErrors: (json['fieldErrors'] as Map<String, dynamic>?)
-            ?.map((k, v) => MapEntry(k, v.toString())),
-      );
+  /// `error.details` — payload riêng theo mã lỗi (vd.
+  /// `ERR_INSUFFICIENT_STOCK_FOR_RECIPE` → `missingIngredients`). Sai kiểu
+  /// thì bỏ, không làm hỏng việc parse envelope.
+  final Map<String, dynamic>? details;
+
+  factory ApiError.fromJson(Map<String, dynamic> json) {
+    final details = json['details'];
+    return ApiError(
+      code: json['code'] as String,
+      message: json['message'] as String,
+      fieldErrors: (json['fieldErrors'] as Map<String, dynamic>?)
+          ?.map((k, v) => MapEntry(k, v.toString())),
+      details: details is Map ? Map<String, dynamic>.from(details) : null,
+    );
+  }
 }

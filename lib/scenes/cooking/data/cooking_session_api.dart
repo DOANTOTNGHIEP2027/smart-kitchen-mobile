@@ -14,7 +14,10 @@ import 'cooking_session_mapper.dart';
 /// TRONG API layer, không để `Store` tự parse.
 abstract interface class CookingSessionApi {
   Future<CookingSession> start(String recipeId);
-  Future<CookingSessionResult> complete(String sessionId);
+  /// Thiếu kho và `allowShortfall == false` → [BusinessException]
+  /// `ERR_INSUFFICIENT_STOCK_FOR_RECIPE` (409, kho không đổi — OD-36).
+  Future<CookingSessionResult> complete(String sessionId,
+      {bool allowShortfall = false});
   Future<CookingSession> abandon(String sessionId);
   Future<CookingSessionResult> getById(String sessionId);
 }
@@ -36,10 +39,14 @@ class CookingSessionApiImpl implements CookingSessionApi {
   }
 
   @override
-  Future<CookingSessionResult> complete(String sessionId) {
+  Future<CookingSessionResult> complete(String sessionId,
+      {bool allowShortfall = false}) {
     return _unwrap(() async {
       final res = await _client.dio.post<Map<String, dynamic>>(
         '/api/v1/cooking/sessions/$sessionId/complete',
+        queryParameters: allowShortfall
+            ? const <String, dynamic>{'allowShortfall': true}
+            : null,
       );
       return mapCompleteSessionData(_data(res.data));
     });

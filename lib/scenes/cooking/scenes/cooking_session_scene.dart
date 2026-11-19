@@ -14,9 +14,11 @@ import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/cards/app_card.dart';
 import '../../../widgets/states/app_loading_view.dart';
 import '../stores/cooking_assist_store.dart';
+import '../domain/missing_ingredient.dart';
 import '../stores/cooking_session_store.dart';
 import '../widgets/cooking_assist_sheet.dart';
 import '../widgets/ingredient_deduction_list.dart';
+import '../widgets/shortfall_sheet.dart';
 import '../widgets/step_progress_bar.dart';
 import '../widgets/step_timer_view.dart';
 
@@ -43,6 +45,11 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
   CookingAssistStore? _assist;
   ReactionDisposer? _wakelockReaction;
   ReactionDisposer? _actionErrorReaction;
+  ReactionDisposer? _shortfallReaction;
+
+  /// Context của sheet thiếu nguyên liệu đang mở — `null` khi không mở.
+  BuildContext? _shortfallSheetContext;
+  bool _shortfallSheetOpen = false;
 
   /// Snackbar của lỗi thao tác đang hiện/xếp hàng (OD-27).
   ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _errorSnack;
@@ -79,7 +86,50 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
       _onActionErrorChanged,
     );
 
+    // 409 thiếu kho → sheet hỏi người dùng (OD-36).
+    _shortfallReaction = reaction<List<MissingIngredient>?>(
+      (_) => _store.shortfall,
+      _onShortfallChanged,
+    );
+
     _store.init();
+  }
+
+  void _onShortfallChanged(List<MissingIngredient>? missing) {
+    if (missing == null) {
+      // Store đã bỏ câu hỏi (session kết thúc/huỷ) mà sheet còn mở → đóng.
+      // Chỉ pop khi sheet đang là route trên cùng — không đóng nhầm màn nấu
+      // hay route khác đè lên.
+      final sheet = _shortfallSheetContext;
+      if (sheet != null &&
+          sheet.mounted &&
+          ModalRoute.of(sheet)?.isCurrent == true) {
+        Navigator.of(sheet).pop();
+      }
+      return;
+    }
+    if (!mounted || _shortfallSheetOpen) return;
+    _openShortfallSheet(missing);
+  }
+
+  Future<void> _openShortfallSheet(List<MissingIngredient> missing) async {
+    // Đặt cờ NGAY — context của sheet chỉ có sau frame đầu.
+    _shortfallSheetOpen = true;
+    final choice = await showShortfallSheet(
+      context,
+      missing: missing,
+      onSheetContext: (c) => _shortfallSheetContext = c,
+    );
+    _shortfallSheetOpen = false;
+    _shortfallSheetContext = null;
+    if (!mounted) return;
+    // Sheet đã đóng hẳn rồi mới gọi store — snackbar lỗi (nếu có) không bị
+    // sheet che. Vuốt/back = "Quay lại nấu".
+    if (choice == ShortfallChoice.completeAnyway) {
+      await _store.completeWithShortfall();
+    } else {
+      _store.dismissShortfall();
+    }
   }
 
   void _onActionErrorChanged(ApiException? error) {
@@ -162,6 +212,7 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
     // (persist) để nó không treo sang màn khác và gọi store đã dispose.
     _store.clearActionError();
     _actionErrorReaction?.call();
+    _shortfallReaction?.call();
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable(); // idempotent-safe dù reaction đã tắt trước đó
     _store.dispose();

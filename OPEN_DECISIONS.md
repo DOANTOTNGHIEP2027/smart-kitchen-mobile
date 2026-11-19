@@ -40,6 +40,7 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Code theo **OAS thật** (§6.2 luật 1). · **Theo:** §6.2 + §6.1 D-09 + §6.0 quy tắc 2.
 - **Đảo ngược thế nào:** Nếu BE thêm `INSUFFICIENT_STOCK_FOR_RECIPE`, cập nhật `CookingSessionStore.complete()` + dialog thiếu.
 - **Cần người quyết lại không:** Có — kịch bản demo §9.1 bước 6b có thể lệch BE thật.
+- **Trạng thái (2026-11-19):** ĐÃ XỬ LÝ — OAS đã thêm 409 `ERR_INSUFFICIENT_STOCK_FOR_RECIPE` (2026-10-20); FE cập nhật theo OD-36.
 
 ### OD-05 · FE-7 review pass 1 — 4 LOW findings chưa fix (gom vào pass i18n/dọn sau)
 - **Ngày:** 2026-09-16 · **Task:** FE-7 (meal-plan voting) · **Nhánh:** `feature/62-63_meal-plan-voting`
@@ -282,3 +283,26 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 + §6.1 D-10.
 - **Đảo ngược thế nào:** —
 - **Cần người quyết lại không:** Không.
+
+### OD-36 · Thiết kế bổ sung: 409 `ERR_INSUFFICIENT_STOCK_FOR_RECIPE` ở màn nấu (đóng OD-04)
+- **Ngày:** 2026-11-19 · **Task:** #81 (epic #7) · **Nhánh:** `feature/81_cooking-shortfall`
+- **Tình huống:** OAS `cooking-session.yaml` [AMEND OD-04, 2026-10-20]: `POST /complete` thiếu kho → 409 `ERR_INSUFFICIENT_STOCK_FOR_RECIPE` + `error.details.missingIngredients[]` (`ingredientName`, `requiredQuantity`, `availableQuantity`, `shortfallQuantity`, `unit`), rollback toàn phần, session vẫn `IN_PROGRESS`; gọi lại `?allowShortfall=true` để hoàn tất dù thiếu. FE còn theo OAS cũ (luôn 200) nên 409 này rơi vào snackbar "Thử lại" → bấm lại nhận đúng 409 đó, lặp mãi. `cooking-session-screen.md` (§6, §7, §8) chưa có nhánh này; repo này chỉ đọc DOCS nên thiết kế bổ sung ghi ở đây, phiên `ai-native` chép vào §8 + mock state 11.
+- **Đã chọn (thiết kế):**
+  1. **Network:** `ApiError`/`ApiException` thêm `details` (`Map<String, dynamic>?`, tuỳ chọn) — `ErrorMappingInterceptor` chuyển nguyên `error.details`. Không đổi phân loại exception.
+  2. **Domain + mapper:** `MissingIngredient` (5 field trên, key camelCase). `mapMissingIngredients(details)` chịu lỗi: thiếu `details`/sai kiểu → list rỗng, bỏ qua item hỏng — không throw.
+  3. **Api:** `complete(sessionId, {allowShortfall = false})`; chỉ gửi query `allowShortfall=true` khi true.
+  4. **Store:** `complete()` bắt `BusinessException` mã trên (chỉ khi `allowShortfall == false`) → `shortfall = mapMissingIngredients(e.details)`; **không** set `actionError`, phase giữ `active`, timer/WakeLock giữ nguyên, kho không đổi. `completeWithShortfall()` xoá `shortfall` rồi gọi `complete(allowShortfall: true)`; lỗi của lần này vào `actionError` với "Thử lại" gọi lại đúng `allowShortfall: true`. `dismissShortfall()` xoá `shortfall`. Nếu BE vẫn trả mã này khi `allowShortfall=true` → coi là lỗi thường (snackbar, không "Thử lại") để không lặp.
+  5. **View:** reaction theo `shortfall` mở bottom sheet `ShortfallSheet` — tiêu đề "Kho không đủ nguyên liệu", câu "Chưa trừ gì khỏi kho…", mỗi dòng: tên + "Cần · Có · Thiếu {qty} {unit}" (cả dòng màu lỗi, có chữ "Thiếu" — không chỉ dựa vào màu; đơn vị enum → nhãn l10n g/ml/quả/cái, dùng chung với màn kết quả); list rỗng → câu chung "Không lấy được danh sách chi tiết". 2 nút: **"Hoàn tất dù thiếu"** (chính) và **"Quay lại nấu"** (phụ). Vuốt/back đóng sheet = "Quay lại nấu". Hoàn tất dù thiếu thành công → màn `completed` hiện có (badge thiếu = mock state 8). Text qua `context.l10n`.
+  6. **Demo adapter:** `complete` thiếu kho mà không có `allowShortfall=true` → 409 kèm `details`, khớp OAS.
+  7. **Test:** mapper (`details` đủ/thiếu/hỏng); store (409 → `shortfall`, phase active, không `actionError`; hoàn tất dù thiếu → gọi `allowShortfall=true`, phase completed; dismiss; lỗi lần 2 → retry giữ `allowShortfall`; 409 lặp khi `allowShortfall=true` → không lặp); widget (sheet hiện tên/số lượng, 2 nút, list rỗng); interceptor giữ `details`.
+- **Ngoài phạm vi (ghi lại):** `IngredientDeduction.skipReason` (OAS có, FE chưa map) — chưa hiển thị "bỏ qua do đơn vị".
+- **Theo:** §6.2 luật 1 (OAS thật thắng) + §6.0 quy tắc 2.
+- **Đảo ngược thế nào:** Bỏ nhánh catch trong `complete()` + xoá `ShortfallSheet`; `details` để nguyên (tuỳ chọn, vô hại).
+- **Cần người quyết lại không:** Không — phiên `ai-native` chỉ cần chép mục này vào `cooking-session-screen.md` §6.2/§7/§8 + mock.
+
+### OD-37 · #81/#80 — finding còn lại sau review + điểm nghi ngờ ở recipe (ngoài phạm vi)
+- **Ngày:** 2026-11-19 · **Task:** #81 (epic #7) · **Nhánh:** `feature/81_cooking-shortfall`
+- **Tình huống:** Review code vòng 1 (1 MEDIUM + 6 LOW) đã sửa hết trong PR này. Khi viết test recipe (#80) phát hiện 3 điểm nghi ngờ, chưa chứng minh là bug: (1) `recipe_store.dart:207` — `toggleFavorite` lỗi vẫn gán `_error` dù list đã refresh trong lúc chờ → banner lỗi cũ trên list mới; (2) `recipe_store.dart:159` chỉ bắt `ApiException` — JSON hỏng (TypeError) có thể kẹt loading; (3) thiết kế `recipe-list-detail-screens.md` §17.1 ghi body `is_favorite`, code gửi `isFavorite` (code đúng camelCase, tài liệu cần sửa). Ngoài ra `IngredientDeduction.skipReason` (OAS có) FE chưa map/hiển thị. Review vòng 2 (APPROVE) còn 2 LOW ở test recipe: debounce dùng timer thật (chậm ~1.3s, nên `fakeAsync`); `recipe_detail_store_test.dart` chưa trả `Get.testMode` và nên dùng `addTearDown` cho `dispose`.
+- **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §6.1 D-10 + §6.0 quy tắc 3.
+- **Đảo ngược thế nào:** —
+- **Cần người quyết lại không:** Không — (3) chỉ cần phiên `ai-native` sửa tài liệu.

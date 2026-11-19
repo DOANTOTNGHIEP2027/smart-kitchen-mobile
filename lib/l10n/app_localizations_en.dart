@@ -612,6 +612,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cookingInsufficient => 'Insufficient';
 
   @override
+  String get cookingShortfallTitle => 'Not enough ingredients in stock';
+
+  @override
+  String get cookingShortfallMessage =>
+      'Nothing has been deducted from inventory yet. Restock and tap Complete again, or complete now — inventory will be deducted as far as it goes.';
+
+  @override
+  String cookingShortfallLine(
+      String required, String available, String shortfall, String unit) {
+    return 'Need $required · Have $available · Short $shortfall $unit';
+  }
+
+  @override
+  String get cookingShortfallNoDetail =>
+      'The list of missing ingredients is unavailable.';
+
+  @override
+  String get cookingShortfallConfirm =>
+      'Complete anyway (deduct what is in stock)';
+
+  @override
+  String get cookingShortfallBack => 'Back to cooking';
+
+  @override
+  String get cookingUnitGram => 'g';
+
+  @override
+  String get cookingUnitMilliliter => 'ml';
+
+  @override
+  String get cookingUnitPiece => 'pcs';
+
+  @override
+  String get cookingUnitUnit => 'units';
+
+  @override
   String cookingStepProgress(int viewedStep, int totalSteps) {
     return 'Step $viewedStep/$totalSteps';
   }

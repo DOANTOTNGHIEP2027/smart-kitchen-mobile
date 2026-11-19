@@ -2,6 +2,7 @@ import '../domain/cooking_session_step.dart';
 import '../domain/cooking_session.dart';
 import '../domain/cooking_session_result.dart';
 import '../domain/ingredient_deduction.dart';
+import '../domain/missing_ingredient.dart';
 
 /// Parse 1 phần tử `recipes.steps[]` (#75) → [CookingSessionStep].
 ///
@@ -50,6 +51,41 @@ IngredientDeduction mapIngredientDeduction(Map<String, dynamic> json) {
     shortfallQuantity: (json['shortfallQuantity'] as num).toDouble(),
     matchedItemCount: json['matchedItemCount'] as int,
   );
+}
+
+/// Parse `error.details` của 409 `ERR_INSUFFICIENT_STOCK_FOR_RECIPE`
+/// (`InsufficientStockDetails`, OD-36).
+///
+/// Chịu lỗi: `details` thiếu/sai kiểu → list rỗng; item hỏng bị bỏ qua. Màn
+/// nấu vẫn phải hiện sheet "thiếu nguyên liệu" kể cả khi list rỗng, nên ở đây
+/// KHÔNG được throw.
+List<MissingIngredient> mapMissingIngredients(Map<String, dynamic>? details) {
+  final raw = details?['missingIngredients'];
+  if (raw is! List) return List<MissingIngredient>.unmodifiable(const []);
+  final result = <MissingIngredient>[];
+  for (final Object? item in raw) {
+    if (item is! Map) continue;
+    final name = item['ingredientName'];
+    final required = item['requiredQuantity'];
+    final available = item['availableQuantity'];
+    final shortfall = item['shortfallQuantity'];
+    final unit = item['unit'];
+    if (name is! String ||
+        required is! num ||
+        available is! num ||
+        shortfall is! num ||
+        unit is! String) {
+      continue;
+    }
+    result.add(MissingIngredient(
+      ingredientName: name,
+      requiredQuantity: required.toDouble(),
+      availableQuantity: available.toDouble(),
+      shortfallQuantity: shortfall.toDouble(),
+      unit: unit,
+    ));
+  }
+  return List<MissingIngredient>.unmodifiable(result);
 }
 
 /// Parse `CompleteSessionData` (shape của `POST /complete` 200 và `GET /{id}`).
