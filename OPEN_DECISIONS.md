@@ -306,3 +306,20 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §6.1 D-10 + §6.0 quy tắc 3.
 - **Đảo ngược thế nào:** —
 - **Cần người quyết lại không:** Không — (3) chỉ cần phiên `ai-native` sửa tài liệu.
+
+### OD-38 · #16 Firebase Auth + Google Sign-In — làm theo thiết kế fe-app-shell §9, lệch issue
+- **Ngày:** 2026-11-20 · **Task:** #16 · **Nhánh:** `feature/16_firebase-google-signin`
+- **Tình huống:** Issue #16 viết theo bản nháp cũ (`FirebaseAuthService`, `AuthStore.isLoggedIn/currentUser/isLoading`, có iOS). Code trên main đã làm theo `fe-app-shell.md` §9 (D7): `GoogleAuthGateway` mỏng chỉ trả Firebase ID token, trạng thái đăng nhập ở `SessionStore`, `Firebase.initializeApp()` trong `bootstrap.dart` trước `runApp` (lỗi → `UnavailableGoogleAuthGateway`). Repo không có `ios/`; `android/app/google-services.json` đang bị commit (AC yêu cầu gitignore).
+- **Đã chọn (người duyệt chốt 2026-11-20):**
+  1. **Map tên AC → code thật, không tạo class trùng:** `FirebaseAuthService.signInWithGoogle/signOut` → `GoogleAuthGateway`; `idToken` → giá trị trả về của `signInWithGoogle()` (không giữ getter riêng — token chỉ dùng 1 lần cho `POST /auth/google`); `currentUser` của Firebase → không lộ ra (BE là nguồn sự thật về user); `AuthStore.isLoggedIn/currentUser` → `SessionStore.isAuthenticated/currentUser`; `isLoading` → `AuthStore.isSubmitting`; `error` → `AuthStore.error`.
+  2. **Gateway:** `null` CHỈ khi người dùng huỷ picker. Đăng nhập Firebase xong mà không lấy được ID token → ném `GoogleAuthTokenMissingException` (map `ERR_AUTH_GOOGLE_TOKEN_MISSING`), không được nuốt thành "huỷ".
+  3. **`google-services.json`:** gỡ khỏi git (`git rm --cached`, file trên máy giữ nguyên) + `.gitignore` cùng `GoogleService-Info.plist`, `lib/firebase_options.dart`. `android/app/build.gradle.kts` chỉ apply plugin `com.google.gms.google-services` khi file tồn tại → máy không có file vẫn build được, Firebase init lỗi → Google không dùng được, demo bằng email + OTP (§6.1 D-01). README có mục hướng dẫn lấy file + SHA-1. File vẫn còn trong lịch sử git cũ.
+  4. **iOS:** hoãn — không tạo `ios/`; AC build iOS + URL scheme để mở.
+  5. **Test (mocktail):** gateway (thành công trả token, huỷ → null, thiếu token → throw, signOut gọi cả GoogleSignIn + FirebaseAuth, Unavailable → throw); `AuthStore.googleSignIn` (thành công → session set + `isAuthenticated`, huỷ → không lỗi + không gọi API, Firebase unavailable/thiếu token/lỗi API → `error` đúng mã); `logout` gọi `signOut` của gateway.
+  6. **Lỗi native (đổi NGAY trong gateway, store không import kiểu lỗi SDK):** `FirebaseAuthException(network-request-failed)` / `PlatformException(network_error)` → `NetworkException`; `PlatformException(sign_in_failed)` (thường thiếu SHA-1) → `GoogleAuthUnavailableException`; mã khác giữ nguyên; `ERR_AUTH_GOOGLE_TOKEN_MISSING` là mã phía client, dùng chung copy `google_token_invalid` (S2.4). Đây là **lệch có chủ ý** so với code mẫu §9 (`user?.getIdToken()` null rơi về nhánh huỷ).
+  7. **Verify bắt buộc:** `flutter build apk --debug` cả khi có lẫn khi thiếu `google-services.json`.
+- **Ngoài phạm vi / còn mở:** khối `coreLibraryDesugaring` bị lặp trong `build.gradle.kts` (vô hại) — để task dọn. `google-services.json` vẫn trong lịch sử git (`f128001`, `37d4153`) — không xoá lịch sử; nên giới hạn API key Android theo package `com.smartkitchen.mobile` + SHA-1 trong Google Cloud Console. Integration test "`/auth/status`" của issue: endpoint không có trong OAS → không áp dụng. AC iOS → #16 chỉ đóng được một phần (hoặc tách issue con).
+- **Gửi phiên `ai-native`:** cập nhật fe-app-shell §9 (bỏ nhánh null-token = huỷ) + §13 (gateway đã đăng ký trong bootstrap), fe-onboarding §14/§19 thêm `ERR_AUTH_GOOGLE_TOKEN_MISSING`.
+- **Theo:** §6.0 quy tắc 2 (thiết kế thắng phỏng đoán) + §6.1 D-01.
+- **Đảo ngược thế nào:** commit lại file JSON + bỏ điều kiện plugin; muốn đúng tên issue thì thêm façade `FirebaseAuthService` bọc gateway.
+- **Cần người quyết lại không:** Không — đã chốt. Phiên `ai-native` nên cập nhật issue #16/§9 ghi chú tên thật.
