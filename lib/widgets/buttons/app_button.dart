@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../constants/app_colors.dart';
+import '../../constants/app_colors_extension.dart';
 import '../../constants/app_dimens.dart';
 import '../../constants/app_text_styles.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Kiểu nút bấm — bám mock và quy chuẩn DESIGN_SYSTEM.md (100% Solid Color, No Gradient).
 enum AppButtonVariant {
@@ -20,12 +21,18 @@ enum AppButtonVariant {
 
   /// `.link` (trong mock) — Text-only, màu cam.
   text,
+
+  /// Hành động phá huỷ (xoá, rời nhóm) — nền đỏ nhạt, chữ đỏ
+  /// (DESIGN_SYSTEM.md §4.1D, design-system.md §7.1).
+  destructive,
 }
 
-/// Button dùng chung (fe-app-shell.md §10.2).
+/// Button dùng chung (fe-app-shell.md §10.2, design-system.md §7.1).
 ///
+/// Dựng trên `FilledButton`/`OutlinedButton`/`TextButton` của Material 3.
 /// [isLoading] thay label bằng spinner và vô hiệu hóa tap, để mọi feature có
-/// UX in-flight nhất quán mà không tự implement lại.
+/// UX in-flight nhất quán mà không tự implement lại. Màu lấy theo theme nên
+/// tự đổi ở dark mode.
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -48,108 +55,95 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
+    final foreground = _foregroundColor(scheme, colors);
+    final VoidCallback? effectiveOnPressed = _isDisabled ? null : onPressed;
+
     final Widget content = isLoading
         ? SizedBox(
             height: AppDimens.buttonSpinner,
             width: AppDimens.buttonSpinner,
             child: CircularProgressIndicator(
               strokeWidth: 2.2,
-              valueColor: AlwaysStoppedAnimation<Color>(_foregroundColor),
+              valueColor: AlwaysStoppedAnimation<Color>(foreground),
             ),
           )
-        : _buildLabel();
+        : _buildLabel(foreground);
 
     final OutlinedBorder shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(_radiusForVariant),
     );
 
     final Widget button = switch (variant) {
-      AppButtonVariant.primary => Container(
+      AppButtonVariant.primary => DecoratedBox(
           decoration: _isDisabled
-              ? null
-              : const BoxDecoration(
-                  color: AppColors.primary, // 100% Solid Color — Không Gradient
-                  borderRadius:
-                      BorderRadius.all(Radius.circular(AppDimens.radiusCard)),
+              ? const BoxDecoration()
+              : BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusCard),
                   boxShadow: <BoxShadow>[
                     BoxShadow(
-                      color: AppColors.primaryShadow,
+                      color: colors.primaryShadow,
                       blurRadius: 16,
-                      offset: Offset(0, 6),
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
-          child: ElevatedButton(
-            onPressed: _isDisabled ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  _isDisabled ? AppColors.textDisabled : Colors.transparent,
-              foregroundColor: AppColors.textOnPrimary,
-              disabledBackgroundColor: AppColors.textDisabled,
-              disabledForegroundColor: AppColors.textOnPrimary,
-              elevation: 0,
-              shadowColor: Colors.transparent,
+          child: FilledButton(
+            onPressed: effectiveOnPressed,
+            style: _filledStyle(
+              scheme: scheme,
+              background: scheme.primary,
+              foreground: scheme.onPrimary,
+              colors: colors,
               shape: shape,
             ),
             child: content,
           ),
         ),
-      AppButtonVariant.secondary => ElevatedButton(
-          onPressed: _isDisabled ? null : onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryContainer,
-            foregroundColor: AppColors.primary,
-            disabledBackgroundColor: AppColors.textDisabled,
-            disabledForegroundColor: AppColors.textOnPrimary,
-            elevation: 0,
-            shadowColor: Colors.transparent,
+      AppButtonVariant.secondary => FilledButton(
+          onPressed: effectiveOnPressed,
+          style: _filledStyle(
+            scheme: scheme,
+            background: scheme.primaryContainer,
+            foreground: scheme.primary,
+            colors: colors,
+            shape: shape,
+          ),
+          child: content,
+        ),
+      AppButtonVariant.destructive => FilledButton(
+          onPressed: effectiveOnPressed,
+          style: _filledStyle(
+            scheme: scheme,
+            background: colors.errorSurface,
+            foreground: scheme.error,
+            colors: colors,
             shape: shape,
           ),
           child: content,
         ),
       AppButtonVariant.google => DecoratedBox(
           decoration: BoxDecoration(
-            color: AppColors.surface,
             borderRadius: BorderRadius.circular(AppDimens.radiusCard),
-            border: Border.all(color: AppColors.border),
-            boxShadow: const <BoxShadow>[
+            boxShadow: <BoxShadow>[
               BoxShadow(
-                color: Color(0x08000000),
+                color: colors.ambientShadow,
                 blurRadius: 8,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: ElevatedButton(
-            onPressed: _isDisabled ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              foregroundColor: AppColors.textPrimary,
-              disabledBackgroundColor: Colors.transparent,
-              disabledForegroundColor: AppColors.textDisabled,
-              elevation: 0,
-              shadowColor: Colors.transparent,
-              shape: shape,
-            ),
-            child: content,
-          ),
+          child: _outlined(effectiveOnPressed, scheme, colors, shape, content,
+              textStyle: AppTextStyles.button),
         ),
-      AppButtonVariant.outline => OutlinedButton(
-          onPressed: _isDisabled ? null : onPressed,
-          style: OutlinedButton.styleFrom(
-            backgroundColor: AppColors.surface,
-            foregroundColor: AppColors.textPrimary,
-            disabledForegroundColor: AppColors.textDisabled,
-            side: const BorderSide(color: AppColors.border),
-            shape: shape,
-          ),
-          child: content,
-        ),
+      AppButtonVariant.outline =>
+        _outlined(effectiveOnPressed, scheme, colors, shape, content),
       AppButtonVariant.text => TextButton(
-          onPressed: _isDisabled ? null : onPressed,
+          onPressed: effectiveOnPressed,
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            disabledForegroundColor: AppColors.textDisabled,
+            foregroundColor: scheme.primary,
+            disabledForegroundColor: colors.textDisabled,
             shape: shape,
           ),
           child: content,
@@ -157,20 +151,76 @@ class AppButton extends StatelessWidget {
     };
 
     final Widget sized = SizedBox(
-      height: 52, // Chiều cao chuẩn 52dp theo DESIGN_SYSTEM.md
+      height: AppDimens.buttonHeight, // 52dp theo DESIGN_SYSTEM.md
       width: expanded ? double.infinity : null,
       child: button,
     );
 
+    // excludeSemantics: label chỉ được đọc một lần (không lặp từ Text con);
+    // onTap giữ để TalkBack/VoiceOver vẫn kích hoạt được; container: node
+    // riêng — không bị gộp vào Card/ListTile cha (design §7.1).
     return Semantics(
-        button: true, enabled: !_isDisabled, label: label, child: sized);
+      container: true,
+      button: true,
+      enabled: !_isDisabled,
+      label: label,
+      hint: isLoading ? _loadingHint(context) : null,
+      excludeSemantics: true,
+      onTap: effectiveOnPressed,
+      child: sized,
+    );
   }
 
-  Widget _buildLabel() {
+  /// Không ép buộc có `AppLocalizations` trong cây chỉ vì nút đang loading.
+  static String? _loadingHint(BuildContext context) =>
+      Localizations.of<AppLocalizations>(context, AppLocalizations)
+          ?.commonLoading;
+
+  ButtonStyle _filledStyle({
+    required ColorScheme scheme,
+    required Color background,
+    required Color foreground,
+    required AppColorsExtension colors,
+    required OutlinedBorder shape,
+  }) =>
+      FilledButton.styleFrom(
+        backgroundColor: background,
+        foregroundColor: foreground,
+        disabledBackgroundColor: colors.textDisabled,
+        disabledForegroundColor: scheme.onPrimary,
+        elevation: 0,
+        // Giữ textStyle cũ của elevatedButtonTheme (letterSpacing/height).
+        textStyle: AppTextStyles.button,
+        shadowColor: Colors.transparent,
+        shape: shape,
+      );
+
+  Widget _outlined(
+    VoidCallback? onPressed,
+    ColorScheme scheme,
+    AppColorsExtension colors,
+    OutlinedBorder shape,
+    Widget content, {
+    TextStyle? textStyle,
+  }) =>
+      OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: scheme.surface,
+          foregroundColor: colors.textPrimary,
+          disabledForegroundColor: colors.textDisabled,
+          side: BorderSide(color: colors.border),
+          shape: shape,
+          textStyle: textStyle,
+        ),
+        child: content,
+      );
+
+  Widget _buildLabel(Color foreground) {
     final text = Text(
       label,
       style: AppTextStyles.button.copyWith(
-        color: _foregroundColor,
+        color: foreground,
         fontWeight: FontWeight.w700,
       ),
       maxLines: 1,
@@ -181,20 +231,25 @@ class AppButton extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(iconData, size: 18, color: _foregroundColor),
+        Icon(iconData, size: 18, color: foreground),
         const SizedBox(width: AppDimens.sm),
         Flexible(child: text),
       ],
     );
   }
 
-  Color get _foregroundColor => switch (variant) {
-        AppButtonVariant.primary => AppColors.textOnPrimary,
-        AppButtonVariant.secondary => AppColors.primary,
-        AppButtonVariant.outline => AppColors.textPrimary,
-        AppButtonVariant.google => AppColors.textPrimary,
-        AppButtonVariant.text => AppColors.primary,
-      };
+  Color _foregroundColor(ColorScheme scheme, AppColorsExtension colors) {
+    // Màu chữ theo variant, kể cả khi disabled — giữ đúng hành vi light trước
+    // issue #17 (code review M3).
+    return switch (variant) {
+      AppButtonVariant.primary => scheme.onPrimary,
+      AppButtonVariant.secondary => scheme.primary,
+      AppButtonVariant.destructive => scheme.error,
+      AppButtonVariant.outline => colors.textPrimary,
+      AppButtonVariant.google => colors.textPrimary,
+      AppButtonVariant.text => scheme.primary,
+    };
+  }
 
   double get _radiusForVariant => switch (variant) {
         AppButtonVariant.text => AppDimens.radiusSm,

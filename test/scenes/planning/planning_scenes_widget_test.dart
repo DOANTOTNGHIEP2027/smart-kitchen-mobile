@@ -64,7 +64,7 @@ void main() {
       expect(find.byType(AppErrorView), findsOneWidget);
 
       api.getError = null;
-      await tester.tap(find.descendant(of: find.byType(AppErrorView), matching: find.byType(ElevatedButton)));
+      await tester.tap(find.descendant(of: find.byType(AppErrorView), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton)));
       await tester.pumpAndSettle();
       expect(find.byType(AppErrorView), findsNothing);
     });
@@ -225,9 +225,9 @@ void main() {
       await tester.tap(find.byKey(const ValueKey<String>('guest-add')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey<String>('guest-catalog-error')), findsOneWidget);
-      final button = tester.widget<ElevatedButton>(find.descendant(
+      final button = tester.widget<ButtonStyleButton>(find.descendant(
         of: find.byKey(const ValueKey<String>('guest-form-submit')),
-        matching: find.byType(ElevatedButton),
+        matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
       ));
       expect(button.onPressed, isNull);
     });

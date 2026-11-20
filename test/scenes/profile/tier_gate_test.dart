@@ -419,15 +419,15 @@ void main() {
         (st, _, _) = await store(r: roster(members: <HouseholdMember>[member('me', 'OWNER'), member('v', 'REMOTE_VIEWER'), member('a', 'MEMBER')]));
       });
       await pumpSheet(tester, st, member('a', 'MEMBER'));
-      final confirm = find.descendant(of: find.byKey(const ValueKey<String>('change-role-confirm')), matching: find.byType(ElevatedButton));
-      expect(tester.widget<ElevatedButton>(confirm).onPressed, isNull);
+      final confirm = find.descendant(of: find.byKey(const ValueKey<String>('change-role-confirm')), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton));
+      expect(tester.widget<ButtonStyleButton>(confirm).onPressed, isNull);
       expect(find.byKey(const ValueKey<String>('change-role-soft-hint')), findsNothing);
 
       await tester.tap(find.byKey(const ValueKey<String>('change-role-REMOTE_VIEWER')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey<String>('change-role-soft-hint')), findsOneWidget);
       // Guard 1: hint KHÔNG chặn gửi.
-      expect(tester.widget<ElevatedButton>(confirm).onPressed, isNotNull);
+      expect(tester.widget<ButtonStyleButton>(confirm).onPressed, isNotNull);
     });
 
     testWidgets('ChangeRoleSheet: member đã là viewer → không hiện hint dù đầy (Guard 10)', (tester) async {
@@ -490,9 +490,9 @@ void main() {
       });
       await tester.pumpAppWidget(HouseholdPlanStrip(store: st, onChangePlan: () {}, onEditBudget: () {}));
       await tester.pump();
-      final btn = find.descendant(of: find.byKey(const ValueKey<String>('household-plan-change')), matching: find.byType(ElevatedButton));
+      final btn = find.descendant(of: find.byKey(const ValueKey<String>('household-plan-change')), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton));
       expect(btn, findsOneWidget);
-      expect(tester.widget<ElevatedButton>(btn).onPressed, isNull);
+      expect(tester.widget<ButtonStyleButton>(btn).onPressed, isNull);
       expect(find.ancestor(of: find.byKey(const ValueKey<String>('household-plan-change')), matching: find.byType(Tooltip)), findsOneWidget);
     });
 
@@ -727,8 +727,8 @@ void main() {
       return (st, api);
     }
 
-    ElevatedButton editButton(WidgetTester tester) => tester.widget<ElevatedButton>(find.descendant(
-        of: find.byKey(const ValueKey<String>('budget-edit')), matching: find.byType(ElevatedButton)));
+    ButtonStyleButton editButton(WidgetTester tester) => tester.widget<ButtonStyleButton>(find.descendant(
+        of: find.byKey(const ValueKey<String>('budget-edit')), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton)));
 
     testWidgets('P1 đang tải → nút có mặt nhưng khoá', (tester) async {
       final (st, _) = await stripStore(tester, pending: true);
@@ -819,8 +819,8 @@ void main() {
 
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
-      final save = tester.widget<ElevatedButton>(find.descendant(
-          of: find.byKey(const ValueKey<String>('budget-save')), matching: find.byType(ElevatedButton)));
+      final save = tester.widget<ButtonStyleButton>(find.descendant(
+          of: find.byKey(const ValueKey<String>('budget-save')), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton)));
       expect(save.onPressed, isNull);
     });
 
@@ -829,8 +829,8 @@ void main() {
           budget: const HouseholdBudget(period: BudgetPeriod.monthly, amount: 1500000.4));
       await openSheet(tester, st);
       expect(find.text('1500000'), findsOneWidget);
-      final save = tester.widget<ElevatedButton>(find.descendant(
-          of: find.byKey(const ValueKey<String>('budget-save')), matching: find.byType(ElevatedButton)));
+      final save = tester.widget<ButtonStyleButton>(find.descendant(
+          of: find.byKey(const ValueKey<String>('budget-save')), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton)));
       expect(save.onPressed, isNull);
     });
 

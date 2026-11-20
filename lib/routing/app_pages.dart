@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../app/env_config.dart';
 import '../scenes/auth/auth_landing_scene.dart';
 import '../scenes/auth/email_login_scene.dart';
 import '../scenes/auth/email_register_scene.dart';
@@ -8,6 +9,7 @@ import '../scenes/auth/otp_scene.dart';
 import '../scenes/auth/reset_password_scene.dart';
 import '../scenes/auth/upgrade_profile_scene.dart';
 import '../scenes/cooking/scenes/cooking_routes.dart';
+import '../scenes/dev/dev_routes.dart';
 import '../scenes/household/create_household_scene.dart';
 import '../scenes/household/household_setup_scene.dart';
 import '../scenes/household/join_household_scene.dart';
@@ -44,6 +46,8 @@ class AppPages {
     ...shoppingPages,
     ...insightsPages,
     ...recapPages,
+    // Showcase widget library — chỉ build dev (design-system.md §8).
+    if (EnvConfig.isDev) ...devPages,
   ];
 
   static final List<GetPage<dynamic>> shellPages = <GetPage<dynamic>>[

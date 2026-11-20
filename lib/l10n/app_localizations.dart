@@ -5031,6 +5031,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Repetition information reflects dishes assigned in the plan.'**
   String get planningRepetitionContextHint;
+
+  /// No description provided for @commonConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get commonConfirm;
+
+  /// No description provided for @commonLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get commonLoading;
+
+  /// No description provided for @commonShowPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get commonShowPassword;
+
+  /// No description provided for @commonHidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get commonHidePassword;
+
+  /// No description provided for @commonRequiredField.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get commonRequiredField;
+
+  /// No description provided for @showcaseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Widget showcase'**
+  String get showcaseTitle;
+
+  /// No description provided for @showcaseEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Widget showcase (dev)'**
+  String get showcaseEntry;
+
+  /// No description provided for @showcaseToggleTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle light/dark'**
+  String get showcaseToggleTheme;
+
+  /// No description provided for @showcaseSectionColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Colors'**
+  String get showcaseSectionColors;
+
+  /// No description provided for @showcaseSectionTypography.
+  ///
+  /// In en, this message translates to:
+  /// **'Typography'**
+  String get showcaseSectionTypography;
+
+  /// No description provided for @showcaseSectionButtons.
+  ///
+  /// In en, this message translates to:
+  /// **'Buttons'**
+  String get showcaseSectionButtons;
+
+  /// No description provided for @showcaseSectionCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards'**
+  String get showcaseSectionCards;
+
+  /// No description provided for @showcaseSectionInputs.
+  ///
+  /// In en, this message translates to:
+  /// **'Inputs'**
+  String get showcaseSectionInputs;
+
+  /// No description provided for @showcaseSectionStates.
+  ///
+  /// In en, this message translates to:
+  /// **'States'**
+  String get showcaseSectionStates;
+
+  /// No description provided for @showcaseSectionOverlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading overlay'**
+  String get showcaseSectionOverlay;
+
+  /// No description provided for @showcaseSectionDialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Dialog'**
+  String get showcaseSectionDialog;
+
+  /// No description provided for @showcaseSampleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Food name'**
+  String get showcaseSampleLabel;
+
+  /// No description provided for @showcaseSampleText.
+  ///
+  /// In en, this message translates to:
+  /// **'The quick brown fox'**
+  String get showcaseSampleText;
+
+  /// No description provided for @showcaseHighlighted.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlighted card'**
+  String get showcaseHighlighted;
+
+  /// No description provided for @showcaseCardNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal card'**
+  String get showcaseCardNormal;
+
+  /// No description provided for @showcaseCardTappable.
+  ///
+  /// In en, this message translates to:
+  /// **'Tappable card'**
+  String get showcaseCardTappable;
+
+  /// No description provided for @showcaseCardElevated.
+  ///
+  /// In en, this message translates to:
+  /// **'Elevated card'**
+  String get showcaseCardElevated;
+
+  /// No description provided for @showcaseVariantPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get showcaseVariantPrimary;
+
+  /// No description provided for @showcaseVariantSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary'**
+  String get showcaseVariantSecondary;
+
+  /// No description provided for @showcaseVariantOutline.
+  ///
+  /// In en, this message translates to:
+  /// **'Outline'**
+  String get showcaseVariantOutline;
+
+  /// No description provided for @showcaseVariantGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Google'**
+  String get showcaseVariantGoogle;
+
+  /// No description provided for @showcaseVariantText.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get showcaseVariantText;
+
+  /// No description provided for @showcaseVariantDestructive.
+  ///
+  /// In en, this message translates to:
+  /// **'Destructive'**
+  String get showcaseVariantDestructive;
+
+  /// No description provided for @showcaseStateLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get showcaseStateLoading;
+
+  /// No description provided for @showcaseStateDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get showcaseStateDisabled;
+
+  /// No description provided for @showcaseTapToLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to load for 2s'**
+  String get showcaseTapToLoad;
+
+  /// No description provided for @showcaseFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required field'**
+  String get showcaseFieldRequired;
+
+  /// No description provided for @showcaseFieldServerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Field with server error'**
+  String get showcaseFieldServerError;
+
+  /// No description provided for @showcaseFieldServerErrorText.
+  ///
+  /// In en, this message translates to:
+  /// **'This name already exists'**
+  String get showcaseFieldServerErrorText;
+
+  /// No description provided for @showcaseFieldPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get showcaseFieldPassword;
+
+  /// No description provided for @showcaseFieldDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled field'**
+  String get showcaseFieldDisabled;
+
+  /// No description provided for @showcaseEmptyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get showcaseEmptyAction;
+
+  /// No description provided for @showcaseShowOverlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Show overlay for 2s'**
+  String get showcaseShowOverlay;
+
+  /// No description provided for @showcaseOpenDialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Open confirm dialog'**
+  String get showcaseOpenDialog;
+
+  /// No description provided for @showcaseOpenDestructiveDialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Open destructive dialog'**
+  String get showcaseOpenDestructiveDialog;
+
+  /// No description provided for @showcaseDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this item?'**
+  String get showcaseDialogTitle;
+
+  /// No description provided for @showcaseDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get showcaseDialogMessage;
+
+  /// No description provided for @showcaseDialogResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: {result}'**
+  String showcaseDialogResult(String result);
 }
 
 class _AppLocalizationsDelegate

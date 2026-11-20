@@ -272,8 +272,8 @@ void main() {
 
     testWidgets('Bỏ qua → null; Lưu khoá khi rỗng', (tester) async {
       final r = await open(tester);
-      final save = tester.widget<ElevatedButton>(find.descendant(
-          of: find.byKey(const ValueKey<String>('price-save')), matching: find.byType(ElevatedButton)));
+      final save = tester.widget<ButtonStyleButton>(find.descendant(
+          of: find.byKey(const ValueKey<String>('price-save')), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton)));
       expect(save.onPressed, isNull);
       await tester.tap(find.byKey(const ValueKey<String>('price-skip')));
       await tester.pumpAndSettle();

@@ -4,12 +4,17 @@ import 'package:smart_kitchen_mobile/constants/app_theme.dart';
 import 'package:smart_kitchen_mobile/l10n/app_localizations.dart';
 
 /// Bọc widget đang test bằng đúng theme + delegate i18n của app, để widget
-/// dùng `context.l10n` chạy được trong test.
+/// dùng `context.l10n` chạy được trong test. [theme] mặc định
+/// `AppTheme.light`; test dark truyền `AppTheme.dark`.
 extension PumpApp on WidgetTester {
-  Future<void> pumpAppWidget(Widget child, {bool wrapInScaffold = true}) =>
+  Future<void> pumpAppWidget(
+    Widget child, {
+    bool wrapInScaffold = true,
+    ThemeData? theme,
+  }) =>
       pumpWidget(
         MaterialApp(
-          theme: AppTheme.light,
+          theme: theme ?? AppTheme.light,
           locale: const Locale('vi'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
