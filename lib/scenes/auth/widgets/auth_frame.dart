@@ -127,7 +127,8 @@ String errorCopyKey(String code) => switch (code) {
       'ERR_NETWORK' => 'network_error',
       'ERR_AUTH_FIREBASE_UNAVAILABLE' => 'google_unavailable',
       'ERR_AUTH_GOOGLE_EMAIL_REQUIRED' => 'google_email_required',
-      'ERR_AUTH_001' => 'google_token_invalid',
+      'ERR_AUTH_001' || 'ERR_AUTH_GOOGLE_TOKEN_MISSING' =>
+        'google_token_invalid',
       'ERR_AUTH_RATE_LIMIT' => 'auth_rate_limited',
       'ERR_AUTH_OTP_INVALID' => 'otp_invalid',
       'ERR_AUTH_OTP_LIMIT' => 'otp_resend_limit',

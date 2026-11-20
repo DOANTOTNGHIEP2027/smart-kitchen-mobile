@@ -20,6 +20,10 @@ build/
 .env.*
 coverage/
 config/env/dev.dart
+# Firebase config — lấy từ Firebase Console, KHÔNG commit (#16, OD-38)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
 # iOS
 ios/Pods/
 ios/Flutter/Flutter.framework/

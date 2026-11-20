@@ -16,5 +16,11 @@ ApiException storeApiException(Object error) {
       'Google sign-in is unavailable',
     );
   }
+  if (error is GoogleAuthTokenMissingException) {
+    return BusinessException(
+      'ERR_AUTH_GOOGLE_TOKEN_MISSING',
+      'Google sign-in returned no ID token',
+    );
+  }
   return ServerException('ERR_UNKNOWN', 'Unexpected response');
 }

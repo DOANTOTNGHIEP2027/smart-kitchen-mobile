@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.gms.google-services")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -55,6 +54,14 @@ dependencies {
 
 flutter {
     source = "../.."
+}
+
+// #16 / OD-38: google-services.json không commit. Chỉ apply plugin khi có file —
+// thiếu file vẫn build được; Firebase init lỗi → Google Sign-In tắt, dùng email + OTP.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.warn("google-services.json không có — build không kèm Firebase (Google Sign-In tắt).")
 }
 
 dependencies {
