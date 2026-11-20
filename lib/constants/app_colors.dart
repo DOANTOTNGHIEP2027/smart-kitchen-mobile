@@ -54,4 +54,30 @@ abstract class AppColors {
   static const Color sageLight = Color(0xFFEFF6F0);
   static const Color sageBorder = Color(0xFFCFE2D3);
   static const Color sageSurface = Color(0xFFF7FAF8);
+
+  // Scrim cho LoadingOverlay (design-system.md §5)
+  static const Color scrim = Color(0x52000000);
+
+  // Dark theme — chỉ phần nền (design-system.md §4.1). Màn feature chưa
+  // migrate nên app vẫn mặc định ThemeMode.light.
+  static const Color darkPrimaryContainer = Color(0xFF3A2418);
+  static const Color darkOnPrimaryContainer = Color(0xFFFFB899);
+  static const Color darkBackground = Color(0xFF121214);
+  static const Color darkSurface = Color(0xFF1C1C1F);
+  static const Color darkSurfaceSubtle = Color(0xFF26262A);
+  static const Color darkBorder = Color(0xFF2E2E33);
+  static const Color darkTextPrimary = Color(0xFFF4F4F5);
+  static const Color darkTextSecondary = Color(0xFFA1A1AA);
+  static const Color darkTextDisabled = Color(0xFF6B6B73);
+  static const Color darkError = Color(0xFFF87171);
+  static const Color darkErrorSurface = Color(0xFF3B1D1D);
+  static const Color darkWarning = Color(0xFFFBBF24);
+  static const Color darkWarningSurface = Color(0xFF33270F);
+  static const Color darkSuccess = Color(0xFF4ADE80);
+  static const Color darkSuccessSurface = Color(0xFF16301F);
+  static const Color darkInfo = Color(0xFF60A5FA);
+  static const Color darkInfoSurface = Color(0xFF172338);
+  static const Color darkPrimaryShadow = Color(0x00000000);
+  static const Color darkAmbientShadow = Color(0x00000000);
+  static const Color darkScrim = Color(0x99000000);
 }

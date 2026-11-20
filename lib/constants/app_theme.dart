@@ -1,82 +1,98 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_colors_extension.dart';
 import 'app_dimens.dart';
 import 'app_text_styles.dart';
 
-/// Lắp ráp token thành một [ThemeData] duy nhất chuẩn DESIGN_SYSTEM.md (fe-app-shell.md §11).
-/// `GetMaterialApp(theme: AppTheme.light)` là consumer duy nhất.
+/// Lắp ráp token thành [ThemeData] chuẩn DESIGN_SYSTEM.md (fe-app-shell.md §11,
+/// design-system.md §6). `GetMaterialApp(theme: light, darkTheme: dark)` là
+/// consumer duy nhất.
+///
+/// Bất biến: [light] giữ đúng giá trị trước issue #17 — có test so toàn bộ
+/// ThemeData với bản sao đóng băng (`test/constants/legacy_light_theme.dart`).
 abstract class AppTheme {
-  static ThemeData get light {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      primary: AppColors.primary,
-      onPrimary: AppColors.onPrimary,
-      primaryContainer: AppColors.primaryContainer,
-      onPrimaryContainer: AppColors.onPrimaryContainer,
-      secondary: AppColors.primaryDark,
-      surface: AppColors.surface,
-      error: AppColors.error,
-      brightness: Brightness.light,
-    );
+  static ThemeData get light => _build(Brightness.light);
+
+  static ThemeData get dark => _build(Brightness.dark);
+
+  static ThemeData _build(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    final ext = isDark ? AppColorsExtension.dark : AppColorsExtension.light;
+    final surface = isDark ? AppColors.darkSurface : AppColors.surface;
+    final background = isDark ? AppColors.darkBackground : AppColors.background;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final error = isDark ? AppColors.darkError : AppColors.error;
+    final textTheme = AppTextStyles.textTheme(brightness);
+
+    // Light: giữ đúng bộ override cũ — KHÔNG thêm onSurface (design §6, review H1).
+    final colorScheme = isDark
+        ? ColorScheme.fromSeed(
+            seedColor: AppColors.primary,
+            primary: AppColors.primary,
+            onPrimary: AppColors.onPrimary,
+            primaryContainer: AppColors.darkPrimaryContainer,
+            onPrimaryContainer: AppColors.darkOnPrimaryContainer,
+            secondary: AppColors.primary,
+            surface: AppColors.darkSurface,
+            onSurface: AppColors.darkTextPrimary,
+            error: AppColors.darkError,
+            brightness: Brightness.dark,
+          )
+        : ColorScheme.fromSeed(
+            seedColor: AppColors.primary,
+            primary: AppColors.primary,
+            onPrimary: AppColors.onPrimary,
+            primaryContainer: AppColors.primaryContainer,
+            onPrimaryContainer: AppColors.onPrimaryContainer,
+            secondary: AppColors.primaryDark,
+            surface: AppColors.surface,
+            error: AppColors.error,
+            brightness: Brightness.light,
+          );
+
+    OutlineInputBorder inputBorder(Color color, double width) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: color, width: width),
+        );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.background,
-      textTheme: const TextTheme(
-        titleLarge: AppTextStyles.titleLarge,
-        titleMedium: AppTextStyles.titleMedium,
-        bodyLarge: AppTextStyles.bodyLarge,
-        bodyMedium: AppTextStyles.bodyMedium,
-        labelSmall: AppTextStyles.label,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+      scaffoldBackgroundColor: background,
+      textTheme: textTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: surface,
+        foregroundColor: textPrimary,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: AppTextStyles.titleMedium,
+        titleTextStyle: textTheme.titleMedium,
       ),
       cardTheme: CardThemeData(
-        color: AppColors.surface,
+        color: surface,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusCard),
-          side: const BorderSide(color: AppColors.border, width: 1.0),
+          side: BorderSide(color: ext.border, width: 1.0),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceSubtle,
+        fillColor: ext.surfaceSubtle,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimens.md,
           vertical: 15,
         ),
-        labelStyle: AppTextStyles.label,
-        hintStyle: AppTextStyles.bodyMedium,
+        labelStyle: textTheme.labelSmall,
+        hintStyle: textTheme.bodyMedium,
         errorStyle: const TextStyle(fontSize: 12, height: 1.2),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border, width: 1.0),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border, width: 1.0),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-        ),
+        border: inputBorder(ext.border, 1.0),
+        enabledBorder: inputBorder(ext.border, 1.0),
+        focusedBorder: inputBorder(AppColors.primary, 1.5),
+        errorBorder: inputBorder(error, 1.5),
+        focusedErrorBorder: inputBorder(error, 1.5),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -90,16 +106,17 @@ abstract class AppTheme {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primaryContainer,
+        backgroundColor: surface,
+        indicatorColor: colorScheme.primaryContainer,
         surfaceTintColor: Colors.transparent,
-        labelTextStyle: WidgetStateProperty.all(AppTextStyles.label),
+        labelTextStyle: WidgetStateProperty.all(textTheme.labelSmall),
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.border,
+      dividerTheme: DividerThemeData(
+        color: ext.border,
         thickness: AppDimens.borderWidth,
         space: AppDimens.borderWidth,
       ),
+      extensions: <ThemeExtension<dynamic>>[ext],
     );
   }
 }

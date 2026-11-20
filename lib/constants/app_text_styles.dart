@@ -38,4 +38,25 @@ abstract class AppTextStyles {
     fontSize: 15,
     fontWeight: FontWeight.w600,
   );
+
+  /// `TextTheme` theo [brightness] (design-system.md §4.3). Ở light trả về
+  /// đúng bộ style cũ; ở dark chỉ đổi màu chữ.
+  static TextTheme textTheme(Brightness brightness) {
+    if (brightness == Brightness.light) {
+      return const TextTheme(
+        titleLarge: titleLarge,
+        titleMedium: titleMedium,
+        bodyLarge: bodyLarge,
+        bodyMedium: bodyMedium,
+        labelSmall: label,
+      );
+    }
+    return TextTheme(
+      titleLarge: titleLarge.copyWith(color: AppColors.darkTextPrimary),
+      titleMedium: titleMedium.copyWith(color: AppColors.darkTextPrimary),
+      bodyLarge: bodyLarge.copyWith(color: AppColors.darkTextPrimary),
+      bodyMedium: bodyMedium.copyWith(color: AppColors.darkTextSecondary),
+      labelSmall: label.copyWith(color: AppColors.darkTextSecondary),
+    );
+  }
 }

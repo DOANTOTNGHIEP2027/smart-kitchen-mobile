@@ -2811,4 +2811,135 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get planningRepetitionContextHint =>
       'Repetition information reflects dishes assigned in the plan.';
+
+  @override
+  String get commonConfirm => 'Confirm';
+
+  @override
+  String get commonLoading => 'Loading…';
+
+  @override
+  String get commonShowPassword => 'Show password';
+
+  @override
+  String get commonHidePassword => 'Hide password';
+
+  @override
+  String get commonRequiredField => 'This field is required';
+
+  @override
+  String get showcaseTitle => 'Widget showcase';
+
+  @override
+  String get showcaseEntry => 'Widget showcase (dev)';
+
+  @override
+  String get showcaseToggleTheme => 'Toggle light/dark';
+
+  @override
+  String get showcaseSectionColors => 'Colors';
+
+  @override
+  String get showcaseSectionTypography => 'Typography';
+
+  @override
+  String get showcaseSectionButtons => 'Buttons';
+
+  @override
+  String get showcaseSectionCards => 'Cards';
+
+  @override
+  String get showcaseSectionInputs => 'Inputs';
+
+  @override
+  String get showcaseSectionStates => 'States';
+
+  @override
+  String get showcaseSectionOverlay => 'Loading overlay';
+
+  @override
+  String get showcaseSectionDialog => 'Dialog';
+
+  @override
+  String get showcaseSampleLabel => 'Food name';
+
+  @override
+  String get showcaseSampleText => 'The quick brown fox';
+
+  @override
+  String get showcaseHighlighted => 'Highlighted card';
+
+  @override
+  String get showcaseCardNormal => 'Normal card';
+
+  @override
+  String get showcaseCardTappable => 'Tappable card';
+
+  @override
+  String get showcaseCardElevated => 'Elevated card';
+
+  @override
+  String get showcaseVariantPrimary => 'Primary';
+
+  @override
+  String get showcaseVariantSecondary => 'Secondary';
+
+  @override
+  String get showcaseVariantOutline => 'Outline';
+
+  @override
+  String get showcaseVariantGoogle => 'Google';
+
+  @override
+  String get showcaseVariantText => 'Text';
+
+  @override
+  String get showcaseVariantDestructive => 'Destructive';
+
+  @override
+  String get showcaseStateLoading => 'Loading';
+
+  @override
+  String get showcaseStateDisabled => 'Disabled';
+
+  @override
+  String get showcaseTapToLoad => 'Tap to load for 2s';
+
+  @override
+  String get showcaseFieldRequired => 'Required field';
+
+  @override
+  String get showcaseFieldServerError => 'Field with server error';
+
+  @override
+  String get showcaseFieldServerErrorText => 'This name already exists';
+
+  @override
+  String get showcaseFieldPassword => 'Password';
+
+  @override
+  String get showcaseFieldDisabled => 'Disabled field';
+
+  @override
+  String get showcaseEmptyAction => 'Add item';
+
+  @override
+  String get showcaseShowOverlay => 'Show overlay for 2s';
+
+  @override
+  String get showcaseOpenDialog => 'Open confirm dialog';
+
+  @override
+  String get showcaseOpenDestructiveDialog => 'Open destructive dialog';
+
+  @override
+  String get showcaseDialogTitle => 'Delete this item?';
+
+  @override
+  String get showcaseDialogMessage => 'This action cannot be undone.';
+
+  @override
+  String showcaseDialogResult(String result) {
+    return 'Result: $result';
+  }
 }

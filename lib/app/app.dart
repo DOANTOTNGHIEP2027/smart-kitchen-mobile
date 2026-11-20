@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
 import 'env_config.dart';
@@ -11,6 +12,7 @@ import '../routing/app_routes.dart';
 import '../data/notification/notification_service.dart';
 import '../scenes/inventory/inventory_routes.dart';
 import '../scenes/mealplan/scenes/meal_plan_routes.dart';
+import '../stores/theme_store.dart';
 import '../utils/l10n_x.dart';
 
 /// Widget gốc (fe-app-shell.md §3). Chỉ lắp theme + bảng route + i18n;
@@ -20,10 +22,20 @@ class SmartKitchenApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Không bọc Observer khi chưa có ThemeStore (test dựng app không qua
+    // bootstrap) — Observer không đọc observable nào sẽ cảnh báo (design §6).
+    if (!Get.isRegistered<ThemeStore>()) return _buildApp(ThemeMode.light);
+    final themeStore = Get.find<ThemeStore>();
+    return Observer(builder: (_) => _buildApp(themeStore.themeMode));
+  }
+
+  Widget _buildApp(ThemeMode themeMode) {
     return GetMaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
       // Bản demo dùng copy tiếng Việt nhất quán, không phụ thuộc locale của
       // emulator. Bản kết nối backend thật vẫn theo ngôn ngữ hệ điều hành.
       locale: EnvConfig.isDemoMode ? const Locale('vi') : null,

@@ -2778,4 +2778,135 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get planningRepetitionContextHint =>
       'Thông tin lặp món phản ánh các món đã gán trong kế hoạch.';
+
+  @override
+  String get commonConfirm => 'Xác nhận';
+
+  @override
+  String get commonLoading => 'Đang xử lý…';
+
+  @override
+  String get commonShowPassword => 'Hiện mật khẩu';
+
+  @override
+  String get commonHidePassword => 'Ẩn mật khẩu';
+
+  @override
+  String get commonRequiredField => 'Vui lòng nhập trường này';
+
+  @override
+  String get showcaseTitle => 'Thư viện widget';
+
+  @override
+  String get showcaseEntry => 'Thư viện widget (dev)';
+
+  @override
+  String get showcaseToggleTheme => 'Đổi sáng/tối';
+
+  @override
+  String get showcaseSectionColors => 'Màu';
+
+  @override
+  String get showcaseSectionTypography => 'Chữ';
+
+  @override
+  String get showcaseSectionButtons => 'Nút bấm';
+
+  @override
+  String get showcaseSectionCards => 'Thẻ';
+
+  @override
+  String get showcaseSectionInputs => 'Ô nhập liệu';
+
+  @override
+  String get showcaseSectionStates => 'Trạng thái';
+
+  @override
+  String get showcaseSectionOverlay => 'Lớp phủ loading';
+
+  @override
+  String get showcaseSectionDialog => 'Hộp thoại';
+
+  @override
+  String get showcaseSampleLabel => 'Tên thực phẩm';
+
+  @override
+  String get showcaseSampleText => 'Cà chua bi tươi ngon';
+
+  @override
+  String get showcaseHighlighted => 'Thẻ được làm nổi bật';
+
+  @override
+  String get showcaseCardNormal => 'Thẻ thường';
+
+  @override
+  String get showcaseCardTappable => 'Thẻ bấm được';
+
+  @override
+  String get showcaseCardElevated => 'Thẻ có bóng';
+
+  @override
+  String get showcaseVariantPrimary => 'Primary';
+
+  @override
+  String get showcaseVariantSecondary => 'Secondary';
+
+  @override
+  String get showcaseVariantOutline => 'Outline';
+
+  @override
+  String get showcaseVariantGoogle => 'Google';
+
+  @override
+  String get showcaseVariantText => 'Text';
+
+  @override
+  String get showcaseVariantDestructive => 'Destructive';
+
+  @override
+  String get showcaseStateLoading => 'Đang tải';
+
+  @override
+  String get showcaseStateDisabled => 'Vô hiệu';
+
+  @override
+  String get showcaseTapToLoad => 'Nhấn để loading 2 giây';
+
+  @override
+  String get showcaseFieldRequired => 'Trường bắt buộc';
+
+  @override
+  String get showcaseFieldServerError => 'Trường có lỗi từ server';
+
+  @override
+  String get showcaseFieldServerErrorText => 'Tên này đã tồn tại';
+
+  @override
+  String get showcaseFieldPassword => 'Mật khẩu';
+
+  @override
+  String get showcaseFieldDisabled => 'Trường bị khoá';
+
+  @override
+  String get showcaseEmptyAction => 'Thêm mục';
+
+  @override
+  String get showcaseShowOverlay => 'Hiện lớp phủ 2 giây';
+
+  @override
+  String get showcaseOpenDialog => 'Mở hộp thoại xác nhận';
+
+  @override
+  String get showcaseOpenDestructiveDialog => 'Mở hộp thoại xoá';
+
+  @override
+  String get showcaseDialogTitle => 'Xoá mục này?';
+
+  @override
+  String get showcaseDialogMessage => 'Thao tác này không thể hoàn tác.';
+
+  @override
+  String showcaseDialogResult(String result) {
+    return 'Kết quả: $result';
+  }
 }

@@ -10,6 +10,7 @@ class AppScaffold extends StatelessWidget {
     this.actions,
     this.leading,
     this.automaticallyImplyLeading = true,
+    this.showBackButton = true,
     this.bottomNavigationBar,
     this.floatingActionButton,
   });
@@ -19,6 +20,9 @@ class AppScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final Widget? leading;
   final bool automaticallyImplyLeading;
+
+  /// `false` ẩn nút back tự động trên AppBar (design-system.md §7.3).
+  final bool showBackButton;
   final Widget? bottomNavigationBar;
   final Widget? floatingActionButton;
 
@@ -31,7 +35,8 @@ class AppScaffold extends StatelessWidget {
               title: Text(titleText),
               actions: actions,
               leading: leading,
-              automaticallyImplyLeading: automaticallyImplyLeading,
+              automaticallyImplyLeading:
+                  automaticallyImplyLeading && showBackButton,
             )
           : null,
       body: SafeArea(child: body),
