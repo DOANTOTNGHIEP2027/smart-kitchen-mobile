@@ -3413,4 +3413,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String receiptDoneToast(int count) {
     return 'Updated $count items';
   }
+
+  @override
+  String get authBadCredentials => 'Wrong email or password';
+
+  @override
+  String get authEmailExists => 'This email is already registered';
+
+  @override
+  String get authNameRequired => 'Please enter your full name';
+
+  @override
+  String get authNameTooLong => 'Full name must be at most 100 characters';
+
+  @override
+  String get householdFull => 'This household already has 10 members';
+
+  @override
+  String get joinRateLimited =>
+      'Too many attempts. Please try again in a few minutes';
+
+  @override
+  String get inviteQrInvalid => 'This QR code is not a Smart Kitchen invite';
+
+  @override
+  String get joinGoHome => 'Go to home';
 }

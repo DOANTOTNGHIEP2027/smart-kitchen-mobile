@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/inputs/app_text_field.dart';
+import 'domain/auth_validators.dart';
 import 'api/auth_api.dart';
 import 'stores/password_reset_store.dart';
 import 'widgets/auth_frame.dart';
@@ -46,18 +48,18 @@ class _ForgotPasswordSceneState extends State<ForgotPasswordScene> {
                 FeatureBanner(message: errorCopy(context, store.error!.code)),
                 const SizedBox(height: 16),
               ],
-              TextField(
+              AppTextField(
+                label: 'email'.localized(context),
                 controller: email,
                 enabled: !store.isSubmitting,
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
+                hint: context.l10n.authEmailExample,
+                prefixIcon: Icons.alternate_email_rounded,
+                validator: (v) => AuthValidators.email(v)?.localized(context),
+                errorText: _fieldError('email'),
+                onChanged: (_) => store.clearFieldError('email'),
                 onSubmitted: (_) => _submit(),
-                decoration: InputDecoration(
-                  labelText: 'email'.localized(context),
-                  hintText: 'you@example.com',
-                  prefixIcon: const Icon(Icons.alternate_email_rounded),
-                  errorText: _fieldError('email'),
-                ),
               ),
               const SizedBox(height: 20),
               AppButton(

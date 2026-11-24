@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/inputs/app_text_field.dart';
+import 'domain/auth_validators.dart';
 import 'otp_scene.dart';
 import 'stores/auth_store.dart';
 import 'stores/otp_store.dart';
@@ -48,11 +50,48 @@ class _EmailRegisterSceneState extends State<EmailRegisterScene> {
                 FeatureBanner(message: errorCopy(context, store.error!.code)),
                 const SizedBox(height: 16),
               ],
-              TextField(controller: fullName, enabled: !store.isSubmitting, textCapitalization: TextCapitalization.words, autofillHints: const [AutofillHints.name], decoration: InputDecoration(labelText: 'full_name'.localized(context), hintText: context.l10n.authFullNameExample, prefixIcon: const Icon(Icons.person_outline), errorText: _fieldError('fullName'))),
+              AppTextField(
+                key: const ValueKey<String>('register-full-name'),
+                label: 'full_name'.localized(context),
+                controller: fullName,
+                enabled: !store.isSubmitting,
+                textCapitalization: TextCapitalization.words,
+                autofillHints: const [AutofillHints.name],
+                hint: context.l10n.authFullNameExample,
+                prefixIcon: Icons.person_outline,
+                validator: (v) => AuthValidators.fullName(v)?.localized(context),
+                errorText: _fieldError('fullName'),
+                onChanged: (_) => store.clearFieldError('fullName'),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: email, enabled: !store.isSubmitting, keyboardType: TextInputType.emailAddress, autofillHints: const [AutofillHints.newUsername], decoration: InputDecoration(labelText: 'email'.localized(context), hintText: context.l10n.authEmailExample, prefixIcon: const Icon(Icons.alternate_email_rounded), errorText: _fieldError('email'))),
+              AppTextField(
+                key: const ValueKey<String>('register-email'),
+                label: 'email'.localized(context),
+                controller: email,
+                enabled: !store.isSubmitting,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.newUsername],
+                hint: context.l10n.authEmailExample,
+                prefixIcon: Icons.alternate_email_rounded,
+                validator: (v) => AuthValidators.email(v)?.localized(context),
+                errorText: _fieldError('email'),
+                onChanged: (_) => store.clearFieldError('email'),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: password, enabled: !store.isSubmitting, obscureText: true, autofillHints: const [AutofillHints.newPassword], onSubmitted: (_) => _submit(), decoration: InputDecoration(labelText: 'password'.localized(context), helperText: 'password_hint'.localized(context), prefixIcon: const Icon(Icons.lock_outline), errorText: _fieldError('password'))),
+              AppTextField(
+                key: const ValueKey<String>('register-password'),
+                label: 'password'.localized(context),
+                controller: password,
+                enabled: !store.isSubmitting,
+                obscureText: true,
+                autofillHints: const [AutofillHints.newPassword],
+                helperText: 'password_hint'.localized(context),
+                prefixIcon: Icons.lock_outline,
+                validator: (v) => AuthValidators.password(v)?.localized(context),
+                errorText: _fieldError('password'),
+                onChanged: (_) => store.clearFieldError('password'),
+                onSubmitted: (_) => _submit(),
+              ),
               const SizedBox(height: 20),
               AppButton(label: 'create_account'.localized(context), isLoading: store.isSubmitting, onPressed: _submit),
               AppButton(label: 'have_account_login'.localized(context), variant: AppButtonVariant.text, onPressed: () => Get.offNamed(AppRoutes.emailLogin)),

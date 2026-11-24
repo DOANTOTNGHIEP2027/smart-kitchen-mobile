@@ -30,6 +30,13 @@ abstract class EnvConfig {
     defaultValue: 'http://localhost:8000',
   );
 
+  /// Gốc của link mời `<inviteBaseUrl>/join/<CODE>` in trong QR và nhận qua
+  /// deep link (fe-onboarding.md §12b).
+  static const String inviteBaseUrl = String.fromEnvironment(
+    'INVITE_BASE_URL',
+    defaultValue: 'https://app.smartkitchen.vn',
+  );
+
   /// Bật backend giả lập trong app (`DemoBackendAdapter`) thay cho HTTP thật.
   ///
   /// CHỈ để trình diễn khi chưa có BE chạy. Bị chặn ở build `prod` để một lần

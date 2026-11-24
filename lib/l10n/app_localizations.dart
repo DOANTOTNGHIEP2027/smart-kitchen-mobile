@@ -6057,6 +6057,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Updated {count} items'**
   String receiptDoneToast(int count);
+
+  /// No description provided for @authBadCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong email or password'**
+  String get authBadCredentials;
+
+  /// No description provided for @authEmailExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered'**
+  String get authEmailExists;
+
+  /// No description provided for @authNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your full name'**
+  String get authNameRequired;
+
+  /// No description provided for @authNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name must be at most 100 characters'**
+  String get authNameTooLong;
+
+  /// No description provided for @householdFull.
+  ///
+  /// In en, this message translates to:
+  /// **'This household already has 10 members'**
+  String get householdFull;
+
+  /// No description provided for @joinRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please try again in a few minutes'**
+  String get joinRateLimited;
+
+  /// No description provided for @inviteQrInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This QR code is not a Smart Kitchen invite'**
+  String get inviteQrInvalid;
+
+  /// No description provided for @joinGoHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to home'**
+  String get joinGoHome;
 }
 
 class _AppLocalizationsDelegate

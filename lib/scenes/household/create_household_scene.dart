@@ -7,6 +7,9 @@ import '../../routing/app_routes.dart';
 import '../../stores/session_store.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/inputs/app_text_field.dart';
+import '../auth/domain/auth_validators.dart';
+import 'domain/invite_code.dart';
 import '../auth/widgets/auth_frame.dart';
 import 'stores/household_store.dart';
 
@@ -20,7 +23,7 @@ class CreateHouseholdScene extends StatefulWidget {
 class _CreateHouseholdSceneState extends State<CreateHouseholdScene> {
   late final HouseholdStore store = Get.find<HouseholdStore>();
   final name = TextEditingController();
-  String? localError;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -30,13 +33,9 @@ class _CreateHouseholdSceneState extends State<CreateHouseholdScene> {
   }
 
   Future<void> _submit() async {
+    // Cùng luật với validate realtime (fe-onboarding.md §18b).
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     final value = name.text.trim();
-    setState(() => localError = value.isEmpty
-        ? 'household_name_required'.localized(context)
-        : value.length > 255
-            ? 'household_name_too_long'.localized(context)
-            : null);
-    if (localError != null) return;
     if (!await store.create(value) && store.error?.code == 'ERR_HH_003') {
       final session = Get.find<SessionStore>();
       Get.offAllNamed(session.householdId == null
@@ -63,8 +62,7 @@ class _CreateHouseholdSceneState extends State<CreateHouseholdScene> {
                 child: Semantics(
                     label: 'invite_qr_semantics'.localized(context),
                     child: QrImageView(
-                        data:
-                            'https://app.smartkitchen.vn/join/${household.inviteCode}',
+                        data: inviteLink(household.inviteCode),
                         size: 188)),
               ),
               const SizedBox(height: 12),
@@ -104,17 +102,22 @@ class _CreateHouseholdSceneState extends State<CreateHouseholdScene> {
               FeatureBanner(message: errorCopy(context, store.error!.code)),
               const SizedBox(height: 16),
             ],
-            TextField(
+            Form(
+              key: _formKey,
+              child: AppTextField(
+                key: const ValueKey<String>('household-name'),
+                label: 'household_name'.localized(context),
                 controller: name,
                 enabled: !store.isSubmitting,
                 maxLength: 255,
                 textCapitalization: TextCapitalization.words,
+                hint: context.l10n.householdNameExample,
+                prefixIcon: Icons.home_outlined,
+                validator: (v) =>
+                    AuthValidators.householdName(v)?.localized(context),
                 onSubmitted: (_) => _submit(),
-                decoration: InputDecoration(
-                    labelText: 'household_name'.localized(context),
-                    hintText: context.l10n.householdNameExample,
-                    prefixIcon: const Icon(Icons.home_outlined),
-                    errorText: localError)),
+              ),
+            ),
             const SizedBox(height: 20),
             AppButton(
                 label: 'create_household'.localized(context),

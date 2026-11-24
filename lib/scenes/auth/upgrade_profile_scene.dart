@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/inputs/app_text_field.dart';
+import 'domain/auth_validators.dart';
 import 'api/auth_api.dart';
 import 'otp_scene.dart';
 import 'stores/otp_store.dart';
@@ -47,11 +49,41 @@ class _UpgradeProfileSceneState extends State<UpgradeProfileScene> {
                 FeatureBanner(message: errorCopy(context, store.error!.code)),
                 const SizedBox(height: 16),
               ],
-              TextField(controller: email, enabled: !store.isSubmitting, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'email'.localized(context), hintText: context.l10n.authEmailExample, prefixIcon: const Icon(Icons.alternate_email_rounded), errorText: _fieldError('email'))),
+              AppTextField(
+                label: 'email'.localized(context),
+                controller: email,
+                enabled: !store.isSubmitting,
+                keyboardType: TextInputType.emailAddress,
+                hint: context.l10n.authEmailExample,
+                prefixIcon: Icons.alternate_email_rounded,
+                validator: (v) => AuthValidators.email(v)?.localized(context),
+                errorText: _fieldError('email'),
+                onChanged: (_) => store.clearFieldError('email'),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: password, enabled: !store.isSubmitting, obscureText: true, decoration: InputDecoration(labelText: 'password'.localized(context), prefixIcon: const Icon(Icons.lock_outline), errorText: _fieldError('password'))),
+              AppTextField(
+                label: 'password'.localized(context),
+                controller: password,
+                enabled: !store.isSubmitting,
+                obscureText: true,
+                prefixIcon: Icons.lock_outline,
+                validator: (v) => AuthValidators.password(v)?.localized(context),
+                errorText: _fieldError('password'),
+                onChanged: (_) => store.clearFieldError('password'),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: fullName, enabled: !store.isSubmitting, textCapitalization: TextCapitalization.words, decoration: InputDecoration(labelText: 'full_name_optional'.localized(context), hintText: context.l10n.authFullNameExample, prefixIcon: const Icon(Icons.person_outline), errorText: _fieldError('fullName'))),
+              AppTextField(
+                label: 'full_name_optional'.localized(context),
+                controller: fullName,
+                enabled: !store.isSubmitting,
+                textCapitalization: TextCapitalization.words,
+                hint: context.l10n.authFullNameExample,
+                prefixIcon: Icons.person_outline,
+                validator: (v) =>
+                    AuthValidators.fullName(v, required: false)?.localized(context),
+                errorText: _fieldError('fullName'),
+                onChanged: (_) => store.clearFieldError('fullName'),
+              ),
               const SizedBox(height: 20),
               AppButton(label: 'continue_to_otp'.localized(context), isLoading: store.isSubmitting, onPressed: _submit),
             ])),

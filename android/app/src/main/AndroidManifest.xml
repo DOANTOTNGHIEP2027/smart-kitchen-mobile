@@ -33,6 +33,24 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Deep link mời vào Nhà (fe-onboarding.md §12b, D9): Flutter đổi
+                 path URI thành route `/join/<code>`. Không autoVerify — cần
+                 assetlinks.json trên domain (Q9). -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="app.smartkitchen.vn" android:pathPrefix="/join/" />
+            </intent-filter>
+            <!-- Scheme riêng để test bằng adb: smartkitchen://app/join/<CODE>.
+                 Host `app` bắt buộc vì Flutter chỉ lấy path làm route. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="smartkitchen" android:host="app" android:pathPrefix="/join/" />
+            </intent-filter>
         </activity>
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"

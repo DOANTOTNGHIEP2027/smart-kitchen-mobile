@@ -381,7 +381,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get enterCodeManually => 'Nhập mã thủ công';
 
   @override
-  String get cameraUnavailable => 'Không thể dùng camera';
+  String get cameraUnavailable => 'Không mở được camera trên thiết bị này';
 
   @override
   String get inviteCode => 'Mã mời';
@@ -3368,4 +3368,29 @@ class AppLocalizationsVi extends AppLocalizations {
   String receiptDoneToast(int count) {
     return 'Đã cập nhật $count món';
   }
+
+  @override
+  String get authBadCredentials => 'Sai email hoặc mật khẩu';
+
+  @override
+  String get authEmailExists => 'Email này đã được đăng ký';
+
+  @override
+  String get authNameRequired => 'Vui lòng nhập họ tên';
+
+  @override
+  String get authNameTooLong => 'Họ tên tối đa 100 ký tự';
+
+  @override
+  String get householdFull => 'Gia đình này đã đủ 10 thành viên';
+
+  @override
+  String get joinRateLimited =>
+      'Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút';
+
+  @override
+  String get inviteQrInvalid => 'Mã QR không hợp lệ';
+
+  @override
+  String get joinGoHome => 'Về trang chủ';
 }

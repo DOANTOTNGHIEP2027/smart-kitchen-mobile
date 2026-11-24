@@ -133,6 +133,7 @@ String errorCopyKey(String code) => switch (code) {
       'ERR_AUTH_OTP_INVALID' => 'otp_invalid',
       'ERR_AUTH_OTP_LIMIT' => 'otp_resend_limit',
       'ERR_HH_002' => 'invite_invalid',
+      'ERR_HOUSEHOLD_FULL' => 'household_full',
       'ERR_HH_003' || 'CLIENT_ALREADY_IN_HOUSEHOLD' => 'already_in_household',
       'ERR_HH_005' || 'ERR_AUTH_INVITE_INVALID' => 'invite_race',
       _ => 'generic_retry_error',
