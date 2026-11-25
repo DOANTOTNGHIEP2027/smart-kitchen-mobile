@@ -4150,12 +4150,6 @@ abstract class AppLocalizations {
   /// **'The app automatically excludes allergenic ingredients when suggesting menus for dependents.'**
   String get dependentAllergenInfo;
 
-  /// No description provided for @dependentDefaultName.
-  ///
-  /// In en, this message translates to:
-  /// **'Little member'**
-  String get dependentDefaultName;
-
   /// No description provided for @dependentAgeAndBirth.
   ///
   /// In en, this message translates to:
@@ -4171,7 +4165,7 @@ abstract class AppLocalizations {
   /// No description provided for @dependentNoAllergens.
   ///
   /// In en, this message translates to:
-  /// **'No allergies'**
+  /// **'No allergies recorded'**
   String get dependentNoAllergens;
 
   /// No description provided for @dependentProfileNav.
@@ -4198,12 +4192,6 @@ abstract class AppLocalizations {
   /// **'Something went wrong while saving the profile'**
   String get dependentSaveFailed;
 
-  /// No description provided for @dependentBasicInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Basic information'**
-  String get dependentBasicInfo;
-
   /// No description provided for @dependentNameLabel.
   ///
   /// In en, this message translates to:
@@ -4222,59 +4210,257 @@ abstract class AppLocalizations {
   /// **'Date of birth'**
   String get dependentDateOfBirth;
 
-  /// No description provided for @dependentDietSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Diet'**
-  String get dependentDietSection;
-
-  /// No description provided for @dependentDietHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a special diet if this member has specific nutrition needs.'**
-  String get dependentDietHint;
-
-  /// No description provided for @dependentDietNone.
-  ///
-  /// In en, this message translates to:
-  /// **'Regular'**
-  String get dependentDietNone;
-
-  /// No description provided for @dependentDietVegetarian.
-  ///
-  /// In en, this message translates to:
-  /// **'Lacto-ovo vegetarian'**
-  String get dependentDietVegetarian;
-
-  /// No description provided for @dependentDietVegan.
-  ///
-  /// In en, this message translates to:
-  /// **'Vegan'**
-  String get dependentDietVegan;
-
-  /// No description provided for @dependentDietPescatarian.
-  ///
-  /// In en, this message translates to:
-  /// **'Pescatarian'**
-  String get dependentDietPescatarian;
-
-  /// No description provided for @dependentAllergenSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Food allergies'**
-  String get dependentAllergenSection;
-
-  /// No description provided for @dependentAllergenHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Tick the foods this member is allergic to so the app can warn you.'**
-  String get dependentAllergenHint;
-
   /// No description provided for @dependentSave.
   ///
   /// In en, this message translates to:
   /// **'Save profile'**
   String get dependentSave;
+
+  /// No description provided for @dependentCardCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 profile} other{{count} profiles}}'**
+  String dependentCardCount(int count);
+
+  /// No description provided for @dependentCardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No profiles yet'**
+  String get dependentCardEmpty;
+
+  /// No description provided for @dependentCardViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get dependentCardViewAll;
+
+  /// No description provided for @dependentCardView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get dependentCardView;
+
+  /// No description provided for @dependentDobHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get dependentDobHint;
+
+  /// No description provided for @dependentDobNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not provided'**
+  String get dependentDobNotSet;
+
+  /// No description provided for @dependentDobClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear date of birth'**
+  String get dependentDobClear;
+
+  /// No description provided for @dependentNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Name must be 255 characters or fewer'**
+  String get dependentNameTooLong;
+
+  /// No description provided for @dependentCreatedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile created'**
+  String get dependentCreatedToast;
+
+  /// No description provided for @dependentGuardianInactiveTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a new guardian'**
+  String get dependentGuardianInactiveTag;
+
+  /// No description provided for @dependentGuardianInactiveBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile\'s guardian has left the household or no longer has permission to manage it. The data is kept; the household owner needs to assign a new guardian before it can be edited.'**
+  String get dependentGuardianInactiveBanner;
+
+  /// No description provided for @dependentGuardianInactiveOwnerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Until an active guardian is assigned, only the household owner can edit the health profile.'**
+  String get dependentGuardianInactiveOwnerHint;
+
+  /// No description provided for @dependentSummarySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get dependentSummarySection;
+
+  /// No description provided for @dependentHealthRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the current guardian or the household owner can view the full health profile.'**
+  String get dependentHealthRestricted;
+
+  /// No description provided for @dependentGuardianSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Guardian'**
+  String get dependentGuardianSection;
+
+  /// No description provided for @dependentGuardianYou.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (you)'**
+  String dependentGuardianYou(String name);
+
+  /// No description provided for @dependentGuardianLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left the household'**
+  String get dependentGuardianLeft;
+
+  /// No description provided for @dependentGuardianNoManage.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer allowed to manage'**
+  String get dependentGuardianNoManage;
+
+  /// No description provided for @dependentChangeGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'Change guardian'**
+  String get dependentChangeGuardian;
+
+  /// No description provided for @dependentChangeGuardianTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change guardian — {name}'**
+  String dependentChangeGuardianTitle(String name);
+
+  /// No description provided for @dependentChangeGuardianEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No member can be assigned as guardian.'**
+  String get dependentChangeGuardianEmpty;
+
+  /// No description provided for @dependentGuardianChangedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Guardian changed'**
+  String get dependentGuardianChangedToast;
+
+  /// No description provided for @dependentDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete profile'**
+  String get dependentDelete;
+
+  /// No description provided for @dependentDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}\'s profile?'**
+  String dependentDeleteConfirmTitle(String name);
+
+  /// No description provided for @dependentDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All health and allergy data of this profile will be permanently deleted. This cannot be undone.'**
+  String get dependentDeleteConfirmBody;
+
+  /// No description provided for @dependentDeletedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile deleted'**
+  String get dependentDeletedToast;
+
+  /// No description provided for @dependentNotFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile not found'**
+  String get dependentNotFoundTitle;
+
+  /// No description provided for @dependentNotFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It may have been deleted or belong to another household.'**
+  String get dependentNotFoundBody;
+
+  /// No description provided for @dependentBackToList.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to list'**
+  String get dependentBackToList;
+
+  /// No description provided for @dependentNoAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No access'**
+  String get dependentNoAccessTitle;
+
+  /// No description provided for @dependentNoAccessHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the current guardian or the household owner can edit this health profile.'**
+  String get dependentNoAccessHealth;
+
+  /// No description provided for @dependentNoAccessAllergens.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the current guardian or the household owner can edit these allergies.'**
+  String get dependentNoAccessAllergens;
+
+  /// No description provided for @dependentHealthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health — {name}'**
+  String dependentHealthTitle(String name);
+
+  /// No description provided for @dependentAllergensTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies — {name}'**
+  String dependentAllergensTitle(String name);
+
+  /// No description provided for @dependentErrorForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have permission to do this.'**
+  String get dependentErrorForbidden;
+
+  /// No description provided for @dependentErrorNoHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a household first.'**
+  String get dependentErrorNoHousehold;
+
+  /// No description provided for @dependentErrorInvalidGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'This member can\'t be the guardian. Please choose someone else.'**
+  String get dependentErrorInvalidGuardian;
+
+  /// No description provided for @dependentGuardianCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get dependentGuardianCurrent;
+
+  /// No description provided for @dependentBornOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Born {date}'**
+  String dependentBornOn(String date);
+
+  /// No description provided for @dependentHealthUnknownDiet.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile has a diet this app version doesn\'t support. Update the app to edit it.'**
+  String get dependentHealthUnknownDiet;
+
+  /// No description provided for @dependentMoreChip.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String dependentMoreChip(int count);
 
   /// No description provided for @inventoryStatTotal.
   ///
