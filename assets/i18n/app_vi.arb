@@ -163,7 +163,7 @@
   "cameraPermissionDenied": "Cần quyền camera để quét mã QR",
   "openSettings": "Mở cài đặt",
   "enterCodeManually": "Nhập mã thủ công",
-  "cameraUnavailable": "Không thể dùng camera",
+  "cameraUnavailable": "Không mở được camera trên thiết bị này",
   "inviteCode": "Mã mời",
   "previewInvite": "Xem trước lời mời",
   "scanAgain": "Quét lại",
@@ -1034,5 +1034,14 @@
   "@receiptCommitFailedBanner": {"placeholders": {"count": {"type": "int"}}},
   "receiptDoneTitle": "Đã cập nhật",
   "receiptDoneToast": "Đã cập nhật {count} món",
-  "@receiptDoneToast": {"placeholders": {"count": {"type": "int"}}}
+  "@receiptDoneToast": {"placeholders": {"count": {"type": "int"}}},
+
+  "authBadCredentials": "Sai email hoặc mật khẩu",
+  "authEmailExists": "Email này đã được đăng ký",
+  "authNameRequired": "Vui lòng nhập họ tên",
+  "authNameTooLong": "Họ tên tối đa 100 ký tự",
+  "householdFull": "Gia đình này đã đủ 10 thành viên",
+  "joinRateLimited": "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút",
+  "inviteQrInvalid": "Mã QR không hợp lệ",
+  "joinGoHome": "Về trang chủ"
 }

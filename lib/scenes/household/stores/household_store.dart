@@ -8,6 +8,7 @@ import '../../auth/stores/form_status.dart';
 import '../../auth/stores/store_error.dart';
 import '../api/household_api.dart';
 import '../domain/household_models.dart';
+import '../domain/invite_code.dart';
 
 class HouseholdStore {
   HouseholdStore(this._api, this._authApi, this._session);
@@ -66,9 +67,19 @@ class HouseholdStore {
   }
 
   Future<void> preview(String rawCode) async {
-    final code = normalizeInviteCode(rawCode);
+    // Dùng chung parser với QR/deep link (fe-onboarding.md §12b): mã trơn
+    // hoặc link mời đều được; sai định dạng → S8.6, không gọi API.
+    final code = parseInviteCode(rawCode);
     _lastPreviewCode = code;
-    if (code.length != 8) {
+    // Xem mã mới → bỏ lỗi join của mã trước (vd. 409 FULL), nếu không banner
+    // cũ và việc ẩn nút "Tham gia" dính sang Nhà mới (code review v2 NEW-2).
+    if (!isSubmitting) {
+      runInAction(() {
+        _error.value = null;
+        _status.value = FormStatus.idle;
+      });
+    }
+    if (code == null) {
       runInAction(() => _previewState.value = ErrorState(
           BusinessException('ERR_HH_002', 'Invalid invite code')));
       return;
@@ -76,13 +87,22 @@ class HouseholdStore {
     runInAction(() => _previewState.value = const LoadingState());
     try {
       final preview = await _api.preview(code);
-      runInAction(() => _previewState.value = preview.isValid
-          ? SuccessState(preview)
-          : ErrorState(
-              BusinessException('ERR_HH_002', 'Invalid invite code')));
+      // Người dùng đã xem mã khác trong lúc chờ → bỏ kết quả cũ, tránh thẻ
+      // preview Nhà A nhưng `join` gửi mã B (code review #28 MEDIUM-1).
+      if (_lastPreviewCode != code) return;
+      runInAction(() => _previewState.value = !preview.isValid
+          ? ErrorState(BusinessException('ERR_HH_002', 'Invalid invite code'))
+          : preview.isFull
+              ? ErrorState(BusinessException(
+                  'ERR_HOUSEHOLD_FULL', 'Household is full'))
+              : SuccessState(preview));
     } catch (raw) {
-      runInAction(
-          () => _previewState.value = ErrorState(storeApiException(raw)));
+      if (_lastPreviewCode != code) return;
+      final error = storeApiException(raw);
+      runInAction(() => _previewState.value = ErrorState(
+          error.code == 'ERR_HH_001'
+              ? BusinessException('ERR_HH_002', 'Invalid invite code')
+              : error));
     }
   }
 

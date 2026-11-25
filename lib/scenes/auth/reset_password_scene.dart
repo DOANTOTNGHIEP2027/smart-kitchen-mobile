@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/inputs/app_text_field.dart';
+import 'domain/auth_validators.dart';
 import 'stores/password_reset_store.dart';
 import 'widgets/auth_frame.dart';
 
@@ -31,7 +33,6 @@ class _ResetPasswordSceneState extends State<ResetPasswordScene> {
   final otp = TextEditingController();
   final newPassword = TextEditingController();
   final confirmPassword = TextEditingController();
-  bool _obscure = true;
 
   @override
   void initState() {
@@ -130,14 +131,12 @@ class _ResetPasswordSceneState extends State<ResetPasswordScene> {
     return const <Widget>[];
   }
 
-  Widget _emailField(BuildContext context) => TextField(
+  Widget _emailField(BuildContext context) => AppTextField(
+        label: 'email'.localized(context),
         controller: emailField,
         readOnly: true,
         enabled: false,
-        decoration: InputDecoration(
-          labelText: 'email'.localized(context),
-          prefixIcon: const Icon(Icons.alternate_email_rounded),
-        ),
+        prefixIcon: Icons.alternate_email_rounded,
       );
 
   Widget _otpField(BuildContext context, PasswordResetStore current) =>
@@ -159,37 +158,33 @@ class _ResetPasswordSceneState extends State<ResetPasswordScene> {
       );
 
   Widget _newPasswordField(BuildContext context, PasswordResetStore current) =>
-      TextField(
+      AppTextField(
+        label: 'auth_new_password'.localized(context),
         controller: newPassword,
         enabled: !current.isSubmitting,
-        obscureText: _obscure,
+        obscureText: true,
         autofillHints: const <String>[AutofillHints.newPassword],
-        decoration: InputDecoration(
-          labelText: 'auth_new_password'.localized(context),
-          prefixIcon: const Icon(Icons.lock_outline),
-          errorText: _fieldError('newPassword'),
-          suffixIcon: IconButton(
-            icon: Icon(_obscure
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined),
-            onPressed: () => setState(() => _obscure = !_obscure),
-          ),
-        ),
+        prefixIcon: Icons.lock_outline,
+        validator: (v) => AuthValidators.password(v)?.localized(context),
+        errorText: _fieldError('newPassword'),
+        onChanged: (_) => current.clearFieldError('newPassword'),
       );
 
   Widget _confirmPasswordField(
           BuildContext context, PasswordResetStore current) =>
-      TextField(
+      AppTextField(
+        label: 'auth_confirm_password'.localized(context),
         controller: confirmPassword,
         enabled: !current.isSubmitting,
-        obscureText: _obscure,
+        obscureText: true,
         autofillHints: const <String>[AutofillHints.newPassword],
+        prefixIcon: Icons.lock_outline,
+        validator: (v) => v == newPassword.text
+            ? null
+            : 'auth_password_mismatch'.localized(context),
+        errorText: _fieldError('confirmPassword'),
+        onChanged: (_) => current.clearFieldError('confirmPassword'),
         onSubmitted: (_) => _submit(),
-        decoration: InputDecoration(
-          labelText: 'auth_confirm_password'.localized(context),
-          prefixIcon: const Icon(Icons.lock_outline),
-          errorText: _fieldError('confirmPassword'),
-        ),
       );
 
   String? _fieldError(String field) {

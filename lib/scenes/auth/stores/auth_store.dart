@@ -6,6 +6,7 @@ import '../../../data/auth/google_auth_gateway.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../stores/session_store.dart';
 import '../api/auth_api.dart';
+import '../domain/auth_validators.dart';
 import 'form_status.dart';
 import 'store_error.dart';
 
@@ -32,17 +33,27 @@ class AuthStore {
   bool get accountLinked => _accountLinked.value;
   Timer? _loginLockTimer;
 
-  static bool isValidEmail(String value) => RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(value.trim());
+  static bool isValidEmail(String value) => AuthValidators.isValidEmail(value);
 
   bool validateCredentials({required String email, required String password, String? fullName}) {
     runInAction(() {
       fieldErrors.clear();
-      if (!isValidEmail(email)) fieldErrors['email'] = 'auth_email_invalid';
-      if (password.length < 8) fieldErrors['password'] = 'auth_password_short';
-      if (fullName != null && fullName.trim().isEmpty) fieldErrors['fullName'] = 'auth_name_required';
-      if (fullName != null && fullName.trim().length > 100) fieldErrors['fullName'] = 'auth_name_too_long';
+      final errors = <String, String?>{
+        'email': AuthValidators.email(email),
+        'password': AuthValidators.password(password),
+        if (fullName != null) 'fullName': AuthValidators.fullName(fullName),
+      };
+      errors.forEach((field, key) {
+        if (key != null) fieldErrors[field] = key;
+      });
     });
     return fieldErrors.isEmpty;
+  }
+
+  /// Xoá lỗi server/submit của một field khi người dùng sửa lại field đó, để
+  /// validate realtime của `AppTextField` lên tiếng (fe-onboarding.md §18b).
+  void clearFieldError(String field) {
+    if (fieldErrors.containsKey(field)) runInAction(() => fieldErrors.remove(field));
   }
 
   Future<String?> register({required String email, required String password, required String fullName}) async {

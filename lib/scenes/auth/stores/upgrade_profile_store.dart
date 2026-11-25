@@ -3,7 +3,7 @@ import 'package:mobx/mobx.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../stores/session_store.dart';
 import '../api/auth_api.dart';
-import 'auth_store.dart';
+import '../domain/auth_validators.dart';
 import 'form_status.dart';
 import 'store_error.dart';
 
@@ -20,13 +20,22 @@ class UpgradeProfileStore {
   ApiException? get error => _error.value;
   bool get isSubmitting => status == FormStatus.submitting;
 
+  void clearFieldError(String field) {
+    if (fieldErrors.containsKey(field)) runInAction(() => fieldErrors.remove(field));
+  }
+
   Future<bool> submit({required String email, required String password, String? fullName}) async {
     if (isSubmitting) return false;
     runInAction(() {
       fieldErrors.clear();
-      if (!AuthStore.isValidEmail(email)) fieldErrors['email'] = 'auth_email_invalid';
-      if (password.length < 8) fieldErrors['password'] = 'auth_password_short';
-      if (fullName != null && fullName.trim().length > 100) fieldErrors['fullName'] = 'auth_name_too_long';
+      final errors = <String, String?>{
+        'email': AuthValidators.email(email),
+        'password': AuthValidators.password(password),
+        'fullName': AuthValidators.fullName(fullName, required: false),
+      };
+      errors.forEach((field, key) {
+        if (key != null) fieldErrors[field] = key;
+      });
     });
     if (fieldErrors.isNotEmpty) return false;
     runInAction(() {

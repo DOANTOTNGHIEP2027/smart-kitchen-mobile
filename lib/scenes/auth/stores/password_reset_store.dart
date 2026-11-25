@@ -27,6 +27,10 @@ class PasswordResetStore {
   final Observable<FormStatus> _resetStatus = Observable(FormStatus.idle);
   final Observable<ApiException?> _error = Observable(null);
   final ObservableMap<String, String> fieldErrors = ObservableMap();
+
+  void clearFieldError(String field) {
+    if (fieldErrors.containsKey(field)) runInAction(() => fieldErrors.remove(field));
+  }
   final Observable<int> _ttlSeconds = Observable(600);
   // 60s — khớp cooldown server-side (OtpServiceImpl.RESEND_COOLDOWN_SECONDS,
   // OD-49) để nút "Gửi lại" chỉ mở khi BE thực sự cho phép gửi.

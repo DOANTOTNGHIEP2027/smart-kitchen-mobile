@@ -1175,5 +1175,14 @@
   "@receiptCommitFailedBanner": {"placeholders": {"count": {"type": "int"}}},
   "receiptDoneTitle": "Updated",
   "receiptDoneToast": "Updated {count} items",
-  "@receiptDoneToast": {"placeholders": {"count": {"type": "int"}}}
+  "@receiptDoneToast": {"placeholders": {"count": {"type": "int"}}},
+
+  "authBadCredentials": "Wrong email or password",
+  "authEmailExists": "This email is already registered",
+  "authNameRequired": "Please enter your full name",
+  "authNameTooLong": "Full name must be at most 100 characters",
+  "householdFull": "This household already has 10 members",
+  "joinRateLimited": "Too many attempts. Please try again in a few minutes",
+  "inviteQrInvalid": "This QR code is not a Smart Kitchen invite",
+  "joinGoHome": "Go to home"
 }

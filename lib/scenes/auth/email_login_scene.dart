@@ -6,6 +6,8 @@ import '../../routing/app_routes.dart';
 import '../../stores/session_store.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/inputs/app_text_field.dart';
+import 'domain/auth_validators.dart';
 import 'stores/auth_store.dart';
 import 'widgets/auth_frame.dart';
 
@@ -50,30 +52,32 @@ class _EmailLoginSceneState extends State<EmailLoginScene> {
               FeatureBanner(message: errorCopy(context, store.error!.code)),
               const SizedBox(height: 16),
             ],
-            TextField(
+            AppTextField(
+              key: const ValueKey<String>('login-email'),
+              label: 'email'.localized(context),
               controller: email,
               enabled: !store.isSubmitting && !locked,
               keyboardType: TextInputType.emailAddress,
               autofillHints: const [AutofillHints.email],
-              decoration: InputDecoration(
-                labelText: 'email'.localized(context),
-                hintText: context.l10n.authEmailExample,
-                prefixIcon: const Icon(Icons.alternate_email_rounded),
-                errorText: _fieldError('email'),
-              ),
+              hint: context.l10n.authEmailExample,
+              prefixIcon: Icons.alternate_email_rounded,
+              validator: (v) => AuthValidators.email(v)?.localized(context),
+              errorText: _fieldError('email'),
+              onChanged: (_) => store.clearFieldError('email'),
             ),
             const SizedBox(height: 12),
-            TextField(
+            AppTextField(
+              key: const ValueKey<String>('login-password'),
+              label: 'password'.localized(context),
               controller: password,
               enabled: !store.isSubmitting && !locked,
               obscureText: true,
               autofillHints: const [AutofillHints.password],
+              prefixIcon: Icons.lock_outline,
+              validator: (v) => AuthValidators.password(v)?.localized(context),
+              errorText: _fieldError('password'),
+              onChanged: (_) => store.clearFieldError('password'),
               onSubmitted: (_) => _submit(),
-              decoration: InputDecoration(
-                labelText: 'password'.localized(context),
-                prefixIcon: const Icon(Icons.lock_outline),
-                errorText: _fieldError('password'),
-              ),
             ),
             const SizedBox(height: 8),
             Align(

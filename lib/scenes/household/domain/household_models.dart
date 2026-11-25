@@ -21,6 +21,7 @@ class InvitePreview {
     required this.memberCount,
     required this.expiresAt,
     required this.isValid,
+    this.isFull = false,
   });
 
   final String householdName;
@@ -29,12 +30,20 @@ class InvitePreview {
   final DateTime expiresAt;
   final bool isValid;
 
+  /// Nhà đã đủ 10 thành viên (contract `household-invite-role.yaml`, OD-54)
+  /// → S8.12, không cho bấm "Tham gia".
+  final bool isFull;
+
+  /// Chịu được response "mã hết hạn / đã dùng" của BE: `200 isValid:false`
+  /// với `householdName`/`ownerName`/`expiresAt` null (review v2 H3).
   factory InvitePreview.fromJson(Map<String, dynamic> json) => InvitePreview(
-        householdName: json['householdName'] as String,
-        ownerName: json['ownerName'] as String,
-        memberCount: (json['memberCount'] as num).toInt(),
-        expiresAt: DateTime.parse(json['expiresAt'] as String),
+        householdName: json['householdName'] as String? ?? '',
+        ownerName: json['ownerName'] as String? ?? '',
+        memberCount: (json['memberCount'] as num?)?.toInt() ?? 0,
+        expiresAt: DateTime.tryParse(json['expiresAt'] as String? ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
         isValid: json['isValid'] == true,
+        isFull: json['isFull'] == true,
       );
 }
 

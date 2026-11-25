@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../constants/app_colors_extension.dart';
 import '../../constants/app_dimens.dart';
@@ -29,6 +30,12 @@ class AppTextField extends StatefulWidget {
     this.prefixIcon,
     this.maxLines = 1,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
+    this.inputFormatters,
+    this.maxLength,
+    this.textCapitalization = TextCapitalization.none,
+    this.autofillHints,
+    this.autofocus = false,
+    this.readOnly = false,
   });
 
   final String label;
@@ -48,6 +55,14 @@ class AppTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final int maxLines;
   final AutovalidateMode autovalidateMode;
+  final List<TextInputFormatter>? inputFormatters;
+
+  /// Giới hạn ký tự; bộ đếm bị ẩn (khớp DESIGN_SYSTEM §3.2).
+  final int? maxLength;
+  final TextCapitalization textCapitalization;
+  final Iterable<String>? autofillHints;
+  final bool autofocus;
+  final bool readOnly;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -96,10 +111,17 @@ class _AppTextFieldState extends State<AppTextField> {
             onChanged: widget.onChanged,
             onFieldSubmitted: widget.onSubmitted,
             enabled: widget.enabled,
+            readOnly: widget.readOnly,
+            autofocus: widget.autofocus,
+            inputFormatters: widget.inputFormatters,
+            maxLength: widget.maxLength,
+            textCapitalization: widget.textCapitalization,
+            autofillHints: widget.autofillHints,
             // Flutter không cho obscureText nhiều dòng.
             maxLines: widget.obscureText ? 1 : widget.maxLines,
             decoration: InputDecoration(
               hintText: widget.hint,
+              counterText: widget.maxLength == null ? null : '',
               helperText: widget.helperText,
               prefixIcon: prefix == null ? null : Icon(prefix),
               suffixIcon: widget.obscureText ? _visibilityToggle() : null,
