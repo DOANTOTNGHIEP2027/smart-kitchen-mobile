@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:mobx/mobx.dart';
 
+import '../constants/app_version.dart';
 import '../data/auth/token_storage.dart';
 import '../data/auth/google_auth_gateway.dart';
 import '../data/db/app_database.dart';
@@ -133,7 +134,7 @@ Future<void> bootstrap() async {
   // On-device AI runtime (on-device-ai-runtime.md §10): chỉ đọc asset local,
   // không mạng/auth. Package thiếu/hỏng chỉ tắt đúng task đó, không crash.
   // Chạy SONG SONG với sessionStore.bootstrap() (§10) — await chung bên dưới.
-  final modelRegistry = ModelRegistry();
+  final modelRegistry = ModelRegistry(appVersion: AppVersion.current);
   final modelRegistryReady = modelRegistry.bootstrap();
   Get.put<ModelRegistry>(modelRegistry, permanent: true);
   final onDeviceEngine = OnDeviceInferenceEngineImpl(modelRegistry);

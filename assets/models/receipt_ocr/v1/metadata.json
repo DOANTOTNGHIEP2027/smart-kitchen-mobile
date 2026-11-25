@@ -1,0 +1,24 @@
+{
+  "task": "receipt_ocr",
+  "modelVersion": 1,
+  "appMinVersion": "0.1.0",
+  "runtime": "mlkit-bundled",
+  "payloadFile": null,
+  "checksumSha256": "56663620c95b8430b5828c33fc87c30c3c47a6b79488375f99e1c923f312ae0f",
+  "inputShape": [
+    1,
+    -1,
+    -1,
+    3
+  ],
+  "inputDType": "uint8",
+  "preprocessing": {
+    "resize": "auto",
+    "normalize": "none",
+    "colorOrder": "RGB"
+  },
+  "outputShape": null,
+  "outputType": "ocr_text_lines",
+  "labelMapFile": null,
+  "quantization": "n/a"
+}

@@ -35,9 +35,17 @@ Map<String, String> rulesPackage({String? checksum, String runtime = 'rules-only
       'assets/models/rule_based_selection/v1/metadata.json': jsonEncode(<String, dynamic>{
         'task': 'rule_based_selection',
         'modelVersion': 1,
+        'appMinVersion': '0.1.0',
         'runtime': runtime,
         'payloadFile': 'rules_config.json',
         'checksumSha256': checksum ?? sha256Hex(utf8.encode(rulesJson)),
+        'inputShape': null,
+        'inputDType': null,
+        'preprocessing': null,
+        'outputShape': null,
+        'outputType': 'meal_selection',
+        'labelMapFile': null,
+        'quantization': 'n/a',
       }),
       'assets/models/rule_based_selection/v1/rules_config.json': rulesJson,
     };
@@ -100,7 +108,7 @@ void main() {
 
   group('ModelRegistry (Guard #6, #7)', () {
     test('package hợp lệ → khả dụng; task không có asset → chỉ cloud, KHÔNG throw', () async {
-      final reg = ModelRegistry(loader: memLoader(rulesPackage()));
+      final reg = ModelRegistry(appVersion: '0.1.0', loader: memLoader(rulesPackage()));
       await reg.bootstrap();
       expect(reg.isAvailable(AITask.ruleBasedSelection), isTrue);
       expect(reg.manifestFor(AITask.ruleBasedSelection).modelUsed, 'on-device:rule_based_selection@v1');
@@ -110,10 +118,10 @@ void main() {
     });
 
     test('checksum sai / runtime lạ → task đó unavailable, không crash', () async {
-      final bad = ModelRegistry(loader: memLoader(rulesPackage(checksum: 'deadbeef')));
+      final bad = ModelRegistry(appVersion: '0.1.0', loader: memLoader(rulesPackage(checksum: 'de' * 32)));
       await bad.bootstrap();
       expect(bad.isAvailable(AITask.ruleBasedSelection), isFalse);
-      final weird = ModelRegistry(loader: memLoader(rulesPackage(runtime: 'tensorrt')));
+      final weird = ModelRegistry(appVersion: '0.1.0', loader: memLoader(rulesPackage(runtime: 'tensorrt')));
       await weird.bootstrap();
       expect(weird.isAvailable(AITask.ruleBasedSelection), isFalse);
     });
@@ -122,13 +130,13 @@ void main() {
       final files = rulesPackage();
       const metaPath = 'assets/models/rule_based_selection/v1/metadata.json';
       files[metaPath] = files[metaPath]!.replaceFirst('"modelVersion":1', '"modelVersion":2');
-      final reg = ModelRegistry(loader: memLoader(files));
+      final reg = ModelRegistry(appVersion: '0.1.0', loader: memLoader(files));
       await reg.bootstrap();
       expect(reg.isAvailable(AITask.ruleBasedSelection), isFalse);
     });
 
     test('package THẬT đang ship trong assets/ có checksum đúng', () async {
-      final reg = ModelRegistry(loader: (path) async => ByteData.sublistView(await File(path).readAsBytes()));
+      final reg = ModelRegistry(appVersion: '0.1.0', loader: (path) async => ByteData.sublistView(await File(path).readAsBytes()));
       await reg.bootstrap();
       expect(reg.isAvailable(AITask.ruleBasedSelection), isTrue);
     });
@@ -138,7 +146,7 @@ void main() {
     late ModelRegistry reg;
     late _Engine engine;
     setUp(() async {
-      reg = ModelRegistry(loader: memLoader(rulesPackage()));
+      reg = ModelRegistry(appVersion: '0.1.0', loader: memLoader(rulesPackage()));
       await reg.bootstrap();
       engine = _Engine();
     });
@@ -191,7 +199,7 @@ void main() {
     });
 
     test('model thiếu → ERR_ONDEVICE_MODEL_UNAVAILABLE; run lỗi → ERR_ONDEVICE_INFERENCE_FAILED (không gộp)', () async {
-      final empty = ModelRegistry(loader: memLoader(<String, String>{}));
+      final empty = ModelRegistry(appVersion: '0.1.0', loader: memLoader(<String, String>{}));
       await empty.bootstrap();
       final r1 = await HybridAIRunner(ConnectivityGate(_Conn(false)), engine, empty).runOnDevice<String>(
           task: AITask.ruleBasedSelection, input: const MealSelectionInput(<MealCandidate>[], HouseholdConstraints(hardAllergenExclusions: <String>{})), fromOutput: (_) => '', offlineFallback: true);
@@ -292,7 +300,7 @@ void main() {
   });
 
   test('OnDeviceInferenceEngineImpl: task NN chưa có runtime → modelUnavailable; task 4 chạy thật', () async {
-    final reg = ModelRegistry(loader: memLoader(rulesPackage()));
+    final reg = ModelRegistry(appVersion: '0.1.0', loader: memLoader(rulesPackage()));
     await reg.bootstrap();
     final impl = OnDeviceInferenceEngineImpl(reg);
     await expectLater(impl.loadIfNeeded(AITask.receiptOcr),
