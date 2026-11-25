@@ -82,6 +82,9 @@ dev_dependencies:
   mobx_codegen: ^2.7.0
   drift_dev: ^2.21.0
   mocktail: ^1.0.4
+  # #93 (app-performance-audit §6.7, D20) — đo heap trong integration_test.
+  # `any` để SDK (integration_test) quyết định bản; chỉ import ở integration_test/.
+  vm_service: any
 
 flutter:
   uses-material-design: true

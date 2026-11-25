@@ -15,9 +15,10 @@ import 'session_store.dart';
 ///
 /// **Lifecycle:**
 /// - Được tạo trong `bootstrap()` và đăng ký permanent.
-/// - `init()` gọi sau khi [SessionStore] bootstrap xong — nếu user đã auth thì
-///   connect ngay, nếu không thì chờ [onAuthChanged].
-/// - `onAuthChanged()` được gọi bởi [SessionStore] (hoặc auth store) sau login/logout.
+/// - `init()` gọi SAU `runApp` (frame đầu, #93 §5.4) — nếu user đã auth thì
+///   connect ngay, nếu không thì chờ [onAuthChanged]. `init()` idempotent:
+///   gọi lại trả về đúng lần đầu, không đăng ký reaction/subscription lần hai.
+/// - `onAuthChanged()` được gọi bởi reaction auth DUY NHẤT do `init()` đăng ký.
 /// - `dispose()` được gọi khi app đóng.
 ///
 /// Không dùng codegen MobX (`part '*.g.dart'`) vì chỉ cần 1 observable đơn giản
@@ -44,6 +45,7 @@ class RealtimeStore {
   StreamSubscription<WsEventEnvelope>? _eventSub;
   StreamSubscription<void>? _connectivitySub;
   ReactionDisposer? _authReactionDisposer;
+  Future<void>? _initFuture;
 
   /// Trạng thái kết nối WS hiện tại — dùng cho UI indicator.
   WsConnectionState get connectionState => _connectionState.value;
@@ -55,7 +57,12 @@ class RealtimeStore {
   WsEventEnvelope? get lastEvent => _lastEvent.value;
 
   /// Khởi tạo: bắt đầu lắng nghe connectivity và kết nối nếu đã có household.
-  Future<void> init() async {
+  ///
+  /// Single-flight + idempotent (#93 §5.4 bất biến 3): mọi lần gọi sau trả về
+  /// future của lần đầu.
+  Future<void> init() => _initFuture ??= _init();
+
+  Future<void> _init() async {
     // Lắng nghe trạng thái connection từ service
     _stateSub = _service.connectionState.listen((state) {
       runInAction(() => _connectionState.value = state);

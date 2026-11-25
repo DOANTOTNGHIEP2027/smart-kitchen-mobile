@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
-import 'package:mobx/mobx.dart';
 
 import '../constants/app_version.dart';
 import '../data/auth/token_storage.dart';
@@ -51,6 +49,15 @@ import '../data/ai_runtime/engine/on_device_inference_engine_impl.dart';
 import '../data/ai_runtime/hybrid_ai_runner.dart';
 import 'app.dart';
 import 'env_config.dart';
+import 'realtime_startup.dart';
+
+/// #93 §6.4 — mốc Timeline chi tiết cho đo cold start, chỉ bật khi
+/// `--dart-define=PERF_MARKS=true` (đọc trong DevTools/Perfetto).
+const bool _kPerfMarks = bool.fromEnvironment('PERF_MARKS');
+
+void _perfMark(String name) {
+  if (_kPerfMarks) developer.Timeline.instantSync(name);
+}
 
 /// Chuỗi bootstrap (fe-app-shell.md §5).
 ///
@@ -186,23 +193,22 @@ Future<void> bootstrap() async {
   )..attachSink(notificationStore.addNotification);
   Get.put<NotificationService>(notificationService, permanent: true);
 
+  _perfMark('perf.session.start');
   await Future.wait<void>(<Future<void>>[
     sessionStore.bootstrap(), // thử silent refresh, set AuthStatus
     modelRegistryReady,
   ]);
+  _perfMark('perf.session.end');
 
-  // RealtimeStore init PHẢI sau sessionStore.bootstrap() để biết auth state.
+  // #93 §5.4: dựng + Get.put TRƯỚC runApp để binding inventory/shopping thấy
+  // `Get.isRegistered<RealtimeStore>()`; chỉ `init()` chạy sau frame đầu.
+  // Reaction auth do RealtimeStore.init() sở hữu DUY NHẤT — không đăng ký ở đây.
   final realtimeStore = RealtimeStore(
     realtimeService: realtimeService,
     connectivityService: connectivityService,
     sessionStore: sessionStore,
   );
   Get.put<RealtimeStore>(realtimeStore, permanent: true);
-  await realtimeStore.init();
-  reaction<(AuthStatus, String?)>(
-    (_) => (sessionStore.status, sessionStore.householdId),
-    (_) => unawaited(realtimeStore.onAuthChanged()),
-  );
 
   // Store init TRƯỚC service: getInitialMessage (cold start) đi vào store đã
   // gắn sink (§14.1). Store tự theo session để đăng ký/xoá token (§14.3).
@@ -210,7 +216,11 @@ Future<void> bootstrap() async {
   await notificationStore.init();
   await notificationService.init();
 
+  _perfMark('perf.runApp');
   runApp(const SmartKitchenApp());
+
+  // Sau runApp: không await, có log, không ném ra zone (#93 §5.4 F1).
+  startRealtimeAfterFirstFrame(realtimeStore);
 }
 
 /// Issue #16 — phải chạy trước bất kỳ lần dùng `FirebaseAuth`/`GoogleSignIn` nào.

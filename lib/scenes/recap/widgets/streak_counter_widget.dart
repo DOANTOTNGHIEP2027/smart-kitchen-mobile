@@ -31,20 +31,25 @@ class _StreakFlameIconState extends State<StreakFlameIcon>
     super.dispose();
   }
 
+  // #93 F6 (app-performance-audit §7.4): RepaintBoundary riêng — animation
+  // lặp chỉ repaint layer của icon, không repaint cả share card. Giữ
+  // `repeat(reverse: true)` (hành vi đã duyệt ở #86 D9).
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-        animation: _controller,
-        builder: (_, child) => Transform.scale(
-          scale: 0.92 + (_controller.value * 0.16),
-          child: Opacity(
-            opacity: 0.85 + (_controller.value * 0.15),
-            child: child,
+  Widget build(BuildContext context) => RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (_, child) => Transform.scale(
+            scale: 0.92 + (_controller.value * 0.16),
+            child: Opacity(
+              opacity: 0.85 + (_controller.value * 0.15),
+              child: child,
+            ),
           ),
-        ),
-        child: const Icon(
-          Icons.local_fire_department,
-          color: Color(0xFFFF6D00),
-          size: 26,
+          child: const Icon(
+            Icons.local_fire_department,
+            color: Color(0xFFFF6D00),
+            size: 26,
+          ),
         ),
       );
 }

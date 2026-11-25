@@ -60,14 +60,30 @@ class InventoryStore with HouseholdScoped {
   // ── Getters ──────────────────────────────────────────────────────────────
 
   InventoryLoadStatus get status => _status.value;
-  List<InventoryItemModel> get items => List.unmodifiable(_items);
+  List<InventoryItemModel> get items => _itemsView.value;
   String get searchQuery => _searchQuery.value;
   String? get selectedCategory => _selectedCategory.value;
   bool get isSyncing => _isSyncing.value;
   ApiException? get syncError => _syncError.value;
 
   /// Filter + search được tính lại tại mỗi lần [_items] đổi (FE-5 §9).
-  List<InventoryItemModel> get filteredItems {
+  List<InventoryItemModel> get filteredItems => _filtered.value;
+
+  List<String> get knownCategories => _categories.value;
+
+  /// Số item sắp hết hạn / sắp hết hàng cho banner thống kê.
+  int get expiringCount => _expiringCount.value;
+  int get lowStockCount => _lowStockCount.value;
+
+  // #93 F7 (app-performance-audit §7.5): Computed — khi đang có Observer quan
+  // sát thì cache tới khi input đổi, không copy/lọc/sort lại mỗi lần đọc.
+  // Không bật keepAlive: không có observer thì tính lại như getter cũ.
+  late final Computed<List<InventoryItemModel>> _itemsView =
+      Computed<List<InventoryItemModel>>(
+          () => List<InventoryItemModel>.unmodifiable(_items));
+
+  late final Computed<List<InventoryItemModel>> _filtered =
+      Computed<List<InventoryItemModel>>(() {
     final q = _searchQuery.value.toLowerCase();
     final cat = _selectedCategory.value;
     return _items.where((i) {
@@ -75,11 +91,17 @@ class InventoryStore with HouseholdScoped {
       final matchesCategory = cat == null || i.category == cat;
       return matchesSearch && matchesCategory;
     }).toList(growable: false);
-  }
+  });
 
-  List<String> get knownCategories =>
-      _items.map((i) => i.category).whereType<String>().toSet().toList()
-        ..sort();
+  late final Computed<List<String>> _categories = Computed<List<String>>(
+      () => _items.map((i) => i.category).whereType<String>().toSet().toList()
+        ..sort());
+
+  late final Computed<int> _expiringCount =
+      Computed<int>(() => _items.where((i) => i.isExpiringSoon).length);
+
+  late final Computed<int> _lowStockCount =
+      Computed<int>(() => _items.where((i) => i.isLowStock).length);
 
   String? get householdId => _session.householdId;
 
