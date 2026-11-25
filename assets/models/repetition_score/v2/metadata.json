@@ -1,0 +1,15 @@
+{
+  "task": "repetition_score",
+  "modelVersion": 2,
+  "appMinVersion": "0.1.0",
+  "runtime": "rules-only",
+  "payloadFile": "repetition_rules.json",
+  "checksumSha256": "526af563c2e9884e8911729f9743c97bfa96f78c39ab41667005900400ac538c",
+  "inputShape": null,
+  "inputDType": null,
+  "preprocessing": null,
+  "outputShape": null,
+  "outputType": "repetition_scores",
+  "labelMapFile": null,
+  "quantization": "n/a"
+}

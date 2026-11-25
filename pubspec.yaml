@@ -97,4 +97,5 @@ flutter:
     - assets/models/receipt_ocr/v1/
     - assets/models/calorie_estimate/v1/
     - assets/models/repetition_score/v1/
+    - assets/models/repetition_score/v2/
     - assets/models/rule_based_selection/v1/

@@ -30,7 +30,8 @@ class MealCandidate {
   /// "chưa kiểm được" (cùng luật `MealSuggestion.isAllergenCleared`).
   final AllergenDerivation allergenDerivation;
 
-  /// 0..1 — 1 = lặp gần như y hệt trong cửa sổ (task 3). `null` = chưa tính.
+  /// {0, 0.5, 1.0} theo §6.6.1 (task 3). `null` = chưa tính — task 3 lỗi thì
+  /// để `null`, KHÔNG `?? 0.0` (0.0 = "chưa từng nấu", §6.6.7).
   final double? repetitionScore;
 
   /// 0..1 — tỉ lệ nguyên liệu trùng inventory sắp hết hạn. `null` = chưa tính.
