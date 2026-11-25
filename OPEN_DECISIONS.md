@@ -401,3 +401,16 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Ghi chú (review code #119):** `sha256(ảnh)` của adapter chạy trên UI isolate (~30–60ms với ảnh 2MB trên PC). Khi có consumer thì chuyển sang `Isolate.run`.
 - **Đảo ngược thế nào:** ship `calorie_estimate/v2` có bảng thật; chọn runtime OCR sau benchmark rồi thay stub trong `OnDeviceInferenceEngineImpl`.
 - **Cần người quyết lại không:** Không. Còn mở: Q6 (nguồn bảng calo), Q8 (khớp `rawName` với inventory).
+
+### OD-45 · #120 Repetition score — rules-only thay tflite, khớp công thức BE, cloud null
+- **Ngày:** 2026-11-25 · **Task:** #120 · **Nhánh:** `feature/120_repetition-score-repository`
+- **Tình huống:** Issue #120 ghi "wiring `model.tflite` qua `OnDeviceInferenceEngine`", nhưng model repetition chưa train/chưa ship (v1 `checksumSha256: null`, pipeline train chưa có owner — Q4) và repo chưa có runtime tflite; cũng chưa có endpoint cloud chấm điểm danh sách món.
+- **Đã chọn (user chốt 2026-11-25):**
+  1. Port 1:1 `MealRepetitionScorer` (BE `meal-planning-core.md` §4) sang Dart, runtime **rules-only**: package `assets/models/repetition_score/v2` (`repetition_rules.json` + checksum), `ModelRegistry.defaultVersions` 1→2; v1 giữ nguyên. Lệch chữ issue và K4 của #117 có chủ ý.
+  2. Điểm rời rạc: lần nấu gần nhất trong window `[ref−14, ref−1]` ≤ 7 ngày → 1.0, 8–14 → 0.5, còn lại 0.0 (nhánh Jaccard 0.3 tắt như BE v1). `withinWindowDays` = 14, một nguồn hằng số trong Dart.
+  3. `referenceDate` tuỳ chọn (mặc định hôm nay theo clock inject); ngày quy về Asia/Ho_Chi_Minh; khoá món so `trim().toLowerCase()`. Consumer phải truyền slot đã CONFIRMED theo `slotDate` để khớp BE.
+  4. `cloud` = hàm inject tuỳ chọn, hiện `null` (OD-26 → on-device, `offlineFallback=false`). Test nhánh cloud dùng hàm giả, không mock Dio (chưa có endpoint).
+  5. Chưa đăng ký DI (chưa có consumer); Task 4 nhận `null` khi lỗi, không điền 0.0.
+- **Theo:** thiết kế `on-device-ai-runtime.md` §6.6 Amendment #120, §6.0 quy tắc 2.
+- **Đảo ngược thế nào:** khi có model/endpoint thật → package v3 runtime NN hoặc truyền hàm `cloud`; đổi `defaultVersions`.
+- **Cần người quyết lại không:** Không. Manual test "nấu 2 lần → điểm tăng" của issue không đúng với công thức (số lần không đổi điểm) — ghi trong PR.

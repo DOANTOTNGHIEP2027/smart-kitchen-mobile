@@ -41,7 +41,7 @@ class ModelRegistry {
   static const Map<AITask, int> defaultVersions = <AITask, int>{
     AITask.receiptOcr: 1,
     AITask.calorieEstimate: 1,
-    AITask.repetitionScore: 1,
+    AITask.repetitionScore: 2, // v2 rules-only (#120, §6.6.4)
     AITask.ruleBasedSelection: 1,
   };
 

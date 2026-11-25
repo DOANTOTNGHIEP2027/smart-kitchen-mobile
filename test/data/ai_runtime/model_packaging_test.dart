@@ -19,6 +19,15 @@ void main() {
 
   String dir(AITask t) => 'assets/models/${t.assetDir}/v1';
 
+  /// Fixture giả nằm ở `v1` — `defaultVersions[repetitionScore]` đã lên 2
+  /// (#120, §6.6.8) nên mọi registry trên fixture giả ghim version 1.
+  const fixtureVersions = <AITask, int>{
+    AITask.receiptOcr: 1,
+    AITask.calorieEstimate: 1,
+    AITask.repetitionScore: 1,
+    AITask.ruleBasedSelection: 1,
+  };
+
   Map<String, dynamic> meta(AITask task, Map<String, dynamic> overrides) {
     final base = <String, dynamic>{
       'task': task.assetDir,
@@ -83,7 +92,7 @@ void main() {
       };
 
   Future<ModelRegistry> boot(Map<String, List<int>> files, {String app = '0.1.0'}) async {
-    final reg = ModelRegistry(appVersion: app, loader: loader(files));
+    final reg = ModelRegistry(appVersion: app, modelVersions: fixtureVersions, loader: loader(files));
     await reg.bootstrap();
     return reg;
   }
@@ -210,7 +219,7 @@ void main() {
 
   group('ModelRegistry (§5.4.2 thứ tự kiểm, Guard #7)', () {
     test('trước bootstrap: không task nào khả dụng, lý do notBootstrapped', () {
-      final reg = ModelRegistry(appVersion: '0.1.0', loader: loader(fullPackages()));
+      final reg = ModelRegistry(appVersion: '0.1.0', modelVersions: fixtureVersions, loader: loader(fullPackages()));
       for (final t in AITask.values) {
         expect(reg.isAvailable(t), isFalse);
         expect(reg.unavailableReason(t), ModelUnavailableReason.notBootstrapped);
@@ -285,7 +294,7 @@ void main() {
       patchMeta(files, AITask.calorieEstimate, (m) => m['checksumSha256'] = null);
       final read = <String>[];
       final base = loader(files);
-      final reg = ModelRegistry(appVersion: '0.1.0', loader: (p) {
+      final reg = ModelRegistry(appVersion: '0.1.0', modelVersions: fixtureVersions, loader: (p) {
         read.add(p);
         return base(p);
       });
@@ -323,14 +332,14 @@ void main() {
     });
 
     test('loader ném lỗi bất kỳ (không phải FlutterError) → không throw', () async {
-      final reg = ModelRegistry(appVersion: '0.1.0', loader: (_) async => throw StateError('boom'));
+      final reg = ModelRegistry(appVersion: '0.1.0', modelVersions: fixtureVersions, loader: (_) async => throw StateError('boom'));
       await reg.bootstrap();
       expect(reg.unavailableReason(AITask.ruleBasedSelection), ModelUnavailableReason.missing);
     });
 
     test('bootstrap lại sau khi sửa → trạng thái cập nhật (không giữ lý do cũ)', () async {
       final files = fullPackages()..remove('${dir(AITask.receiptOcr)}/metadata.json');
-      final reg = ModelRegistry(appVersion: '0.1.0', loader: (p) => loader(files)(p));
+      final reg = ModelRegistry(appVersion: '0.1.0', modelVersions: fixtureVersions, loader: (p) => loader(files)(p));
       await reg.bootstrap();
       expect(reg.isAvailable(AITask.receiptOcr), isFalse);
       files.addAll(fullPackages());
@@ -389,7 +398,10 @@ void main() {
       expect(reg.isAvailable(AITask.receiptOcr), isTrue);
       expect(reg.isAvailable(AITask.ruleBasedSelection), isTrue);
       expect(reg.unavailableReason(AITask.calorieEstimate), ModelUnavailableReason.payloadNotShipped);
-      expect(reg.unavailableReason(AITask.repetitionScore), ModelUnavailableReason.payloadNotShipped);
+      // #120: v2 rules-only đã ship (§6.6.4).
+      expect(reg.isAvailable(AITask.repetitionScore), isTrue);
+      expect(reg.payloadFor(AITask.repetitionScore), isNotNull);
+      expect(reg.manifestFor(AITask.repetitionScore).modelUsed, 'on-device:repetition_score@v2');
       expect(reg.payloadFor(AITask.ruleBasedSelection), isNotNull);
     });
   });
