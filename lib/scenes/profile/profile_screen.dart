@@ -1,24 +1,28 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
 import '../../app/env_config.dart';
 import '../../constants/app_colors.dart';
+import '../../constants/app_colors_extension.dart';
 import '../../constants/app_dimens.dart';
 import '../../constants/app_text_styles.dart';
 import '../../routing/app_routes.dart';
 import '../../stores/session_store.dart';
 import '../../utils/l10n_x.dart';
-import '../../widgets/app_cached_image.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
+import '../../widgets/states/state_view_layout.dart';
 import '../auth/stores/auth_store.dart';
 import '../cooking/scenes/cooking_routes.dart';
 import '../dev/dev_routes.dart';
 import '../insights/scenes/insights_routes.dart';
 import '../recap/scenes/recap_routes.dart';
 import 'stores/profile_store.dart';
+import 'widgets/profile_avatar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -32,27 +36,12 @@ class ProfileScreen extends StatelessWidget {
       body: Observer(builder: (_) {
         final user = store.currentUser;
         if (user == null) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppDimens.lg),
-              child: AppCard(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const Icon(Icons.error_outline,
-                        size: AppDimens.stateIcon, color: AppColors.error),
-                    const SizedBox(height: AppDimens.md),
-                    Text(context.l10n.stateErrorDefault),
-                  ],
-                ),
-              ),
-            ),
-          );
+          // P3 — lẽ ra không xảy ra sau AuthGuard (§10.1).
+          developer.log('ProfileScreen opened without currentUser',
+              name: 'profile');
+          return const _NoSessionView();
         }
-        final avatar = user.avatarUrl;
-        final initial = (user.fullName?.trim().isNotEmpty == true)
-            ? user.fullName!.trim().characters.first.toUpperCase()
-            : '?';
+        final colors = context.appColors;
         return ListView(
           padding: const EdgeInsets.fromLTRB(
               AppDimens.md, AppDimens.lg, AppDimens.md, AppDimens.lg),
@@ -60,28 +49,15 @@ class ProfileScreen extends StatelessWidget {
             AppCard(
               child: Column(
                 children: <Widget>[
-                  avatar == null || avatar.isEmpty
-                      ? CircleAvatar(
-                          radius: 44,
-                          backgroundColor: AppColors.sageLight,
-                          child: Text(
-                            initial,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.sage,
-                            ),
-                          ),
-                        )
-                      : AppCachedImage(
-                          url: avatar,
-                          width: 88,
-                          height: 88,
-                          shape: AppCachedImageShape.circle,
-                          placeholderIcon: Icons.person,
-                        ),
+                  ProfileAvatar(
+                    avatarUrl: user.avatarUrl,
+                    fullName: user.fullName,
+                  ),
                   const SizedBox(height: AppDimens.md),
-                  Text(user.displayName, style: AppTextStyles.titleMedium),
+                  Text(
+                    _displayName(context, user.fullName),
+                    style: AppTextStyles.titleMedium,
+                  ),
                   const SizedBox(height: AppDimens.xs),
                   Text(
                     user.email ?? context.l10n.profileEmailMissing,
@@ -97,7 +73,8 @@ class ProfileScreen extends StatelessWidget {
               variant: AppButtonVariant.secondary,
               onPressed: () => Get.toNamed(AppRoutes.profileEdit),
             ),
-            if (session.provider == 'GUEST') ...<Widget>[
+            // P2 — GUEST (email null) → gợi ý thiết lập email (#28).
+            if (user.email == null || session.provider == 'GUEST') ...<Widget>[
               const SizedBox(height: AppDimens.md),
               _GuestUpgradeBanner(
                 onTap: () => Get.toNamed(AppRoutes.profileUpgrade),
@@ -106,7 +83,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: AppDimens.lg),
             _ProfileNavigationTile(
               icon: Icons.favorite_outline,
-              iconColor: const Color(0xFFE85F2A),
+              iconColor: AppColors.primaryDark,
               title: context.l10n.healthProfileTitle,
               onPressed: () => Get.toNamed(AppRoutes.profileHealth),
             ),
@@ -120,28 +97,28 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: AppDimens.sm),
             _ProfileNavigationTile(
               icon: Icons.group_outlined,
-              iconColor: const Color(0xFF6A5AE0),
+              iconColor: colors.info,
               title: context.l10n.familyTitle,
               onPressed: () => Get.toNamed(AppRoutes.family),
             ),
             const SizedBox(height: AppDimens.sm),
             _ProfileNavigationTile(
               icon: Icons.auto_awesome,
-              iconColor: const Color(0xFFFFB300),
-              title: 'Tổng kết tuần',
+              iconColor: colors.warning,
+              title: context.l10n.profileWeeklyRecapNav,
               onPressed: () => Get.toNamed(RecapRoutes.root),
             ),
             const SizedBox(height: AppDimens.sm),
             _ProfileNavigationTile(
               icon: Icons.menu_book_rounded,
-              iconColor: const Color(0xFF43A047),
+              iconColor: colors.success,
               title: context.l10n.mealLogTitle,
               onPressed: () => Get.toNamed(CookingRoutes.mealLog),
             ),
             const SizedBox(height: AppDimens.sm),
             _ProfileNavigationTile(
               icon: Icons.insights_rounded,
-              iconColor: const Color(0xFF00ACC1),
+              iconColor: AppColors.secondary,
               title: context.l10n.insightsHistoryTooltip,
               onPressed: () => Get.toNamed(InsightsRoutes.history),
             ),
@@ -259,25 +236,64 @@ class _GuestUpgradeBanner extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Material(
-        color: const Color(0xFFEEF4FF),
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Material(
+      color: colors.infoSurface,
+      borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimens.md),
-            child: Row(
-              children: <Widget>[
-                const Icon(Icons.info_outline, color: Color(0xFF2952CC)),
-                const SizedBox(width: AppDimens.sm),
-                Expanded(
-                  child: Text(context.l10n.guestProfileBanner),
-                ),
-                const Icon(Icons.chevron_right_rounded, color: Color(0xFF2952CC)),
-              ],
-            ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimens.md),
+          child: Row(
+            children: <Widget>[
+              Icon(Icons.info_outline, color: colors.info),
+              const SizedBox(width: AppDimens.sm),
+              Expanded(
+                child: Text(context.l10n.guestProfileBanner),
+              ),
+              Icon(Icons.chevron_right_rounded, color: colors.info),
+            ],
           ),
         ),
-      );
+      ),
+    );
+  }
+}
+
+/// `fullName` null/trống (GUEST qr-join) → "Thành viên" (§10.1 P1/P2).
+String _displayName(BuildContext context, String? fullName) {
+  final name = fullName?.trim() ?? '';
+  return name.isEmpty ? context.l10n.profileDefaultName : name;
+}
+
+/// P3 — không có session: thông báo + "Đăng nhập lại" → `/login`.
+class _NoSessionView extends StatelessWidget {
+  const _NoSessionView();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    return StateViewLayout(
+      children: <Widget>[
+        Icon(Icons.error_outline,
+            size: AppDimens.stateIcon, color: theme.colorScheme.error),
+        const SizedBox(height: AppDimens.md),
+        Text(l10n.profileSessionMissingTitle,
+            textAlign: TextAlign.center, style: theme.textTheme.titleMedium),
+        const SizedBox(height: AppDimens.sm),
+        Text(l10n.profileSessionMissingMessage,
+            textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+        const SizedBox(height: AppDimens.lg),
+        AppButton(
+          key: const ValueKey<String>('profile-relogin'),
+          label: l10n.profileReLogin,
+          icon: Icons.login,
+          onPressed: () => Get.offAllNamed(AppRoutes.login),
+        ),
+      ],
+    );
+  }
 }

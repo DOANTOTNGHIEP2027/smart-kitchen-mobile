@@ -945,12 +945,6 @@ abstract class AppLocalizations {
   /// **'Edit profile'**
   String get profileEdit;
 
-  /// No description provided for @profileEditBlocked.
-  ///
-  /// In en, this message translates to:
-  /// **'This feature is being completed. It will be available soon.'**
-  String get profileEditBlocked;
-
   /// No description provided for @profileEditTitle.
   ///
   /// In en, this message translates to:
@@ -1034,24 +1028,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Health profile saved'**
   String get healthSavedToast;
-
-  /// No description provided for @healthSavedDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Health profile saved'**
-  String get healthSavedDialogTitle;
-
-  /// No description provided for @healthSavedDialogMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Your health profile has been saved successfully.'**
-  String get healthSavedDialogMessage;
-
-  /// No description provided for @healthSavedDialogConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get healthSavedDialogConfirm;
 
   /// No description provided for @cookingAbandonTitle.
   ///
@@ -1510,12 +1486,6 @@ abstract class AppLocalizations {
   /// **'No other members yet.'**
   String get familyRosterEmpty;
 
-  /// No description provided for @familyCreateInvite.
-  ///
-  /// In en, this message translates to:
-  /// **'Create invite'**
-  String get familyCreateInvite;
-
   /// No description provided for @familyRemove.
   ///
   /// In en, this message translates to:
@@ -1525,8 +1495,8 @@ abstract class AppLocalizations {
   /// No description provided for @familyRemoveConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Remove this member from the household?'**
-  String get familyRemoveConfirm;
+  /// **'Remove {name} from the household?'**
+  String familyRemoveConfirm(String name);
 
   /// No description provided for @familyRemoveCancel.
   ///
@@ -1539,12 +1509,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You'**
   String get familyYou;
-
-  /// No description provided for @familyInviteRateLimited.
-  ///
-  /// In en, this message translates to:
-  /// **'You already have 3 active invites.'**
-  String get familyInviteRateLimited;
 
   /// No description provided for @memberDetailTitle.
   ///
@@ -4972,18 +4936,6 @@ abstract class AppLocalizations {
   /// **'Diet rules depend on the meal planning mode. Declare allergies separately; a gluten-free diet does not declare a gluten allergy.'**
   String get healthProfileDietHelp;
 
-  /// No description provided for @healthProfileCaloriesHelp.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave blank or enter 0 if no calorie goal is set.'**
-  String get healthProfileCaloriesHelp;
-
-  /// No description provided for @healthProfileCaloriesInvalid.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a whole number from 0 to 10000, or leave blank'**
-  String get healthProfileCaloriesInvalid;
-
   /// No description provided for @healthProfileHeightInvalid.
   ///
   /// In en, this message translates to:
@@ -4995,12 +4947,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a weight from 1 to 500 kg, or leave blank'**
   String get healthProfileWeightInvalid;
-
-  /// No description provided for @healthProfileClearFields.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear profile fields'**
-  String get healthProfileClearFields;
 
   /// No description provided for @unitKcal.
   ///
@@ -5289,6 +5235,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Result: {result}'**
   String showcaseDialogResult(String result);
+
+  /// No description provided for @profileDefaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get profileDefaultName;
+
+  /// No description provided for @profileSessionMissingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your profile'**
+  String get profileSessionMissingTitle;
+
+  /// No description provided for @profileSessionMissingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session is no longer valid. Please sign in again.'**
+  String get profileSessionMissingMessage;
+
+  /// No description provided for @profileReLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again'**
+  String get profileReLogin;
+
+  /// No description provided for @profileWeeklyRecapNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly recap'**
+  String get profileWeeklyRecapNav;
+
+  /// No description provided for @profileChangeAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Change profile photo'**
+  String get profileChangeAvatar;
+
+  /// No description provided for @profileAvatarPickAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another photo'**
+  String get profileAvatarPickAnother;
+
+  /// No description provided for @profileAvatarNewUnsaved.
+  ///
+  /// In en, this message translates to:
+  /// **'New photo — not saved yet'**
+  String get profileAvatarNewUnsaved;
+
+  /// No description provided for @profileAvatarUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading photo…'**
+  String get profileAvatarUploading;
+
+  /// No description provided for @profileAvatarGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get profileAvatarGallery;
+
+  /// No description provided for @profileAvatarCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get profileAvatarCamera;
+
+  /// No description provided for @profileAvatarPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera or photo library access is not granted. Enable it in Settings.'**
+  String get profileAvatarPermissionDenied;
+
+  /// No description provided for @profileNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name can\'t be empty'**
+  String get profileNameRequired;
+
+  /// No description provided for @profileNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name can be at most 100 characters'**
+  String get profileNameTooLong;
+
+  /// No description provided for @profileSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get profileSaving;
+
+  /// No description provided for @profileSaveRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get profileSaveRetry;
+
+  /// No description provided for @profileSaveErrorAfterUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Your photo was uploaded but the profile wasn\'t saved. Check your connection and try again.'**
+  String get profileSaveErrorAfterUpload;
+
+  /// No description provided for @avatarErrorInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid image. Please choose another JPG or PNG photo.'**
+  String get avatarErrorInvalid;
+
+  /// No description provided for @avatarErrorTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Image is too large. Please choose another one.'**
+  String get avatarErrorTooLarge;
+
+  /// No description provided for @healthProfileEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health profile not set up'**
+  String get healthProfileEmptyTitle;
+
+  /// No description provided for @healthProfileEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a calorie goal, diet and allergies to get better meal suggestions.'**
+  String get healthProfileEmptyMessage;
+
+  /// No description provided for @healthProfileNotSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set up'**
+  String get healthProfileNotSetUp;
+
+  /// No description provided for @healthProfileSetUpCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up health profile'**
+  String get healthProfileSetUpCta;
+
+  /// No description provided for @healthProfileEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get healthProfileEditAction;
+
+  /// No description provided for @healthProfileEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit health profile'**
+  String get healthProfileEditTitle;
+
+  /// No description provided for @healthProfileKcalValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} kcal'**
+  String healthProfileKcalValue(int value);
+
+  /// No description provided for @healthProfileCaloriesNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get healthProfileCaloriesNotSet;
+
+  /// No description provided for @healthProfileCaloriesNotSetToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'No calorie goal'**
+  String get healthProfileCaloriesNotSetToggle;
+
+  /// No description provided for @healthProfileCaloriesCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {value} kcal'**
+  String healthProfileCaloriesCurrent(int value);
+
+  /// No description provided for @healthProfileCaloriesOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside {min}–{max} — drag the slider to pick a new value.'**
+  String healthProfileCaloriesOutOfRange(int min, int max);
+
+  /// No description provided for @healthProfileNeedsNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'An internet connection is needed to edit.'**
+  String get healthProfileNeedsNetwork;
+
+  /// No description provided for @healthProfileCaloriesServerInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid calorie goal'**
+  String get healthProfileCaloriesServerInvalid;
+
+  /// No description provided for @allergenNeedsNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'An internet connection is needed to edit allergies.'**
+  String get allergenNeedsNetwork;
+
+  /// No description provided for @allergensHealthLoadFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your current allergies'**
+  String get allergensHealthLoadFailedTitle;
+
+  /// No description provided for @allergensHealthLoadFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'To avoid overwriting saved allergies, the data must finish loading before editing.'**
+  String get allergensHealthLoadFailedMessage;
+
+  /// No description provided for @allergensSavedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved allergies'**
+  String get allergensSavedSection;
+
+  /// No description provided for @allergensCatalogCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} common allergens'**
+  String allergensCatalogCount(int count);
+
+  /// No description provided for @allergensSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String allergensSelectedCount(int count);
+
+  /// No description provided for @allergenSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while saving. Please try again.'**
+  String get allergenSaveError;
+
+  /// No description provided for @familyRemoveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will no longer see the household\'s inventory, meal plans and shopping list.'**
+  String familyRemoveConfirmBody(String name);
+
+  /// No description provided for @familyRemoveConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get familyRemoveConfirmAction;
+
+  /// No description provided for @familyRemoveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {name} from the household.'**
+  String familyRemoveSuccess(String name);
+
+  /// No description provided for @familyMemberYou.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (you)'**
+  String familyMemberYou(String name);
+
+  /// No description provided for @familyGuestBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest'**
+  String get familyGuestBadge;
+
+  /// No description provided for @familyJoinedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined {date}'**
+  String familyJoinedAt(String date);
+
+  /// No description provided for @familyNeedsNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'You need a connection to invite or remove members.'**
+  String get familyNeedsNetwork;
+
+  /// No description provided for @familyErrorNotOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'You no longer have permission to manage this household.'**
+  String get familyErrorNotOwner;
+
+  /// No description provided for @familyErrorInviteLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'There are already 3 active invites. Wait for an old invite to expire and try again.'**
+  String get familyErrorInviteLimit;
+
+  /// No description provided for @familyErrorCannotRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'This member can\'t be removed.'**
+  String get familyErrorCannotRemove;
+
+  /// No description provided for @familyInviteExpiresAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires: {date}'**
+  String familyInviteExpiresAt(String date);
+
+  /// No description provided for @familyInviteCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get familyInviteCopyCode;
+
+  /// No description provided for @familyInviteCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get familyInviteCopyLink;
+
+  /// No description provided for @familyInviteCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get familyInviteCopied;
+
+  /// No description provided for @familyInviteShowLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the latest invite'**
+  String get familyInviteShowLast;
+
+  /// No description provided for @memberHealthForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have permission to view this member\'s health profile.'**
+  String get memberHealthForbidden;
+
+  /// No description provided for @memberDetailPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Height, weight and calorie goal are private and not shown here.'**
+  String get memberDetailPrivacyNote;
+
+  /// No description provided for @memberDetailNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This member could not be found.'**
+  String get memberDetailNotFound;
+
+  /// No description provided for @memberDetailClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get memberDetailClose;
 }
 
 class _AppLocalizationsDelegate

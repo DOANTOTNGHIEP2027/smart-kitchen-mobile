@@ -6,10 +6,12 @@ import '../../../constants/app_text_styles.dart';
 import '../../../utils/l10n_x.dart';
 
 /// Banner vàng khi data đến từ cache offline. Không chặn — chỉ tín hiệu.
+/// [onRetry] khác `null` → hiện nút "Thử lại" (gọi lại `load*()`, Guard 13).
 class StaleDataBanner extends StatelessWidget {
-  const StaleDataBanner({super.key, this.message});
+  const StaleDataBanner({super.key, this.message, this.onRetry});
 
   final String? message;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +30,12 @@ class StaleDataBanner extends StatelessWidget {
               style: AppTextStyles.label.copyWith(color: AppColors.warning),
             ),
           ),
+          if (onRetry != null)
+            TextButton(
+              key: const ValueKey<String>('stale-data-retry'),
+              onPressed: onRetry,
+              child: Text(context.l10n.retry),
+            ),
         ],
       ),
     );

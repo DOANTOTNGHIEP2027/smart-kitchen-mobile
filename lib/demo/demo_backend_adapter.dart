@@ -42,9 +42,32 @@ class DemoBackendAdapter implements HttpClientAdapter {
   String _userId = 'demo-user-0001';
   String _fullName = 'Người dùng demo';
   String? _email;
+  String? _avatarUrl;
+  var _fileSequence = 1;
   int _failedLogins = 0;
   int _otpSends = 0;
   final Set<String> _issuedInviteCodes = <String>{};
+
+  /// Thành viên KHÁC caller trong roster demo — state sống để
+  /// `DELETE /households/members/{userId}` xoá thật trong phiên.
+  final List<Map<String, dynamic>> _otherMembers = <Map<String, dynamic>>[
+    <String, dynamic>{
+      'userId': 'demo-member-0002',
+      'fullName': 'Minh Anh',
+      'avatarUrl': null,
+      'role': 'MEMBER',
+      'provider': 'EMAIL',
+      'joinedAt': '2026-09-02T08:00:00.000Z',
+    },
+    <String, dynamic>{
+      'userId': 'demo-member-0003',
+      'fullName': 'Bà Ngoại',
+      'avatarUrl': null,
+      'role': 'MEMBER',
+      'provider': 'EMAIL',
+      'joinedAt': '2026-09-03T08:00:00.000Z',
+    },
+  ];
   final Set<String> _usedInviteCodes = <String>{};
   final List<Map<String, dynamic>> _inventory = DemoFixtures.inventory()
       .map((item) => Map<String, dynamic>.from(item))
@@ -158,6 +181,11 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final path = options.path;
     final method = options.method.toUpperCase();
 
+    // profile-family-screens.md §7 — sửa tên/avatar (D11).
+    if (path == '/api/v1/users/me' && method == 'PUT') return _updateMe(body);
+    if (path == '/api/v1/files' && method == 'POST') {
+      return _uploadFile(options);
+    }
     if (path == '/api/v1/users/me/health-profile') {
       return method == 'GET' ? _ok(200, _healthProfile) : _updateHealth(body);
     }
@@ -173,6 +201,11 @@ class DemoBackendAdapter implements HttpClientAdapter {
             .add(const Duration(days: 3))
             .toIso8601String(),
       });
+    }
+    final removeMember =
+        RegExp(r'^/api/v1/households/members/([^/]+)$').firstMatch(path);
+    if (removeMember != null && method == 'DELETE') {
+      return _removeMember(removeMember.group(1)!);
     }
     final healthSummary =
         RegExp(r'^/api/v1/users/([^/]+)/health-summary$').firstMatch(path);
@@ -1004,34 +1037,89 @@ class DemoBackendAdapter implements HttpClientAdapter {
         'name': 'Gia đình demo',
         'ownerId': DemoFixtures.ownerId,
         'role': _role,
-        'memberCount': 3,
+        'memberCount': 1 + _otherMembers.length,
         'members': <Map<String, dynamic>>[
           <String, dynamic>{
             'userId': _userId,
             'fullName': _fullName,
-            'avatarUrl': null,
+            'avatarUrl': _avatarUrl,
             'role': _role,
             'provider': _provider,
             'joinedAt': '2026-09-01T08:00:00.000Z',
           },
-          <String, dynamic>{
-            'userId': 'demo-member-0002',
-            'fullName': 'Minh Anh',
-            'avatarUrl': null,
-            'role': 'MEMBER',
-            'provider': 'EMAIL',
-            'joinedAt': '2026-09-02T08:00:00.000Z',
-          },
-          <String, dynamic>{
-            'userId': 'demo-member-0003',
-            'fullName': 'Bà Ngoại',
-            'avatarUrl': null,
-            'role': 'MEMBER',
-            'provider': 'EMAIL',
-            'joinedAt': '2026-09-03T08:00:00.000Z',
-          },
+          ..._otherMembers.map(Map<String, dynamic>.from),
         ],
       };
+
+  /// `household-invite-role.yaml` `removeHouseholdMember`: 204 không body;
+  /// 403 ERR_HH_004 khi caller không phải OWNER; 400 ERR_HH_007 khi tự xoá.
+  ResponseBody _removeMember(String userId) {
+    if (_role != 'OWNER') {
+      return _error(403, 'ERR_HH_004', 'Insufficient permissions');
+    }
+    if (userId == _userId) {
+      return _error(400, 'ERR_HH_007', 'Transfer ownership before leaving');
+    }
+    _otherMembers.removeWhere((m) => m['userId'] == userId);
+    return _empty(204);
+  }
+
+  // ── Profile (PUT /users/me + POST /files) ─────────────────────────
+
+  /// `auth-jwt.yaml` `updateMe`: partial update — key vắng/null = giữ nguyên.
+  ResponseBody _updateMe(Map<String, dynamic> body) {
+    final fullName = body['fullName'] as String?;
+    final avatarUrl = body['avatarUrl'] as String?;
+    if (fullName != null && fullName.length > 100) {
+      return _json(400, <String, dynamic>{
+        'success': false,
+        'data': null,
+        'error': <String, dynamic>{
+          'code': 'ERR_VALIDATION_FAILED',
+          'message': 'Validation failed',
+          'fieldErrors': <String, String>{
+            'fullName': 'fullName must be at most 100 characters',
+          },
+        },
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
+      });
+    }
+    if (fullName != null) _fullName = fullName;
+    if (avatarUrl != null) _avatarUrl = avatarUrl;
+    return _ok(200, <String, dynamic>{
+      'id': _userId,
+      'email': _email,
+      'fullName': _fullName,
+      'avatarUrl': _avatarUrl,
+    });
+  }
+
+  /// `object-storage.yaml` `uploadFile`: multipart part `file` → 201 + key/url.
+  /// Demo không lưu byte — URL trỏ tới host giả nên ảnh không tải được; UI rơi
+  /// về placeholder (Q9), đúng hành vi khi URL hỏng.
+  ResponseBody _uploadFile(RequestOptions options) {
+    final data = options.data;
+    final file = data is FormData
+        ? data.files
+            .where((MapEntry<String, MultipartFile> e) => e.key == 'file')
+            .map((MapEntry<String, MultipartFile> e) => e.value)
+            .firstOrNull
+        : null;
+    if (file == null || file.length == 0) {
+      return _error(
+          400, 'ERR_FILE_INVALID', 'File must be a JPEG or PNG image');
+    }
+    if (file.length > 2 * 1024 * 1024) {
+      return _error(400, 'ERR_FILE_TOO_LARGE', 'File exceeds 2MB');
+    }
+    final key = 'demo-avatar-${_fileSequence++}.jpg';
+    return _ok(201, <String, dynamic>{
+      'key': key,
+      'url': 'https://demo.local/api/files/$key',
+      'contentType': 'image/jpeg',
+      'sizeBytes': file.length,
+    });
+  }
 
   // ── Inventory ────────────────────────────────────────────────────
 
@@ -1670,7 +1758,7 @@ class DemoBackendAdapter implements HttpClientAdapter {
           'id': _userId,
           'email': _email,
           'fullName': _fullName,
-          'avatarUrl': null,
+          'avatarUrl': _avatarUrl,
         },
       };
 

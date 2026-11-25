@@ -148,6 +148,15 @@ mixin _$SessionStore on _SessionStore, Store {
         .replaceTokens(accessToken: accessToken, refreshToken: refreshToken));
   }
 
+  late final _$updateCurrentUserAsyncAction =
+      AsyncAction('_SessionStore.updateCurrentUser', context: context);
+
+  @override
+  Future<void> updateCurrentUser(UserSummary user) {
+    return _$updateCurrentUserAsyncAction
+        .run(() => super.updateCurrentUser(user));
+  }
+
   late final _$refreshSessionAsyncAction =
       AsyncAction('_SessionStore.refreshSession', context: context);
 

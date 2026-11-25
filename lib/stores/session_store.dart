@@ -140,6 +140,16 @@ abstract class _SessionStore with Store {
     status = AuthStatus.authenticated;
   }
 
+  /// Thay hồ sơ hiện tại sau `PUT /api/v1/users/me` thành công
+  /// (profile-family-screens.md Guard 2). Ghi xuống [TokenStorage] TRƯỚC rồi
+  /// mới gán [currentUser] — BE không có `GET /users/me`, nên nếu chỉ đổi
+  /// in-memory thì lần mở app sau `_restoreUser()` sẽ trả lại tên/ảnh cũ.
+  @action
+  Future<void> updateCurrentUser(UserSummary user) async {
+    await _tokenStorage.saveUser(user.toJson());
+    currentUser = user;
+  }
+
   /// Refresh tường minh để đồng bộ claim household sau create/join.
   @action
   Future<void> refreshSession() async {

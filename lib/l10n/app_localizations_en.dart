@@ -457,10 +457,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileEdit => 'Edit profile';
 
   @override
-  String get profileEditBlocked =>
-      'This feature is being completed. It will be available soon.';
-
-  @override
   String get profileEditTitle => 'Edit profile';
 
   @override
@@ -502,16 +498,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthSavedToast => 'Health profile saved';
-
-  @override
-  String get healthSavedDialogTitle => 'Health profile saved';
-
-  @override
-  String get healthSavedDialogMessage =>
-      'Your health profile has been saved successfully.';
-
-  @override
-  String get healthSavedDialogConfirm => 'Done';
 
   @override
   String get cookingAbandonTitle => 'Abandon cooking session?';
@@ -774,22 +760,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familyRosterEmpty => 'No other members yet.';
 
   @override
-  String get familyCreateInvite => 'Create invite';
-
-  @override
   String get familyRemove => 'Remove from household';
 
   @override
-  String get familyRemoveConfirm => 'Remove this member from the household?';
+  String familyRemoveConfirm(String name) {
+    return 'Remove $name from the household?';
+  }
 
   @override
   String get familyRemoveCancel => 'Cancel';
 
   @override
   String get familyYou => 'You';
-
-  @override
-  String get familyInviteRateLimited => 'You already have 3 active invites.';
 
   @override
   String get memberDetailTitle => 'Member';
@@ -2774,23 +2756,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Diet rules depend on the meal planning mode. Declare allergies separately; a gluten-free diet does not declare a gluten allergy.';
 
   @override
-  String get healthProfileCaloriesHelp =>
-      'Leave blank or enter 0 if no calorie goal is set.';
-
-  @override
-  String get healthProfileCaloriesInvalid =>
-      'Enter a whole number from 0 to 10000, or leave blank';
-
-  @override
   String get healthProfileHeightInvalid =>
       'Enter a height from 1 to 300 cm, or leave blank';
 
   @override
   String get healthProfileWeightInvalid =>
       'Enter a weight from 1 to 500 kg, or leave blank';
-
-  @override
-  String get healthProfileClearFields => 'Clear profile fields';
 
   @override
   String get unitKcal => 'kcal';
@@ -2942,4 +2913,214 @@ class AppLocalizationsEn extends AppLocalizations {
   String showcaseDialogResult(String result) {
     return 'Result: $result';
   }
+
+  @override
+  String get profileDefaultName => 'Member';
+
+  @override
+  String get profileSessionMissingTitle => 'Couldn\'t load your profile';
+
+  @override
+  String get profileSessionMissingMessage =>
+      'Your session is no longer valid. Please sign in again.';
+
+  @override
+  String get profileReLogin => 'Sign in again';
+
+  @override
+  String get profileWeeklyRecapNav => 'Weekly recap';
+
+  @override
+  String get profileChangeAvatar => 'Change profile photo';
+
+  @override
+  String get profileAvatarPickAnother => 'Choose another photo';
+
+  @override
+  String get profileAvatarNewUnsaved => 'New photo — not saved yet';
+
+  @override
+  String get profileAvatarUploading => 'Uploading photo…';
+
+  @override
+  String get profileAvatarGallery => 'Gallery';
+
+  @override
+  String get profileAvatarCamera => 'Camera';
+
+  @override
+  String get profileAvatarPermissionDenied =>
+      'Camera or photo library access is not granted. Enable it in Settings.';
+
+  @override
+  String get profileNameRequired => 'Full name can\'t be empty';
+
+  @override
+  String get profileNameTooLong => 'Full name can be at most 100 characters';
+
+  @override
+  String get profileSaving => 'Saving…';
+
+  @override
+  String get profileSaveRetry => 'Try again';
+
+  @override
+  String get profileSaveErrorAfterUpload =>
+      'Your photo was uploaded but the profile wasn\'t saved. Check your connection and try again.';
+
+  @override
+  String get avatarErrorInvalid =>
+      'Invalid image. Please choose another JPG or PNG photo.';
+
+  @override
+  String get avatarErrorTooLarge =>
+      'Image is too large. Please choose another one.';
+
+  @override
+  String get healthProfileEmptyTitle => 'Health profile not set up';
+
+  @override
+  String get healthProfileEmptyMessage =>
+      'Add a calorie goal, diet and allergies to get better meal suggestions.';
+
+  @override
+  String get healthProfileNotSetUp => 'Not set up';
+
+  @override
+  String get healthProfileSetUpCta => 'Set up health profile';
+
+  @override
+  String get healthProfileEditAction => 'Edit';
+
+  @override
+  String get healthProfileEditTitle => 'Edit health profile';
+
+  @override
+  String healthProfileKcalValue(int value) {
+    return '$value kcal';
+  }
+
+  @override
+  String get healthProfileCaloriesNotSet => 'Not set';
+
+  @override
+  String get healthProfileCaloriesNotSetToggle => 'No calorie goal';
+
+  @override
+  String healthProfileCaloriesCurrent(int value) {
+    return 'Current: $value kcal';
+  }
+
+  @override
+  String healthProfileCaloriesOutOfRange(int min, int max) {
+    return 'Outside $min–$max — drag the slider to pick a new value.';
+  }
+
+  @override
+  String get healthProfileNeedsNetwork =>
+      'An internet connection is needed to edit.';
+
+  @override
+  String get healthProfileCaloriesServerInvalid => 'Invalid calorie goal';
+
+  @override
+  String get allergenNeedsNetwork =>
+      'An internet connection is needed to edit allergies.';
+
+  @override
+  String get allergensHealthLoadFailedTitle =>
+      'Couldn\'t load your current allergies';
+
+  @override
+  String get allergensHealthLoadFailedMessage =>
+      'To avoid overwriting saved allergies, the data must finish loading before editing.';
+
+  @override
+  String get allergensSavedSection => 'Saved allergies';
+
+  @override
+  String allergensCatalogCount(int count) {
+    return '$count common allergens';
+  }
+
+  @override
+  String allergensSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get allergenSaveError =>
+      'Something went wrong while saving. Please try again.';
+
+  @override
+  String familyRemoveConfirmBody(String name) {
+    return '$name will no longer see the household\'s inventory, meal plans and shopping list.';
+  }
+
+  @override
+  String get familyRemoveConfirmAction => 'Remove';
+
+  @override
+  String familyRemoveSuccess(String name) {
+    return 'Removed $name from the household.';
+  }
+
+  @override
+  String familyMemberYou(String name) {
+    return '$name (you)';
+  }
+
+  @override
+  String get familyGuestBadge => 'Guest';
+
+  @override
+  String familyJoinedAt(String date) {
+    return 'Joined $date';
+  }
+
+  @override
+  String get familyNeedsNetwork =>
+      'You need a connection to invite or remove members.';
+
+  @override
+  String get familyErrorNotOwner =>
+      'You no longer have permission to manage this household.';
+
+  @override
+  String get familyErrorInviteLimit =>
+      'There are already 3 active invites. Wait for an old invite to expire and try again.';
+
+  @override
+  String get familyErrorCannotRemove => 'This member can\'t be removed.';
+
+  @override
+  String familyInviteExpiresAt(String date) {
+    return 'Expires: $date';
+  }
+
+  @override
+  String get familyInviteCopyCode => 'Copy code';
+
+  @override
+  String get familyInviteCopyLink => 'Copy link';
+
+  @override
+  String get familyInviteCopied => 'Copied';
+
+  @override
+  String get familyInviteShowLast => 'Show the latest invite';
+
+  @override
+  String get memberHealthForbidden =>
+      'You don\'t have permission to view this member\'s health profile.';
+
+  @override
+  String get memberDetailPrivacyNote =>
+      'Height, weight and calorie goal are private and not shown here.';
+
+  @override
+  String get memberDetailNotFound => 'This member could not be found.';
+
+  @override
+  String get memberDetailClose => 'Close';
 }

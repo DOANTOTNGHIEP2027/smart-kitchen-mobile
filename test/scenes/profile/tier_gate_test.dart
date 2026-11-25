@@ -21,7 +21,6 @@ import 'package:smart_kitchen_mobile/scenes/profile/domain/health_profile.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/household_member.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/household_roster.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/household_tier.dart';
-import 'package:smart_kitchen_mobile/scenes/profile/domain/invite_result.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/member_health_summary.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/family_screen.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/stores/family_store.dart';
@@ -38,90 +37,7 @@ import 'package:smart_kitchen_mobile/stores/session_store.dart';
 import '../../helpers/fake_http_adapter.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/secure_storage_channel.dart';
-
-HouseholdMember member(String id, String role) => HouseholdMember(
-      userId: id,
-      fullName: 'Người $id',
-      role: role,
-      provider: 'EMAIL',
-      joinedAt: DateTime.utc(2026, 1, 1),
-    );
-
-HouseholdRoster roster({String callerRole = 'OWNER', List<HouseholdMember>? members}) {
-  final list = members ?? <HouseholdMember>[member('me', 'OWNER'), member('a', 'MEMBER')];
-  return HouseholdRoster(
-    id: 'h1',
-    name: 'Nhà',
-    ownerId: 'me',
-    callerRole: callerRole,
-    memberCount: list.length,
-    members: list,
-  );
-}
-
-class FakeFamilyApi implements FamilyApi {
-  HouseholdRoster current = roster();
-  Object? changeRoleError;
-  Object? updateTierError;
-  int rosterCalls = 0;
-  Object? rosterError;
-  final List<String> calls = <String>[];
-  Completer<void>? changeRoleGate;
-  Completer<void>? rosterGate;
-
-  @override
-  Future<HouseholdRoster> getMyHousehold() async {
-    rosterCalls++;
-    await rosterGate?.future;
-    if (rosterError != null) throw rosterError!;
-    return current;
-  }
-
-  @override
-  Future<void> changeRole(String userId, String role) async {
-    calls.add('role:$userId:$role');
-    await changeRoleGate?.future;
-    if (changeRoleError != null) throw changeRoleError!;
-  }
-
-  @override
-  Future<TierUpdateResult> updateTier(HouseholdTier tier) async {
-    calls.add('tier:${tier.toWire()}');
-    if (updateTierError != null) throw updateTierError!;
-    return TierUpdateResult(householdId: 'h1', tier: tier, requiresTokenRefresh: true);
-  }
-
-  HouseholdBudget budget = const HouseholdBudget(period: BudgetPeriod.unknown);
-  Object? budgetError;
-  Object? upsertError;
-  int budgetCalls = 0;
-  Completer<void>? budgetGate;
-  Completer<void>? upsertGate;
-  final List<(BudgetPeriod, double)> upserts = <(BudgetPeriod, double)>[];
-
-  @override
-  Future<HouseholdBudget> getBudget() async {
-    budgetCalls++;
-    await budgetGate?.future;
-    if (budgetError != null) throw budgetError!;
-    return budget;
-  }
-
-  @override
-  Future<HouseholdBudget> upsertBudget({required BudgetPeriod period, required double amount}) async {
-    upserts.add((period, amount));
-    await upsertGate?.future;
-    if (upsertError != null) throw upsertError!;
-    budget = HouseholdBudget(period: period, amount: amount, currency: 'VND');
-    return budget;
-  }
-
-  @override
-  Future<InviteResult> createInvite() => throw UnimplementedError();
-
-  @override
-  Future<void> removeMember(String userId) => throw UnimplementedError();
-}
+import 'family_test_fakes.dart';
 
 class _NoopHealthApi implements HealthApi {
   @override

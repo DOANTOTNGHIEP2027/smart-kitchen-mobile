@@ -25,6 +25,7 @@ import 'package:smart_kitchen_mobile/scenes/profile/stores/profile_store.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
 import 'package:smart_kitchen_mobile/widgets/states/app_error_view.dart';
 import 'package:smart_kitchen_mobile/widgets/states/app_loading_view.dart';
+import 'package:smart_kitchen_mobile/widgets/states/view_state.dart';
 
 void main() {
   late _HealthApi api;
@@ -75,45 +76,32 @@ void main() {
 
   Finder input(String name) => find.byKey(ValueKey<String>('health-$name'));
 
-  group('Health profile full replacement', () {
-    for (final raw in <String>[
-      'abc',
-      '0.5',
-      '1e3',
-      '-1',
-      '10001',
-      '0x10',
-      'NaN'
-    ]) {
-      testWidgets('invalid goal $raw never reaches API', (tester) async {
-        await pumpScreen(tester, const HealthProfileScreen());
-        // Field order is weight/height/calories; also exercises the baseline UI.
-        await tester.enterText(find.byType(TextField).at(2), raw);
-        await save(tester);
-        expect(api.profileWrites, isEmpty);
-        expect(find.text('Nhập số nguyên từ 0 đến 10000 hoặc để trống'),
-            findsOneWidget);
-      });
-    }
+  Future<void> openEdit(WidgetTester tester) async {
+    await tester.ensureVisible(input('edit'));
+    await tester.tap(input('edit'));
+    await tester.pump();
+  }
 
-    for (final (raw, expected) in <(String, int?)>[
-      ('', null),
-      ('   ', null),
-      ('0', 0),
-      ('1', 1),
-      (' 2000 ', 2000),
-      ('10000', 10000),
-    ]) {
+  Future<void> setSlider(WidgetTester tester, int value) async {
+    tester.widget<Slider>(input('calorie-slider')).onChanged!(value.toDouble());
+    await tester.pump();
+  }
+
+  // Thiết kế §10.3 (D13/D16): ô nhập calo tự do được thay bằng slider
+  // 800–5000 + "Chưa đặt", màn có chế độ xem/sửa. Các test dưới giữ đúng ý
+  // đồ cũ (PUT đủ 4 field, null ≠ NONE, lỗi giữ bản nháp, không tự retry).
+  group('Health profile full replacement', () {
+    for (final goal in <int?>[null, 0, 1800, 6000, 10000]) {
       testWidgets(
-          'goal "$raw" sends $expected and preserves other draft fields',
+          'untouched goal $goal is sent unchanged with the other 3 fields',
           (tester) async {
-        api.profile = _profile(diet: DietType.glutenFree, goal: 1800);
+        api.profile = _profile(diet: DietType.glutenFree, goal: goal);
         api.writeError = NetworkException();
         await pumpScreen(tester, const HealthProfileScreen());
-        await tester.enterText(input('calories'), raw);
+        await openEdit(tester);
         await save(tester);
         expect(api.profileWrites.single, <String, dynamic>{
-          'targetDailyCalories': expected,
+          'targetDailyCalories': goal,
           'dietType': 'GLUTEN_FREE',
           'heightCm': 170.0,
           'weightKg': 65.0,
@@ -128,6 +116,7 @@ void main() {
       await pumpScreen(tester, const HealthProfileScreen());
       expect(find.text('Chưa chọn chế độ ăn'), findsOneWidget);
       expect(find.text('Chưa có mục dị ứng được lưu'), findsOneWidget);
+      await openEdit(tester);
       await tester.tap(input('diet'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Không chọn chế độ ăn đặc biệt').last);
@@ -144,15 +133,29 @@ void main() {
       api.writeGate = Completer<void>();
       api.writeError = NetworkException();
       await pumpScreen(tester, const HealthProfileScreen());
-      await tester.enterText(input('calories'), '2500');
+      await openEdit(tester);
+      // Goal null → "Chưa đặt" đang bật; tắt để bật slider.
+      await tester.tap(input('calorie-notset'));
+      await tester.pump();
+      await setSlider(tester, 2500);
       await save(tester);
-      expect(tester.widget<TextFormField>(input('calories')).enabled, isFalse);
+      expect(tester.widget<TextFormField>(input('height')).enabled, isFalse);
       expect(api.profileWrites, hasLength(1));
       api.writeGate!.complete();
       await tester.pumpAndSettle();
-      expect(find.text('2500'), findsOneWidget);
+      expect(find.text('2500 kcal'), findsOneWidget);
       expect(find.text('Vegan'), findsOneWidget);
-      expect(tester.widget<TextFormField>(input('calories')).enabled, isTrue);
+      expect(find.text('Kiểm tra kết nối và thử lại'), findsOneWidget);
+      // Guard 6 — không optimistic: lưu lỗi thì store + cache giữ bản cũ.
+      final state = profileStore.healthProfileState;
+      expect(state, isA<SuccessState<HealthProfile>>());
+      final kept = (state as SuccessState<HealthProfile>).data;
+      expect(kept.targetDailyCalories, isNull);
+      expect(kept.dietType, DietType.vegan);
+      expect(cache.entries['health_profile:me']!.payload['targetDailyCalories'],
+          isNull);
+      expect(cache.entries['health_profile:me']!.payload['dietType'], 'VEGAN');
+      expect(tester.widget<TextFormField>(input('height')).enabled, isTrue);
       expect(api.profileWrites, hasLength(1),
           reason: 'No automatic mutation retry');
       await save(tester);
@@ -160,41 +163,19 @@ void main() {
       expect(api.profileWrites.last['targetDailyCalories'], 2500);
     });
 
-    testWidgets(
-        'successful zero goal updates store/cache only after acknowledgment',
+    testWidgets('successful save returns to view mode and updates store/cache',
         (tester) async {
+      api.profile = _profile(goal: 0);
       await pumpScreen(tester, const HealthProfileScreen());
-      await tester.enterText(input('calories'), '0');
+      await openEdit(tester);
       await save(tester);
       await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Đã lưu hồ sơ sức khoẻ'), findsOneWidget);
+      expect(input('edit'), findsOneWidget);
       expect(api.profileWrites.single['targetDailyCalories'], 0);
+      expect(find.text('0 kcal'), findsOneWidget);
       expect(cache.entries['health_profile:me']!.payload['targetDailyCalories'],
           0);
-      expect(api.allergenWrites, isEmpty);
-    });
-
-    testWidgets(
-        'clear profile fields resets only draft until Save; allergens stay intact',
-        (tester) async {
-      api.profile = _profile(
-          diet: DietType.glutenFree,
-          allergens: const [Allergen(id: 1, name: 'Gluten')]);
-      api.writeError = NetworkException();
-      await pumpScreen(tester, const HealthProfileScreen());
-      await tester.ensureVisible(find.text('Xóa các trường hồ sơ'));
-      await tester.tap(find.text('Xóa các trường hồ sơ'));
-      await tester.pump();
-      expect(api.profileWrites, isEmpty);
-      expect(api.allergenWrites, isEmpty);
-      expect(find.text('Gluten'), findsOneWidget);
-      await save(tester);
-      expect(api.profileWrites.single, <String, dynamic>{
-        'targetDailyCalories': null,
-        'dietType': null,
-        'heightCm': null,
-        'weightKg': null,
-      });
       expect(api.allergenWrites, isEmpty);
     });
 
@@ -204,8 +185,8 @@ void main() {
       await pumpScreen(tester, const HealthProfileScreen());
       tester.view.physicalSize = const Size(390, 844);
       await tester.pump();
+      await openEdit(tester);
       await tester.enterText(input('height'), 'invalid');
-      await tester.enterText(input('calories'), '0');
       await save(tester);
       expect(api.profileWrites, isEmpty);
       await tester.ensureVisible(input('height'));
@@ -219,6 +200,7 @@ void main() {
       api.profile = _profile(diet: DietType.glutenFree, goal: 2000);
       api.writeError = NetworkException();
       await pumpScreen(tester, const HealthProfileScreen());
+      await openEdit(tester);
       await tester.tap(input('diet'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Chưa chọn chế độ ăn').last);
@@ -233,13 +215,14 @@ void main() {
       expect(api.allergenWrites, isEmpty);
     });
 
-    testWidgets('invalid optional height is not silently replaced by null',
+    testWidgets('invalid optional weight is not silently replaced by null',
         (tester) async {
       await pumpScreen(tester, const HealthProfileScreen());
-      await tester.enterText(input('height'), 'invalid');
+      await openEdit(tester);
+      await tester.enterText(input('weight'), '1e3');
       await save(tester);
       expect(api.profileWrites, isEmpty);
-      expect(find.text('Nhập chiều cao từ 1 đến 300 cm hoặc để trống'),
+      expect(find.text('Nhập cân nặng từ 1 đến 500 kg hoặc để trống'),
           findsOneWidget);
     });
 
@@ -251,7 +234,7 @@ void main() {
       api.readError = null;
       await tester.tap(find.text('Thử lại'));
       await tester.pumpAndSettle();
-      expect(input('calories'), findsOneWidget);
+      expect(input('edit'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       api.readError = NetworkException();
       await pumpScreen(tester, const HealthProfileScreen());
@@ -263,13 +246,10 @@ void main() {
           findsOneWidget);
     });
 
-    testWidgets('English labels and zero compatibility help are localized',
-        (tester) async {
+    testWidgets('English labels are localized', (tester) async {
       await pumpScreen(tester, const HealthProfileScreen(), language: 'en');
       expect(find.text('Diet not selected'), findsOneWidget);
       expect(find.text('No allergen entries saved'), findsOneWidget);
-      expect(find.text('Leave blank or enter 0 if no calorie goal is set.'),
-          findsOneWidget);
     });
 
     test('empty allergens save never writes or resets health profile',
@@ -294,7 +274,7 @@ void main() {
           (tester) async {
         api.summary = MemberHealthSummary(
             userId: 'member', dietType: diet, allergens: const []);
-        await pumpScreen(tester, const MemberDetailScreen());
+        await pumpScreen(tester, const MemberDetailScreen(userId: 'member'));
         expect(find.text(label), findsOneWidget);
         expect(find.text('Chưa có mục dị ứng được lưu'), findsOneWidget);
         expect(find.byType(TextField), findsNothing);
@@ -303,11 +283,13 @@ void main() {
       });
     }
 
-    testWidgets('summary loading, forbidden, retry, and chips preserve privacy',
+    testWidgets('summary loading, error, retry, and chips preserve privacy',
         (tester) async {
       api.summaryGate = Completer<void>();
-      api.summaryError = BusinessException('ERR_HEALTH_FORBIDDEN', 'Forbidden');
-      await pumpScreen(tester, const MemberDetailScreen());
+      // Lỗi thường → AppErrorView + Thử lại. (403 ERR_HEALTH_FORBIDDEN không
+      // có Thử lại — test riêng ở member_detail_screen_test.dart.)
+      api.summaryError = ServerException('ERR_INTERNAL', 'Server error');
+      await pumpScreen(tester, const MemberDetailScreen(userId: 'member'));
       expect(find.byType(AppLoadingView), findsOneWidget);
       api.summaryGate!.complete();
       await tester.pumpAndSettle();
@@ -326,7 +308,8 @@ void main() {
 
     testWidgets('summary null diet and empty allergens localize in English',
         (tester) async {
-      await pumpScreen(tester, const MemberDetailScreen(), language: 'en');
+      await pumpScreen(tester, const MemberDetailScreen(userId: 'member'),
+          language: 'en');
       expect(find.text('Diet not selected'), findsOneWidget);
       expect(find.text('No allergen entries saved'), findsOneWidget);
     });
