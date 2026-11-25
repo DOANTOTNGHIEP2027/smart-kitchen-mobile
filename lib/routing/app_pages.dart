@@ -18,6 +18,7 @@ import '../scenes/inventory/inventory_routes.dart';
 import '../scenes/mealplan/scenes/meal_plan_routes.dart';
 import '../scenes/planning/scenes/planning_routes.dart';
 import '../scenes/profile/profile_family_routes.dart';
+import '../scenes/notifications/notifications_routes.dart';
 import '../scenes/receipt/scenes/receipt_routes.dart';
 import '../scenes/recap/scenes/recap_routes.dart';
 import '../scenes/recipe/scenes/recipe_routes.dart';
@@ -48,6 +49,7 @@ class AppPages {
     ...receiptPages,
     ...insightsPages,
     ...recapPages,
+    ...notificationsPages,
     // Showcase widget library — chỉ build dev (design-system.md §8).
     if (EnvConfig.isDev) ...devPages,
   ];

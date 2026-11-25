@@ -10,8 +10,7 @@ import '../l10n/app_localizations.dart';
 import '../routing/app_pages.dart';
 import '../routing/app_routes.dart';
 import '../data/notification/notification_service.dart';
-import '../scenes/inventory/inventory_routes.dart';
-import '../scenes/mealplan/scenes/meal_plan_routes.dart';
+import '../stores/notification_store.dart';
 import '../stores/theme_store.dart';
 import '../utils/l10n_x.dart';
 
@@ -59,12 +58,14 @@ class _NotificationUiHost extends StatefulWidget {
   State<_NotificationUiHost> createState() => _NotificationUiHostState();
 }
 
-class _NotificationUiHostState extends State<_NotificationUiHost> {
+class _NotificationUiHostState extends State<_NotificationUiHost>
+    with WidgetsBindingObserver {
   StreamSubscription<NotificationUiEvent>? _subscription;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (!Get.isRegistered<NotificationService>()) return;
     final service = Get.find<NotificationService>();
     _subscription = service.uiEvents.listen(_schedule);
@@ -75,8 +76,19 @@ class _NotificationUiHostState extends State<_NotificationUiHost> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _subscription?.cancel();
     super.dispose();
+  }
+
+  /// Quay lại app → đọc lại quyền (người dùng có thể đổi trong Cài đặt) —
+  /// fcm-notification-flow.md §14.4.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        Get.isRegistered<NotificationStore>()) {
+      unawaited(Get.find<NotificationStore>().refreshPermission());
+    }
   }
 
   void _schedule(NotificationUiEvent event) {
@@ -88,12 +100,6 @@ class _NotificationUiHostState extends State<_NotificationUiHost> {
 
   void _handle(NotificationUiEvent event) {
     switch (event.type) {
-      case NotificationUiEventType.openInventory:
-        Get.toNamed(InventoryRoutes.list);
-        return;
-      case NotificationUiEventType.openMealPlan:
-        Get.toNamed(MealPlanRoutes.weekly);
-        return;
       case NotificationUiEventType.inventoryUpdated:
         return _show(context.l10n.notificationInventoryUpdated);
       case NotificationUiEventType.inventoryAlreadyUsed:

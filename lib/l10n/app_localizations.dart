@@ -6105,6 +6105,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Go to home'**
   String get joinGoHome;
+
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTitle;
+
+  /// No description provided for @notificationsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications in this session yet. Notifications received in the background only appear here after you open them.'**
+  String get notificationsEmpty;
+
+  /// No description provided for @notificationsMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get notificationsMarkAllRead;
+
+  /// No description provided for @notificationsNavTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsNavTitle;
+
+  /// No description provided for @notificationPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications'**
+  String get notificationPermissionTitle;
+
+  /// No description provided for @notificationPermissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Get reminders about expiring food, shopping lists and planned meals.'**
+  String get notificationPermissionBody;
+
+  /// No description provided for @notificationPermissionEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications'**
+  String get notificationPermissionEnable;
+
+  /// No description provided for @notificationPermissionLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notificationPermissionLater;
+
+  /// No description provided for @notificationPermissionDeniedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are turned off'**
+  String get notificationPermissionDeniedBanner;
+
+  /// No description provided for @notificationPermissionNotDeterminedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t turned on notifications'**
+  String get notificationPermissionNotDeterminedBanner;
+
+  /// No description provided for @notificationPermissionUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications aren\'t available on this device'**
+  String get notificationPermissionUnsupported;
+
+  /// No description provided for @notificationOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get notificationOpenSettings;
+
+  /// No description provided for @notificationRegistrationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t register for notifications yet — we\'ll try again'**
+  String get notificationRegistrationFailed;
+
+  /// No description provided for @notificationJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get notificationJustNow;
+
+  /// No description provided for @notificationMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute ago} other{{count} minutes ago}}'**
+  String notificationMinutesAgo(int count);
+
+  /// No description provided for @notificationHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour ago} other{{count} hours ago}}'**
+  String notificationHoursAgo(int count);
+
+  /// No description provided for @notificationUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'New notification'**
+  String get notificationUntitled;
+
+  /// No description provided for @notificationsUnreadBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unread} other{{count} unread}}'**
+  String notificationsUnreadBadge(int count);
 }
 
 class _AppLocalizationsDelegate

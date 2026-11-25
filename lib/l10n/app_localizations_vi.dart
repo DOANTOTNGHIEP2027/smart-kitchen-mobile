@@ -3393,4 +3393,69 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get joinGoHome => 'Về trang chủ';
+
+  @override
+  String get notificationsTitle => 'Thông báo';
+
+  @override
+  String get notificationsEmpty =>
+      'Chưa có thông báo nào trong phiên này. Thông báo nhận khi app chạy nền chỉ hiện ở đây sau khi bạn mở nó.';
+
+  @override
+  String get notificationsMarkAllRead => 'Đánh dấu đã đọc';
+
+  @override
+  String get notificationsNavTitle => 'Thông báo';
+
+  @override
+  String get notificationPermissionTitle => 'Bật thông báo';
+
+  @override
+  String get notificationPermissionBody =>
+      'Nhận nhắc hạn dùng thực phẩm, lịch mua sắm và bữa ăn đã lên kế hoạch.';
+
+  @override
+  String get notificationPermissionEnable => 'Bật thông báo';
+
+  @override
+  String get notificationPermissionLater => 'Để sau';
+
+  @override
+  String get notificationPermissionDeniedBanner => 'Thông báo đang tắt';
+
+  @override
+  String get notificationPermissionNotDeterminedBanner =>
+      'Bạn chưa bật thông báo';
+
+  @override
+  String get notificationPermissionUnsupported =>
+      'Thông báo chưa khả dụng trên thiết bị này';
+
+  @override
+  String get notificationOpenSettings => 'Mở Cài đặt';
+
+  @override
+  String get notificationRegistrationFailed =>
+      'Chưa đăng ký nhận thông báo được, sẽ thử lại';
+
+  @override
+  String get notificationJustNow => 'Vừa xong';
+
+  @override
+  String notificationMinutesAgo(int count) {
+    return '$count phút trước';
+  }
+
+  @override
+  String notificationHoursAgo(int count) {
+    return '$count giờ trước';
+  }
+
+  @override
+  String get notificationUntitled => 'Thông báo mới';
+
+  @override
+  String notificationsUnreadBadge(int count) {
+    return '$count chưa đọc';
+  }
 }

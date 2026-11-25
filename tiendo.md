@@ -120,7 +120,7 @@ Tất cả routes đều được bảo vệ bởi `AuthGuard`.
 
 ### 2. Push Notifications & Local Notifications
 - **Backend Device Registration**: `DeviceApi` đăng ký FCM token với backend qua `POST /api/v1/devices/register` (`{deviceToken, platform}`).
-- **FCM Token Lifecycle**: Tự động đăng ký khi app khởi động và lắng nghe `onTokenRefresh` để re-register.
+- **FCM Token Lifecycle** (#48): `NotificationStore` (MobX) đăng ký token khi đã đăng nhập + có quyền, lắng nghe `onTokenRefresh` để re-register, `deleteToken` khi đăng xuất. Xin quyền một lần sau lần đăng nhập đầu (sheet giải thích), kiểm lại khi resume; màn `/notifications` (danh sách trong phiên).
 - **Background & Foreground Messaging**:
   - Background handler chạy trên isolate riêng với `@pragma('vm:entry-point')`.
   - Foreground notification hiển thị qua `flutter_local_notifications` với Android Notification Channel cấu hình sẵn.

@@ -653,6 +653,10 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (path == '/api/v1/cooking/logs' && method == 'GET') {
       return _listMealLogs(options);
     }
+    // #48 — đăng ký FCM token (contract inventory-alert-scheduler.yaml).
+    if (path == '/api/v1/devices/register' && method == 'POST') {
+      return _ok(201, <String, dynamic>{'registered': true});
+    }
     if (path == '/api/v1/cooking/nutrition/weekly' && method == 'GET') {
       return _getWeeklyNutrition();
     }

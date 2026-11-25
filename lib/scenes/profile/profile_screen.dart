@@ -22,6 +22,8 @@ import '../dev/dev_routes.dart';
 import '../insights/scenes/insights_routes.dart';
 import '../recap/scenes/recap_routes.dart';
 import '../nutrition/widgets/profile_nutrition_section.dart';
+import '../notifications/notifications_routes.dart';
+import '../../stores/notification_store.dart';
 import 'stores/profile_store.dart';
 import 'widgets/profile_avatar.dart';
 
@@ -85,6 +87,23 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: AppDimens.lg),
             const ProfileNutritionSection(),
             const SizedBox(height: AppDimens.lg),
+            // #48 — thông báo trong phiên + trạng thái quyền (fcm-notification-flow.md §8).
+            if (Get.isRegistered<NotificationStore>()) ...<Widget>[
+              Observer(builder: (_) {
+                final unread = Get.find<NotificationStore>().unreadCount;
+                return _ProfileNavigationTile(
+                  key: const ValueKey<String>('profile-notifications'),
+                  icon: Icons.notifications_none_rounded,
+                  iconColor: AppColors.primary,
+                  title: context.l10n.notificationsNavTitle,
+                  badge: unread > 0
+                      ? context.l10n.notificationsUnreadBadge(unread)
+                      : null,
+                  onPressed: () => Get.toNamed(NotificationsRoutes.list),
+                );
+              }),
+              const SizedBox(height: AppDimens.sm),
+            ],
             _ProfileNavigationTile(
               icon: Icons.favorite_outline,
               iconColor: AppColors.primaryDark,
@@ -198,12 +217,14 @@ class _ProfileNavigationTile extends StatelessWidget {
     required this.iconColor,
     required this.title,
     required this.onPressed,
+    this.badge,
   });
 
   final IconData icon;
   final Color iconColor;
   final String title;
   final VoidCallback onPressed;
+  final String? badge;
 
   @override
   Widget build(BuildContext context) => AppCard(
@@ -228,6 +249,11 @@ class _ProfileNavigationTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (badge != null)
+              Badge(
+                key: const ValueKey<String>('profile-tile-badge'),
+                label: Text(badge!),
+              ),
             const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
           ],
         ),

@@ -346,3 +346,17 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Theo:** §6.0 quy tắc 2, §6.2 (OAS thắng mô tả issue), §5 (không tiện tay sửa ngoài phạm vi).
 - **Đảo ngược thế nào:** (1) bỏ nút "Thử lại" ở panel quyền; (3) đổi hằng ngưỡng badge.
 - **Cần người quyết lại không:** Không.
+
+### OD-41 · #48 FCM — giữ contract thật, xin quyền sau đăng nhập, lệch issue
+- **Ngày:** 2026-11-25 · **Task:** #48 · **Nhánh:** `feature/48_fcm-permission-flow`
+- **Tình huống:** Issue #48 ghi `PATCH /api/v1/users/me/fcm-token {fcm_token, platform, device_id}`, "hỏi quyền khi khởi động lần đầu", và `Get.toNamed(data['route'])`. Cả ba mâu thuẫn với contract, thiết kế và BE đã ship.
+- **Đã chọn (user chốt 2026-11-25):**
+  1. Giữ `POST /api/v1/devices/register {deviceToken, platform}` (`inventory-alert-scheduler.yaml`). Không có `device_id` vì bảng `user_devices` không có cột này.
+  2. Logout gọi `FirebaseMessaging.deleteToken()` best-effort. BE chưa có API gỡ token.
+  3. Xin quyền **một lần sau lần đăng nhập đầu**: sheet giải thích → dialog OS; lưu cờ `notification_permission_asked` (secure storage); đọc lại quyền khi app resumed.
+  4. Tap điều hướng qua allow-list `NotificationTarget`, không dùng chuỗi trong payload (`inventory-management.md` §20.3(d)). `type` lạ → `/notifications`.
+  5. Danh sách thông báo chỉ giữ trong phiên; `/notifications` là màn tối giản.
+- **Theo:** thiết kế `fcm-notification-flow.md` v1.2 (ai-native), §6.0 quy tắc 2.
+- **Đảo ngược thế nào:** đổi `DeviceApi` sang endpoint khác; `NotificationStore.shouldShowRationale` bỏ điều kiện `isAuthenticated` để hỏi trước đăng nhập.
+- **Ghi chú (review code #48 v1):** (a) iOS giữ `.foreground` cho `MARK_USED`/`DISCARD` — bỏ nó cần `onDidReceiveBackgroundNotificationResponse` + Dio/token trong isolate nền; làm cùng Q2. (c) `deleteToken` có timeout 10s nhưng không huỷ được lời gọi plugin; offline lâu có thể vô hiệu token của người đăng nhập kế tiếp — chưa kiểm trên thiết bị, xử lý cùng Q1. (b) `/notifications` không dùng `ViewState`/`AppStateView`: dữ liệu chỉ ở bộ nhớ, không có loading/error fetch — chỉ empty/list + banner quyền/lỗi đăng ký.
+- **Cần người quyết lại không:** Không. Còn mở: API gỡ token ở BE (Q1), iOS (Q2), lưu lâu dài danh sách (Q3).
