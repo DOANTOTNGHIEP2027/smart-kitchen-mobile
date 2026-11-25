@@ -16,6 +16,10 @@ import '../domain/recipe.dart';
 import '../data/recipe_catalog_api.dart';
 import '../stores/recipe_store.dart';
 
+/// Tiền tố `ValueKey` của card recipe — harness đo #93 tìm card theo key
+/// thay vì tên class private (LOW-5 review #93).
+const String kRecipeCardKeyPrefix = 'recipe-card-';
+
 class RecipeListScene extends StatefulWidget {
   const RecipeListScene({super.key, this.onSelect});
   final ValueChanged<Recipe>? onSelect;
@@ -120,6 +124,7 @@ class _RecipeListSceneState extends State<RecipeListScene> {
                 if (index < _store.recipes.length) {
                   final recipe = _store.recipes[index];
                   return _RecipeCard(
+                    key: ValueKey<String>('$kRecipeCardKeyPrefix${recipe.id}'),
                     recipe: recipe,
                     isFavoritePending: _store.isFavoritePending(recipe.id),
                     onOpen: widget.onSelect != null
@@ -363,6 +368,7 @@ class _SearchBox extends StatelessWidget {
 
 class _RecipeCard extends StatelessWidget {
   const _RecipeCard({
+    super.key,
     required this.recipe,
     required this.isFavoritePending,
     required this.onOpen,

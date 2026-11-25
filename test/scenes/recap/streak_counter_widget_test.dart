@@ -50,4 +50,26 @@ void main() {
     expect(find.text('4 tuần'), findsOneWidget);
     expect(find.text('9'), findsOneWidget);
   });
+
+  testWidgets(
+      '#93 F6: flame có RepaintBoundary riêng nằm TRONG StreakFlameIcon',
+      (tester) async {
+    await tester.pumpAppWidget(const Center(child: StreakFlameIcon()));
+    // Flame lặp vô hạn — chỉ pump có thời lượng, không pumpAndSettle.
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final nearestBoundary = find
+        .ancestor(
+          of: find.byIcon(Icons.local_fire_department),
+          matching: find.byType(RepaintBoundary),
+        )
+        .first;
+    expect(
+      find.descendant(
+        of: find.byType(StreakFlameIcon),
+        matching: nearestBoundary,
+      ),
+      findsOneWidget,
+    );
+  });
 }

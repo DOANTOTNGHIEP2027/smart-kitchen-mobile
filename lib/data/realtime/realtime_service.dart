@@ -17,6 +17,11 @@ enum WsConnectionState {
   reconnecting,
 }
 
+/// #93 §5.5 F2 — thời gian tối đa chờ `WebSocketChannel.ready`. Bằng
+/// `connectTimeout` của `DioClient`; quá hạn thì đóng socket mồ côi và
+/// reconnect theo backoff như lỗi kết nối thường.
+const Duration kWsReadyTimeout = Duration(seconds: 10);
+
 /// Service quản lý vòng đời WebSocket STOMP cho FE-3 (#49).
 ///
 /// Trách nhiệm:
@@ -50,13 +55,24 @@ class RealtimeService {
     required TokenStorage tokenStorage,
     String? wsBaseUrl,
     bool enabled = true,
+    WebSocketChannel Function(Uri uri)? channelFactory,
+    Duration readyTimeout = kWsReadyTimeout,
   })  : _tokenStorage = tokenStorage,
         _wsBaseUrl = wsBaseUrl ?? _defaultWsBaseUrl(),
-        _enabled = enabled;
+        _enabled = enabled,
+        _channelFactory = channelFactory ?? WebSocketChannel.connect,
+        _readyTimeout = readyTimeout;
 
   final TokenStorage _tokenStorage;
   final String _wsBaseUrl;
   final bool _enabled;
+  final WebSocketChannel Function(Uri uri) _channelFactory;
+  final Duration _readyTimeout;
+
+  /// #93 §5.4 bất biến 6 — single-flight: lần `connect()` đang chạy và
+  /// household của nó. Cùng household thì dùng lại future, không mở socket 2.
+  Future<void>? _inFlight;
+  String? _inFlightHousehold;
 
   WebSocketChannel? _channel;
   StreamSubscription<dynamic>? _channelSub;
@@ -98,15 +114,35 @@ class RealtimeService {
         _state == WsConnectionState.connected) {
       return; // đã connected đúng household, không làm gì
     }
+    final inFlight = _inFlight;
+    if (inFlight != null &&
+        _inFlightHousehold == householdId &&
+        _currentHouseholdId == householdId) {
+      return inFlight; // đang connect đúng household — dùng chung lần đó
+    }
     _currentHouseholdId = householdId;
     _cancelReconnect();
     _reconnectAttempts = 0;
-    await _connect();
+    final future = _connect();
+    _inFlight = future;
+    _inFlightHousehold = householdId;
+    try {
+      await future;
+    } finally {
+      if (identical(_inFlight, future)) {
+        _inFlight = null;
+        _inFlightHousehold = null;
+      }
+    }
   }
 
   /// Ngắt kết nối và dừng reconnect.
   Future<void> disconnect() async {
     _currentHouseholdId = null;
+    // HIGH-1 (review v3): lần connect đang chờ `ready` đã bị huỷ — không cho
+    // connect() sau đó (login lại cùng Nhà) dùng lại future chết của nó.
+    _inFlight = null;
+    _inFlightHousehold = null;
     _cancelReconnect();
     await _closeChannel(sendDisconnect: true);
     _setState(WsConnectionState.disconnected);
@@ -141,9 +177,9 @@ class RealtimeService {
     await _closeChannel(sendDisconnect: false);
 
     final uri = Uri.parse('$_wsBaseUrl/ws');
+    final WebSocketChannel channel;
     try {
-      _channel = WebSocketChannel.connect(uri);
-      await _channel!.ready;
+      channel = _channelFactory(uri);
     } catch (e) {
       developer.log(
         'RealtimeService: không kết nối được WS: $e',
@@ -152,11 +188,43 @@ class RealtimeService {
       _scheduleReconnect();
       return;
     }
+    _channel = channel;
+    try {
+      await channel.ready.timeout(_readyTimeout);
+    } on TimeoutException {
+      // Đóng socket mồ côi, KHÔNG await (close có thể chỉ xong khi socket mở).
+      unawaited(channel.sink.close().catchError((_) {}));
+      // Đã bị disconnect()/connect(h2) thay → lần mới hơn sở hữu state.
+      if (!identical(_channel, channel)) return;
+      _channel = null;
+      developer.log(
+        'RealtimeService: WS ready quá $_readyTimeout',
+        name: 'RealtimeService',
+      );
+      _scheduleReconnect();
+      return;
+    } catch (e) {
+      unawaited(channel.sink.close().catchError((_) {}));
+      if (!identical(_channel, channel)) return;
+      _channel = null;
+      developer.log(
+        'RealtimeService: không kết nối được WS: $e',
+        name: 'RealtimeService',
+      );
+      _scheduleReconnect();
+      return;
+    }
+    // #93 §5.5 (R3-04): sau await, channel có thể đã bị thay (đổi Nhà) hoặc
+    // xoá (logout) → channel mở muộn chỉ bị đóng, không subscribe.
+    if (!identical(_channel, channel)) {
+      unawaited(channel.sink.close().catchError((_) {}));
+      return;
+    }
 
     // Gửi STOMP CONNECT — token trong native header, không phải HTTP header
-    _channel!.sink.add(buildConnect(token));
+    channel.sink.add(buildConnect(token));
 
-    _channelSub = _channel!.stream.listen(
+    _channelSub = channel.stream.listen(
       _onMessage,
       onError: _onChannelError,
       onDone: _onChannelDone,
@@ -295,18 +363,33 @@ class RealtimeService {
     _reconnectTimer = null;
   }
 
+  /// MEDIUM-1 (review v3): tách channel khỏi service NGAY (đồng bộ) rồi mới
+  /// await — để guard `identical` sau `ready` luôn thấy channel đã bị thay.
+  /// KHÔNG await `sink.close()`: với `web_socket_channel`, channel chưa mở thì
+  /// future đó không bao giờ xong (treo disconnect/dispose/connect(h2)).
   Future<void> _closeChannel({required bool sendDisconnect}) async {
-    if (sendDisconnect) {
+    final channel = _channel;
+    final sub = _channelSub;
+    _channel = null;
+    _channelSub = null;
+    // Chỉ gửi DISCONNECT khi đã subscribe (channel đã mở) — tránh đệm frame
+    // DISCONNECT vào channel chưa mở.
+    if (sendDisconnect && channel != null && sub != null) {
       try {
-        _channel?.sink.add(buildDisconnect());
+        channel.sink.add(buildDisconnect());
       } catch (_) {
         // Có thể đã đóng rồi — bỏ qua
       }
     }
-    await _channelSub?.cancel();
-    _channelSub = null;
-    await _channel?.sink.close();
-    _channel = null;
+    await sub?.cancel();
+    if (channel != null) {
+      unawaited(channel.sink.close().catchError((Object e) {
+        developer.log(
+          'RealtimeService: lỗi khi đóng WS: $e',
+          name: 'RealtimeService',
+        );
+      }));
+    }
   }
 
   // ── Private: helpers ──────────────────────────────────────────────────────

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
+import 'demo_perf_seed.dart';
 import 'fixtures/demo_fixtures.dart';
 
 /// Backend giả lập cho bản demo — **chỉ bật khi `DEMO_MODE=true`**.
@@ -33,10 +34,14 @@ class DemoBackendAdapter implements HttpClientAdapter {
   static const String correctPassword = 'password';
   static const String takenEmail = 'taken@demo.local';
 
-  static const Duration _latency = Duration(milliseconds: 450);
+  // #93 §6.3: `PERF_DEMO_LATENCY_MS` (mặc định 450ms như cũ).
+  static const Duration _latency =
+      Duration(milliseconds: DemoPerfSeed.latencyMs);
 
   /// State phiên demo — quyết định claim mà `/auth/refresh` trả về.
-  String? _householdId;
+  /// `PERF_SEED` (#93 §6.3) → có Nhà sẵn để Splash đi thẳng vào shell.
+  String? _householdId =
+      DemoPerfSeed.seedSession ? DemoPerfSeed.seededHouseholdId : null;
   String _role = 'OWNER';
   String _provider = 'EMAIL';
   String _userId = 'demo-user-0001';
@@ -69,9 +74,12 @@ class DemoBackendAdapter implements HttpClientAdapter {
     },
   ];
   final Set<String> _usedInviteCodes = <String>{};
-  final List<Map<String, dynamic>> _inventory = DemoFixtures.inventory()
-      .map((item) => Map<String, dynamic>.from(item))
-      .toList(growable: true);
+  final List<Map<String, dynamic>> _inventory = expandPerfInventory(
+    DemoFixtures.inventory()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList(growable: true),
+    DemoPerfSeed.inventoryCount, // #93 §6.3 `PERF_INVENTORY_COUNT`
+  );
   final Map<String, List<Map<String, dynamic>>> _inventoryTransactions =
       <String, List<Map<String, dynamic>>>{};
   final Map<String, String> _processedInventory = <String, String>{};
@@ -682,13 +690,21 @@ class DemoBackendAdapter implements HttpClientAdapter {
     'demo-recipe-canh-muc',
   ];
 
+  /// Id hiện trong danh sách — `PERF_RECIPE_COUNT` (#93 §6.3) sinh N id perf
+  /// ánh xạ về [_recipeIds]; mặc định đúng [_recipeIds].
+  static final List<String> _listedRecipeIds =
+      perfRecipeIds(_recipeIds, DemoPerfSeed.recipeCount);
+
+  static String _baseRecipeId(String recipeId) =>
+      perfRecipeBaseId(recipeId, _recipeIds);
+
   ResponseBody _listRecipes(RequestOptions options) {
     final query = options.queryParameters;
     final search = (query['search'] as String? ?? '').trim().toLowerCase();
     final dietType = query['dietType'] as String?;
     final difficulty = query['difficulty'] as String?;
     final maxPrepTime = int.tryParse('${query['maxPrepTime'] ?? ''}');
-    final matches = _recipeIds.map(_recipeResponse).where((recipe) {
+    final matches = _listedRecipeIds.map(_recipeResponse).where((recipe) {
       final name = recipe['name'] as String;
       final diets = (recipe['dietTypes'] as List<dynamic>).cast<String>();
       return (search.isEmpty || name.toLowerCase().contains(search)) &&
@@ -709,7 +725,7 @@ class DemoBackendAdapter implements HttpClientAdapter {
   }
 
   ResponseBody _getRecipe(String recipeId) {
-    if (!_recipeIds.contains(recipeId)) {
+    if (!_recipeIds.contains(_baseRecipeId(recipeId))) {
       return _error(404, 'ERR_RECIPE_NOT_FOUND', 'Không tìm thấy công thức.');
     }
     return _ok(200, _recipeResponse(recipeId));
@@ -780,7 +796,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
   }
 
   Map<String, dynamic> _recipeResponse(String recipeId) {
-    final raw = DemoFixtures.recipe(recipeId);
+    final baseId = _baseRecipeId(recipeId);
+    final raw = DemoFixtures.recipe(baseId);
     final steps = (raw['steps'] as List<dynamic>)
         .map((step) => Map<String, dynamic>.from(step as Map))
         .map(
@@ -794,7 +811,7 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final ingredients = (raw['ingredients'] as List<dynamic>)
         .map((name) => <String, dynamic>{'name': name})
         .toList(growable: false);
-    final dietTypes = switch (recipeId) {
+    final dietTypes = switch (baseId) {
       'demo-recipe-thit-chay' || 'demo-recipe-dau-hu' => <String>[
           'NONE',
           'VEGETARIAN'
@@ -806,7 +823,7 @@ class DemoBackendAdapter implements HttpClientAdapter {
         <String>['NONE', 'PESCATARIAN'],
       _ => <String>['NONE'],
     };
-    final difficulty = switch (recipeId) {
+    final difficulty = switch (baseId) {
       'demo-recipe-dau-hu' ||
       'demo-recipe-canh-muc' ||
       'demo-recipe-com-ga' =>
@@ -815,9 +832,11 @@ class DemoBackendAdapter implements HttpClientAdapter {
       _ => 'MEDIUM',
     };
     return <String, dynamic>{
-      'id': raw['id'],
+      'id': recipeId,
       'householdId': null,
-      'name': raw['recipeName'],
+      'name': baseId == recipeId
+          ? raw['recipeName']
+          : '${raw['recipeName']} ($recipeId)',
       'cuisine': 'Việt Nam',
       'dietTypes': dietTypes,
       'prepTimeMinutes': raw['prepTimeMinutes'],
@@ -1567,7 +1586,7 @@ class DemoBackendAdapter implements HttpClientAdapter {
         'Cần chọn công thức trước khi bắt đầu nấu.',
       );
     }
-    final recipe = DemoFixtures.recipe(recipeId);
+    final recipe = DemoFixtures.recipe(_baseRecipeId(recipeId));
     final session = <String, dynamic>{
       'id': 'demo-cooking-${_cookingSequence++}',
       'householdId': _householdId ?? DemoFixtures.householdId,
@@ -1650,7 +1669,8 @@ class DemoBackendAdapter implements HttpClientAdapter {
       return _error(409, 'ERR_SESSION_ALREADY_ENDED', 'Phiên nấu đã kết thúc.');
     }
     final viewedStep = body['viewedStep'] as int? ?? 1;
-    final steps = DemoFixtures.recipe(session['recipeId'] as String)['steps']
+    final steps = DemoFixtures.recipe(
+            _baseRecipeId(session['recipeId'] as String))['steps']
         as List<dynamic>;
     final step = steps.cast<Map<String, dynamic>>().firstWhere(
           (s) => s['step_number'] == viewedStep,

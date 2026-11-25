@@ -109,151 +109,152 @@ class _InventoryListSceneState extends State<InventoryListScene> {
           ),
 
           // Overview Stats Banner + Search & Filter
-          Observer(
-            builder: (_) {
-              final allItems = store.items;
-              final expiringCount =
-                  allItems.where((i) => i.isExpiringSoon).length;
-              final lowStockCount =
-                  allItems.where((i) => i.isLowStock).length;
-
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppDimens.md,
-                  AppDimens.sm,
-                  AppDimens.md,
-                  0,
+          // #93 F7 (app-performance-audit §7.5): tách Observer — banner chỉ
+          // đọc số đếm (Computed), ô tìm kiếm nằm NGOÀI mọi Observer, chip
+          // chỉ đọc knownCategories/selectedCategory.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppDimens.md,
+              AppDimens.sm,
+              AppDimens.md,
+              0,
+            ),
+            child: Column(
+              children: <Widget>[
+                Observer(
+                  builder: (_) {
+                    final items = store.items;
+                    if (items.isEmpty) return const SizedBox.shrink();
+                    return Column(
+                      children: <Widget>[
+                        Container(
+                          padding: const EdgeInsets.all(AppDimens.md),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius:
+                                BorderRadius.circular(AppDimens.radiusCard),
+                            border:
+                                Border.all(color: AppColors.border, width: 1),
+                            boxShadow: const <BoxShadow>[
+                              BoxShadow(
+                                color: Color(0x06000000),
+                                blurRadius: 10,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: <Widget>[
+                              _StatItem(
+                                label: context.l10n.inventoryStatTotal,
+                                value: '${items.length}',
+                                icon: Icons.inventory_2_outlined,
+                                color: AppColors.primary,
+                              ),
+                              Container(
+                                width: 1,
+                                height: 32,
+                                color: AppColors.border,
+                              ),
+                              _StatItem(
+                                label: context.l10n.inventoryStatExpiring,
+                                value: '${store.expiringCount}',
+                                icon: Icons.access_time_rounded,
+                                color: store.expiringCount > 0
+                                    ? AppColors.warning
+                                    : AppColors.textSecondary,
+                              ),
+                              Container(
+                                width: 1,
+                                height: 32,
+                                color: AppColors.border,
+                              ),
+                              _StatItem(
+                                label: context.l10n.inventoryStatLowStock,
+                                value: '${store.lowStockCount}',
+                                icon: Icons.trending_down_rounded,
+                                color: store.lowStockCount > 0
+                                    ? AppColors.error
+                                    : AppColors.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppDimens.sm),
+                      ],
+                    );
+                  },
                 ),
-                child: Column(
-                  children: <Widget>[
-                    if (allItems.isNotEmpty) ...<Widget>[
-                      Container(
-                        padding: const EdgeInsets.all(AppDimens.md),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius:
-                              BorderRadius.circular(AppDimens.radiusCard),
-                          border: Border.all(color: AppColors.border, width: 1),
-                          boxShadow: const <BoxShadow>[
-                            BoxShadow(
-                              color: Color(0x06000000),
-                              blurRadius: 10,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            _StatItem(
-                              label: context.l10n.inventoryStatTotal,
-                              value: '${allItems.length}',
-                              icon: Icons.inventory_2_outlined,
-                              color: AppColors.primary,
-                            ),
-                            Container(
-                              width: 1,
-                              height: 32,
-                              color: AppColors.border,
-                            ),
-                            _StatItem(
-                              label: context.l10n.inventoryStatExpiring,
-                              value: '$expiringCount',
-                              icon: Icons.access_time_rounded,
-                              color: expiringCount > 0
-                                  ? AppColors.warning
-                                  : AppColors.textSecondary,
-                            ),
-                            Container(
-                              width: 1,
-                              height: 32,
-                              color: AppColors.border,
-                            ),
-                            _StatItem(
-                              label: context.l10n.inventoryStatLowStock,
-                              value: '$lowStockCount',
-                              icon: Icons.trending_down_rounded,
-                              color: lowStockCount > 0
-                                  ? AppColors.error
-                                  : AppColors.textSecondary,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppDimens.sm),
-                    ],
 
-                    // Search TextField
-                    TextField(
-                      key: const ValueKey<String>('inventory-search'),
-                      controller: _search,
-                      decoration: InputDecoration(
-                        hintText: context.l10n.inventorySearchHint,
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          color: AppColors.textSecondary,
-                        ),
-                        filled: true,
-                        fillColor: AppColors.surfaceSubtle,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: AppDimens.sm,
-                          horizontal: AppDimens.md,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppDimens.radiusPill),
-                          borderSide: const BorderSide(
-                            color: AppColors.border,
-                            width: 1,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppDimens.radiusPill),
-                          borderSide: const BorderSide(
-                            color: AppColors.border,
-                            width: 1,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppDimens.radiusPill),
-                          borderSide: const BorderSide(
-                            color: AppColors.primary,
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                      onChanged: store.setSearchQuery,
+                // Search TextField
+                TextField(
+                  key: const ValueKey<String>('inventory-search'),
+                  controller: _search,
+                  decoration: InputDecoration(
+                    hintText: context.l10n.inventorySearchHint,
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: AppColors.textSecondary,
                     ),
-                    const SizedBox(height: AppDimens.sm),
-
-                    // Category Filter Pills
-                    SizedBox(
-                      height: 34,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: <Widget>[
-                          _CategoryPill(
-                            label: context.l10n.all,
-                            selected: store.selectedCategory == null,
-                            onTap: () => store.setCategory(null),
-                          ),
-                          ...store.knownCategories.map(
-                            (c) => _CategoryPill(
-                              label: c,
-                              selected: store.selectedCategory == c,
-                              onTap: () => store.setCategory(c),
-                            ),
-                          ),
-                        ],
+                    filled: true,
+                    fillColor: AppColors.surfaceSubtle,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: AppDimens.sm,
+                      horizontal: AppDimens.md,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                      borderSide: const BorderSide(
+                        color: AppColors.border,
+                        width: 1,
                       ),
                     ),
-                  ],
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                      borderSide: const BorderSide(
+                        color: AppColors.border,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                      borderSide: const BorderSide(
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  onChanged: store.setSearchQuery,
                 ),
-              );
-            },
+                const SizedBox(height: AppDimens.sm),
+
+                // Category Filter Pills
+                Observer(
+                  builder: (_) => SizedBox(
+                    height: 34,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: <Widget>[
+                        _CategoryPill(
+                          label: context.l10n.all,
+                          selected: store.selectedCategory == null,
+                          onTap: () => store.setCategory(null),
+                        ),
+                        ...store.knownCategories.map(
+                          (c) => _CategoryPill(
+                            label: c,
+                            selected: store.selectedCategory == c,
+                            onTap: () => store.setCategory(c),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: AppDimens.sm),
 

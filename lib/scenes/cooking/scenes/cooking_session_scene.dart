@@ -22,6 +22,10 @@ import '../widgets/shortfall_sheet.dart';
 import '../widgets/step_progress_bar.dart';
 import '../widgets/step_timer_view.dart';
 
+/// Key nút đóng (huỷ phiên nấu) trên app bar — harness đo #93 dùng key
+/// thay vì `Icons.close` (LOW-5 review #93).
+const Key kCookingAbandonButtonKey = ValueKey<String>('cooking-abandon-button');
+
 /// Màn hình chính cooking (FE-6 §1, §7): dẫn dắt từng bước của recipe.
 ///
 /// Hành vi bắt buộc (Implementation Guards §9):
@@ -361,6 +365,7 @@ class _ActiveStepView extends StatelessWidget {
       title: store.session?.recipeName,
       actions: <Widget>[
         IconButton(
+          key: kCookingAbandonButtonKey,
           icon: const Icon(Icons.close),
           tooltip: context.l10n.cookingAbandonTooltip,
           onPressed: onAbandon,
@@ -385,13 +390,19 @@ class _ActiveStepView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      StepTimerView(
-                        remainingSeconds: store.remainingSeconds,
-                        durationSeconds: store.viewedStepDef?.durationSeconds,
-                        isViewingCurrentStep: store.isViewingCurrentStep,
-                        timerRunning: store.timerRunning,
-                        onToggle: store.toggleTimer,
-                        onReset: store.resetTimer,
+                      // #93 F5: Observer riêng cho timer — tick mỗi giây chỉ
+                      // dựng lại StepTimerView, không dựng lại cả body bước.
+                      // Body KHÔNG được đọc remainingSeconds/timerRunning.
+                      Observer(
+                        builder: (_) => StepTimerView(
+                          remainingSeconds: store.remainingSeconds,
+                          durationSeconds:
+                              store.viewedStepDef?.durationSeconds,
+                          isViewingCurrentStep: store.isViewingCurrentStep,
+                          timerRunning: store.timerRunning,
+                          onToggle: store.toggleTimer,
+                          onReset: store.resetTimer,
+                        ),
                       ),
                       const SizedBox(height: AppDimens.md),
                       AppCard(

@@ -68,12 +68,12 @@ class AppShellScene extends StatelessWidget {
             child: Scaffold(
               body: IndexedStack(
                 index: index,
-                children: <Widget>[
-                  const _HomeTab(),
-                  const InventoryListScene(),
-                  const WeeklyMealPlanScene(),
-                  const ShoppingListScene(),
-                  const ProfileScreen(),
+                children: const <Widget>[
+                  _HomeTab(),
+                  InventoryListScene(),
+                  WeeklyMealPlanScene(),
+                  ShoppingListScene(),
+                  ProfileScreen(),
                 ],
               ),
               bottomNavigationBar: AppBottomNav(

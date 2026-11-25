@@ -372,3 +372,18 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Lệch AC:** AC "cả 4 `isAvailable == true`" chỉ đạt với bộ asset giả trong test. Asset thật cho 2/4 task (`receipt_ocr`, `rule_based_selection`). `receipt_ocr` khả dụng nhưng engine vẫn báo model chưa có, cho tới khi có benchmark (Guard #2).
 - **Đảo ngược thế nào:** ship payload thật thì tạo `v2`, điền checksum và shape, rồi tăng `ModelRegistry.defaultVersions`.
 - **Cần người quyết lại không:** Không. Còn mở: nguồn `nutrition_table.json` (Q6), pipeline train `repetition_score`.
+
+### OD-43 · #93 — quyết định ngoài thiết kế + việc hoãn sau review code vòng 1
+- **Ngày:** 2026-11-25 · **Task:** #93 (app performance audit) · **Nhánh:** `feature/93_performance-audit`
+- **Tình huống:** Review code vòng 1 (`reports/93/code-review-20261125_v1.md`) LOW-4 yêu cầu ghi OD cho dev dep ngoài danh sách D-05; đồng thời một số phần của thiết kế `app-performance-audit.md` chưa làm được trong nhánh này hoặc đã đổi sau review.
+- **Đã chọn:**
+  1. **Dev dep `vm_service: any`** (`pubspec.yaml`, dev_dependencies): ngoài danh sách D-05 nhưng đã có sẵn dạng phụ thuộc bắc cầu (qua `integration_test`, `flutter_driver`, `leak_tracker` — `flutter pub deps`) → khai báo trực tiếp để harness đọc heap qua VM service (§6.7/D20), không kéo thêm gói mới.
+  2. **S2/S3 realtime (F1/F2 sau `runApp`, timeout WS, T1.2–T1.4) + `PERF_MARKS` (§6.4):** ~~Hoãn tới khi #48 merge~~ → **ĐÃ LÀM sau khi #48 merge** (`main` `ac50bae`, nhánh đã fast-forward). `bootstrap.dart` (bản #48): giữ `Get.put<RealtimeStore>` trước `runApp`, xoá reaction auth trùng, `init()` chạy sau frame đầu qua `startRealtimeAfterFirstFrame` (`lib/app/realtime_startup.dart`, không await, log `name: 'bootstrap'`); `RealtimeStore.init()` single-flight/idempotent; `RealtimeService` single-flight `connect`, `channelFactory`/`readyTimeout`, `kWsReadyTimeout = 10s`, đóng socket mồ côi + guard `identical`; mốc `perf.session.start/end`, `perf.runApp` khi `PERF_MARKS=true`. Không đụng notification (#48), không thêm timeout session. Test T1.1–T1.4, T2.1–T2.3 + test WS `ready` treo mãi vẫn render frame đầu.
+  3. **Timeout bootstrap phiên (session bootstrap timeout):** bỏ khỏi #93 — là hành vi auth, không phải hiệu năng → **đề xuất mở issue auth riêng**.
+  4. **Notification (FCM/quyền thông báo):** thuộc #48, #93 không đụng.
+  5. **Số đo thiết bị §11:** còn "chưa đo (cần thiết bị)" — harness `integration_test/performance_test.dart` đã sẵn; điền số khi có máy thật chạy `--profile`.
+  6. **Amend D21 (cache width ảnh):** HIGH-1 review — chỉ set `memCacheWidth` nhưng tính `cacheW = round(max(w, h × 2.0) × dpr)` (`kAppCachedImageMaxAspect = 2.0`), `memCacheHeight` vẫn `null`. Lý do: ảnh ngang trong ô vuông/dọc bị `BoxFit.cover` co theo chiều cao, chỉ lấy `w` sẽ decode thiếu pixel → mờ. Test T4.4.
+- **Theo:** §6.0 quy tắc 2, §5 (không tiện tay sửa ngoài phạm vi), §6.7/D20.
+- **Đảo ngược thế nào:** (1) bỏ `vm_service` khỏi dev_dependencies + bỏ `_readHeap` (đo heap tay bằng DevTools); (6) đổi `kAppCachedImageMaxAspect` hoặc quay về `w × dpr`.
+- **Phiên `ai-native` (đã làm trong docs PR #93):** amend D21 ở `app-performance-audit.md` §7.2 và `image-caching-strategy.md`; ghi OD #93 vào `docs/planning/open-decisions.md`.
+- **Cần người quyết lại không:** Không — (3) cần người tạo issue auth riêng.

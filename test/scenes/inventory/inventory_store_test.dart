@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobx/mobx.dart';
 import 'package:smart_kitchen_mobile/data/auth/token_storage.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/data/realtime/ws_event_envelope.dart';
@@ -465,6 +466,105 @@ void main() {
 
       expect(await dao.getById('local-2'), isNull);
       expect(await dao.getById('server-2'), isNotNull);
+    });
+  });
+
+  // #93 F7 (app-performance-audit §7.5): Computed — cache khi đang được quan
+  // sát, tính lại khi input đổi. Chạy trong autorun để giống Observer thật.
+  group('Computed (#93 F7)', () {
+    Future<void> until(bool Function() cond) async {
+      for (var i = 0; i < 100 && !cond(); i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(cond(), isTrue, reason: 'Drift không emit kịp');
+    }
+
+    Future<void> seedAndInit() async {
+      api.onListError = NetworkException(); // sync nền thất bại êm
+      await dao.upsertItem(serverItem(id: 'a', name: 'Dầu ăn'));
+      await dao.upsertItem(serverItem(id: 'b', name: 'Muối').copyWith(
+        category: 'Khô',
+        isExpiringSoon: true,
+      ));
+      await dao.upsertItem(serverItem(id: 'c', name: 'Đường').copyWith(
+        category: 'Khô',
+        isLowStock: true,
+      ));
+      await store.init();
+      await until(() => store.items.length == 3);
+    }
+
+    test('T7.1 đọc filteredItems 2 lần, input không đổi → identical',
+        () async {
+      final dispose = autorun((_) {
+        store.filteredItems;
+        store.knownCategories;
+        store.items;
+      });
+      addTearDown(dispose.call);
+      await seedAndInit();
+
+      expect(identical(store.filteredItems, store.filteredItems), isTrue);
+      expect(identical(store.knownCategories, store.knownCategories), isTrue);
+      expect(identical(store.items, store.items), isTrue);
+      expect(store.knownCategories, <String>['Gia vị', 'Khô']);
+    });
+
+    test('T7.2 đổi searchQuery/category → instance mới, nội dung đúng',
+        () async {
+      final dispose = autorun((_) => store.filteredItems);
+      addTearDown(dispose.call);
+      await seedAndInit();
+
+      final before = store.filteredItems;
+      store.setSearchQuery('MUỐI');
+      final after = store.filteredItems;
+      expect(identical(before, after), isFalse);
+      expect(after.map((i) => i.id), <String>['b']);
+
+      store.setSearchQuery('');
+      store.setCategory('Khô');
+      expect(store.filteredItems.map((i) => i.id).toSet(), <String>{'b', 'c'});
+    });
+
+    test('T7.3 Drift emit → expiringCount/lowStockCount đúng', () async {
+      final dispose = autorun((_) {
+        store.expiringCount;
+        store.lowStockCount;
+      });
+      addTearDown(dispose.call);
+      await seedAndInit();
+
+      expect(store.expiringCount, 1);
+      expect(store.lowStockCount, 1);
+
+      await dao.upsertItem(serverItem(id: 'd', name: 'Sữa').copyWith(
+        isExpiringSoon: true,
+        isLowStock: true,
+      ));
+      await until(() => store.items.length == 4);
+      expect(store.expiringCount, 2);
+      expect(store.lowStockCount, 2);
+    });
+
+    test('T7.4 đổi household → computed trả rỗng (không lộ Nhà cũ)',
+        () async {
+      final dispose = autorun((_) {
+        store.items;
+        store.filteredItems;
+        store.knownCategories;
+        store.expiringCount;
+      });
+      addTearDown(dispose.call);
+      await seedAndInit();
+      expect(store.filteredItems, hasLength(3));
+
+      session.applyHouseholdContext(householdId: 'h2', role: 'MEMBER');
+      await until(() => store.items.isEmpty);
+
+      expect(store.filteredItems, isEmpty);
+      expect(store.knownCategories, isEmpty);
+      expect(store.expiringCount, 0);
     });
   });
 }
