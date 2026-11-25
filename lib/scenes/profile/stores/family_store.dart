@@ -13,6 +13,7 @@ import '../domain/household_budget.dart';
 import '../domain/household_member.dart';
 import '../domain/household_roster.dart';
 import '../domain/household_tier.dart';
+import '../domain/invite_result.dart';
 import '../domain/member_health_summary.dart';
 import '../domain/profile_mappers.dart';
 import 'form_status.dart';
@@ -31,6 +32,15 @@ class FamilyStore {
           const LoadingState<HouseholdRoster>());
   final Observable<bool> _rosterIsFromCache = Observable<bool>(false);
   final Observable<FormStatus> _inviteStatus =
+      Observable<FormStatus>(FormStatus.idle);
+
+  /// Kết quả `createInvite()` gần nhất — giữ trong phiên để mở lại sheet
+  /// (S12.9). Đóng sheet KHÔNG xoá giá trị này.
+  final Observable<InviteResult?> _lastInvite = Observable<InviteResult?>(null);
+
+  /// Cờ RIÊNG cho xoá thành viên — dialog xoá và sheet mời không dùng chung
+  /// cờ (§9).
+  final Observable<FormStatus> _removeMemberStatus =
       Observable<FormStatus>(FormStatus.idle);
   final Observable<ViewState<MemberHealthSummary>> _memberSummaryState =
       Observable<ViewState<MemberHealthSummary>>(
@@ -60,6 +70,10 @@ class FamilyStore {
   ViewState<HouseholdRoster> get rosterState => _rosterState.value;
   bool get rosterIsFromCache => _rosterIsFromCache.value;
   FormStatus get inviteStatus => _inviteStatus.value;
+  InviteResult? get lastInvite => _lastInvite.value;
+  FormStatus get removeMemberStatus => _removeMemberStatus.value;
+  bool get isRemovingMember =>
+      _removeMemberStatus.value == FormStatus.submitting;
   ViewState<MemberHealthSummary> get memberSummaryState =>
       _memberSummaryState.value;
   ApiException? get mutationError => _mutationError.value;
@@ -134,6 +148,18 @@ class FamilyStore {
         : _session.role;
   }
 
+  /// "Mời thành viên" chỉ khi OWNER và roster KHÔNG phải cache (Guard 13).
+  bool get canInvite => isOwner && !_rosterIsFromCache.value;
+
+  /// Predicate DUY NHẤT cho nút "Xóa" trên một dòng (Guard 13 + 16): caller
+  /// là OWNER, roster không phải cache, không phải chính mình, không phải
+  /// dòng OWNER. Chỉ là UX — phân quyền thật ở BE.
+  bool canRemove(HouseholdMember m) =>
+      isOwner &&
+      !_rosterIsFromCache.value &&
+      m.userId != _session.currentUser?.id &&
+      m.role != 'OWNER';
+
   String get _rosterCacheKey => 'roster:${_session.householdId}';
 
   /// [keepCurrent] = nạp lại NỀN: đang có roster thì giữ nguyên tới khi có
@@ -151,9 +177,14 @@ class FamilyStore {
         _rosterState.value = SuccessState<HouseholdRoster>(roster);
         _rosterIsFromCache.value = false;
       });
-      unawaited(_cache.put(_rosterCacheKey, HouseholdRosterMapper.toJson(roster)));
+      unawaited(
+          _cache.put(_rosterCacheKey, HouseholdRosterMapper.toJson(roster)));
     } catch (raw) {
-      final cached = await _cache.get(_rosterCacheKey);
+      final error = storeApiException(raw);
+      // CHỈ mất mạng mới rơi về cache. Lỗi BE (404 ERR_HH_001 …) → ErrorState
+      // để FamilyScreen redirect / báo lỗi đúng (§9) — không che bằng cache.
+      final cached =
+          error is NetworkException ? await _cache.get(_rosterCacheKey) : null;
       if (cached != null) {
         runInAction(() {
           _rosterState.value = SuccessState<HouseholdRoster>(
@@ -161,15 +192,17 @@ class FamilyStore {
           _rosterIsFromCache.value = true;
         });
       } else {
-        runInAction(() => _rosterState.value =
-            ErrorState<HouseholdRoster>(storeApiException(raw)));
+        runInAction(() {
+          _rosterState.value = ErrorState<HouseholdRoster>(error);
+          _rosterIsFromCache.value = false;
+        });
       }
     }
   }
 
   Future<void> loadMemberSummary(String userId) async {
-    runInAction(() => _memberSummaryState.value =
-        const LoadingState<MemberHealthSummary>());
+    runInAction(() =>
+        _memberSummaryState.value = const LoadingState<MemberHealthSummary>());
     try {
       final summary = await _healthApi.getMemberHealthSummary(userId);
       runInAction(() => _memberSummaryState.value =
@@ -180,43 +213,88 @@ class FamilyStore {
     }
   }
 
+  /// Kết quả (`lastInvite`) BẮT BUỘC được hiển thị (InviteResultSheet,
+  /// §10.4 — S12.9).
   Future<bool> createInvite() async {
+    if (!canInvite) return false; // Guard 13
     if (_inviteStatus.value == FormStatus.submitting) return false;
     runInAction(() {
       _inviteStatus.value = FormStatus.submitting;
       _mutationError.value = null;
     });
     try {
-      await _familyApi.createInvite();
-      runInAction(() => _inviteStatus.value = FormStatus.success);
+      final invite = await _familyApi.createInvite();
+      runInAction(() {
+        _lastInvite.value = invite;
+        _inviteStatus.value = FormStatus.success;
+      });
       return true;
     } catch (raw) {
+      final error = storeApiException(raw);
       runInAction(() {
-        _mutationError.value = storeApiException(raw);
-        _inviteStatus.value = FormStatus.failure;
+        _mutationError.value = error;
+        _inviteStatus.value = FormStatus.failure; // 429 ERR_HH_006 — S12.10
       });
+      // 403 ERR_HH_004 = caller không còn là OWNER → tải lại để ẩn affordance
+      // quản lý (bảng §12).
+      if (error.code == 'ERR_HH_004') await loadRoster(keepCurrent: true);
       return false;
     }
   }
 
   Future<bool> removeMember(String userId) async {
-    if (_inviteStatus.value == FormStatus.submitting) return false;
+    // Phòng thủ lớp 2 (Guard 13 + 16): UI đã ẩn nút theo canRemove.
+    final roster = _rosterState.value;
+    if (roster is! SuccessState<HouseholdRoster>) return false;
+    final target =
+        roster.data.members.where((m) => m.userId == userId).firstOrNull;
+    if (target == null || !canRemove(target)) return false;
+    if (_removeMemberStatus.value == FormStatus.submitting) return false;
     runInAction(() {
-      _inviteStatus.value = FormStatus.submitting;
+      _removeMemberStatus.value = FormStatus.submitting;
       _mutationError.value = null;
     });
     try {
-      await _familyApi.removeMember(userId);
-      runInAction(() => _inviteStatus.value = FormStatus.success);
-      await loadRoster();
-      return true;
+      await _familyApi.removeMember(userId); // 204 No Content
     } catch (raw) {
+      final error = storeApiException(raw);
       runInAction(() {
-        _mutationError.value = storeApiException(raw);
-        _inviteStatus.value = FormStatus.failure;
+        _mutationError.value = error;
+        _removeMemberStatus.value = FormStatus.failure;
       });
+      // Mất mạng: không biết server đã xoá chưa — KHÔNG reload (sẽ rơi vào
+      // cache). Lỗi BE (ERR_HH_007 / ERR_HH_004): quyền/roster có thể đã đổi
+      // → BẮT BUỘC tải lại (S12.6, §14).
+      if (error is! NetworkException) await loadRoster(keepCurrent: true);
       return false;
     }
+    // BE đã xác nhận xoá (không phải optimistic) → bỏ dòng khỏi roster đang
+    // hiển thị ngay, rồi nạp lại nền không nháy Loading (S12.6).
+    runInAction(() {
+      final current = _rosterState.value;
+      if (current is SuccessState<HouseholdRoster>) {
+        final r = current.data;
+        final members =
+            r.members.where((m) => m.userId != userId).toList(growable: false);
+        final updated = HouseholdRoster(
+          id: r.id,
+          name: r.name,
+          ownerId: r.ownerId,
+          callerRole: r.callerRole,
+          memberCount: members.length,
+          members: members,
+        );
+        _rosterState.value = SuccessState<HouseholdRoster>(updated);
+        // Cache cũng bỏ dòng đã xoá — nạp nền lỗi mạng không hồi sinh nó.
+        unawaited(
+            _cache.put(_rosterCacheKey, HouseholdRosterMapper.toJson(updated)));
+      }
+    });
+    // GIỮ `submitting` tới khi nạp lại xong: nút Xóa/Huỷ còn khoá, bấm lần 2
+    // không gọi lại với dòng đã biến mất rồi toast lỗi sai (review #29 M3).
+    await loadRoster(keepCurrent: true);
+    runInAction(() => _removeMemberStatus.value = FormStatus.success);
+    return true;
   }
 
   /// `role` CHỈ 'MEMBER' | 'REMOTE_VIEWER' (Guard 3). Thành công → tải lại
@@ -329,6 +407,13 @@ class FamilyStore {
         _budgetMutationError.value = null;
       });
 
-  void clearInviteError() =>
-      runInAction(() => _inviteStatus.value = FormStatus.idle);
+  void clearInviteError() => runInAction(() {
+        if (_inviteStatus.value == FormStatus.submitting) return;
+        _inviteStatus.value = FormStatus.idle;
+      });
+
+  void clearRemoveMemberError() => runInAction(() {
+        if (_removeMemberStatus.value == FormStatus.submitting) return;
+        _removeMemberStatus.value = FormStatus.idle;
+      });
 }

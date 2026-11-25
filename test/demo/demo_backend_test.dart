@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/data/auth/jwt_claims.dart';
@@ -15,7 +17,9 @@ import 'package:smart_kitchen_mobile/scenes/insights/data/history_api.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/data/inventory_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_plan_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_suggestion_api.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/api/family_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/api/profile_api.dart';
 import 'package:smart_kitchen_mobile/scenes/recap/data/recap_api.dart';
 import 'package:smart_kitchen_mobile/utils/dio_exception_x.dart';
 
@@ -40,10 +44,11 @@ void main() {
   late RecapApi recapApi;
   late MealLogApi mealLogApi;
   late HistoryApi historyApi;
+  late DioClient client;
 
   setUp(() {
     storageChannel.install();
-    final client = DioClient.build(
+    client = DioClient.build(
       tokenStorage: TokenStorage(),
       dio: Dio(BaseOptions(baseUrl: 'https://demo.local')),
     )..dio.httpClientAdapter = DemoBackendAdapter();
@@ -185,6 +190,37 @@ void main() {
     expect(refreshed.allergens.single.name, 'Sữa');
   });
 
+  test('sửa hồ sơ demo: upload avatar (201) rồi PUT /users/me', () async {
+    final profileApi = ProfileApiImpl(client);
+    final uploaded =
+        await profileApi.uploadAvatar(Uint8List.fromList(<int>[0xFF, 0xD8]));
+    expect(uploaded.url, contains(uploaded.key));
+
+    final user =
+        await profileApi.updateMe(fullName: 'Tên mới', avatarUrl: uploaded.url);
+    expect(user.fullName, 'Tên mới');
+    expect(user.avatarUrl, uploaded.url);
+
+    final onlyName = await profileApi.updateMe(fullName: 'Tên khác');
+    expect(onlyName.avatarUrl, uploaded.url, reason: 'key vắng = giữ nguyên');
+  });
+
+  test('gia đình demo: DELETE thành viên (204) → roster không còn người đó',
+      () async {
+    final familyApi = FamilyApiImpl(client);
+    final before = await familyApi.getMyHousehold();
+    final target = before.members
+        .firstWhere((m) => m.userId != before.members.first.userId);
+
+    await familyApi.removeMember(target.userId);
+
+    final after = await familyApi.getMyHousehold();
+    expect(after.members.map((m) => m.userId), isNot(contains(target.userId)));
+    expect(after.memberCount, before.memberCount - 1);
+    final invite = await familyApi.createInvite();
+    expect(invite.code, isNotEmpty);
+  });
+
   test('kho demo lưu được create và update trong cùng phiên', () async {
     final before = await inventoryApi.list();
     final created = await inventoryApi.create(<String, dynamic>{
@@ -248,8 +284,8 @@ void main() {
       cookingApi.complete(started.id),
       throwsA(isA<BusinessException>()
           .having((e) => e.code, 'code', 'ERR_INSUFFICIENT_STOCK_FOR_RECIPE')
-          .having((e) => mapMissingIngredients(e.details), 'missing',
-              isNotEmpty)),
+          .having(
+              (e) => mapMissingIngredients(e.details), 'missing', isNotEmpty)),
     );
 
     final completed =
@@ -263,7 +299,8 @@ void main() {
     expect(recap.householdSummary, isNotEmpty);
     expect(recap.memberInsights, isNotEmpty);
 
-    final streak = await recapApi.getHouseholdStreak(memberId: 'user-primary-1');
+    final streak =
+        await recapApi.getHouseholdStreak(memberId: 'user-primary-1');
     expect(streak.currentStreak, greaterThanOrEqualTo(0));
     expect(streak.bestStreak, greaterThanOrEqualTo(0));
   });

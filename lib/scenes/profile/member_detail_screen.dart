@@ -5,14 +5,22 @@ import 'package:get/get.dart';
 import '../../constants/app_dimens.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
+import '../../widgets/buttons/app_button.dart';
 import '../../widgets/feature_banner.dart';
 import '../../widgets/states/app_state_view.dart';
-import 'domain/diet_type.dart';
+import '../../widgets/states/state_view_layout.dart';
+import '../../widgets/states/view_state.dart';
+import 'family_error_l10n.dart';
 import 'domain/member_health_summary.dart';
 import 'stores/family_store.dart';
+import 'widgets/diet_type_label.dart';
 
 class MemberDetailScreen extends StatefulWidget {
-  const MemberDetailScreen({super.key});
+  /// [userId] chỉ để test/nhúng trực tiếp; route thật đọc `:userId` từ path
+  /// (fallback `arguments['userId']`).
+  const MemberDetailScreen({super.key, this.userId});
+
+  final String? userId;
 
   @override
   State<MemberDetailScreen> createState() => _MemberDetailScreenState();
@@ -20,16 +28,27 @@ class MemberDetailScreen extends StatefulWidget {
 
 class _MemberDetailScreenState extends State<MemberDetailScreen> {
   late final FamilyStore store = Get.find<FamilyStore>();
-  late final String userId = Get.parameters['userId'] ?? '';
+  late final String userId = _resolveUserId();
   late final String fullName = (Get.arguments is Map
           ? (Get.arguments as Map)['fullName']
           : null) as String? ??
       '';
 
+  String _resolveUserId() {
+    final fromWidget = widget.userId;
+    if (fromWidget != null && fromWidget.isNotEmpty) return fromWidget;
+    final fromPath = Get.parameters['userId'];
+    if (fromPath != null && fromPath.isNotEmpty) return fromPath;
+    final args = Get.arguments;
+    final fromArgs = args is Map ? args['userId'] : null;
+    return fromArgs is String ? fromArgs : '';
+  }
+
   @override
   void initState() {
     super.initState();
-    store.loadMemberSummary(userId);
+    // Thiếu userId → báo lỗi tại chỗ, KHÔNG gọi API với path rỗng.
+    if (userId.isNotEmpty) store.loadMemberSummary(userId);
   }
 
   @override
@@ -37,10 +56,20 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     return AppScaffold(
       title: fullName.isEmpty ? context.l10n.memberDetailTitle : fullName,
       body: Observer(builder: (_) {
+        if (userId.isEmpty) {
+          return _NoRetryError(message: context.l10n.memberDetailNotFound);
+        }
+        final state = store.memberSummaryState;
+        // S12.12: lỗi quyền — "Thử lại" vô nghĩa, chỉ có "Đóng".
+        if (state is ErrorState<MemberHealthSummary> &&
+            state.error.code == 'ERR_HEALTH_FORBIDDEN') {
+          return _NoRetryError(
+              message: familyErrorMessage(context.l10n, state.error));
+        }
         // Đọc ở đây để Observer theo dõi — successBuilder chạy ngoài phạm vi.
         final isViewer = store.isMemberRemoteViewer(userId);
         return AppStateView<MemberHealthSummary>(
-          state: store.memberSummaryState,
+          state: state,
           onRetry: () => store.loadMemberSummary(userId),
           successBuilder: (_, MemberHealthSummary s) {
             return ListView(
@@ -50,18 +79,18 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                   label: context.l10n.memberDetailDietType,
                   value: s.dietType == null
                       ? context.l10n.healthProfileDietUnset
-                      : _dietLabel(context, s.dietType!),
+                      : s.dietType!.label(context.l10n),
                 ),
                 const SizedBox(height: AppDimens.md),
                 Text(context.l10n.memberDetailAllergensSection,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                    style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: AppDimens.sm),
                 if (s.allergens.isEmpty)
                   Text(context.l10n.memberDetailAllergensEmpty)
                 else
                   Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
+                    spacing: AppDimens.sm,
+                    runSpacing: AppDimens.xs,
                     children: <Widget>[
                       for (final a in s.allergens) Chip(label: Text(a.name)),
                     ],
@@ -74,25 +103,18 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                     isError: false,
                   ),
                 ],
+                const SizedBox(height: AppDimens.lg),
+                Text(
+                  context.l10n.memberDetailPrivacyNote,
+                  key: const ValueKey<String>('member-privacy-note'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             );
           },
         );
       }),
     );
-  }
-
-  String _dietLabel(BuildContext context, DietType t) {
-    final l = context.l10n;
-    return switch (t) {
-      DietType.none => l.healthProfileDietNone,
-      DietType.keto => l.dietTypeKeto,
-      DietType.vegetarian => l.dietTypeVegetarian,
-      DietType.vegan => l.dietTypeVegan,
-      DietType.pescatarian => l.dietTypePescatarian,
-      DietType.glutenFree => l.dietTypeGlutenFree,
-      DietType.diabetic => l.dietTypeDiabetic,
-    };
   }
 }
 
@@ -116,6 +138,41 @@ class _Row extends StatelessWidget {
           Expanded(flex: 3, child: Text(value)),
         ],
       ),
+    );
+  }
+}
+
+/// Lỗi KHÔNG có "Thử lại" (S12.12 / thiếu userId): retry vô nghĩa, chỉ "Đóng".
+class _NoRetryError extends StatelessWidget {
+  const _NoRetryError({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return StateViewLayout(
+      children: <Widget>[
+        Icon(
+          Icons.lock_outline,
+          size: AppDimens.stateIcon,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        const SizedBox(height: AppDimens.md),
+        Text(
+          message,
+          key: const ValueKey<String>('member-detail-error'),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: AppDimens.lg),
+        AppButton(
+          key: const ValueKey<String>('member-detail-close'),
+          label: context.l10n.memberDetailClose,
+          variant: AppButtonVariant.secondary,
+          expanded: false,
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+      ],
     );
   }
 }

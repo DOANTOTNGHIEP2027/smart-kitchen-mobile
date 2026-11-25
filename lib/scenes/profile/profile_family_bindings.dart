@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../../data/db/read_cache_dao.dart';
 import '../../stores/session_store.dart';
+import 'api/avatar_image_processor.dart';
 import 'api/family_api.dart';
 import 'api/health_api.dart';
 import 'api/profile_api.dart';
@@ -11,6 +12,10 @@ import 'stores/profile_store.dart';
 class ProfileBinding extends Bindings {
   @override
   void dependencies() {
+    if (!Get.isRegistered<AvatarImageProcessor>()) {
+      Get.lazyPut<AvatarImageProcessor>(
+          () => const FlutterAvatarImageProcessor());
+    }
     if (!Get.isRegistered<ProfileStore>()) {
       Get.lazyPut<ProfileStore>(
         () => ProfileStore(
@@ -18,6 +23,7 @@ class ProfileBinding extends Bindings {
           Get.find<ProfileApi>(),
           Get.find<ReadCacheDao>(),
           Get.find<SessionStore>(),
+          Get.find<AvatarImageProcessor>(),
         ),
       );
     }

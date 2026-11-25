@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:drift/native.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,10 +9,12 @@ import 'package:smart_kitchen_mobile/data/db/read_cache_dao.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/domain/auth/auth_refresh_usecase.dart';
 import 'package:smart_kitchen_mobile/domain/auth/user_summary.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/api/avatar_image_processor.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/profile_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/allergen.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/diet_type.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/domain/edit_profile_phase.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/health_profile.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/member_health_summary.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/stores/form_status.dart';
@@ -41,11 +45,14 @@ void main() {
   });
   tearDown(() => db.close());
 
-  ProfileStore buildStore(HealthApi healthApi, {ProfileApi? profileApi}) {
+  late SessionStore session;
+
+  ProfileStore buildStore(HealthApi healthApi,
+      {ProfileApi? profileApi, AvatarImageProcessor? processor}) {
     // Dựng SessionStore thật (như session_store_test.dart) để userId/householdId
     // reflect qua cache key. TokenStorage + secure-storage fake đủ để bootstrap
     // không gọi network.
-    final session = SessionStore(
+    session = SessionStore(
       tokenStorage,
       AuthRefreshUseCase(Dio(BaseOptions(baseUrl: 'https://test.local'))
         ..httpClientAdapter =
@@ -53,8 +60,8 @@ void main() {
     );
     session.currentUser = const UserSummary(id: 'u1', fullName: 'Tester');
     session.applyHouseholdContext(householdId: 'h1', role: 'MEMBER');
-    return ProfileStore(
-        healthApi, profileApi ?? _StubProfileApi(), dao, session);
+    return ProfileStore(healthApi, profileApi ?? _StubProfileApi(), dao,
+        session, processor ?? _FakeProcessor());
   }
 
 
@@ -189,6 +196,174 @@ void main() {
       expect(store.mutationError!.code, 'ERR_VALIDATION_FAILED');
     });
   });
+
+  group('saveProfile — luồng 2 bước (D11, Guard 1/2/15)', () {
+    final picked = Uint8List.fromList(<int>[1, 2, 3]);
+    const uploadedUrl = 'http://localhost:8080/api/files/abc.jpg';
+
+    test('upload OK + PUT OK → persist qua TokenStorage + currentUser mới',
+        () async {
+      final api = _StubProfileApi(uploadUrl: uploadedUrl);
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+
+      final ok = await store.saveProfile(
+          newFullName: '  Nguyễn Văn A ', rawAvatar: picked);
+
+      expect(ok, isTrue);
+      expect(store.editProfilePhase, isA<EditSuccess>());
+      expect(store.pendingAvatarUrl, isNull);
+      expect(api.uploadCalls, 1);
+      expect(api.lastUploadBytes, <int>[9, 9],
+          reason: 'phải upload bytes ĐÃ nén, không phải bytes gốc');
+      expect(api.updateCalls.single, <String?>['Nguyễn Văn A', uploadedUrl]);
+      expect(session.currentUser?.fullName, 'Nguyễn Văn A');
+      expect(session.currentUser?.avatarUrl, uploadedUrl);
+      final persisted = await tokenStorage.readUser();
+      expect(persisted?['fullName'], 'Nguyễn Văn A',
+          reason: 'Guard 2: phải ghi TokenStorage để cold start không mất');
+      expect(persisted?['avatarUrl'], uploadedUrl);
+    });
+
+    test('upload lỗi → EditUploadError, updateMe KHÔNG được gọi', () async {
+      final api = _StubProfileApi(
+          uploadError: BusinessException('ERR_FILE_INVALID', 'bad'));
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+
+      final ok = await store.saveProfile(newFullName: 'A', rawAvatar: picked);
+
+      expect(ok, isFalse);
+      expect((store.editProfilePhase as EditUploadError).code,
+          'ERR_FILE_INVALID');
+      expect(api.updateCalls, isEmpty);
+      expect(store.pendingAvatarUrl, isNull);
+    });
+
+    test('processor ném tooLarge → không gọi uploadAvatar', () async {
+      final api = _StubProfileApi(uploadUrl: uploadedUrl);
+      final store = buildStore(
+        _StubHealthApi(),
+        profileApi: api,
+        processor:
+            _FakeProcessor(error: const AvatarImageException.tooLarge()),
+      );
+
+      final ok = await store.saveProfile(rawAvatar: picked);
+
+      expect(ok, isFalse);
+      expect((store.editProfilePhase as EditUploadError).code,
+          'ERR_FILE_TOO_LARGE');
+      expect(api.uploadCalls, 0);
+      expect(api.updateCalls, isEmpty);
+    });
+
+    test('PUT lỗi sau khi upload → retry chỉ PUT lại, không upload lần 2',
+        () async {
+      final api = _StubProfileApi(
+          uploadUrl: uploadedUrl, updateError: NetworkException());
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+
+      expect(await store.saveProfile(rawAvatar: picked), isFalse);
+      expect(store.editProfilePhase, isA<EditSaveError>());
+      expect(store.pendingAvatarUrl, uploadedUrl);
+
+      api.updateError = null;
+      final ok = await store.saveProfile(rawAvatar: picked);
+
+      expect(ok, isTrue);
+      expect(api.uploadCalls, 1, reason: 'Guard 1: retry KHÔNG upload lại');
+      expect(api.updateCalls, hasLength(2));
+      expect(api.updateCalls.last, <String?>[null, uploadedUrl]);
+      expect(store.pendingAvatarUrl, isNull);
+    });
+
+    test('PUT 400 ERR_VALIDATION_FAILED → giữ fieldErrors trong EditSaveError',
+        () async {
+      final api = _StubProfileApi(
+        updateError: ValidationException(
+          'ERR_VALIDATION_FAILED',
+          'Validation failed',
+          fieldErrors: const <String, String>{'fullName': 'too long'},
+        ),
+      );
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+
+      expect(await store.saveProfile(newFullName: 'B'), isFalse);
+
+      final phase = store.editProfilePhase as EditSaveError;
+      expect(phase.error, isA<ValidationException>());
+      expect(phase.error.fieldErrors, containsPair('fullName', 'too long'));
+      expect(session.currentUser?.fullName, 'Tester');
+    });
+
+    test('tên toàn khoảng trắng / > 100 ký tự / không đổi gì → không gọi API',
+        () async {
+      final api = _StubProfileApi(uploadUrl: uploadedUrl);
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+
+      expect(await store.saveProfile(newFullName: '   '), isFalse);
+      expect(
+          await store.saveProfile(newFullName: 'x' * 101, rawAvatar: picked),
+          isFalse);
+      expect(await store.saveProfile(), isFalse);
+      expect(api.uploadCalls, 0);
+      expect(api.updateCalls, isEmpty);
+      expect(store.editProfilePhase, isA<EditIdle>());
+    });
+
+    test('chỉ đổi tên → không upload, không gửi avatarUrl', () async {
+      final api = _StubProfileApi();
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+
+      expect(await store.saveProfile(newFullName: 'Chỉ tên'), isTrue);
+      expect(api.uploadCalls, 0);
+      expect(api.updateCalls.single, <String?>['Chỉ tên', null]);
+    });
+
+    test('clearEditProfileError → EditIdle nhưng GIỮ pendingAvatarUrl',
+        () async {
+      final api = _StubProfileApi(
+          uploadUrl: uploadedUrl, updateError: NetworkException());
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+      await store.saveProfile(rawAvatar: picked);
+
+      store.clearEditProfileError();
+
+      expect(store.editProfilePhase, isA<EditIdle>());
+      expect(store.pendingAvatarUrl, uploadedUrl);
+
+      store.onAvatarRepicked();
+      expect(store.pendingAvatarUrl, isNull);
+    });
+  });
+
+  group('clear*Error reset cả mutationError dùng chung', () {
+    test('clearHealthSaveError / clearAllergensSaveError / clearEditProfileError',
+        () async {
+      final api = _StubHealthApi(
+        profile: _sampleHealthProfile(),
+        mutationError: NetworkException(),
+      );
+      final store = buildStore(api);
+      await store.loadHealthProfile();
+
+      await store.saveHealthProfile(dietTypeWire: 'KETO');
+      expect(store.mutationError, isNotNull);
+      store.clearHealthSaveError();
+      expect(store.healthSaveStatus, FormStatus.idle);
+      expect(store.mutationError, isNull);
+
+      await store.saveAllergens(const <int>[1]);
+      expect(store.mutationError, isNotNull);
+      store.clearAllergensSaveError();
+      expect(store.allergensSaveStatus, FormStatus.idle);
+      expect(store.mutationError, isNull);
+
+      await store.saveHealthProfile(dietTypeWire: 'KETO');
+      expect(store.mutationError, isNotNull);
+      store.clearEditProfileError();
+      expect(store.mutationError, isNull);
+    });
+  });
 }
 
 HealthProfile _sampleHealthProfile({List<Allergen>? allergens}) {
@@ -245,9 +420,45 @@ class _StubHealthApi implements HealthApi {
 }
 
 class _StubProfileApi implements ProfileApi {
+  _StubProfileApi({this.uploadUrl, this.uploadError, this.updateError});
+
+  String? uploadUrl;
+  Object? uploadError;
+  Object? updateError;
+  int uploadCalls = 0;
+  List<int>? lastUploadBytes;
+
+  /// Mỗi phần tử = [fullName, avatarUrl] của một lần gọi updateMe.
+  final List<List<String?>> updateCalls = <List<String?>>[];
+
   @override
-  Future<UserSummary> updateMe(
-      {required String fullName, String? avatarUrl}) async {
-    throw UnimplementedError();
+  Future<FileUploadResult> uploadAvatar(Uint8List jpegBytes) async {
+    uploadCalls++;
+    lastUploadBytes = jpegBytes.toList();
+    if (uploadError != null) throw uploadError!;
+    return FileUploadResult(key: 'abc.jpg', url: uploadUrl!);
+  }
+
+  @override
+  Future<UserSummary> updateMe({String? fullName, String? avatarUrl}) async {
+    updateCalls.add(<String?>[fullName, avatarUrl]);
+    if (updateError != null) throw updateError!;
+    return UserSummary(
+      id: 'u1',
+      fullName: fullName ?? 'Tester',
+      avatarUrl: avatarUrl,
+    );
+  }
+}
+
+class _FakeProcessor implements AvatarImageProcessor {
+  _FakeProcessor({this.error});
+
+  final Object? error;
+
+  @override
+  Future<Uint8List> process(Uint8List picked) async {
+    if (error != null) throw error!;
+    return Uint8List.fromList(<int>[9, 9]);
   }
 }

@@ -452,9 +452,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get profileEdit => 'Chỉnh sửa hồ sơ';
 
   @override
-  String get profileEditBlocked => 'Tính năng đang hoàn thiện, sẽ sớm ra mắt.';
-
-  @override
   String get profileEditTitle => 'Chỉnh sửa hồ sơ';
 
   @override
@@ -496,16 +493,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get healthSavedToast => 'Đã lưu hồ sơ sức khoẻ';
-
-  @override
-  String get healthSavedDialogTitle => 'Đã lưu hồ sơ sức khoẻ';
-
-  @override
-  String get healthSavedDialogMessage =>
-      'Hồ sơ sức khoẻ của bạn đã được lưu thành công.';
-
-  @override
-  String get healthSavedDialogConfirm => 'Xong';
 
   @override
   String get cookingAbandonTitle => 'Huỷ buổi nấu ăn?';
@@ -765,22 +752,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get familyRosterEmpty => 'Chưa có thành viên khác.';
 
   @override
-  String get familyCreateInvite => 'Tạo lời mời';
-
-  @override
   String get familyRemove => 'Xoá khỏi gia đình';
 
   @override
-  String get familyRemoveConfirm => 'Xoá thành viên này khỏi gia đình?';
+  String familyRemoveConfirm(String name) {
+    return 'Xóa $name khỏi gia đình?';
+  }
 
   @override
   String get familyRemoveCancel => 'Huỷ';
 
   @override
   String get familyYou => 'Bạn';
-
-  @override
-  String get familyInviteRateLimited => 'Bạn đã có 3 lời mời đang mở.';
 
   @override
   String get memberDetailTitle => 'Thành viên';
@@ -2741,23 +2724,12 @@ class AppLocalizationsVi extends AppLocalizations {
       'Ràng buộc chế độ ăn tùy luồng lập thực đơn. Khai dị ứng riêng; chọn không gluten không đồng nghĩa đã khai dị ứng Gluten.';
 
   @override
-  String get healthProfileCaloriesHelp =>
-      'Để trống hoặc nhập 0 nếu chưa đặt mục tiêu calo.';
-
-  @override
-  String get healthProfileCaloriesInvalid =>
-      'Nhập số nguyên từ 0 đến 10000 hoặc để trống';
-
-  @override
   String get healthProfileHeightInvalid =>
       'Nhập chiều cao từ 1 đến 300 cm hoặc để trống';
 
   @override
   String get healthProfileWeightInvalid =>
       'Nhập cân nặng từ 1 đến 500 kg hoặc để trống';
-
-  @override
-  String get healthProfileClearFields => 'Xóa các trường hồ sơ';
 
   @override
   String get unitKcal => 'kcal';
@@ -2909,4 +2881,208 @@ class AppLocalizationsVi extends AppLocalizations {
   String showcaseDialogResult(String result) {
     return 'Kết quả: $result';
   }
+
+  @override
+  String get profileDefaultName => 'Thành viên';
+
+  @override
+  String get profileSessionMissingTitle => 'Không thể tải hồ sơ';
+
+  @override
+  String get profileSessionMissingMessage =>
+      'Phiên đăng nhập không còn hiệu lực, vui lòng đăng nhập lại.';
+
+  @override
+  String get profileReLogin => 'Đăng nhập lại';
+
+  @override
+  String get profileWeeklyRecapNav => 'Tổng kết tuần';
+
+  @override
+  String get profileChangeAvatar => 'Đổi ảnh đại diện';
+
+  @override
+  String get profileAvatarPickAnother => 'Chọn ảnh khác';
+
+  @override
+  String get profileAvatarNewUnsaved => 'Ảnh mới — chưa lưu';
+
+  @override
+  String get profileAvatarUploading => 'Đang tải ảnh lên…';
+
+  @override
+  String get profileAvatarGallery => 'Thư viện';
+
+  @override
+  String get profileAvatarCamera => 'Máy ảnh';
+
+  @override
+  String get profileAvatarPermissionDenied =>
+      'Chưa cấp quyền camera hoặc thư viện ảnh. Hãy bật trong Cài đặt.';
+
+  @override
+  String get profileNameRequired => 'Họ và tên không được để trống';
+
+  @override
+  String get profileNameTooLong => 'Họ và tên tối đa 100 ký tự';
+
+  @override
+  String get profileSaving => 'Đang lưu…';
+
+  @override
+  String get profileSaveRetry => 'Thử lại';
+
+  @override
+  String get profileSaveErrorAfterUpload =>
+      'Ảnh đã tải lên nhưng chưa lưu được hồ sơ. Kiểm tra kết nối và thử lại.';
+
+  @override
+  String get avatarErrorInvalid =>
+      'Ảnh không hợp lệ. Hãy chọn ảnh JPG hoặc PNG khác.';
+
+  @override
+  String get avatarErrorTooLarge => 'Ảnh quá lớn. Hãy chọn ảnh khác.';
+
+  @override
+  String get healthProfileEmptyTitle => 'Chưa thiết lập hồ sơ sức khỏe';
+
+  @override
+  String get healthProfileEmptyMessage =>
+      'Thêm mục tiêu calo, chế độ ăn và dị ứng để gợi ý món phù hợp hơn.';
+
+  @override
+  String get healthProfileNotSetUp => 'Chưa thiết lập';
+
+  @override
+  String get healthProfileSetUpCta => 'Thiết lập hồ sơ sức khỏe';
+
+  @override
+  String get healthProfileEditAction => 'Chỉnh sửa';
+
+  @override
+  String get healthProfileEditTitle => 'Sửa hồ sơ sức khỏe';
+
+  @override
+  String healthProfileKcalValue(int value) {
+    return '$value kcal';
+  }
+
+  @override
+  String get healthProfileCaloriesNotSet => 'Chưa đặt';
+
+  @override
+  String get healthProfileCaloriesNotSetToggle => 'Chưa đặt mục tiêu';
+
+  @override
+  String healthProfileCaloriesCurrent(int value) {
+    return 'Hiện tại: $value kcal';
+  }
+
+  @override
+  String healthProfileCaloriesOutOfRange(int min, int max) {
+    return 'Ngoài khoảng $min–$max — kéo thanh để chọn giá trị mới.';
+  }
+
+  @override
+  String get healthProfileNeedsNetwork => 'Cần kết nối mạng để chỉnh sửa.';
+
+  @override
+  String get healthProfileCaloriesServerInvalid => 'Mục tiêu calo không hợp lệ';
+
+  @override
+  String get allergenNeedsNetwork => 'Cần kết nối mạng để sửa dị ứng.';
+
+  @override
+  String get allergensHealthLoadFailedTitle => 'Chưa tải được dị ứng hiện tại';
+
+  @override
+  String get allergensHealthLoadFailedMessage =>
+      'Để tránh ghi đè dị ứng đã lưu, cần tải xong dữ liệu trước khi chỉnh sửa.';
+
+  @override
+  String get allergensSavedSection => 'Dị ứng đã lưu';
+
+  @override
+  String allergensCatalogCount(int count) {
+    return '$count chất gây dị ứng phổ biến';
+  }
+
+  @override
+  String allergensSelectedCount(int count) {
+    return '$count đã chọn';
+  }
+
+  @override
+  String get allergenSaveError => 'Có lỗi khi lưu, vui lòng thử lại.';
+
+  @override
+  String familyRemoveConfirmBody(String name) {
+    return '$name sẽ không còn xem được kho, thực đơn và danh sách mua sắm của gia đình.';
+  }
+
+  @override
+  String get familyRemoveConfirmAction => 'Xóa';
+
+  @override
+  String familyRemoveSuccess(String name) {
+    return 'Đã xóa $name khỏi gia đình.';
+  }
+
+  @override
+  String familyMemberYou(String name) {
+    return '$name (bạn)';
+  }
+
+  @override
+  String get familyGuestBadge => 'Khách';
+
+  @override
+  String familyJoinedAt(String date) {
+    return 'Tham gia $date';
+  }
+
+  @override
+  String get familyNeedsNetwork =>
+      'Cần kết nối mạng để mời hoặc xóa thành viên.';
+
+  @override
+  String get familyErrorNotOwner => 'Bạn không còn quyền quản lý gia đình này.';
+
+  @override
+  String get familyErrorInviteLimit =>
+      'Đã có 3 lời mời còn hiệu lực. Hãy đợi lời mời cũ hết hạn rồi thử lại.';
+
+  @override
+  String get familyErrorCannotRemove => 'Không thể xóa thành viên này.';
+
+  @override
+  String familyInviteExpiresAt(String date) {
+    return 'Hết hạn: $date';
+  }
+
+  @override
+  String get familyInviteCopyCode => 'Sao chép mã';
+
+  @override
+  String get familyInviteCopyLink => 'Sao chép liên kết';
+
+  @override
+  String get familyInviteCopied => 'Đã sao chép';
+
+  @override
+  String get familyInviteShowLast => 'Xem lại lời mời vừa tạo';
+
+  @override
+  String get memberHealthForbidden =>
+      'Bạn không có quyền xem hồ sơ sức khỏe của thành viên này.';
+
+  @override
+  String get memberDetailPrivacyNote =>
+      'Thông tin chiều cao/cân nặng/calo là riêng tư và không hiển thị ở đây.';
+
+  @override
+  String get memberDetailNotFound => 'Không tìm thấy thành viên này.';
+
+  @override
+  String get memberDetailClose => 'Đóng';
 }

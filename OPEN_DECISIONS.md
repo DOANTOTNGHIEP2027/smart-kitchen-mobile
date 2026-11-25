@@ -323,3 +323,14 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Theo:** §6.0 quy tắc 2 (thiết kế thắng phỏng đoán) + §6.1 D-01.
 - **Đảo ngược thế nào:** commit lại file JSON + bỏ điều kiện plugin; muốn đúng tên issue thì thêm façade `FirebaseAuthService` bọc gateway.
 - **Cần người quyết lại không:** Không — đã chốt. Phiên `ai-native` nên cập nhật issue #16/§9 ghi chú tên thật.
+
+### OD-39 · #29 — lệch thiết kế có chủ ý + finding còn lại sau review vòng 2
+- **Ngày:** 2026-11-25 · **Task:** #29 (FE-3 vá gap) · **Nhánh:** `feature/29_profile-gaps`
+- **Tình huống:** Review code vòng 2 APPROVE (`reports/29/code-review-20261125_v2.md`), còn 1 lệch thiết kế và 1 finding LOW chưa xử lý.
+- **Đã chọn:**
+  1. **L4 — 403 ở `MemberDetailScreen`:** hiện lỗi tại chỗ + nút "Đóng" (không "Thử lại") theo mock S12.12, thay vì toast + `Get.back()` như `profile-family-screens.md` §10.5. Lý do: mock là thứ user nhìn thấy; quay lại tự động làm mất ngữ cảnh lỗi.
+  2. **N1 (LOW) — race `saveProfile`:** rời màn khi PUT A đang bay, mở lại và lưu PUT B; nếu A về sau B thì `SessionStore` bị ghi đè bằng bản cũ (`profile_store.dart:269-279`). Cửa sổ rất hẹp, server vẫn đúng (B là bản cuối) → **Hoãn — gom vào task dọn riêng**.
+  3. **L5 (một phần):** avatar 40×40 ở `member_row.dart` giữ số cứng vì chưa có token kích thước.
+- **Theo:** §6.0 quy tắc 2 (mock/thiết kế), §5 (không tiện tay sửa ngoài phạm vi).
+- **Đảo ngược thế nào:** L4 đổi `member_detail_screen.dart` sang toast + back; N1 so `seq` trước khi `updateCurrentUser` ở nhánh PUT đã gửi.
+- **Cần người quyết lại không:** Không — `profile-family-screens.md` §10.5/§12/§14 đã cập nhật theo S12.12 (nhánh docs `docs/29_profile-family-gaps`).

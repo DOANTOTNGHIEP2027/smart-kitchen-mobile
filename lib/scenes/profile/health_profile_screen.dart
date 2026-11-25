@@ -3,20 +3,28 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
 import '../../constants/app_dimens.dart';
+import '../../data/network/api_exception.dart';
+import '../../l10n/app_localizations.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
-import '../../utils/api_error_l10n.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
 import '../../widgets/states/app_state_view.dart';
-import '../../widgets/states/view_state.dart';
+import 'domain/allergen.dart';
+import 'domain/calorie_target.dart';
 import 'domain/diet_type.dart';
+import 'domain/health_measurement.dart';
 import 'domain/health_profile.dart';
 import 'stores/form_status.dart';
 import 'stores/profile_store.dart';
+import 'widgets/calorie_target_field.dart';
+import 'widgets/diet_type_label.dart';
 import 'widgets/stale_data_banner.dart';
 
+/// Hồ sơ sức khỏe — chế độ xem (S10.2 empty / S10.3 view / S10.3c cache) +
+/// chế độ sửa (S10.4) (§10.3, Decision D16). Chỉ vào được chế độ sửa khi
+/// `canEditHealth` (Guard 13 — dữ liệu cache chỉ đọc).
 class HealthProfileScreen extends StatefulWidget {
   const HealthProfileScreen({super.key});
 
@@ -27,11 +35,16 @@ class HealthProfileScreen extends StatefulWidget {
 class _HealthProfileScreenState extends State<HealthProfileScreen> {
   late final ProfileStore store = Get.find<ProfileStore>();
   final _formKey = GlobalKey<FormState>();
-  final caloriesCtl = TextEditingController();
   final heightCtl = TextEditingController();
   final weightCtl = TextEditingController();
-  DietType? diet;
-  bool _seeded = false;
+
+  bool _isEditing = false;
+  DietType? _diet;
+  // State cục bộ của CalorieTargetField (Guard 14).
+  int? _storedCalories;
+  bool _caloriesTouched = false;
+  bool _caloriesNotSet = false;
+  int _sliderValue = CalorieTarget.defaultWhenEnabled;
 
   @override
   void initState() {
@@ -42,223 +55,104 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
 
   @override
   void dispose() {
-    caloriesCtl.dispose();
     heightCtl.dispose();
     weightCtl.dispose();
     store.clearHealthSaveError();
     super.dispose();
   }
 
-  void _seed(HealthProfile p) {
-    if (_seeded) return;
-    _seeded = true;
-    caloriesCtl.text = p.targetDailyCalories?.toString() ?? '';
-    heightCtl.text = p.heightCm?.toString() ?? '';
-    weightCtl.text = p.weightKg?.toString() ?? '';
-    diet = p.dietType;
+  /// Seed form từ hồ sơ đang lưu — chạy trong handler của nút, không trong
+  /// `build`.
+  void _startEditing(HealthProfile p) {
+    store.clearHealthSaveError();
+    setState(() {
+      _isEditing = true;
+      _diet = p.dietType;
+      heightCtl.text = _formatNumber(p.heightCm);
+      weightCtl.text = _formatNumber(p.weightKg);
+      _storedCalories = p.targetDailyCalories;
+      _caloriesTouched = false;
+      _caloriesNotSet = p.targetDailyCalories == null;
+      _sliderValue = CalorieTarget.thumbFor(p.targetDailyCalories);
+    });
   }
 
-  String? _validateCalories(String? value) {
-    final raw = value?.trim() ?? '';
-    if (raw.isEmpty) return null;
-    final calories = int.tryParse(raw);
-    if (!RegExp(r'^[0-9]+$').hasMatch(raw) ||
-        calories == null ||
-        calories > 10000) {
-      return context.l10n.healthProfileCaloriesInvalid;
+  void _cancelEditing() {
+    store.clearHealthSaveError();
+    setState(() => _isEditing = false);
+  }
+
+  void _onFieldEdited() {
+    if (store.healthSaveStatus == FormStatus.failure) {
+      store.clearHealthSaveError();
     }
-    return null;
-  }
-
-  String? _validateMeasurement(String? value, double maximum, String error) {
-    final raw = value?.trim() ?? '';
-    if (raw.isEmpty) return null;
-    final measurement = double.tryParse(raw);
-    return measurement == null ||
-            !measurement.isFinite ||
-            measurement < 1 ||
-            measurement > maximum
-        ? error
-        : null;
-  }
-
-  void _clearDraft() {
-    _formKey.currentState?.reset();
-    caloriesCtl.clear();
-    heightCtl.clear();
-    weightCtl.clear();
-    setState(() => diet = null);
   }
 
   Future<void> _save() async {
     if (_formKey.currentState?.validate() != true) return;
     final ok = await store.saveHealthProfile(
-      targetDailyCalories: int.tryParse(caloriesCtl.text.trim()),
-      dietTypeWire: diet == null ? null : dietTypeToWire(diet!),
-      heightCm: double.tryParse(heightCtl.text.trim()),
-      weightKg: double.tryParse(weightCtl.text.trim()),
+      targetDailyCalories: CalorieTarget.resolveForSave(
+        stored: _storedCalories,
+        touched: _caloriesTouched,
+        notSet: _caloriesNotSet,
+        sliderValue: _sliderValue,
+      ),
+      dietTypeWire: _diet == null ? null : dietTypeToWire(_diet!),
+      heightCm: HealthMeasurement.parse(heightCtl.text),
+      weightKg: HealthMeasurement.parse(weightCtl.text),
     );
-    if (ok && mounted) {
-      final acknowledged = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(context.l10n.healthSavedDialogTitle),
-          content: Text(context.l10n.healthSavedDialogMessage),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(context.l10n.healthSavedDialogConfirm),
-            ),
-          ],
-        ),
-      );
-      if (acknowledged == true && mounted) Get.back();
-    }
+    if (!ok || !mounted) return;
+    setState(() => _isEditing = false);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(context.l10n.healthSavedToast)));
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: context.l10n.healthProfileTitle,
+      title: _isEditing
+          ? context.l10n.healthProfileEditTitle
+          : context.l10n.healthProfileTitle,
       body: Observer(builder: (_) {
-        // Read observable state here; AppStateView's builder runs outside this Observer.
+        // Đọc observable ở đây; successBuilder của AppStateView chạy ngoài
+        // phạm vi theo dõi của Observer.
         final profileState = store.healthProfileState;
-        final error = store.mutationError;
+        final fromCache = store.healthProfileIsFromCache;
+        final canEdit = store.canEditHealth;
         final isSaving = store.healthSaveStatus == FormStatus.submitting;
+        final saveError = store.healthSaveStatus == FormStatus.failure
+            ? store.mutationError
+            : null;
         return Column(
           children: <Widget>[
-            if (store.healthProfileIsFromCache) const StaleDataBanner(),
+            if (fromCache) StaleDataBanner(onRetry: store.loadHealthProfile),
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: () => store.loadHealthProfile(),
-                child: AppStateView<HealthProfile>(
-                  state: profileState,
-                  onRetry: () => store.loadHealthProfile(),
-                  emptyMessage: context.l10n.healthProfileEmpty,
-                  successBuilder: (_, HealthProfile p) {
-                    _seed(p);
-                    return Form(
-                      key: _formKey,
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(AppDimens.md),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            if (error != null) ...<Widget>[
-                              _InlineError(
-                                message: apiErrorMessage(context.l10n, error),
-                                fieldErrors: error.fieldErrors,
-                              ),
-                              const SizedBox(height: AppDimens.md),
-                            ],
-                            TextFormField(
-                              key: const ValueKey<String>('health-weight'),
-                              controller: weightCtl,
-                              enabled: !isSaving,
-                              validator: (value) => _validateMeasurement(value,
-                                  500, context.l10n.healthProfileWeightInvalid),
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      decimal: true),
-                              decoration: InputDecoration(
-                                labelText: context.l10n.healthProfileWeight,
-                                prefixIcon:
-                                    const Icon(Icons.monitor_weight_outlined),
-                              ),
-                            ),
-                            const SizedBox(height: AppDimens.sm),
-                            TextFormField(
-                              key: const ValueKey<String>('health-height'),
-                              controller: heightCtl,
-                              enabled: !isSaving,
-                              validator: (value) => _validateMeasurement(value,
-                                  300, context.l10n.healthProfileHeightInvalid),
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      decimal: true),
-                              decoration: InputDecoration(
-                                labelText: context.l10n.healthProfileHeight,
-                                prefixIcon: const Icon(Icons.height_rounded),
-                              ),
-                            ),
-                            const SizedBox(height: AppDimens.sm),
-                            KeyedSubtree(
-                              key: ValueKey<DietType?>(diet),
-                              child: DropdownButtonFormField<DietType?>(
-                                key: const ValueKey<String>('health-diet'),
-                                initialValue: diet,
-                                isExpanded: true,
-                                hint: Text(context.l10n.healthProfileDietUnset),
-                                decoration: InputDecoration(
-                                  labelText: context.l10n.healthProfileDietType,
-                                  helperText:
-                                      context.l10n.healthProfileDietHelp,
-                                  helperMaxLines: 4,
-                                  prefixIcon: const Icon(
-                                      Icons.restaurant_menu_outlined),
-                                ),
-                                items: <DropdownMenuItem<DietType?>>[
-                                  DropdownMenuItem<DietType?>(
-                                    value: null,
-                                    child: Text(
-                                        context.l10n.healthProfileDietUnset),
-                                  ),
-                                  for (final DietType d in DietType.values)
-                                    DropdownMenuItem<DietType?>(
-                                      value: d,
-                                      child: Text(_dietLabel(context, d)),
-                                    ),
-                                ],
-                                onChanged: isSaving
-                                    ? null
-                                    : (DietType? v) => setState(() => diet = v),
-                              ),
-                            ),
-                            const SizedBox(height: AppDimens.sm),
-                            TextFormField(
-                              key: const ValueKey<String>('health-calories'),
-                              controller: caloriesCtl,
-                              enabled: !isSaving,
-                              validator: _validateCalories,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText:
-                                    context.l10n.healthProfileTargetCalories,
-                                helperText:
-                                    context.l10n.healthProfileCaloriesHelp,
-                                helperMaxLines: 2,
-                                prefixIcon: const Icon(
-                                    Icons.local_fire_department_outlined),
-                                suffixText: context.l10n.unitKcal,
-                              ),
-                            ),
-                            const SizedBox(height: AppDimens.md),
-                            _AllergensSummary(
-                              store: store,
-                              onEdit: isSaving
-                                  ? null
-                                  : () =>
-                                      Get.toNamed(AppRoutes.profileAllergens),
-                            ),
-                            const SizedBox(height: AppDimens.lg),
-                            AppButton(
-                              label: context.l10n.healthSave,
-                              isLoading: isSaving,
-                              onPressed: isSaving ? null : _save,
-                            ),
-                            TextButton.icon(
-                              onPressed: isSaving ? null : _clearDraft,
-                              icon: const Icon(Icons.clear_all),
-                              label:
-                                  Text(context.l10n.healthProfileClearFields),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+              child: AppStateView<HealthProfile>(
+                state: profileState,
+                onRetry: () => store.loadHealthProfile(),
+                emptyMessage: context.l10n.healthProfileEmpty,
+                successBuilder: (_, HealthProfile p) {
+                  if (_isEditing) {
+                    return _buildForm(p,
+                        canEdit: canEdit, isSaving: isSaving, error: saveError);
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () => store.loadHealthProfile(),
+                    child: p.isEmpty
+                        ? _EmptyProfileView(
+                            onSetUp: canEdit ? () => _startEditing(p) : null,
+                            showNeedsNetwork: fromCache,
+                          )
+                        : _ProfileDetailsView(
+                            profile: p,
+                            onEdit: canEdit ? () => _startEditing(p) : null,
+                            onEditAllergens: canEdit
+                                ? () => Get.toNamed(AppRoutes.profileAllergens)
+                                : null,
+                            showNeedsNetwork: fromCache,
+                          ),
+                  );
+                },
               ),
             ),
           ],
@@ -266,83 +160,409 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
       }),
     );
   }
+
+  Widget _buildForm(
+    HealthProfile p, {
+    required bool canEdit,
+    required bool isSaving,
+    required ApiException? error,
+  }) {
+    final l = context.l10n;
+    final fieldErrors = error?.fieldErrors ?? const <String, String>{};
+    final enabled = canEdit && !isSaving;
+    // Field BE không map được vào ô nào → liệt kê trong khối lỗi chung.
+    final unmapped = Map<String, String>.of(fieldErrors)
+      ..removeWhere((String k, _) => _mappedFields.contains(k));
+    final showGeneralError = error != null &&
+        (error is! ValidationException ||
+            fieldErrors.isEmpty ||
+            unmapped.isNotEmpty);
+
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppDimens.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (showGeneralError) ...<Widget>[
+              _InlineError(
+                message: _healthSaveErrorMessage(l, error),
+                // Chỉ nhãn field đã l10n — KHÔNG in message BE (§12).
+                fieldLabels: <String>[
+                  for (final field in unmapped.keys)
+                    if (_fieldLabel(l, field) case final String label) label,
+                ],
+              ),
+              const SizedBox(height: AppDimens.md),
+            ],
+            CalorieTargetField(
+              stored: _storedCalories,
+              touched: _caloriesTouched,
+              notSet: _caloriesNotSet,
+              sliderValue: _sliderValue,
+              enabled: enabled,
+              errorText: fieldErrors.containsKey('targetDailyCalories')
+                  ? l.healthProfileCaloriesServerInvalid
+                  : null,
+              onSliderChanged: (int v) {
+                _onFieldEdited();
+                setState(() {
+                  _caloriesTouched = true;
+                  _sliderValue = v;
+                });
+              },
+              onNotSetChanged: (bool v) {
+                _onFieldEdited();
+                setState(() {
+                  _caloriesTouched = true;
+                  _caloriesNotSet = v;
+                });
+              },
+            ),
+            const SizedBox(height: AppDimens.md),
+            DropdownButtonFormField<DietType?>(
+              key: const ValueKey<String>('health-diet'),
+              initialValue: _diet,
+              isExpanded: true,
+              hint: Text(l.healthProfileDietUnset),
+              decoration: InputDecoration(
+                labelText: l.healthProfileDietType,
+                helperText: l.healthProfileDietHelp,
+                helperMaxLines: 4,
+                prefixIcon: const Icon(Icons.restaurant_menu_outlined),
+              ),
+              items: <DropdownMenuItem<DietType?>>[
+                DropdownMenuItem<DietType?>(
+                  value: null,
+                  child: Text(l.healthProfileDietUnset),
+                ),
+                for (final DietType d in DietType.values)
+                  DropdownMenuItem<DietType?>(
+                      value: d, child: Text(d.label(l))),
+              ],
+              onChanged: enabled
+                  ? (DietType? v) {
+                      _onFieldEdited();
+                      setState(() => _diet = v);
+                    }
+                  : null,
+            ),
+            const SizedBox(height: AppDimens.sm),
+            TextFormField(
+              key: const ValueKey<String>('health-height'),
+              controller: heightCtl,
+              enabled: enabled,
+              onChanged: (_) => _onFieldEdited(),
+              validator: (value) => HealthMeasurement.isValidHeight(value ?? '')
+                  ? null
+                  : l.healthProfileHeightInvalid,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l.healthProfileHeight,
+                prefixIcon: const Icon(Icons.height_rounded),
+                errorText: fieldErrors.containsKey('heightCm')
+                    ? l.healthProfileHeightInvalid
+                    : null,
+              ),
+            ),
+            const SizedBox(height: AppDimens.sm),
+            TextFormField(
+              key: const ValueKey<String>('health-weight'),
+              controller: weightCtl,
+              enabled: enabled,
+              onChanged: (_) => _onFieldEdited(),
+              validator: (value) => HealthMeasurement.isValidWeight(value ?? '')
+                  ? null
+                  : l.healthProfileWeightInvalid,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l.healthProfileWeight,
+                prefixIcon: const Icon(Icons.monitor_weight_outlined),
+                errorText: fieldErrors.containsKey('weightKg')
+                    ? l.healthProfileWeightInvalid
+                    : null,
+              ),
+            ),
+            const SizedBox(height: AppDimens.lg),
+            AppButton(
+              key: const ValueKey<String>('health-save'),
+              label: l.healthSave,
+              isLoading: isSaving,
+              onPressed: enabled ? _save : null,
+            ),
+            TextButton(
+              key: const ValueKey<String>('health-cancel'),
+              onPressed: isSaving ? null : _cancelEditing,
+              child: Text(l.cancel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Field BE được map lỗi inline dưới ô tương ứng (S10.5).
+const Set<String> _mappedFields = <String>{
+  'targetDailyCalories',
+  'heightCm',
+  'weightKg',
+};
+
+String _formatNumber(double? v) {
+  if (v == null) return '';
+  return v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+}
+
+/// S10.2 — chưa có row profile (`updatedAt == null`).
+class _EmptyProfileView extends StatelessWidget {
+  const _EmptyProfileView({
+    required this.onSetUp,
+    required this.showNeedsNetwork,
+  });
+
+  final VoidCallback? onSetUp;
+  final bool showNeedsNetwork;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppDimens.md),
+      children: <Widget>[
+        Icon(Icons.favorite_border,
+            size: AppDimens.stateIcon, color: theme.colorScheme.primary),
+        const SizedBox(height: AppDimens.sm),
+        Text(l.healthProfileEmptyTitle,
+            textAlign: TextAlign.center, style: theme.textTheme.titleMedium),
+        const SizedBox(height: AppDimens.xs),
+        Text(l.healthProfileEmptyMessage,
+            textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+        const SizedBox(height: AppDimens.md),
+        AppCard(
+          child: Column(
+            children: <Widget>[
+              _InfoRow(
+                  label: l.healthProfileTargetCalories,
+                  value: l.healthProfileNotSetUp),
+              _InfoRow(
+                  label: l.healthProfileDietType,
+                  value: l.healthProfileNotSetUp),
+              _InfoRow(
+                  label: l.healthProfileAllergensSection,
+                  value: l.healthProfileNotSetUp),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppDimens.lg),
+        AppButton(
+          key: const ValueKey<String>('health-setup'),
+          label: l.healthProfileSetUpCta,
+          onPressed: onSetUp,
+        ),
+        if (showNeedsNetwork)
+          _NeedsNetworkHint(text: l.healthProfileNeedsNetwork),
+      ],
+    );
+  }
+}
+
+/// S10.3 / S10.3c — chế độ xem.
+class _ProfileDetailsView extends StatelessWidget {
+  const _ProfileDetailsView({
+    required this.profile,
+    required this.onEdit,
+    required this.onEditAllergens,
+    required this.showNeedsNetwork,
+  });
+
+  final HealthProfile profile;
+  final VoidCallback? onEdit;
+  final VoidCallback? onEditAllergens;
+  final bool showNeedsNetwork;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final p = profile;
+    final calories = p.targetDailyCalories;
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppDimens.md),
+      children: <Widget>[
+        AppCard(
+          child: Column(
+            children: <Widget>[
+              _InfoRow(
+                key: const ValueKey<String>('health-view-calories'),
+                label: l.healthProfileTargetCalories,
+                // Đúng giá trị lưu, kể cả ngoài 800–5000.
+                value: calories == null
+                    ? l.healthProfileCaloriesNotSet
+                    : l.healthProfileKcalValue(calories),
+              ),
+              _InfoRow(
+                key: const ValueKey<String>('health-view-diet'),
+                label: l.healthProfileDietType,
+                value: p.dietType?.label(l) ?? l.healthProfileDietUnset,
+              ),
+              _InfoRow(
+                label: l.healthProfileHeight,
+                value: p.heightCm == null
+                    ? l.healthProfileNotSetUp
+                    : _formatNumber(p.heightCm),
+              ),
+              _InfoRow(
+                label: l.healthProfileWeight,
+                value: p.weightKg == null
+                    ? l.healthProfileNotSetUp
+                    : _formatNumber(p.weightKg),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppDimens.md),
+        _AllergensSummary(allergens: p.allergens, onEdit: onEditAllergens),
+        const SizedBox(height: AppDimens.lg),
+        AppButton(
+          key: const ValueKey<String>('health-edit'),
+          label: l.healthProfileEditAction,
+          icon: Icons.edit_outlined,
+          onPressed: onEdit,
+        ),
+        if (showNeedsNetwork)
+          _NeedsNetworkHint(text: l.healthProfileNeedsNetwork),
+      ],
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({super.key, required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppDimens.xs),
+      child: Row(
+        children: <Widget>[
+          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
+          const SizedBox(width: AppDimens.sm),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NeedsNetworkHint extends StatelessWidget {
+  const _NeedsNetworkHint({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppDimens.sm),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+    );
+  }
 }
 
 class _AllergensSummary extends StatelessWidget {
-  const _AllergensSummary({required this.store, required this.onEdit});
+  const _AllergensSummary({required this.allergens, required this.onEdit});
 
-  final ProfileStore store;
+  final List<Allergen> allergens;
   final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
-    return Observer(builder: (_) {
-      final state = store.healthProfileState;
-      final allergens = state is SuccessState<HealthProfile>
-          ? state.data.allergens
-          : const <dynamic>[];
-      return AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Row(
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const Icon(Icons.health_and_safety_outlined),
+              const SizedBox(width: AppDimens.sm),
+              Text(context.l10n.healthProfileAllergensSection,
+                  style: Theme.of(context).textTheme.titleSmall),
+            ],
+          ),
+          const SizedBox(height: AppDimens.sm),
+          if (allergens.isEmpty)
+            Text(context.l10n.healthProfileAllergensEmpty)
+          else
+            Wrap(
+              spacing: AppDimens.sm,
+              runSpacing: AppDimens.xs,
               children: <Widget>[
-                const Icon(Icons.health_and_safety_outlined),
-                const SizedBox(width: AppDimens.sm),
-                Text(context.l10n.healthProfileAllergensSection,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                for (final a in allergens) Chip(label: Text(a.name)),
               ],
             ),
-            const SizedBox(height: AppDimens.sm),
-            if (allergens.isEmpty)
-              Text(context.l10n.healthProfileAllergensEmpty)
-            else
-              Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: <Widget>[
-                  for (final a in allergens) Chip(label: Text(a.name)),
-                ],
-              ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: onEdit,
-                icon: const Icon(Icons.edit_outlined, size: 18),
-                label: Text(context.l10n.healthProfileAllergensEdit),
-              ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              key: const ValueKey<String>('health-allergens-edit'),
+              onPressed: onEdit,
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: Text(context.l10n.healthProfileAllergensEdit),
             ),
-          ],
-        ),
-      );
-    });
+          ),
+        ],
+      ),
+    );
   }
 }
 
 class _InlineError extends StatelessWidget {
-  const _InlineError({required this.message, required this.fieldErrors});
+  const _InlineError({required this.message, required this.fieldLabels});
 
   final String message;
-  final Map<String, String>? fieldErrors;
+  final List<String> fieldLabels;
 
   @override
   Widget build(BuildContext context) {
+    final errorColor = Theme.of(context).colorScheme.error;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppDimens.sm),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.08),
+        color: errorColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppDimens.radiusSm),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(message, style: const TextStyle(color: Colors.red)),
-          if (fieldErrors != null && fieldErrors!.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 4),
-            for (final entry in fieldErrors!.entries)
-              Text('• ${_fieldLabel(context, entry.key)}: ${entry.value}',
-                  style: const TextStyle(color: Colors.red, fontSize: 12)),
+          Text(message, style: TextStyle(color: errorColor)),
+          if (fieldLabels.isNotEmpty) ...<Widget>[
+            const SizedBox(height: AppDimens.xs),
+            for (final label in fieldLabels)
+              Text('• $label',
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(color: errorColor)),
           ],
         ],
       ),
@@ -350,29 +570,22 @@ class _InlineError extends StatelessWidget {
   }
 }
 
-/// Tên field BE (camelCase) → nhãn l10n; field lạ giữ nguyên key.
-String _fieldLabel(BuildContext context, String field) {
-  final l = context.l10n;
-  return switch (field) {
-    'targetDailyCalories' => l.healthProfileTargetCalories,
-    'heightCm' => l.healthProfileHeight,
-    'weightKg' => l.healthProfileWeight,
-    'dietType' => l.healthProfileDietType,
-    // saveAllergens dùng chung mutationError → lỗi của nó cũng hiện ở đây.
-    'allergenIds' => l.healthProfileAllergensSection,
-    _ => field,
-  };
-}
+/// Tên field BE (camelCase) → nhãn l10n; field lạ → `null` (không in key thô).
+String? _fieldLabel(AppLocalizations l, String field) => switch (field) {
+      'targetDailyCalories' => l.healthProfileTargetCalories,
+      'heightCm' => l.healthProfileHeight,
+      'weightKg' => l.healthProfileWeight,
+      'dietType' => l.healthProfileDietType,
+      _ => null,
+    };
 
-String _dietLabel(BuildContext context, DietType t) {
-  final l = context.l10n;
-  return switch (t) {
-    DietType.none => l.healthProfileDietNone,
-    DietType.keto => l.dietTypeKeto,
-    DietType.vegetarian => l.dietTypeVegetarian,
-    DietType.vegan => l.dietTypeVegan,
-    DietType.pescatarian => l.dietTypePescatarian,
-    DietType.glutenFree => l.dietTypeGlutenFree,
-    DietType.diabetic => l.dietTypeDiabetic,
+/// Copy lỗi lưu hồ sơ sức khoẻ (§12): theo [ApiException.code], KHÔNG bao
+/// giờ trả `error.message` của BE — mã lạ/validation → `genericRetryError`
+/// (cùng kiểu `familyErrorMessage`).
+String _healthSaveErrorMessage(AppLocalizations l, ApiException? error) {
+  if (error is AuthExpiredException) return l.sessionExpiredError;
+  return switch (error?.code) {
+    'ERR_NETWORK' => l.networkError,
+    _ => l.genericRetryError,
   };
 }
