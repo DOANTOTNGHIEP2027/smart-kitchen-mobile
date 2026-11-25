@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "data": {
+    "accessToken": "h.eyJzdWIiOiJ1MSIsImhvdXNlaG9sZF9pZCI6ImgxIiwicm9sZSI6Ik9XTkVSIn0.s",
+    "refreshToken": "refresh-2",
+    "expiresIn": 900
+  },
+  "error": null,
+  "timestamp": "2026-11-25T08:00:00Z"
+}

@@ -162,6 +162,14 @@ class RecipeStore {
         _error.value = error;
         _status.value = RecipeListStatus.ready;
       });
+    } catch (_) {
+      // #134 (§17 L1/E4b): lỗi không phải ApiException (TypeError/parse) vẫn
+      // phải thoát loading — map về ERR_UNKNOWN để UI hiện lỗi + thử lại.
+      if (request != _requestId) return;
+      runInAction(() {
+        _error.value = ServerException('ERR_UNKNOWN', 'recipe list');
+        _status.value = RecipeListStatus.ready;
+      });
     }
   }
 
@@ -201,10 +209,23 @@ class RecipeStore {
         });
       }
     } on ApiException catch (error) {
+      // #134 (§17 L1/E4a): list đã bị thay (refresh/setTab) thì lỗi favorite
+      // của thế hệ cũ không được để lại banner lỗi trên list mới.
       if (generation == _generation) {
-        runInAction(() => _applyFavoriteAxis(recipeId, before));
+        runInAction(() {
+          _applyFavoriteAxis(recipeId, before);
+          _error.value = error;
+        });
       }
-      runInAction(() => _error.value = error);
+    } catch (_) {
+      // #134 (§17 luật 2): lỗi không phải ApiException (TypeError khi parse)
+      // vẫn rollback trục favorite y như nhánh trên.
+      if (generation == _generation) {
+        runInAction(() {
+          _applyFavoriteAxis(recipeId, before);
+          _error.value = ServerException('ERR_UNKNOWN', 'favorite');
+        });
+      }
     } finally {
       runInAction(() => _pendingFavoriteIds.remove(recipeId));
     }

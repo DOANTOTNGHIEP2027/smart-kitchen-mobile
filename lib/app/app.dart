@@ -10,6 +10,7 @@ import '../l10n/app_localizations.dart';
 import '../routing/app_pages.dart';
 import '../routing/app_routes.dart';
 import '../data/notification/notification_service.dart';
+import '../scenes/inventory/inventory_catch_up.dart';
 import '../stores/notification_store.dart';
 import '../stores/theme_store.dart';
 import '../utils/l10n_x.dart';
@@ -82,12 +83,16 @@ class _NotificationUiHostState extends State<_NotificationUiHost>
   }
 
   /// Quay lại app → đọc lại quyền (người dùng có thể đổi trong Cài đặt) —
-  /// fcm-notification-flow.md §14.4.
+  /// fcm-notification-flow.md §14.4. #134 A8: catch-up kho nếu isolate nền
+  /// đã đặt cờ pending-sync.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed &&
-        Get.isRegistered<NotificationStore>()) {
+    if (state != AppLifecycleState.resumed) return;
+    if (Get.isRegistered<NotificationStore>()) {
       unawaited(Get.find<NotificationStore>().refreshPermission());
+    }
+    if (Get.isRegistered<InventoryCatchUp>()) {
+      unawaited(Get.find<InventoryCatchUp>().run());
     }
   }
 

@@ -1261,6 +1261,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationActionDiscard => 'Discard';
 
   @override
+  String get notificationQuickActionProcessing => 'Updating inventory…';
+
+  @override
+  String get notificationQuickActionSessionExpired =>
+      'Your session has expired — tap to sign in';
+
+  @override
+  String get notificationQuickActionOpenApp => 'Tap to open the app';
+
+  @override
+  String get notificationQuickActionRetry => 'Couldn\'t complete — try again';
+
+  @override
   String get inventoryOcrScanAction => 'Scan receipt or items';
 
   @override
@@ -2499,6 +2512,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shoppingAssignSyncing => 'Syncing… you can assign once it\'s done';
+
+  @override
+  String get shoppingAssigneeUnknown => 'Assigned';
+
+  @override
+  String navShoppingAssignedSemantics(int count) {
+    return 'Shopping, $count items assigned to you';
+  }
 
   @override
   String shoppingAddRejected(String name) {

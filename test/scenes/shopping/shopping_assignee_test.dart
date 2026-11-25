@@ -125,8 +125,10 @@ HouseholdMember member(String id, String role, String name) =>
 class _FakeFamilyApi implements FamilyApi {
   Completer<void>? gate;
   bool fail = false;
+  int calls = 0;
   @override
   Future<HouseholdRoster> getMyHousehold() async {
+    calls++;
     await gate?.future;
     if (fail) throw NetworkException();
     final members = <HouseholdMember>[
@@ -218,6 +220,34 @@ void main() {
       expect((await dao.getById('i1'))!.assignedTo, isNull);
     });
 
+    // #134 §9.7(d): 409 khi gán → đồng bộ lại từ server, Drift không đổi.
+    test('409 ERR_SHOP_ITEM_VERSION_CONFLICT → syncFromServer, assignError 409, Drift không đổi', () async {
+      await dao.upsert(item());
+      api.assignError = BusinessException('ERR_SHOP_ITEM_VERSION_CONFLICT', 'conflict');
+      final before = api.listCalls;
+      expect(await store.assign(item(), assigneeId: kOtherId), isFalse);
+      expect(api.listCalls, greaterThan(before), reason: 'phải gọi sync() kéo bản server');
+      expect(store.assignError!.code, 'ERR_SHOP_ITEM_VERSION_CONFLICT');
+      expect(rosterStale, 0, reason: '409 không phải lỗi roster');
+      final row = (await dao.getById('i1'))!;
+      expect(row.assignedTo, isNull);
+      expect(row.version, 3);
+      expect(row.syncStatus, ShoppingSyncStatus.synced);
+      expect(store.isAssigning('i1'), isFalse);
+    });
+
+    // #134 §9.7(d): badge tab đọc assignedToMeCount — tick món được giao ⇒ giảm 1.
+    test('tick 1 món được giao cho mình → assignedToMeCount giảm 1', () async {
+      await dao.upsert(item(assignedTo: 'me'));
+      await dao.upsert(item(id: 'i2', assignedTo: 'me'));
+      await Future<void>.delayed(Duration.zero);
+      expect(store.assignedToMeCount, 2);
+      conn.online = false; // tick offline → vào hàng đợi, không gọi API toggle
+      await store.toggle(store.items.firstWhere((e) => e.id == 'i1'));
+      await Future<void>.delayed(Duration.zero);
+      expect(store.assignedToMeCount, 1);
+    });
+
     test('2 lần gán sát nhau → CHỈ 1 PATCH (không 409 giả)', () async {
       await dao.upsert(item());
       final r = await Future.wait(<Future<bool>>[
@@ -301,6 +331,43 @@ void main() {
       expect(find.text('Tôi'), findsOneWidget);
     });
 
+    // #134 §9.7(b): roster lỗi / thiếu FamilyStore → nhãn trung tính, không skeleton treo.
+    testWidgets('roster LỖI → "Đã giao" (không skeleton, KHÔNG "Thành viên cũ", KHÔNG UUID)', (tester) async {
+      final f = family(_FakeFamilyApi()..fail = true); // không có cache → ErrorState
+      await tester.runAsync(f.loadRoster);
+      expect(f.rosterState, isA<ErrorState<HouseholdRoster>>());
+      await tester.pumpAppWidget(chip(item(assignedTo: kOtherId), f));
+      expect(find.text('Đã giao'), findsOneWidget);
+      expect(find.text('Thành viên cũ'), findsNothing);
+      expect(find.textContaining(kOtherId), findsNothing);
+    });
+
+    testWidgets('không có FamilyStore + giao cho người khác → "Đã giao", không skeleton', (tester) async {
+      await tester.pumpAppWidget(chip(item(assignedTo: kOtherId), null));
+      expect(find.text('Đã giao'), findsOneWidget);
+      expect(find.textContaining(kOtherId), findsNothing);
+    });
+
+    testWidgets('roster ĐANG TẢI + giao cho người khác → chạm chip không phản hồi', (tester) async {
+      final api = _FakeFamilyApi()..gate = Completer<void>();
+      final f = family(api);
+      unawaited(f.loadRoster());
+      var taps = 0;
+      await tester.pumpAppWidget(AssigneeChip(
+          item: item(assignedTo: kOtherId), familyStore: f, currentUserId: 'me', enabled: true, onTap: () => taps++));
+      expect(find.text('Đã giao'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey<String>('assignee-chip-i1')));
+      await tester.pump();
+      expect(taps, 0);
+      // Món chưa giao không cần roster → vẫn bấm được.
+      await tester.pumpAppWidget(AssigneeChip(
+          item: item(), familyStore: f, currentUserId: 'me', enabled: true, onTap: () => taps++));
+      await tester.tap(find.byKey(const ValueKey<String>('assignee-chip-i1')));
+      await tester.pump();
+      expect(taps, 1);
+      api.gate!.complete();
+    });
+
     testWidgets('chip disabled NUỐT tap — không lọt xuống tile để tick món', (tester) async {
       var rowTaps = 0;
       var chipTaps = 0;
@@ -327,6 +394,8 @@ void main() {
       await tester.pumpAppWidget(chip(item(assignedTo: 'newcomer'), f));
       expect(find.text('Thành viên cũ'), findsNothing);
       expect(find.textContaining('newcomer'), findsNothing);
+      // #134 §9.7(b): nhãn trung tính thay cho skeleton treo.
+      expect(find.text('Đã giao'), findsOneWidget);
       await tester.pumpAppWidget(chip(item(assignedTo: kOtherId), f));
       expect(find.text('Lan'), findsOneWidget);
     });
@@ -393,6 +462,7 @@ void main() {
       late ShoppingDao dao;
       late _FakeNet net;
       late ConnectivityService service;
+      late _FakeApi shopApi;
 
       setUp(() async {
         net = _FakeNet(<ConnectivityResult>[ConnectivityResult.wifi]);
@@ -403,7 +473,8 @@ void main() {
         dao = ShoppingDao(db);
         final s = session();
         Get.put<SessionStore>(s);
-        store = ShoppingStore(dao: dao, api: _FakeApi()..mirror = () => dao.getAll('h1'), connectivity: conn, session: s);
+        shopApi = _FakeApi()..mirror = () => dao.getAll('h1');
+        store = ShoppingStore(dao: dao, api: shopApi, connectivity: conn, session: s);
         Get.put<ShoppingStore>(store);
       });
       tearDown(() async {
@@ -503,6 +574,61 @@ void main() {
         // OD-29: mở picker luôn, không bắt bấm lại.
         await tester.pumpAndSettle();
         expect(find.byType(AssigneePickerSheet), findsOneWidget);
+      });
+
+      // #134 §9.7(d): 409 khi gán → snackbar lỗi, KHÔNG dialog 2 cột, Drift không đổi.
+      testWidgets('409 khi gán → snackbar, không dialog, đồng bộ lại; món không đổi', (tester) async {
+        await tester.runAsync(() => dao.upsert(item()));
+        shopApi.assignError = BusinessException('ERR_SHOP_ITEM_VERSION_CONFLICT', 'conflict');
+        final before = shopApi.listCalls;
+        await pickMe(tester, item());
+        expect(find.byType(SnackBar), findsOneWidget);
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(find.byType(Dialog), findsNothing);
+        expect(shopApi.listCalls, greaterThan(before));
+        expect(store.assignError, isNull, reason: 'đã báo xong thì dọn lỗi');
+        final row = (await tester.runAsync(() => dao.getById('i1')))!;
+        expect(row.assignedTo, isNull);
+      });
+
+      // #134 §9.7(b): roster lỗi → chạm chip nạp lại (keepCurrent) rồi mở picker.
+      testWidgets('roster LỖI → bấm chip: nạp lại roster rồi mở picker có thành viên', (tester) async {
+        final famApi = _FakeFamilyApi()..fail = true;
+        final f = family(famApi);
+        await tester.runAsync(f.loadRoster);
+        expect(f.rosterState, isA<ErrorState<HouseholdRoster>>());
+        Get.put<FamilyStore>(f);
+        famApi.fail = false;
+        final calls = famApi.calls;
+        await tester.runAsync(() => dao.upsert(item(assignedTo: kOtherId)));
+        await tester.pumpAppWidget(Builder(
+          builder: (context) => AssigneeChip(
+            item: item(assignedTo: kOtherId),
+            familyStore: f,
+            currentUserId: 'me',
+            enabled: true,
+            onTap: () => openAssigneePicker(context, store, item(assignedTo: kOtherId), isOnline: conn.isOnline),
+          ),
+        ));
+        expect(find.text('Đã giao'), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey<String>('assignee-chip-i1')));
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+        await tester.pumpAndSettle();
+        expect(famApi.calls, calls + 1, reason: 'loadRoster(keepCurrent: true)');
+        expect(find.byType(AssigneePickerSheet), findsOneWidget);
+        expect(find.descendant(of: find.byType(AssigneePickerSheet), matching: find.text('Lan')), findsOneWidget);
+      });
+
+      testWidgets('bật filter "Của tôi" → assignedToMeCount (nguồn badge tab) không đổi', (tester) async {
+        final chip = await pumpScene(tester, <ShoppingItem>[
+          item(assignedTo: 'me'),
+          item(id: 'other', assignedTo: kOtherId),
+        ]);
+        expect(store.assignedToMeCount, 1);
+        await tester.tap(chip);
+        await tester.pump();
+        expect(store.assignedToMeCount, 1);
+        expect(find.descendant(of: chip, matching: find.text('Của tôi (1)')), findsOneWidget);
       });
 
       testWidgets('chip "Của tôi": không có món chưa mua của mình → KHÔNG số', (tester) async {

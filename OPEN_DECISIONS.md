@@ -180,6 +180,7 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn shopping. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Task dọn shopping riêng (gộp OD-20).
 - **Cần người quyết lại không:** Không.
+- **Đã xử lý ở #134 (2026-11-25, `feature/134_quick-action-background`, shopping-list-screen §9.7):** (1)(2)(3)(4)(6) đã làm ở OD-23 — #134 kiểm lại, giữ nguyên (picker đang mở KHÔNG tự đóng khi mất mạng, chỉ báo lúc chọn). (5) chip đã giao cho người khác: roster lỗi / roster từ cache thiếu người / không có `FamilyStore` → nhãn trung tính 'Đã giao' (không còn skeleton treo); roster đang tải → skeleton, chạm không phản hồi; roster lỗi → chạm nạp lại `loadRoster(keepCurrent: true)` rồi mở picker. (7) thêm test 409 `ERR_SHOP_ITEM_VERSION_CONFLICT` khi gán (store + UI: snackbar, không dialog, sync lại, Drift không đổi) và test filter 'Của tôi' không đổi số; mở picker không qua /family đã có test degrade (không `FamilyStore`). Thêm badge tab Đi chợ = `assignedToMeCount` (ẩn khi 0, `99+`, Observer riêng quanh bottom nav); nhãn đọc dùng tên tab thật 'Đi chợ' (thiết kế ghi 'Mua sắm').
 
 ### OD-23 · Dọn màn đi chợ (gộp OD-20 + OD-22) — đã làm
 - **Ngày:** 2026-10-19 · **Task:** dọn shopping · **Nhánh:** `chore/shopping-cleanup-od20-od22`
@@ -236,6 +237,7 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn. · **Theo:** §3 (tối đa 3 vòng) + §6.1 D-10.
 - **Đảo ngược thế nào:** Task dọn shopping tiếp theo.
 - **Cần người quyết lại không:** Có cho (1) — có mở picker luôn khi kiểm lại thấy online không.
+- **Đã xử lý ở #134 (2026-11-25):** (1) đã làm ở OD-32 (bấm chip khoá, kiểm lại thấy online → mở picker luôn); #134 kiểm lại code + test 'stream LỠ sự kiện…' (assert picker mở), giữ nguyên theo shopping-list-screen §9.7(c). (2)–(5) chưa đụng.
 
 ### OD-30 · Chia sẻ + quản lý danh mục đi chợ (#69, shopping-share-category.md) — lệch thiết kế theo code thật
 - **Ngày:** 2026-10-20 · **Task:** #69 · **Nhánh:** `feature/69_shopping-share-category`
@@ -306,6 +308,7 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đã chọn:** Hoãn — gom vào task dọn riêng. · **Theo:** §6.1 D-10 + §6.0 quy tắc 3.
 - **Đảo ngược thế nào:** —
 - **Cần người quyết lại không:** Không — (3) chỉ cần phiên `ai-native` sửa tài liệu.
+- **Đã xử lý ở #134 (2026-11-25, recipe-list-detail-screens §17 L1):** (1) lỗi favorite chỉ ghi `_error` khi list vẫn cùng thế hệ (`generation == _generation`) — lỗi về muộn sau `refresh()` thành công không còn để lại banner lỗi. **Lệch §17 luật 1** ('không bao giờ ghi `_error`'): repo chưa có `FavoriteErrorPresenter`/snackbar cho card nên bỏ hẳn sẽ làm lỗi favorite im lặng — giữ banner ở cùng thế hệ. (2) `_fetchPage` thêm `catch (_)` → `ServerException('ERR_UNKNOWN')`, status thoát loading (cả tab Yêu thích + loadMore). **Phần B (#134):** đã thêm `catch (_)` rollback đúng trục cho `RecipeStore.toggleFavorite` (cùng luật thế hệ, lỗi = `ServerException('ERR_UNKNOWN')`) và `RecipeDetailStore.toggleFavorite`/`setRating` (§17 luật 2) + test `TypeError`. **Còn lại:** presenter snackbar riêng cho favorite (`FavoriteErrorPresenter`).
 
 ### OD-38 · #16 Firebase Auth + Google Sign-In — làm theo thiết kế fe-app-shell §9, lệch issue
 - **Ngày:** 2026-11-20 · **Task:** #16 · **Nhánh:** `feature/16_firebase-google-signin`
@@ -414,3 +417,24 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Theo:** thiết kế `on-device-ai-runtime.md` §6.6 Amendment #120, §6.0 quy tắc 2.
 - **Đảo ngược thế nào:** khi có model/endpoint thật → package v3 runtime NN hoặc truyền hàm `cloud`; đổi `defaultVersions`.
 - **Cần người quyết lại không:** Không. Manual test "nấu 2 lần → điểm tăng" của issue không đúng với công thức (số lần không đổi điểm) — ghi trong PR.
+
+### OD-46 · #134 quick-action chạy nền (Android) + mutex refresh liên isolate — lệch/hoãn
+- **Ngày:** 2026-11-25 · **Task:** #134 phần B · **Nhánh:** `feature/134_quick-action-background`
+- **Tình huống:** Làm theo `inventory-management.md` §20.3 Amendment #134 A0–A11 + Guard 18/19/25–27. Một số điểm không làm được/không làm trong phạm vi.
+- **Đã chọn:**
+  1. **Chỉ Android (E1).** iOS giữ `DarwinNotificationActionOption.foreground` cho `MARK_USED`/`DISCARD`; nhánh UI isolate `_applyQuickAction` + snackbar giữ cho iOS. Android không còn snackbar quick-action — kết quả hiện trên notification (S0–S8).
+  2. **E2E chờ BE #130 (E2):** `supportsQuickActions` không gửi, `DeviceApi` không đụng. Kiểm bằng fixture `test/fixtures/notification/` + unit/widget test. **Chưa** smoke test trên thiết bị (terminated/máy bay/RT revoke/bấm 2 lần/xoá khỏi recents, đo biên storage 2 s — A10 hàng "thủ công").
+  3. **Deep link S5/S6 bỏ `item` (Q-E2):** payload có `smartkitchen://inventory?item=<id>` nhưng `NotificationTarget` không mang tham số ⇒ mở list Tồn kho, không focus item.
+  4. **Không `shared_preferences` (E6):** cờ pending-sync, guard in-flight, lease khoá = file trong `<appSupport>/notification_bg/` (`path_provider`). Web: `InProcessLock` (không file system).
+  5. S7 dùng lại key có sẵn `notificationNoNetwork` ("Không có mạng — hãy thử lại") thay vì thêm key "Không có mạng — thử lại"; thêm 4 key mới (S0/S5/S6/S8).
+  6. `QuickActionApiImpl`: `DioException` không mang `ApiException` (vd. bị cancel khi không có ErrorMappingInterceptor) ⇒ `ServerException('ERR_UNKNOWN')` thay vì `TypeError` do cast. Runner phân loại `ServerException` mã `ERR_UNKNOWN` = S8, mã khác (5xx) = S7.
+  7. `SessionStore`/`TokenRefreshInterceptor` nhận `RefreshGate?` tuỳ chọn; null ⇒ khoá trong isolate (test cũ không đổi). Production `bootstrap()` truyền chung 1 `RefreshGate(FileLeaseLock)`. `bootstrap()` không có RT ⇒ không xoá storage (giữ hành vi cũ); `refreshSession()` khác `refreshed` (kể cả `lockTimeout`) ⇒ ném `gate.error` nếu có (vd. lỗi gốc do `tryAcquire` ném), không có thì ném `StateError` (`session_store.dart` `refreshSession`).
+  8. Test ngân sách dùng thời lượng thật ngắn (100–200 ms) thay `fakeAsync` (không thêm dev dependency).
+  9. **Rủi ro M2 (review 2026-11-25) — chưa đổi code:** `RefreshGate` cắt request bằng `CancelToken` khi hết budget, nhưng huỷ ở client không huỷ được việc BE đã xử lý. Nếu BE đã xoay RT1→RT2 mà response về sau budget (isolate nền chỉ ≤ 3 s, mạng di động chậm) thì storage vẫn giữ RT1 đã bị thu hồi ⇒ lần refresh kế tiếp `ERR_AUTH_005` ⇒ **logout không do người dùng**. Ở main rủi ro này đã có từ trước (timeout 10/20 s), nền chặt hơn. **Câu hỏi cho BE:** `/auth/refresh` có cửa sổ ân hạn (grace) cho RT *vừa* xoay không (dùng lại RT1 trong vài giây ⇒ trả lại cặp RT2/AT2 thay vì 401)? Có ⇒ rủi ro gần như hết. Không ⇒ cân nhắc nâng budget nền (vẫn giữ TTL > budget + 2 s, nền ≤ 5 s < `mainWait` 6 s). Đề nghị phiên `ai-native` bổ sung vào A11.
+  10. **TTL theo giờ hệ thống (L3):** lease so `at` với `DateTime.now` (2 isolate không chung đồng hồ đơn điệu). Chỉnh giờ / NTP nhảy tới > 12 s đúng lúc đang giữ khoá ⇒ lease sống bị steal ⇒ 2 bên cùng gửi 1 RT ⇒ 1 bên `rejected` ⇒ main logout. Rất hiếm, chấp nhận, không đổi code.
+  11. **Hot restart (L4, chỉ debug):** hot restart đúng lúc đang refresh để lại lease cùng pid ⇒ `bootstrap()` sau đó chờ 6 s ⇒ `lockTimeout` ⇒ về login (token còn) cho tới khi lease quá TTL 12 s. Không phải bug. Không làm "owner không có trong registry của isolate ⇒ stale": isolate nền cùng pid có registry riêng nên cách đó sẽ steal lease đang sống ⇒ dùng RT 2 lần ⇒ logout thật.
+  12. **Review fix 2026-11-25:** `release()` của lease/guard thử lại `delete()` 5 lần (backoff 20→80 ms) rồi `developer.log` — trên Windows xoá file đang bị bên chờ mở đọc ném sharing violation, trước đây bị nuốt ⇒ lease nằm tới hết TTL (H1). Fallback `InProcessLock` của `FileLeaseLock` chỉ cho lượt lỗi thư mục, lượt sau thử lại (L2). Catch-up kho: cờ mang marker duy nhất, xoá theo kiểu so-rồi-xoá, cờ bị ghi mới giữa lúc sync ⇒ chạy thêm lượt (tối đa 3) (M1); chỉ xoá cờ khi đã sync thật — có household, epoch không đổi, không `syncError` (L1). Còn cửa sổ dưới mili-giây giữa đọc lại và `delete()` (file system không có compare-and-delete).
+  13. **Web:** `cross_isolate_lock.dart`/`bg_files.dart`/`inventory_catch_up.dart` import `dart:io`, `dart:isolate`, `IsolateNameServer` nhưng `flutter build web --release` vẫn build được (kiểm 2026-11-25); runtime web dùng `InProcessLock` và không `listen()` port (`kIsWeb` trong `bootstrap()`), catch-up gặp lỗi `path_provider` thì log và giữ nguyên.
+- **Theo:** decision-log #134 E1–E10, F1–F12; quyết định user 2026-11-25.
+- **Đảo ngược thế nào:** iOS: bỏ `.foreground` + nối runner nền khi có `ios/`. Focus item: đổi `NotificationTarget` thành class có payload. Khi BE #130 bật field: #48 thêm `supportsQuickActions` vào `DeviceApi`.
+- **Cần người quyết lại không:** Không. Rủi ro còn lại giữ nguyên A11 (steal kép, mất RT khi process bị giết ngay sau ghi, runner bị OS cắt ⇒ đứng ở S0, demo adapter riêng của isolate nền).

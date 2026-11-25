@@ -2,6 +2,7 @@ import 'package:mobx/mobx.dart';
 
 import '../data/auth/jwt_claims.dart';
 import '../data/auth/token_storage.dart';
+import '../data/notification/cross_isolate_lock.dart';
 import '../domain/auth/auth_refresh_usecase.dart';
 import '../domain/auth/auth_revoke_usecase.dart';
 import '../domain/auth/user_summary.dart';
@@ -17,11 +18,18 @@ class SessionStore = _SessionStore with _$SessionStore;
 
 abstract class _SessionStore with Store {
   _SessionStore(this._tokenStorage, this._refreshUseCase,
-      {AuthRevokeUseCase? revokeUseCase})
-      : _revokeUseCase = revokeUseCase;
+      {AuthRevokeUseCase? revokeUseCase, RefreshGate? refreshGate})
+      : _revokeUseCase = revokeUseCase,
+        _refreshGate = refreshGate ??
+            RefreshGate(lock: InProcessLock(), tokenStorage: _tokenStorage);
 
   final TokenStorage _tokenStorage;
   final AuthRefreshUseCase _refreshUseCase;
+
+  /// Mutex refresh liên isolate (inventory-management.md §20.3 Amendment #134
+  /// A5.4) — `bootstrap()` của app truyền bản lease file dùng chung với
+  /// `TokenRefreshInterceptor`; null ⇒ khoá trong isolate (test).
+  final RefreshGate _refreshGate;
 
   /// Tuỳ chọn — chỉ `bootstrap()` truyền vào. Test/guard-boot cũ dựng store
   /// không có use case này; khi đó [logout] chỉ xoá token cục bộ (không gọi BE).
@@ -74,16 +82,22 @@ abstract class _SessionStore with Store {
   @action
   Future<void> bootstrap() async {
     try {
-      final refreshToken = await _tokenStorage.readRefreshToken();
-      if (refreshToken == null) {
-        status = AuthStatus.unauthenticated;
-        return;
+      final gate = await _runRefreshGate();
+      switch (gate.outcome) {
+        case RefreshOutcome.refreshed:
+          final result = gate.tokens!;
+          final claims = _applyClaimsFromAccessToken(result.accessToken);
+          currentUser = await _restoreUser() ?? _userFromClaims(claims);
+          status = AuthStatus.authenticated;
+        case RefreshOutcome.lockTimeout:
+          // F3: hết chờ khoá KHÔNG xoá token — lần mở sau thử lại.
+          status = AuthStatus.unauthenticated;
+        case RefreshOutcome.rejected:
+        case RefreshOutcome.failed:
+          // Chưa từng có refresh token: giữ hành vi cũ (không đụng storage).
+          if (!gate.noRefreshToken) await _clearTokensQuietly();
+          status = AuthStatus.unauthenticated;
       }
-      final result = await _refreshUseCase.call(refreshToken);
-      await _tokenStorage.saveTokens(result.accessToken, result.refreshToken);
-      final claims = _applyClaimsFromAccessToken(result.accessToken);
-      currentUser = await _restoreUser() ?? _userFromClaims(claims);
-      status = AuthStatus.authenticated;
     } catch (_) {
       // Catch trần là bắt buộc, không phải `on Exception`: các cast lỗi ném
       // `TypeError`, vốn là `Error` chứ không phải `Exception`.
@@ -151,15 +165,30 @@ abstract class _SessionStore with Store {
   }
 
   /// Refresh tường minh để đồng bộ claim household sau create/join.
+  /// Khác `refreshed` ⇒ ném như trước (kể cả `lockTimeout`).
   @action
   Future<void> refreshSession() async {
-    final refreshToken = await _tokenStorage.readRefreshToken();
-    if (refreshToken == null) throw StateError('No refresh token');
-    final result = await _refreshUseCase.call(refreshToken);
-    await _tokenStorage.saveTokens(result.accessToken, result.refreshToken);
+    final gate = await _runRefreshGate();
+    final result = gate.tokens;
+    if (gate.outcome != RefreshOutcome.refreshed || result == null) {
+      if (gate.noRefreshToken) throw StateError('No refresh token');
+      throw gate.error ?? StateError('Refresh ${gate.outcome.name}');
+    }
     _applyClaimsFromAccessToken(result.accessToken);
     status = AuthStatus.authenticated;
   }
+
+  /// Đọc RT sau khi giữ khoá, ghi cặp mới trước khi nhả — trong RefreshGate
+  /// (Guard 19). Ngân sách tổng 8 s qua `options` + `cancelToken`.
+  Future<RefreshGateResult> _runRefreshGate() => _refreshGate.run(
+        wait: RefreshGate.mainWait,
+        budget: RefreshGate.mainBudget,
+        refresh: (refreshToken, options, cancelToken) => _refreshUseCase.call(
+          refreshToken,
+          options: options,
+          cancelToken: cancelToken,
+        ),
+      );
 
   /// Refresh best-effort để lấy claim mới (vd. `tier` sau `PATCH /me/tier`).
   /// KHÔNG throw — lỗi refresh không được làm hỏng mutation gốc đã thành công

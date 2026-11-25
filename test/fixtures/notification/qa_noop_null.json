@@ -1,0 +1,12 @@
+{
+  "success": true,
+  "data": {
+    "itemId": "a010000-0000-4000-8000-000000000001",
+    "itemName": "Cà chua",
+    "action": "MARK_USED",
+    "applied": false,
+    "transactionReason": null
+  },
+  "error": null,
+  "timestamp": "2026-11-25T08:00:00Z"
+}

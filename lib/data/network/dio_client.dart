@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../app/env_config.dart';
 import '../auth/token_storage.dart';
+import '../notification/cross_isolate_lock.dart';
 import 'interceptors/auth_header_interceptor.dart';
 import 'interceptors/error_mapping_interceptor.dart';
 import 'interceptors/logging_interceptor.dart';
@@ -30,7 +31,13 @@ class DioClient {
     // khớp theo prefix trong AuthHeaderInterceptor (§7.4).
   };
 
-  static DioClient build({required TokenStorage tokenStorage, Dio? dio}) {
+  /// [refreshGate]: mutex refresh liên isolate (Amendment #134 A5.4) —
+  /// `bootstrap()` truyền bản lease file; null ⇒ khoá trong isolate.
+  static DioClient build({
+    required TokenStorage tokenStorage,
+    Dio? dio,
+    RefreshGate? refreshGate,
+  }) {
     final instance = dio ??
         Dio(BaseOptions(
           baseUrl: EnvConfig.apiBaseUrl,
@@ -59,7 +66,12 @@ class DioClient {
     // giữ nguyên, chỉ thứ tự list là sửa lại.
     instance.interceptors.addAll(<Interceptor>[
       AuthHeaderInterceptor(tokenStorage, publicPaths: publicPaths),
-      TokenRefreshInterceptor(instance, tokenStorage, publicPaths: publicPaths),
+      TokenRefreshInterceptor(
+        instance,
+        tokenStorage,
+        publicPaths: publicPaths,
+        refreshGate: refreshGate,
+      ),
       ErrorMappingInterceptor(),
       if (EnvConfig.isDev) LoggingInterceptor(),
     ]);

@@ -33,10 +33,19 @@ class AuthRefreshUseCase {
   final Dio _dio;
 
   /// Ném [DioException] (đã mang [ApiException] ở `.error`) khi refresh thất bại.
-  Future<AuthRefreshResult> call(String refreshToken) async {
+  ///
+  /// [options]/[cancelToken] do `RefreshGate` truyền để cắt ngân sách tổng
+  /// của vùng găng (inventory-management.md §20.3 Amendment #134 A5.2).
+  Future<AuthRefreshResult> call(
+    String refreshToken, {
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
     final response = await _dio.post<dynamic>(
       path,
       data: <String, dynamic>{'refreshToken': refreshToken},
+      options: options,
+      cancelToken: cancelToken,
     );
     final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
       response.data as Map<String, dynamic>,

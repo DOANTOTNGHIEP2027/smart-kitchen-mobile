@@ -1,0 +1,9 @@
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "ERR_INVENTORY_NO_HOUSEHOLD",
+    "message": "No household"
+  },
+  "timestamp": "2026-11-25T08:00:00Z"
+}

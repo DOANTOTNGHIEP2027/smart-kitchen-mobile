@@ -12,6 +12,7 @@ import 'app_notification.dart';
 import 'fcm_action_payload.dart';
 import 'notification_routing.dart';
 import 'quick_action_api.dart';
+import 'quick_action_background.dart';
 import '../../l10n/app_localizations.dart';
 
 const String inventoryExpiryCategory = 'SK_INVENTORY_EXPIRY_V1';
@@ -47,48 +48,83 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
 }
 
-Future<void> _showInventoryNotification(
-  FcmActionPayload payload, {
-  required int notificationId,
-  String? messageId,
-}) async {
-  final plugin = FlutterLocalNotificationsPlugin();
-  await plugin.initialize(
-    settings: const InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-    ),
-  );
-  const channel = AndroidNotificationChannel(
-    'smart_kitchen_inventory_alerts',
-    'Inventory alerts',
-    description: 'Expiry and low-stock inventory alerts',
-    importance: Importance.high,
-  );
-  final android = plugin.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>();
-  await android?.createNotificationChannel(channel);
-  await plugin.show(
-    id: notificationId,
-    title: payload.title,
-    body: payload.body,
-    notificationDetails: NotificationDetails(
+/// Channel của cảnh báo kho — dùng chung UI isolate và isolate nền.
+const AndroidNotificationChannel inventoryAlertChannel =
+    AndroidNotificationChannel(
+  'smart_kitchen_inventory_alerts',
+  'Inventory alerts',
+  description: 'Expiry and low-stock inventory alerts',
+  importance: Importance.high,
+);
+
+/// `MARK_USED`/`DISCARD` chạy ở isolate nền (không mở app); `COOK_TODAY` là
+/// deep-link nên mở app (Guard 25, A9).
+bool isBackgroundQuickAction(String actionId) =>
+    actionId == 'MARK_USED' || actionId == 'DISCARD';
+
+/// Builder dùng chung cho mọi lần dựng/cập nhật cảnh báo hết hạn (Guard 24,
+/// A6): cùng channel, cùng luật `showsUserInterface`.
+NotificationDetails inventoryNotificationDetails(
+  List<FcmNotificationAction> actions, {
+  int? timeoutAfter,
+  bool onlyAlertOnce = false,
+  String? bigText,
+}) =>
+    NotificationDetails(
       android: AndroidNotificationDetails(
-        channel.id,
-        channel.name,
-        channelDescription: channel.description,
+        inventoryAlertChannel.id,
+        inventoryAlertChannel.name,
+        channelDescription: inventoryAlertChannel.description,
         importance: Importance.high,
         priority: Priority.high,
-        actions: payload.actions
+        onlyAlertOnce: onlyAlertOnce,
+        timeoutAfter: timeoutAfter,
+        styleInformation:
+            bigText == null ? null : BigTextStyleInformation(bigText),
+        actions: actions
             .map((action) => AndroidNotificationAction(
                   action.id,
                   action.label,
-                  showsUserInterface: true,
+                  showsUserInterface: !isBackgroundQuickAction(action.id),
                   cancelNotification: false,
                 ))
             .toList(growable: false),
       ),
+    );
+
+/// Khởi tạo plugin CHỈ trong isolate nền (FCM background / quick-action).
+/// Mọi `initialize` đều truyền cùng callback nền top-level (Guard 25).
+Future<void> initInventoryNotificationsInBackground(
+  FlutterLocalNotificationsPlugin plugin,
+) async {
+  await plugin.initialize(
+    settings: const InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     ),
-    payload: _encodeInteraction(
+    onDidReceiveBackgroundNotificationResponse: quickActionBackgroundEntry,
+  );
+  final android = plugin.resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>();
+  await android?.createNotificationChannel(inventoryAlertChannel);
+}
+
+/// [plugin] != null: UI isolate, plugin đã `initialize` ở `init()` — KHÔNG
+/// init lại (FLN singleton, init lần 2 ghi đè handler tap — Guard 26).
+/// [plugin] == null: isolate nền FCM, tự khởi tạo kèm callback nền.
+Future<void> _showInventoryNotification(
+  FcmActionPayload payload, {
+  required int notificationId,
+  String? messageId,
+  FlutterLocalNotificationsPlugin? plugin,
+}) async {
+  final target = plugin ?? FlutterLocalNotificationsPlugin();
+  if (plugin == null) await initInventoryNotificationsInBackground(target);
+  await target.show(
+    id: notificationId,
+    title: payload.title,
+    body: payload.body,
+    notificationDetails: inventoryNotificationDetails(payload.actions),
+    payload: encodeNotificationInteraction(
       payload.data,
       notificationId,
       messageId: messageId,
@@ -231,13 +267,18 @@ class NotificationService {
         ],
       ),
     );
+    // Android: MARK_USED/DISCARD (showsUserInterface: false) đi callback nền
+    // top-level — Guard 25, A9. Nhánh `_applyQuickAction` bên dưới chỉ còn
+    // cho iOS (`.foreground`, E1).
     await _localNotifications.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: _onLocalNotificationTap,
+      onDidReceiveBackgroundNotificationResponse: quickActionBackgroundEntry,
     );
     final android = _localNotifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     await android?.createNotificationChannel(_channel);
+    await android?.createNotificationChannel(inventoryAlertChannel);
 
     final launch = await _localNotifications.getNotificationAppLaunchDetails();
     final response = launch?.notificationResponse;
@@ -263,6 +304,7 @@ class NotificationService {
         payload!,
         notificationId: _notificationId(message),
         messageId: message.messageId,
+        plugin: _localNotifications,
       );
       return;
     }
@@ -284,7 +326,7 @@ class NotificationService {
           categoryIdentifier: inventoryExpiryCategory,
         ),
       ),
-      payload: _encodeInteraction(
+      payload: encodeNotificationInteraction(
         message.data,
         _notificationId(message),
         messageId: message.messageId,
@@ -321,7 +363,7 @@ class NotificationService {
   Future<void> _handleNotificationResponse(
     NotificationResponse response,
   ) async {
-    final interaction = _decodeInteraction(response.payload);
+    final interaction = decodeNotificationInteraction(response.payload);
     if (interaction == null) {
       _onNavigate(NotificationTarget.inventory);
       return;
@@ -426,8 +468,9 @@ int _notificationId(RemoteMessage message) =>
     (message.messageId ?? jsonEncode(message.data)).hashCode & 0x7fffffff;
 
 /// Payload local mang thêm `messageId`/`title`/`body` để tap dựng lại đúng
-/// `AppNotification` và bỏ trùng theo `messageId` (§14.2).
-String _encodeInteraction(
+/// `AppNotification` và bỏ trùng theo `messageId` (§14.2). Isolate nền
+/// (quick-action) dùng chung để giữ nguyên payload qua mọi lần cập nhật (A6).
+String encodeNotificationInteraction(
   Map<String, dynamic> data,
   int notificationId, {
   String? messageId,
@@ -442,11 +485,11 @@ String _encodeInteraction(
       if (body != null) 'body': body,
     });
 
-_NotificationInteraction? _decodeInteraction(String? raw) {
+NotificationInteraction? decodeNotificationInteraction(String? raw) {
   if (raw == null || raw.isEmpty) return null;
   try {
     final value = Map<String, dynamic>.from(jsonDecode(raw) as Map);
-    return _NotificationInteraction(
+    return NotificationInteraction(
       notificationId: (value['notificationId'] as num).toInt(),
       data: Map<String, dynamic>.from(value['data'] as Map),
       messageId: value['messageId'] as String?,
@@ -458,8 +501,8 @@ _NotificationInteraction? _decodeInteraction(String? raw) {
   }
 }
 
-class _NotificationInteraction {
-  const _NotificationInteraction({
+class NotificationInteraction {
+  const NotificationInteraction({
     required this.notificationId,
     required this.data,
     this.messageId,
