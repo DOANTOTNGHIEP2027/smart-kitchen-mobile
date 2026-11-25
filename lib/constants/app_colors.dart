@@ -55,6 +55,15 @@ abstract class AppColors {
   static const Color sageBorder = Color(0xFFCFE2D3);
   static const Color sageSurface = Color(0xFFF7FAF8);
 
+  // Nutrition compliance (DESIGN_SYSTEM.md §2.4, nutrition-summary-widget.md §9)
+  static const Color nutritionExcellent = Color(0xFF2E7D32);
+  static const Color nutritionGood = Color(0xFF1565C0);
+  static const Color nutritionNeedsImprovement = Color(0xFFD97706);
+  static const Color nutritionPoor = Color(0xFFC62828);
+  static const Color macroProtein = Color(0xFF4C6FFF);
+  static const Color macroCarbs = Color(0xFFFF9F43);
+  static const Color macroFat = Color(0xFFEF5350);
+
   // Scrim cho LoadingOverlay (design-system.md §5)
   static const Color scrim = Color(0x52000000);
 

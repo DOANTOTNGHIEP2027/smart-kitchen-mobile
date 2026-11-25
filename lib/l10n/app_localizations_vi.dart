@@ -3085,4 +3085,153 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get memberDetailClose => 'Đóng';
+
+  @override
+  String get nutritionTitle => 'Dinh dưỡng tuần';
+
+  @override
+  String get nutritionWeekThisTitle => 'Dinh dưỡng tuần này';
+
+  @override
+  String get nutritionComplianceExcellent => 'Xuất sắc';
+
+  @override
+  String get nutritionComplianceGood => 'Tốt';
+
+  @override
+  String get nutritionComplianceNeedsImprovement => 'Cần cải thiện';
+
+  @override
+  String get nutritionCompliancePoor => 'Chưa đạt';
+
+  @override
+  String get nutritionComplianceUnknown => 'Chưa có đánh giá';
+
+  @override
+  String nutritionScoreOutOf(int score) {
+    return '$score/100';
+  }
+
+  @override
+  String get nutritionScoreLabel => 'Điểm tuân thủ kế hoạch';
+
+  @override
+  String get nutritionAllergenNotChecked =>
+      'Chưa kiểm tra dị ứng — điểm chỉ dựa trên calo';
+
+  @override
+  String get nutritionSetTarget => 'Đặt mục tiêu calo';
+
+  @override
+  String get nutritionWeeklyTotal => 'Tổng tuần';
+
+  @override
+  String nutritionTargetForDays(int days, String kcal) {
+    return 'Mục tiêu cho $days ngày có dữ liệu: $kcal kcal';
+  }
+
+  @override
+  String nutritionWeeklyDelta(String delta) {
+    return '$delta kcal so với mục tiêu';
+  }
+
+  @override
+  String get nutritionNoTarget => 'Chưa đặt mục tiêu';
+
+  @override
+  String nutritionAvgPerDay(String kcal, int days) {
+    return 'TB $kcal kcal/ngày ($days ngày có dữ liệu)';
+  }
+
+  @override
+  String get nutritionNoDataDays => 'Chưa có ngày nào có dữ liệu';
+
+  @override
+  String nutritionMissingData(int count) {
+    return '$count món chưa có dữ liệu dinh dưỡng';
+  }
+
+  @override
+  String nutritionKcal(String kcal) {
+    return '$kcal kcal';
+  }
+
+  @override
+  String nutritionMacroLine(String p, String c, String f) {
+    return 'P $p g · C $c g · F $f g';
+  }
+
+  @override
+  String get nutritionNoMealsDay => 'Chưa có món nào';
+
+  @override
+  String get nutritionProtein => 'Protein';
+
+  @override
+  String get nutritionCarbs => 'Carbs';
+
+  @override
+  String get nutritionFat => 'Fat';
+
+  @override
+  String nutritionMacroPercent(String name, String percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String get nutritionNoMacroData => 'Chưa có dữ liệu macro';
+
+  @override
+  String get nutritionDayOver => 'Vượt mục tiêu';
+
+  @override
+  String get nutritionDayUnder => 'Thiếu nhiều';
+
+  @override
+  String get nutritionDayOnTarget => 'Đạt';
+
+  @override
+  String get nutritionEmpty => 'Chưa có món nào được xác nhận trong tuần này';
+
+  @override
+  String get nutritionLoadFailed => 'Không tải được dữ liệu dinh dưỡng';
+
+  @override
+  String get nutritionViewMealPlan => 'Xem kế hoạch tuần';
+
+  @override
+  String get nutritionDishNoData => 'chưa có dữ liệu';
+
+  @override
+  String get nutritionDailyBreakdown => 'Chi tiết theo ngày';
+
+  @override
+  String get nutritionMealBreakfast => 'Sáng';
+
+  @override
+  String get nutritionMealLunch => 'Trưa';
+
+  @override
+  String get nutritionMealDinner => 'Tối';
+
+  @override
+  String get nutritionMealSnack => 'Bữa phụ';
+
+  @override
+  String nutritionBarSemantics(String day, String kcal) {
+    return '$day: $kcal kcal';
+  }
+
+  @override
+  String nutritionChartSemantics(String days) {
+    return 'Calo theo ngày: $days';
+  }
+
+  @override
+  String get nutritionMealOther => 'Bữa khác';
+
+  @override
+  String nutritionDishLine(String meal, String dish, String value) {
+    return '$meal: $dish · $value';
+  }
 }

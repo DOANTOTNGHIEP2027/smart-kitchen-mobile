@@ -5583,6 +5583,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get memberDetailClose;
+
+  /// No description provided for @nutritionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly nutrition'**
+  String get nutritionTitle;
+
+  /// No description provided for @nutritionWeekThisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s nutrition'**
+  String get nutritionWeekThisTitle;
+
+  /// No description provided for @nutritionComplianceExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get nutritionComplianceExcellent;
+
+  /// No description provided for @nutritionComplianceGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get nutritionComplianceGood;
+
+  /// No description provided for @nutritionComplianceNeedsImprovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs improvement'**
+  String get nutritionComplianceNeedsImprovement;
+
+  /// No description provided for @nutritionCompliancePoor.
+  ///
+  /// In en, this message translates to:
+  /// **'Not met'**
+  String get nutritionCompliancePoor;
+
+  /// No description provided for @nutritionComplianceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not rated yet'**
+  String get nutritionComplianceUnknown;
+
+  /// No description provided for @nutritionScoreOutOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{score}/100'**
+  String nutritionScoreOutOf(int score);
+
+  /// No description provided for @nutritionScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan compliance score'**
+  String get nutritionScoreLabel;
+
+  /// No description provided for @nutritionAllergenNotChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergens not checked — score is based on calories only'**
+  String get nutritionAllergenNotChecked;
+
+  /// No description provided for @nutritionSetTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Set calorie target'**
+  String get nutritionSetTarget;
+
+  /// No description provided for @nutritionWeeklyTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly total'**
+  String get nutritionWeeklyTotal;
+
+  /// No description provided for @nutritionTargetForDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Target for {days} days with data: {kcal} kcal'**
+  String nutritionTargetForDays(int days, String kcal);
+
+  /// No description provided for @nutritionWeeklyDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'{delta} kcal vs target'**
+  String nutritionWeeklyDelta(String delta);
+
+  /// No description provided for @nutritionNoTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'No target set'**
+  String get nutritionNoTarget;
+
+  /// No description provided for @nutritionAvgPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg {kcal} kcal/day ({days} days with data)'**
+  String nutritionAvgPerDay(String kcal, int days);
+
+  /// No description provided for @nutritionNoDataDays.
+  ///
+  /// In en, this message translates to:
+  /// **'No day has nutrition data yet'**
+  String get nutritionNoDataDays;
+
+  /// No description provided for @nutritionMissingData.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dish has no nutrition data} other{{count} dishes have no nutrition data}}'**
+  String nutritionMissingData(int count);
+
+  /// No description provided for @nutritionKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'{kcal} kcal'**
+  String nutritionKcal(String kcal);
+
+  /// No description provided for @nutritionMacroLine.
+  ///
+  /// In en, this message translates to:
+  /// **'P {p} g · C {c} g · F {f} g'**
+  String nutritionMacroLine(String p, String c, String f);
+
+  /// No description provided for @nutritionNoMealsDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No dishes'**
+  String get nutritionNoMealsDay;
+
+  /// No description provided for @nutritionProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein'**
+  String get nutritionProtein;
+
+  /// No description provided for @nutritionCarbs.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs'**
+  String get nutritionCarbs;
+
+  /// No description provided for @nutritionFat.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat'**
+  String get nutritionFat;
+
+  /// No description provided for @nutritionMacroPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {percent}%'**
+  String nutritionMacroPercent(String name, String percent);
+
+  /// No description provided for @nutritionNoMacroData.
+  ///
+  /// In en, this message translates to:
+  /// **'No macro data yet'**
+  String get nutritionNoMacroData;
+
+  /// No description provided for @nutritionDayOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Over target'**
+  String get nutritionDayOver;
+
+  /// No description provided for @nutritionDayUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'Well under'**
+  String get nutritionDayUnder;
+
+  /// No description provided for @nutritionDayOnTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'On target'**
+  String get nutritionDayOnTarget;
+
+  /// No description provided for @nutritionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dishes confirmed this week yet'**
+  String get nutritionEmpty;
+
+  /// No description provided for @nutritionLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load nutrition data'**
+  String get nutritionLoadFailed;
+
+  /// No description provided for @nutritionViewMealPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'View weekly plan'**
+  String get nutritionViewMealPlan;
+
+  /// No description provided for @nutritionDishNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'no data'**
+  String get nutritionDishNoData;
+
+  /// No description provided for @nutritionDailyBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily breakdown'**
+  String get nutritionDailyBreakdown;
+
+  /// No description provided for @nutritionMealBreakfast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast'**
+  String get nutritionMealBreakfast;
+
+  /// No description provided for @nutritionMealLunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch'**
+  String get nutritionMealLunch;
+
+  /// No description provided for @nutritionMealDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner'**
+  String get nutritionMealDinner;
+
+  /// No description provided for @nutritionMealSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Snack'**
+  String get nutritionMealSnack;
+
+  /// No description provided for @nutritionBarSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{day}: {kcal} kcal'**
+  String nutritionBarSemantics(String day, String kcal);
+
+  /// No description provided for @nutritionChartSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories per day: {days}'**
+  String nutritionChartSemantics(String days);
+
+  /// No description provided for @nutritionMealOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other meal'**
+  String get nutritionMealOther;
+
+  /// No description provided for @nutritionDishLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{meal}: {dish} · {value}'**
+  String nutritionDishLine(String meal, String dish, String value);
 }
 
 class _AppLocalizationsDelegate

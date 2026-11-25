@@ -754,6 +754,18 @@ class DemoBackendAdapter implements HttpClientAdapter {
     };
   }
 
+  static Map<String, dynamic> _demoNutrition(Object? calories) {
+    if (calories is! num) return <String, dynamic>{'calories': calories};
+    final kcal = calories.toDouble();
+    double round1(double v) => (v * 10).roundToDouble() / 10;
+    return <String, dynamic>{
+      'calories': kcal,
+      'proteinG': round1(kcal * 0.20 / 4),
+      'carbsG': round1(kcal * 0.50 / 4),
+      'fatG': round1(kcal * 0.30 / 9),
+    };
+  }
+
   Map<String, dynamic> _recipeResponse(String recipeId) {
     final raw = DemoFixtures.recipe(recipeId);
     final steps = (raw['steps'] as List<dynamic>)
@@ -802,7 +814,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'thumbnailUrl': raw['thumbnailUrl'],
       'ingredients': ingredients,
       'steps': steps,
-      'nutrition': <String, dynamic>{'calories': raw['calories']},
+      // Demo #64: suy macro từ calo theo tỉ lệ kcal 20/50/30 (P/C/F) để
+      // widget dinh dưỡng có số liệu — CHỈ dùng cho bản demo.
+      'nutrition': _demoNutrition(raw['calories']),
       'source': 'AI_SUGGESTED',
       'createdBy': null,
       'createdAt': '2026-09-20T08:00:00.000Z',

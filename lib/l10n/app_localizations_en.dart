@@ -3123,4 +3123,159 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memberDetailClose => 'Close';
+
+  @override
+  String get nutritionTitle => 'Weekly nutrition';
+
+  @override
+  String get nutritionWeekThisTitle => 'This week\'s nutrition';
+
+  @override
+  String get nutritionComplianceExcellent => 'Excellent';
+
+  @override
+  String get nutritionComplianceGood => 'Good';
+
+  @override
+  String get nutritionComplianceNeedsImprovement => 'Needs improvement';
+
+  @override
+  String get nutritionCompliancePoor => 'Not met';
+
+  @override
+  String get nutritionComplianceUnknown => 'Not rated yet';
+
+  @override
+  String nutritionScoreOutOf(int score) {
+    return '$score/100';
+  }
+
+  @override
+  String get nutritionScoreLabel => 'Plan compliance score';
+
+  @override
+  String get nutritionAllergenNotChecked =>
+      'Allergens not checked — score is based on calories only';
+
+  @override
+  String get nutritionSetTarget => 'Set calorie target';
+
+  @override
+  String get nutritionWeeklyTotal => 'Weekly total';
+
+  @override
+  String nutritionTargetForDays(int days, String kcal) {
+    return 'Target for $days days with data: $kcal kcal';
+  }
+
+  @override
+  String nutritionWeeklyDelta(String delta) {
+    return '$delta kcal vs target';
+  }
+
+  @override
+  String get nutritionNoTarget => 'No target set';
+
+  @override
+  String nutritionAvgPerDay(String kcal, int days) {
+    return 'Avg $kcal kcal/day ($days days with data)';
+  }
+
+  @override
+  String get nutritionNoDataDays => 'No day has nutrition data yet';
+
+  @override
+  String nutritionMissingData(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dishes have no nutrition data',
+      one: '1 dish has no nutrition data',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nutritionKcal(String kcal) {
+    return '$kcal kcal';
+  }
+
+  @override
+  String nutritionMacroLine(String p, String c, String f) {
+    return 'P $p g · C $c g · F $f g';
+  }
+
+  @override
+  String get nutritionNoMealsDay => 'No dishes';
+
+  @override
+  String get nutritionProtein => 'Protein';
+
+  @override
+  String get nutritionCarbs => 'Carbs';
+
+  @override
+  String get nutritionFat => 'Fat';
+
+  @override
+  String nutritionMacroPercent(String name, String percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String get nutritionNoMacroData => 'No macro data yet';
+
+  @override
+  String get nutritionDayOver => 'Over target';
+
+  @override
+  String get nutritionDayUnder => 'Well under';
+
+  @override
+  String get nutritionDayOnTarget => 'On target';
+
+  @override
+  String get nutritionEmpty => 'No dishes confirmed this week yet';
+
+  @override
+  String get nutritionLoadFailed => 'Couldn\'t load nutrition data';
+
+  @override
+  String get nutritionViewMealPlan => 'View weekly plan';
+
+  @override
+  String get nutritionDishNoData => 'no data';
+
+  @override
+  String get nutritionDailyBreakdown => 'Daily breakdown';
+
+  @override
+  String get nutritionMealBreakfast => 'Breakfast';
+
+  @override
+  String get nutritionMealLunch => 'Lunch';
+
+  @override
+  String get nutritionMealDinner => 'Dinner';
+
+  @override
+  String get nutritionMealSnack => 'Snack';
+
+  @override
+  String nutritionBarSemantics(String day, String kcal) {
+    return '$day: $kcal kcal';
+  }
+
+  @override
+  String nutritionChartSemantics(String days) {
+    return 'Calories per day: $days';
+  }
+
+  @override
+  String get nutritionMealOther => 'Other meal';
+
+  @override
+  String nutritionDishLine(String meal, String dish, String value) {
+    return '$meal: $dish · $value';
+  }
 }

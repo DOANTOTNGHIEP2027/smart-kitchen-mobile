@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../routing/app_routes.dart';
 import '../../../stores/session_store.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/api_error_l10n.dart';
@@ -16,6 +17,8 @@ import '../domain/meal_plan_slot.dart';
 import '../stores/meal_plan_store.dart';
 import '../widgets/recipe_cover_image.dart';
 import 'meal_slot_editor_scene.dart';
+import '../../nutrition/stores/nutrition_store.dart';
+import '../../nutrition/widgets/nutrition_summary_widget.dart';
 
 /// Lưới lịch bữa ăn tuần (FE-7 §12, 7 ngày × 3 bữa) — Phong cách Tasty:
 /// Sáng sủa, thoáng đãng, các thẻ bữa ăn solid-color với shadow nhẹ,
@@ -161,6 +164,19 @@ class _WeekCalendar extends StatelessWidget {
   final ValueChanged<DateTime> onDateSelected;
   final Future<void> Function(int direction) onNavigateWeek;
 
+  static Widget _nutritionSection() {
+    if (!Get.isRegistered<NutritionStore>(tag: NutritionStore.mealPlanTag)) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: AppDimens.lg),
+      child: NutritionSummaryWidget(
+        store: Get.find<NutritionStore>(tag: NutritionStore.mealPlanTag),
+        onSetTarget: () async => Get.toNamed<void>(AppRoutes.profileHealth),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Observer(
         builder: (_) => ListView(
@@ -244,6 +260,8 @@ class _WeekCalendar extends StatelessWidget {
                 ),
               ),
             ),
+            // #64 — tổng hợp dinh dưỡng tuần đang xem.
+            _nutritionSection(),
           ],
         ),
       );
