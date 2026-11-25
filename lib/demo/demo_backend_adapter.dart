@@ -91,6 +91,12 @@ class DemoBackendAdapter implements HttpClientAdapter {
       .map((item) => Map<String, dynamic>.from(item))
       .toList(growable: true);
   var _shopSequence = 5;
+
+  /// #68 — quét hoá đơn demo (shopping-receipt-scan.md §2, D27): xoay vòng
+  /// fixture theo số lần gọi có key MỚI; cùng key → đúng fixture đã trả.
+  var _receiptScanCount = 0;
+  final Map<String, Map<String, dynamic>> _receiptScansByKey =
+      <String, Map<String, dynamic>>{};
   late Map<String, dynamic> _budget = DemoFixtures.budget();
 
   final List<Map<String, dynamic>> _dependents = DemoFixtures.dependents()
@@ -227,6 +233,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
             'Phương thức này chưa được hỗ trợ trong bản demo.',
           ),
       };
+    }
+    if (path == '/api/v1/receipts/scan' && method == 'POST') {
+      return _scanReceipt(options);
     }
     if (path == '/api/v1/inventory-items/scan' && method == 'POST') {
       return _ok(200, <String, dynamic>{
@@ -2095,6 +2104,32 @@ class DemoBackendAdapter implements HttpClientAdapter {
 
   ResponseBody _getWeeklyNutrition() =>
       _ok(200, DemoFixtures.weeklyNutrition());
+
+  ResponseBody _scanReceipt(RequestOptions options) {
+    final key = (options.headers['X-Idempotency-Key'] ??
+            options.headers['x-idempotency-key'])
+        ?.toString();
+    if (key == null || key.isEmpty) {
+      return _error(
+        400,
+        'ERR_VALIDATION_FAILED',
+        'Thiếu header X-Idempotency-Key.',
+      );
+    }
+    final cached = _receiptScansByKey[key];
+    if (cached != null) return _ok(200, cached);
+    final fixtures = <Map<String, dynamic> Function(String)>[
+      DemoFixtures.receiptScanNormal,
+      DemoFixtures.receiptScanDuplicate,
+      DemoFixtures.receiptScanEmpty,
+    ];
+    final fixture = fixtures[_receiptScanCount % fixtures.length](
+      'demo-receipt-scan-${_receiptScanCount + 1}',
+    );
+    _receiptScanCount++;
+    _receiptScansByKey[key] = fixture;
+    return _ok(200, fixture);
+  }
 
   ResponseBody _ok(int status, Object? data) => _json(status, {
         'success': true,

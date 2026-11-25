@@ -930,6 +930,106 @@ abstract final class DemoFixtures {
         'updatedAt': '2026-09-20T08:00:00.000Z',
       };
 
+  // ── #68 Quét hoá đơn (shopping-receipt-scan.md §2, D27) ────────────────
+  // matched CHỈ dùng id có thật và PENDING trong [shoppingItems]:
+  // demo-shop-001 (Nước dừa), demo-shop-002 (Me chua), demo-shop-004 (Trứng gà).
+
+  /// Bình thường: 1 dòng khớp chắc (0.95), 1 dòng cần kiểm tra (0.86), 1 món
+  /// ngoài danh sách (đơn vị hoá đơn "hũ" không có trong unitOptions).
+  static Map<String, dynamic> receiptScanNormal(String scanId) =>
+      <String, dynamic>{
+        'scanId': scanId,
+        'storeName': 'Winmart+ Nguyễn Trãi',
+        'purchaseDate': '2026-10-14',
+        'totalAmount': 90000,
+        'currency': 'VND',
+        'matchedItems': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'shoppingItemId': 'demo-shop-001',
+            'shoppingItemName': 'Nước dừa',
+            'rawName': 'NUOC DUA XIEM',
+            'mappedName': 'Nước dừa',
+            'quantity': 2,
+            'unit': 'trái',
+            'unitPrice': 15000,
+            'totalPrice': 30000,
+            'matchConfidence': 0.95,
+          },
+          <String, dynamic>{
+            'shoppingItemId': 'demo-shop-004',
+            'shoppingItemName': 'Trứng gà',
+            'rawName': 'TRUNG GA HOP 10',
+            'mappedName': 'Trứng gà',
+            'quantity': 1,
+            'unit': 'hộp',
+            'unitPrice': 32000,
+            'totalPrice': 32000,
+            'matchConfidence': 0.86,
+          },
+        ],
+        'unmatchedItems': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'itemId': '$scanId-u1',
+            'rawName': 'SUA CHUA VINAMILK',
+            'mappedName': 'Sữa chua',
+            'quantity': 4,
+            'unit': 'hũ',
+            'unitPrice': 7000,
+            'totalPrice': 28000,
+            'matchConfidence': 0.71,
+            'suggestedCategory': 'Sữa',
+          },
+        ],
+      };
+
+  /// Trùng món: 2 dòng cùng demo-shop-002, cả 2 có totalPrice → gửi 1 lần,
+  /// giá = tổng. Không có ngày mua (header ẩn riêng field đó).
+  static Map<String, dynamic> receiptScanDuplicate(String scanId) =>
+      <String, dynamic>{
+        'scanId': scanId,
+        'storeName': 'Bách hoá Xanh',
+        'purchaseDate': null,
+        'totalAmount': 20000,
+        'currency': 'VND',
+        'matchedItems': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'shoppingItemId': 'demo-shop-002',
+            'shoppingItemName': 'Me chua',
+            'rawName': 'ME CHUA 200G',
+            'mappedName': 'Me chua',
+            'quantity': 1,
+            'unit': 'gói',
+            'unitPrice': 12000,
+            'totalPrice': 12000,
+            'matchConfidence': 0.93,
+          },
+          <String, dynamic>{
+            'shoppingItemId': 'demo-shop-002',
+            'shoppingItemName': 'Me chua',
+            'rawName': 'ME CHUA GOI NHO',
+            'mappedName': 'Me chua',
+            'quantity': 1,
+            'unit': 'gói',
+            'unitPrice': 8000,
+            'totalPrice': 8000,
+            'matchConfidence': 0.88,
+          },
+        ],
+        'unmatchedItems': <Map<String, dynamic>>[],
+      };
+
+  /// Ảnh mờ / không phải hoá đơn: 200 với 2 danh sách rỗng (D16).
+  static Map<String, dynamic> receiptScanEmpty(String scanId) =>
+      <String, dynamic>{
+        'scanId': scanId,
+        'storeName': null,
+        'purchaseDate': null,
+        'totalAmount': null,
+        'currency': 'VND',
+        'matchedItems': <Map<String, dynamic>>[],
+        'unmatchedItems': <Map<String, dynamic>>[],
+      };
+
   static String _dateOnly(DateTime value) =>
       '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 }

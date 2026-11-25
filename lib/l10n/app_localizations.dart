@@ -5835,6 +5835,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{meal}: {dish} · {value}'**
   String nutritionDishLine(String meal, String dish, String value);
+
+  /// No description provided for @receiptScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan receipt'**
+  String get receiptScanTitle;
+
+  /// No description provided for @receiptScanTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan receipt'**
+  String get receiptScanTooltip;
+
+  /// No description provided for @receiptScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture the whole receipt clearly. Items matching your shopping list are pre-selected; extra purchases can go to inventory.'**
+  String get receiptScanHint;
+
+  /// No description provided for @receiptScanNoImage.
+  ///
+  /// In en, this message translates to:
+  /// **'No image yet'**
+  String get receiptScanNoImage;
+
+  /// No description provided for @receiptScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the receipt…'**
+  String get receiptScanning;
+
+  /// No description provided for @receiptErrorAiUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The receipt reader is busy or not ready. Retry with this same photo, or choose another one.'**
+  String get receiptErrorAiUnavailable;
+
+  /// No description provided for @receiptErrorInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'This receipt is still being read — try again in a few seconds.'**
+  String get receiptErrorInProgress;
+
+  /// No description provided for @receiptErrorImageRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo can\'t be processed. Retrying the same photo gives the same result — take another photo.'**
+  String get receiptErrorImageRejected;
+
+  /// No description provided for @receiptErrorNoHouseholdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re not in a household yet'**
+  String get receiptErrorNoHouseholdTitle;
+
+  /// No description provided for @receiptErrorNoHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a household before scanning receipts.'**
+  String get receiptErrorNoHousehold;
+
+  /// No description provided for @receiptClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get receiptClose;
+
+  /// No description provided for @receiptResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan result'**
+  String get receiptResultTitle;
+
+  /// No description provided for @receiptRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get receiptRestart;
+
+  /// No description provided for @receiptRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake'**
+  String get receiptRetake;
+
+  /// No description provided for @receiptEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the receipt, please retake the photo'**
+  String get receiptEmpty;
+
+  /// No description provided for @receiptSummaryTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {amount}'**
+  String receiptSummaryTotal(String amount);
+
+  /// No description provided for @receiptSummaryCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{matched} matched lines · {unmatched} not on the list'**
+  String receiptSummaryCounts(int matched, int unmatched);
+
+  /// No description provided for @receiptMatchedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches your shopping list'**
+  String get receiptMatchedSection;
+
+  /// No description provided for @receiptMatchedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{lines} lines · {items} items'**
+  String receiptMatchedCount(int lines, int items);
+
+  /// No description provided for @receiptUnmatchedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on the list'**
+  String get receiptUnmatchedSection;
+
+  /// No description provided for @receiptUnmatchedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String receiptUnmatchedCount(int count);
+
+  /// No description provided for @receiptOnReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'On receipt: \"{raw}\"'**
+  String receiptOnReceipt(String raw);
+
+  /// No description provided for @receiptBadgeReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-check'**
+  String get receiptBadgeReview;
+
+  /// No description provided for @receiptCatalogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog guess {percent}%'**
+  String receiptCatalogHint(int percent);
+
+  /// No description provided for @receiptMarkedBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as bought'**
+  String get receiptMarkedBought;
+
+  /// No description provided for @receiptNotUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Not updated'**
+  String get receiptNotUpdated;
+
+  /// No description provided for @receiptSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get receiptSkipped;
+
+  /// No description provided for @receiptAddToInventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to inventory'**
+  String get receiptAddToInventory;
+
+  /// No description provided for @receiptAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding…'**
+  String get receiptAdding;
+
+  /// No description provided for @receiptAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get receiptAdded;
+
+  /// No description provided for @receiptCategoryOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Category (optional)'**
+  String get receiptCategoryOptional;
+
+  /// No description provided for @receiptUnitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a unit before adding'**
+  String get receiptUnitHint;
+
+  /// No description provided for @receiptCommit.
+  ///
+  /// In en, this message translates to:
+  /// **'Update shopping list ({count})'**
+  String receiptCommit(int count);
+
+  /// No description provided for @receiptDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get receiptDone;
+
+  /// No description provided for @receiptCommitFailedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items couldn\'t be updated — check the Shopping screen.'**
+  String receiptCommitFailedBanner(int count);
+
+  /// No description provided for @receiptDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get receiptDoneTitle;
+
+  /// No description provided for @receiptDoneToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {count} items'**
+  String receiptDoneToast(int count);
 }
 
 class _AppLocalizationsDelegate

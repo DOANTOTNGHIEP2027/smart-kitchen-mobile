@@ -85,6 +85,13 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
           onPressed: () => Get.toNamed<void>(AppRoutes.shoppingCategories),
           icon: const Icon(Icons.label_outline_rounded),
         ),
+        // #68 — additive: nút vào màn quét hoá đơn.
+        IconButton(
+          key: const ValueKey<String>('shopping-receipt-scan'),
+          tooltip: context.l10n.receiptScanTooltip,
+          onPressed: () => Get.toNamed<void>(AppRoutes.receiptScan),
+          icon: const Icon(Icons.receipt_long_outlined),
+        ),
       ],
       body: Column(
         children: <Widget>[

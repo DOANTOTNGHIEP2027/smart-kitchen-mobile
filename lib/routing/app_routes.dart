@@ -38,6 +38,10 @@ abstract class AppRoutes {
   static const String shopping = '/shopping';
   static const String shoppingCategories = '/shopping/categories';
 
+  // Receipt scan (#68) — CHỈ push từ ShoppingListScene.
+  static const String receiptScan = '/shopping/receipt-scan';
+  static const String receiptScanResult = '/shopping/receipt-scan/result';
+
   // Recipe catalog + detail (FE-8 #80 + #134).
   static const String recipes = '/recipes';
   static const String recipeDetail = '/recipes/:id';
