@@ -4,19 +4,21 @@ import 'dart:developer' as developer;
 import 'dart:ui';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../network/api_exception.dart';
-import 'device_api.dart';
+import 'app_notification.dart';
 import 'fcm_action_payload.dart';
+import 'notification_routing.dart';
 import 'quick_action_api.dart';
 import '../../l10n/app_localizations.dart';
 
 const String inventoryExpiryCategory = 'SK_INVENTORY_EXPIRY_V1';
 
+/// Event SnackBar cho UI. Điều hướng KHÔNG đi qua đây nữa mà qua
+/// `NotificationStore.pendingTarget` (fcm-notification-flow.md §14.1, N9).
 enum NotificationUiEventType {
-  openInventory,
-  openMealPlan,
   inventoryUpdated,
   inventoryAlreadyUsed,
   inventoryAlreadyDiscarded,
@@ -41,12 +43,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await _showInventoryNotification(
     payload,
     notificationId: _notificationId(message),
+    messageId: message.messageId,
   );
 }
 
 Future<void> _showInventoryNotification(
   FcmActionPayload payload, {
   required int notificationId,
+  String? messageId,
 }) async {
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(
@@ -84,38 +88,66 @@ Future<void> _showInventoryNotification(
             .toList(growable: false),
       ),
     ),
-    payload: _encodeInteraction(payload.data, notificationId),
+    payload: _encodeInteraction(
+      payload.data,
+      notificationId,
+      messageId: messageId,
+      title: payload.title,
+      body: payload.body,
+    ),
   );
 }
 
+/// Adapter phía platform cho thông báo (fcm-notification-flow.md §3):
+/// local notification, listener FCM, quick-action. Quyền + token do
+/// `NotificationStore` giữ (qua `PushGateway`).
 class NotificationService {
   NotificationService({
-    required DeviceApi deviceApi,
     required QuickActionApi quickActionApi,
-    required bool Function() isAuthenticated,
     required Future<void> Function() onInventoryChanged,
-  })  : _deviceApi = deviceApi,
-        _quickActionApi = quickActionApi,
-        _isAuthenticated = isAuthenticated,
-        _onInventoryChanged = onInventoryChanged;
+    required void Function(NotificationTarget target) onNavigate,
+    bool firebaseAvailable = true,
+  })  : _quickActionApi = quickActionApi,
+        _onInventoryChanged = onInventoryChanged,
+        _onNavigate = onNavigate,
+        _firebaseAvailable = firebaseAvailable;
 
-  final DeviceApi _deviceApi;
   final QuickActionApi _quickActionApi;
-  final bool Function() _isAuthenticated;
   final Future<void> Function() _onInventoryChanged;
+  final void Function(NotificationTarget target) _onNavigate;
+  final bool _firebaseAvailable;
   final _localNotifications = FlutterLocalNotificationsPlugin();
-  final _messageController = StreamController<RemoteMessage>.broadcast();
   final _uiEventController = StreamController<NotificationUiEvent>.broadcast();
   final List<NotificationUiEvent> _pendingUiEvents = <NotificationUiEvent>[];
 
-  StreamSubscription<String>? _tokenRefreshSub;
+  /// Thông báo nhận trước khi store gắn sink (cold start) — §14.1.
+  final List<AppNotification> _pendingNotifications = <AppNotification>[];
+  void Function(AppNotification)? _sink;
+
   StreamSubscription<RemoteMessage>? _foregroundSub;
   StreamSubscription<RemoteMessage>? _openedSub;
-  String? _pendingToken;
   bool _uiAttached = false;
 
-  Stream<RemoteMessage> get onMessage => _messageController.stream;
   Stream<NotificationUiEvent> get uiEvents => _uiEventController.stream;
+
+  /// Gắn nơi nhận thông báo (NotificationStore.addNotification). Gọi TRƯỚC
+  /// [init]; thông báo đến sớm hơn được buffer rồi đẩy hết khi gắn.
+  void attachSink(void Function(AppNotification) sink) {
+    _sink = sink;
+    for (final item in _pendingNotifications) {
+      sink(item);
+    }
+    _pendingNotifications.clear();
+  }
+
+  void _record(AppNotification notification) {
+    final sink = _sink;
+    if (sink == null) {
+      _pendingNotifications.add(notification);
+    } else {
+      sink(notification);
+    }
+  }
 
   static const _channel = AndroidNotificationChannel(
     'smart_kitchen_default',
@@ -131,24 +163,27 @@ class NotificationService {
     return events;
   }
 
-  Future<void> init({bool tryInit = true}) async {
+  /// KHÔNG xin quyền ở đây nữa (Guard 1) — `NotificationStore` xin khi người
+  /// dùng bấm "Bật thông báo". Web: bỏ qua hoàn toàn (§9).
+  Future<void> init() async {
+    if (kIsWeb) return;
     try {
       await _initLocalNotifications();
-      await _requestPermission();
+    } catch (error) {
+      developer.log('Local notifications init failed: $error', name: 'FCM');
+    }
+    if (!_firebaseAvailable) return;
+    try {
       await _setupFcm();
     } catch (error) {
-      developer.log(
-        'NotificationService init failed: $error',
-        name: 'FCM',
-      );
+      developer.log('NotificationService FCM init failed: $error',
+          name: 'FCM');
     }
   }
 
   Future<void> dispose() async {
-    await _tokenRefreshSub?.cancel();
     await _foregroundSub?.cancel();
     await _openedSub?.cancel();
-    await _messageController.close();
     await _uiEventController.close();
   }
 
@@ -173,6 +208,10 @@ class NotificationService {
                   DarwinNotificationActionOption.foreground,
                 },
               ),
+              // Giữ `.foreground` cho tới khi có iOS: bỏ nó thì action chạy
+              // ở engine nền, cần onDidReceiveBackgroundNotificationResponse
+              // + Dio/token trong isolate nền — chưa có nên nút bị nuốt
+              // (review #48 M2, OD-41, Q2).
               DarwinNotificationAction.plain(
                 'MARK_USED',
                 l10n.notificationActionMarkUsed,
@@ -207,56 +246,23 @@ class NotificationService {
     }
   }
 
-  Future<void> _requestPermission() async {
-    final settings = await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
-    developer.log(
-      'FCM permission: ${settings.authorizationStatus}',
-      name: 'FCM',
-    );
-  }
-
   Future<void> _setupFcm() async {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-    final token = await FirebaseMessaging.instance.getToken();
-    if (token != null) await _registerTokenIfAuthenticated(token);
-    _tokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen(
-      _registerTokenIfAuthenticated,
-    );
-    _foregroundSub = FirebaseMessaging.onMessage.listen(_handleForeground);
-    _openedSub = FirebaseMessaging.onMessageOpenedApp.listen(_handleOpened);
+    _foregroundSub = FirebaseMessaging.onMessage.listen(handleForegroundMessage);
+    _openedSub = FirebaseMessaging.onMessageOpenedApp.listen(handleOpenedMessage);
     final initial = await FirebaseMessaging.instance.getInitialMessage();
-    if (initial != null) _handleOpened(initial);
+    if (initial != null) handleOpenedMessage(initial);
   }
 
-  Future<void> onAuthChanged() async {
-    if (!_isAuthenticated()) return;
-    final token = _pendingToken ?? await FirebaseMessaging.instance.getToken();
-    if (token != null) await _registerTokenIfAuthenticated(token);
-  }
-
-  Future<void> _registerTokenIfAuthenticated(String token) async {
-    _pendingToken = token;
-    if (!_isAuthenticated()) return;
-    try {
-      await _deviceApi.registerDevice(fcmToken: token);
-      _pendingToken = null;
-    } catch (error) {
-      developer.log('FCM token registration failed: $error', name: 'FCM');
-    }
-  }
-
-  Future<void> _handleForeground(RemoteMessage message) async {
-    _messageController.add(message);
+  /// Foreground: ghi vào danh sách (chưa đọc) + hiện local notification.
+  Future<void> handleForegroundMessage(RemoteMessage message) async {
+    _record(_fromRemote(message));
     final payload = FcmActionPayload.tryParse(message.data);
     if (payload?.renderLocally == true) {
       await _showInventoryNotification(
         payload!,
         notificationId: _notificationId(message),
+        messageId: message.messageId,
       );
       return;
     }
@@ -278,32 +284,60 @@ class NotificationService {
           categoryIdentifier: inventoryExpiryCategory,
         ),
       ),
-      payload: _encodeInteraction(message.data, _notificationId(message)),
+      payload: _encodeInteraction(
+        message.data,
+        _notificationId(message),
+        messageId: message.messageId,
+        title: notification.title,
+        body: notification.body,
+      ),
     );
   }
 
-  void _handleOpened(RemoteMessage message) {
-    _messageController.add(message);
-    _openDeepLink(FcmActionPayload.tryParse(message.data)?.deepLink);
+  /// Mở app từ thông báo (nền / cold start): ghi (đã đọc) + điều hướng.
+  void handleOpenedMessage(RemoteMessage message) {
+    _record(_fromRemote(message, read: true));
+    _onNavigate(resolveNotificationTarget(message.data));
   }
+
+  AppNotification _fromRemote(RemoteMessage message, {bool read = false}) =>
+      AppNotification.fromPush(
+        message.data,
+        title: message.notification?.title,
+        body: message.notification?.body,
+        messageId: message.messageId,
+        at: message.sentTime,
+        read: read,
+      );
 
   void _onLocalNotificationTap(NotificationResponse response) {
     unawaited(_handleNotificationResponse(response));
   }
+
+  /// Tap local notification / action button (public để test).
+  Future<void> handleNotificationResponse(NotificationResponse response) =>
+      _handleNotificationResponse(response);
 
   Future<void> _handleNotificationResponse(
     NotificationResponse response,
   ) async {
     final interaction = _decodeInteraction(response.payload);
     if (interaction == null) {
-      _emit(const NotificationUiEvent(NotificationUiEventType.openInventory));
+      _onNavigate(NotificationTarget.inventory);
       return;
     }
     final data = interaction.data;
     final payload = FcmActionPayload.tryParse(data);
     final action = response.actionId;
     if (action == null || action.isEmpty) {
-      _openDeepLink(payload?.deepLink);
+      _record(AppNotification.fromPush(
+        data,
+        title: interaction.title,
+        body: interaction.body,
+        messageId: interaction.messageId,
+        read: true,
+      ));
+      _onNavigate(resolveNotificationTarget(data));
       return;
     }
     if (action == 'COOK_TODAY') {
@@ -360,7 +394,7 @@ class NotificationService {
         _emit(const NotificationUiEvent(
             NotificationUiEventType.inventoryReadonly));
       } else if (error.code == 'ERR_INVENTORY_NO_HOUSEHOLD') {
-        _emit(const NotificationUiEvent(NotificationUiEventType.openInventory));
+        _onNavigate(NotificationTarget.inventory);
       } else {
         _emit(const NotificationUiEvent(NotificationUiEventType.actionFailed));
       }
@@ -370,14 +404,12 @@ class NotificationService {
   }
 
   void _openDeepLink(String? value, {bool fallbackInventory = true}) {
-    final uri = value == null ? null : Uri.tryParse(value);
-    if (uri?.scheme == 'smartkitchen' && uri?.host == 'meal-plan') {
-      _emit(const NotificationUiEvent(NotificationUiEventType.openMealPlan));
-    } else if (uri?.scheme == 'smartkitchen' && uri?.host == 'inventory') {
-      _emit(const NotificationUiEvent(NotificationUiEventType.openInventory));
+    final target = targetForDeepLink(value);
+    if (target != null) {
+      _onNavigate(target);
     } else if (fallbackInventory) {
       developer.log('Unknown notification deep-link: $value', name: 'FCM');
-      _emit(const NotificationUiEvent(NotificationUiEventType.openInventory));
+      _onNavigate(NotificationTarget.inventory);
     }
   }
 
@@ -393,10 +425,21 @@ class NotificationService {
 int _notificationId(RemoteMessage message) =>
     (message.messageId ?? jsonEncode(message.data)).hashCode & 0x7fffffff;
 
-String _encodeInteraction(Map<String, dynamic> data, int notificationId) =>
+/// Payload local mang thêm `messageId`/`title`/`body` để tap dựng lại đúng
+/// `AppNotification` và bỏ trùng theo `messageId` (§14.2).
+String _encodeInteraction(
+  Map<String, dynamic> data,
+  int notificationId, {
+  String? messageId,
+  String? title,
+  String? body,
+}) =>
     jsonEncode(<String, dynamic>{
       'notificationId': notificationId,
       'data': data,
+      if (messageId != null) 'messageId': messageId,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
     });
 
 _NotificationInteraction? _decodeInteraction(String? raw) {
@@ -406,6 +449,9 @@ _NotificationInteraction? _decodeInteraction(String? raw) {
     return _NotificationInteraction(
       notificationId: (value['notificationId'] as num).toInt(),
       data: Map<String, dynamic>.from(value['data'] as Map),
+      messageId: value['messageId'] as String?,
+      title: value['title'] as String?,
+      body: value['body'] as String?,
     );
   } catch (_) {
     return null;
@@ -416,8 +462,14 @@ class _NotificationInteraction {
   const _NotificationInteraction({
     required this.notificationId,
     required this.data,
+    this.messageId,
+    this.title,
+    this.body,
   });
 
   final int notificationId;
   final Map<String, dynamic> data;
+  final String? messageId;
+  final String? title;
+  final String? body;
 }

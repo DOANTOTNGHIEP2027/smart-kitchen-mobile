@@ -3438,4 +3438,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get joinGoHome => 'Go to home';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty =>
+      'No notifications in this session yet. Notifications received in the background only appear here after you open them.';
+
+  @override
+  String get notificationsMarkAllRead => 'Mark all as read';
+
+  @override
+  String get notificationsNavTitle => 'Notifications';
+
+  @override
+  String get notificationPermissionTitle => 'Turn on notifications';
+
+  @override
+  String get notificationPermissionBody =>
+      'Get reminders about expiring food, shopping lists and planned meals.';
+
+  @override
+  String get notificationPermissionEnable => 'Turn on notifications';
+
+  @override
+  String get notificationPermissionLater => 'Not now';
+
+  @override
+  String get notificationPermissionDeniedBanner =>
+      'Notifications are turned off';
+
+  @override
+  String get notificationPermissionNotDeterminedBanner =>
+      'You haven\'t turned on notifications';
+
+  @override
+  String get notificationPermissionUnsupported =>
+      'Notifications aren\'t available on this device';
+
+  @override
+  String get notificationOpenSettings => 'Open Settings';
+
+  @override
+  String get notificationRegistrationFailed =>
+      'Couldn\'t register for notifications yet — we\'ll try again';
+
+  @override
+  String get notificationJustNow => 'Just now';
+
+  @override
+  String notificationMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notificationHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notificationUntitled => 'New notification';
+
+  @override
+  String notificationsUnreadBadge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread',
+      one: '1 unread',
+    );
+    return '$_temp0';
+  }
 }

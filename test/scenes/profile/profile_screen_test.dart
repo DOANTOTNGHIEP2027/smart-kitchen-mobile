@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:smart_kitchen_mobile/constants/app_theme.dart';
 import 'package:smart_kitchen_mobile/data/auth/token_storage.dart';
 import 'package:smart_kitchen_mobile/data/db/read_cache_dao.dart';
+import 'package:smart_kitchen_mobile/data/notification/app_notification.dart';
 import 'package:smart_kitchen_mobile/domain/auth/auth_refresh_usecase.dart';
 import 'package:smart_kitchen_mobile/domain/auth/user_summary.dart';
 import 'package:smart_kitchen_mobile/l10n/app_localizations.dart';
@@ -13,8 +14,10 @@ import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/profile_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/profile_screen.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/stores/profile_store.dart';
+import 'package:smart_kitchen_mobile/stores/notification_store.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
 
+import '../../data/notification/notification_fakes.dart';
 import '../../helpers/secure_storage_channel.dart';
 
 /// ProfileScreen — P1/P2/P3 (profile-family-screens.md §10.1). Không có
@@ -58,6 +61,31 @@ void main() {
     ));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('#48 — tile Thông báo hiện badge số chưa đọc', (tester) async {
+    session.currentUser = const UserSummary(id: 'u1', fullName: 'Nguyen A');
+    final store = NotificationStore(
+      gateway: FakePushGateway(),
+      deviceApi: FakeDeviceApi(),
+      prefs: FakeNotificationPrefs(),
+      session: session,
+    );
+    Get.put<NotificationStore>(store);
+
+    await pumpScreen(tester);
+    expect(find.byKey(const ValueKey<String>('profile-notifications')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('profile-tile-badge')), findsNothing);
+
+    store
+      ..addNotification(AppNotification.fromPush(const <String, dynamic>{}, messageId: 'a'))
+      ..addNotification(AppNotification.fromPush(const <String, dynamic>{}, messageId: 'b'));
+    await tester.pump();
+    expect(find.text('2 chưa đọc'), findsOneWidget);
+
+    store.markAllRead();
+    await tester.pump();
+    expect(find.byKey(const ValueKey<String>('profile-tile-badge')), findsNothing);
+  });
 
   testWidgets('P1 — hiện tên, email, nút Chỉnh sửa, lối vào l10n',
       (tester) async {

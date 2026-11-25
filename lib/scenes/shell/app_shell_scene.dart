@@ -23,6 +23,7 @@ import '../shopping/scenes/shopping_list_binding.dart';
 import '../shopping/scenes/shopping_list_scene.dart';
 import 'app_shell_store.dart';
 import 'home_recipe_detail_scene.dart';
+import '../notifications/shell_notification_host.dart';
 
 /// Khung bottom-nav (fe-app-shell.md §12).
 ///
@@ -47,46 +48,49 @@ class AppShellScene extends StatelessWidget {
     // GetPage vì shell không đi qua route của feature.
     _ensureBindings();
 
-    return Observer(
-      builder: (_) {
-        final index = store.selectedIndex;
-        // Mỗi tab là Scaffold riêng — không dùng AppScaffold cha để tránh 2
-        // AppBar chồng lên nhau (feature scene đã có AppBar của mình).
-        return PopScope<void>(
-          // IndexedStack không tạo route history khi đổi tab. Chặn pop ở tab
-          // khác Home để Android back gesture/nút back đưa người dùng về
-          // Home, thay vì pop route shell và thoát app.
-          canPop: index == 0,
-          onPopInvokedWithResult: (didPop, _) {
-            if (!didPop && store.selectedIndex != 0) {
-              store.selectTab(0);
-            }
-          },
-          child: Scaffold(
-            body: IndexedStack(
-              index: index,
-              children: <Widget>[
-                const _HomeTab(),
-                const InventoryListScene(),
-                const WeeklyMealPlanScene(),
-                const ShoppingListScene(),
-                const ProfileScreen(),
-              ],
+    // #48 — điều hướng từ push + sheet xin quyền chỉ chạy khi shell đã lên.
+    return ShellNotificationHost(
+      child: Observer(
+        builder: (_) {
+          final index = store.selectedIndex;
+          // Mỗi tab là Scaffold riêng — không dùng AppScaffold cha để tránh 2
+          // AppBar chồng lên nhau (feature scene đã có AppBar của mình).
+          return PopScope<void>(
+            // IndexedStack không tạo route history khi đổi tab. Chặn pop ở tab
+            // khác Home để Android back gesture/nút back đưa người dùng về
+            // Home, thay vì pop route shell và thoát app.
+            canPop: index == 0,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop && store.selectedIndex != 0) {
+                store.selectTab(0);
+              }
+            },
+            child: Scaffold(
+              body: IndexedStack(
+                index: index,
+                children: <Widget>[
+                  const _HomeTab(),
+                  const InventoryListScene(),
+                  const WeeklyMealPlanScene(),
+                  const ShoppingListScene(),
+                  const ProfileScreen(),
+                ],
+              ),
+              bottomNavigationBar: AppBottomNav(
+                selectedIndex: index,
+                onDestinationSelected: store.selectTab,
+                destinations: tabs
+                    .map((tab) => AppBottomNavDestination(
+                          icon: tab.icon,
+                          activeIcon: tab.activeIcon,
+                          label: tab.label,
+                        ))
+                    .toList(growable: false),
+              ),
             ),
-            bottomNavigationBar: AppBottomNav(
-              selectedIndex: index,
-              onDestinationSelected: store.selectTab,
-              destinations: tabs
-                  .map((tab) => AppBottomNavDestination(
-                        icon: tab.icon,
-                        activeIcon: tab.activeIcon,
-                        label: tab.label,
-                      ))
-                  .toList(growable: false),
-            ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

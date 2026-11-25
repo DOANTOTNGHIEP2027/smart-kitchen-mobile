@@ -40,6 +40,9 @@ import '../data/notification/quick_action_api.dart';
 import '../data/realtime/realtime_service.dart';
 import '../services/connectivity_service.dart';
 import '../stores/realtime_store.dart';
+import '../stores/notification_store.dart';
+import '../data/notification/notification_prefs.dart';
+import '../data/notification/push_gateway.dart';
 import '../data/ai_runtime/connectivity/connectivity_gate.dart';
 import '../data/ai_runtime/engine/model_registry.dart';
 import '../data/ai_runtime/engine/on_device_inference_engine.dart';
@@ -161,16 +164,25 @@ Future<void> bootstrap() async {
   Get.put<DeviceApi>(DeviceApiImpl(dioClient), permanent: true);
   Get.put<QuickActionApi>(QuickActionApiImpl(dioClient), permanent: true);
 
-  final notificationService = NotificationService(
+  // #48 — quyền + token + danh sách trong phiên do NotificationStore giữ
+  // (fcm-notification-flow.md §6); service chỉ là adapter platform.
+  final notificationStore = NotificationStore(
+    gateway: FirebasePushGateway(firebaseAvailable: firebaseAvailable),
     deviceApi: Get.find<DeviceApi>(),
+    prefs: SecureNotificationPrefs(),
+    session: sessionStore,
+  );
+  Get.put<NotificationStore>(notificationStore, permanent: true);
+  final notificationService = NotificationService(
     quickActionApi: Get.find<QuickActionApi>(),
-    isAuthenticated: () => sessionStore.isAuthenticated,
+    firebaseAvailable: firebaseAvailable,
+    onNavigate: notificationStore.navigateTo,
     onInventoryChanged: () async {
       if (Get.isRegistered<InventoryStore>()) {
         await Get.find<InventoryStore>().syncFromServer();
       }
     },
-  );
+  )..attachSink(notificationStore.addNotification);
   Get.put<NotificationService>(notificationService, permanent: true);
 
   await Future.wait<void>(<Future<void>>[
@@ -191,14 +203,11 @@ Future<void> bootstrap() async {
     (_) => unawaited(realtimeStore.onAuthChanged()),
   );
 
-  // NotificationService init SAU Firebase init — nếu Firebase không có thì
-  // service sẽ degrade graceful (catch mọi exception nội bộ).
+  // Store init TRƯỚC service: getInitialMessage (cold start) đi vào store đã
+  // gắn sink (§14.1). Store tự theo session để đăng ký/xoá token (§14.3).
+  // KHÔNG xin quyền ở bootstrap (Guard 1).
+  await notificationStore.init();
   await notificationService.init();
-  reaction<AuthStatus>(
-    (_) => sessionStore.status,
-    (_) => unawaited(notificationService.onAuthChanged()),
-    fireImmediately: true,
-  );
 
   runApp(const SmartKitchenApp());
 }
