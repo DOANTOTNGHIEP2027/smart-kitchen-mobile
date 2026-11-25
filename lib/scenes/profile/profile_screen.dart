@@ -21,6 +21,7 @@ import '../cooking/scenes/cooking_routes.dart';
 import '../dev/dev_routes.dart';
 import '../insights/scenes/insights_routes.dart';
 import '../recap/scenes/recap_routes.dart';
+import '../nutrition/widgets/profile_nutrition_section.dart';
 import 'stores/profile_store.dart';
 import 'widgets/profile_avatar.dart';
 
@@ -80,6 +81,9 @@ class ProfileScreen extends StatelessWidget {
                 onTap: () => Get.toNamed(AppRoutes.profileUpgrade),
               ),
             ],
+            // #64 — dinh dưỡng tuần hiện tại (nutrition-summary-widget.md §8.2).
+            const SizedBox(height: AppDimens.lg),
+            const ProfileNutritionSection(),
             const SizedBox(height: AppDimens.lg),
             _ProfileNavigationTile(
               icon: Icons.favorite_outline,

@@ -23,6 +23,7 @@ import 'package:smart_kitchen_mobile/scenes/shopping/domain/shopping_item.dart';
 import 'package:smart_kitchen_mobile/services/connectivity_service.dart';
 import 'package:smart_kitchen_mobile/stores/realtime_store.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
+import 'package:smart_kitchen_mobile/scenes/recipe/data/recipe_catalog_api.dart';
 
 /// Stub cho toàn bộ dependency `AppShellScene._ensureBindings()` cần, để
 /// shell render được trong widget test mà không phải wire backend thật.
@@ -70,6 +71,9 @@ void registerShellStubBindings({
   }
   if (!Get.isRegistered<MealAttendanceApi>()) {
     Get.put<MealAttendanceApi>(_MockMealAttendanceApi(), permanent: true);
+  }
+  if (!Get.isRegistered<RecipeCatalogApi>()) {
+    Get.put<RecipeCatalogApi>(_MockRecipeCatalogApi(), permanent: true);
   }
   if (!Get.isRegistered<HealthApi>()) {
     Get.put<HealthApi>(_MockHealthApi(), permanent: true);
@@ -127,6 +131,8 @@ class _MockMealAttendanceApi extends Mock implements MealAttendanceApi {
 }
 
 class _MockHealthApi extends Mock implements HealthApi {}
+
+class _MockRecipeCatalogApi extends Mock implements RecipeCatalogApi {}
 
 class _MockProfileApi extends Mock implements ProfileApi {}
 
