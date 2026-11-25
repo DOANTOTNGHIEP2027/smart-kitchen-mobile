@@ -3278,4 +3278,139 @@ class AppLocalizationsEn extends AppLocalizations {
   String nutritionDishLine(String meal, String dish, String value) {
     return '$meal: $dish · $value';
   }
+
+  @override
+  String get receiptScanTitle => 'Scan receipt';
+
+  @override
+  String get receiptScanTooltip => 'Scan receipt';
+
+  @override
+  String get receiptScanHint =>
+      'Capture the whole receipt clearly. Items matching your shopping list are pre-selected; extra purchases can go to inventory.';
+
+  @override
+  String get receiptScanNoImage => 'No image yet';
+
+  @override
+  String get receiptScanning => 'Reading the receipt…';
+
+  @override
+  String get receiptErrorAiUnavailable =>
+      'The receipt reader is busy or not ready. Retry with this same photo, or choose another one.';
+
+  @override
+  String get receiptErrorInProgress =>
+      'This receipt is still being read — try again in a few seconds.';
+
+  @override
+  String get receiptErrorImageRejected =>
+      'This photo can\'t be processed. Retrying the same photo gives the same result — take another photo.';
+
+  @override
+  String get receiptErrorNoHouseholdTitle => 'You\'re not in a household yet';
+
+  @override
+  String get receiptErrorNoHousehold =>
+      'Join a household before scanning receipts.';
+
+  @override
+  String get receiptClose => 'Close';
+
+  @override
+  String get receiptResultTitle => 'Scan result';
+
+  @override
+  String get receiptRestart => 'Reset';
+
+  @override
+  String get receiptRetake => 'Retake';
+
+  @override
+  String get receiptEmpty =>
+      'Couldn\'t read the receipt, please retake the photo';
+
+  @override
+  String receiptSummaryTotal(String amount) {
+    return 'Total $amount';
+  }
+
+  @override
+  String receiptSummaryCounts(int matched, int unmatched) {
+    return '$matched matched lines · $unmatched not on the list';
+  }
+
+  @override
+  String get receiptMatchedSection => 'Matches your shopping list';
+
+  @override
+  String receiptMatchedCount(int lines, int items) {
+    return '$lines lines · $items items';
+  }
+
+  @override
+  String get receiptUnmatchedSection => 'Not on the list';
+
+  @override
+  String receiptUnmatchedCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String receiptOnReceipt(String raw) {
+    return 'On receipt: \"$raw\"';
+  }
+
+  @override
+  String get receiptBadgeReview => 'Double-check';
+
+  @override
+  String receiptCatalogHint(int percent) {
+    return 'Catalog guess $percent%';
+  }
+
+  @override
+  String get receiptMarkedBought => 'Marked as bought';
+
+  @override
+  String get receiptNotUpdated => 'Not updated';
+
+  @override
+  String get receiptSkipped => 'Skipped';
+
+  @override
+  String get receiptAddToInventory => 'Add to inventory';
+
+  @override
+  String get receiptAdding => 'Adding…';
+
+  @override
+  String get receiptAdded => 'Added';
+
+  @override
+  String get receiptCategoryOptional => 'Category (optional)';
+
+  @override
+  String get receiptUnitHint => 'Choose a unit before adding';
+
+  @override
+  String receiptCommit(int count) {
+    return 'Update shopping list ($count)';
+  }
+
+  @override
+  String get receiptDone => 'Done';
+
+  @override
+  String receiptCommitFailedBanner(int count) {
+    return '$count items couldn\'t be updated — check the Shopping screen.';
+  }
+
+  @override
+  String get receiptDoneTitle => 'Updated';
+
+  @override
+  String receiptDoneToast(int count) {
+    return 'Updated $count items';
+  }
 }

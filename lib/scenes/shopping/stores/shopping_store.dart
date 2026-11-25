@@ -128,6 +128,40 @@ class ShoppingStore with HouseholdScoped {
     }
   }
 
+  /// #68 — đánh dấu đã mua nhiều món. Mỗi id đúng 1 lần (caller đã dedupe).
+  /// Trả các id KHÔNG chắc đã COMPLETED. Không throw.
+  /// `toggle` trả void và tự rollback khi lỗi → thành/bại chỉ biết bằng đọc lại
+  /// row. Món đã COMPLETED sẵn bị bỏ qua (Guard 1: toggle là đảo chiều).
+  /// Có id chưa có trong Drift (danh sách cục bộ cũ hơn server) → sync() 1 lần
+  /// rồi mới đọc; vẫn không có → failed.
+  /// Hành vi hiện có, chấp nhận: row PENDING + pendingToggle (vừa bỏ tick
+  /// offline) bị `enqueueToggle` huỷ cặp → row về giá server CŨ, giá hoá đơn
+  /// không được ghi (món vẫn COMPLETED, không failed).
+  Future<List<String>> bulkCheck(Map<String, double?> priceById) async {
+    final failed = <String>[];
+    try {
+      for (final id in priceById.keys) {
+        if (await _dao.getById(id) == null) { if (await _online()) await sync(); break; }
+      }
+    } catch (_) {
+      // Không throw — id vẫn thiếu sẽ thành failed ở vòng dưới.
+    }
+    for (final entry in priceById.entries) { // tuần tự, không Future.wait
+      try {
+        final before = await _dao.getById(entry.key);
+        // Đã bị xoá / còn pendingCreate.
+        if (before == null || !before.canToggle) { failed.add(entry.key); continue; }
+        if (before.status == ShoppingItemStatus.completed) continue; // Guard 1
+        await toggle(before, price: entry.value); // ROW VỪA ĐỌC, không phải object cũ
+        final after = await _dao.getById(entry.key);
+        if (after == null || after.status != ShoppingItemStatus.completed) failed.add(entry.key);
+      } catch (_) {
+        failed.add(entry.key);
+      }
+    }
+    return failed;
+  }
+
   /// 409 version lệch, hoặc 400 vì BE kiểm "giá chỉ hợp lệ khi COMPLETED"
   /// TRƯỚC version (món đã được tick ở nơi khác) ⇒ thao tác cũ hết đúng: bỏ +
   /// refetch (D6), KHÔNG retry mãi.

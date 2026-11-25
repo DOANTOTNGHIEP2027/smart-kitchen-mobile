@@ -3234,4 +3234,138 @@ class AppLocalizationsVi extends AppLocalizations {
   String nutritionDishLine(String meal, String dish, String value) {
     return '$meal: $dish · $value';
   }
+
+  @override
+  String get receiptScanTitle => 'Quét hoá đơn';
+
+  @override
+  String get receiptScanTooltip => 'Quét hoá đơn';
+
+  @override
+  String get receiptScanHint =>
+      'Chụp rõ toàn bộ hoá đơn. Món khớp danh sách mua sắm sẽ được chọn sẵn; món mua thêm có thể đưa vào tồn kho.';
+
+  @override
+  String get receiptScanNoImage => 'Chưa có ảnh';
+
+  @override
+  String get receiptScanning => 'Đang đọc hoá đơn…';
+
+  @override
+  String get receiptErrorAiUnavailable =>
+      'Dịch vụ đọc hoá đơn đang bận hoặc chưa sẵn sàng. Thử lại với đúng ảnh này, hoặc chọn ảnh khác.';
+
+  @override
+  String get receiptErrorInProgress =>
+      'Hoá đơn này vẫn đang được đọc — thử lại sau vài giây.';
+
+  @override
+  String get receiptErrorImageRejected =>
+      'Không xử lý được ảnh này. Thử lại với cùng ảnh sẽ cho cùng kết quả — hãy chụp ảnh khác.';
+
+  @override
+  String get receiptErrorNoHouseholdTitle => 'Bạn chưa thuộc gia đình nào';
+
+  @override
+  String get receiptErrorNoHousehold =>
+      'Tham gia gia đình trước khi quét hoá đơn.';
+
+  @override
+  String get receiptClose => 'Đóng';
+
+  @override
+  String get receiptResultTitle => 'Kết quả quét';
+
+  @override
+  String get receiptRestart => 'Đặt lại';
+
+  @override
+  String get receiptRetake => 'Chụp lại';
+
+  @override
+  String get receiptEmpty => 'Không đọc được hóa đơn, hãy chụp lại';
+
+  @override
+  String receiptSummaryTotal(String amount) {
+    return 'Tổng $amount';
+  }
+
+  @override
+  String receiptSummaryCounts(int matched, int unmatched) {
+    return '$matched dòng khớp · $unmatched ngoài danh sách';
+  }
+
+  @override
+  String get receiptMatchedSection => 'Khớp với danh sách mua sắm';
+
+  @override
+  String receiptMatchedCount(int lines, int items) {
+    return '$lines dòng · $items món';
+  }
+
+  @override
+  String get receiptUnmatchedSection => 'Không có trong danh sách';
+
+  @override
+  String receiptUnmatchedCount(int count) {
+    return '$count món';
+  }
+
+  @override
+  String receiptOnReceipt(String raw) {
+    return 'Trên hoá đơn: \"$raw\"';
+  }
+
+  @override
+  String get receiptBadgeReview => 'Kiểm tra lại';
+
+  @override
+  String receiptCatalogHint(int percent) {
+    return 'Gợi ý catalog $percent%';
+  }
+
+  @override
+  String get receiptMarkedBought => 'Đã đánh dấu đã mua';
+
+  @override
+  String get receiptNotUpdated => 'Chưa cập nhật được';
+
+  @override
+  String get receiptSkipped => 'Bỏ qua';
+
+  @override
+  String get receiptAddToInventory => 'Thêm vào tồn kho';
+
+  @override
+  String get receiptAdding => 'Đang thêm…';
+
+  @override
+  String get receiptAdded => 'Đã thêm';
+
+  @override
+  String get receiptCategoryOptional => 'Danh mục (tuỳ chọn)';
+
+  @override
+  String get receiptUnitHint => 'Chọn đơn vị trước khi thêm';
+
+  @override
+  String receiptCommit(int count) {
+    return 'Cập nhật danh sách mua sắm ($count)';
+  }
+
+  @override
+  String get receiptDone => 'Xong';
+
+  @override
+  String receiptCommitFailedBanner(int count) {
+    return '$count món chưa cập nhật được — kiểm tra ở màn Mua sắm.';
+  }
+
+  @override
+  String get receiptDoneTitle => 'Đã cập nhật';
+
+  @override
+  String receiptDoneToast(int count) {
+    return 'Đã cập nhật $count món';
+  }
 }

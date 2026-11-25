@@ -334,3 +334,15 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Theo:** §6.0 quy tắc 2 (mock/thiết kế), §5 (không tiện tay sửa ngoài phạm vi).
 - **Đảo ngược thế nào:** L4 đổi `member_detail_screen.dart` sang toast + back; N1 so `seq` trước khi `updateCurrentUser` ở nhánh PUT đã gửi.
 - **Cần người quyết lại không:** Không — `profile-family-screens.md` §10.5/§12/§14 đã cập nhật theo S12.12 (nhánh docs `docs/29_profile-family-gaps`).
+
+### OD-40 · #68 — lệch mock có chủ ý + việc ngoài phạm vi
+- **Ngày:** 2026-11-25 · **Task:** #68 (receipt scan) · **Nhánh:** `feature/68_receipt-scan`
+- **Tình huống:** Review code vòng 1 (`reports/68/code-review-20261125_v1.md`) L4: khi bị từ chối quyền camera/thư viện, mock màn 5 chỉ có "Mở cài đặt" — user cấp quyền xong quay lại app không có cách chọn ảnh tiếp. Review thiết kế vòng 2 cũng phát hiện lỗi điều hướng tương tự (`Get.until` theo tên route trong khi Mua sắm/Kho là tab trong shell) có thể tồn tại ở luồng OCR kho #57.
+- **Đã chọn:**
+  1. Màn scan khi từ chối quyền: "Mở cài đặt" + "Thử lại" (gọi lại `pickAndScan`). Thiết kế `shopping-receipt-scan.md` §13/§14 đã cập nhật theo.
+  2. Lỗi điều hướng nghi vấn ở #57: **Hoãn — gom vào task dọn riêng / mở issue mới**, không sửa trong #68.
+  3. Finding LOW review vòng 2 (`reports/68/code-review-20261125_v2.md`): N1 body 200 hỏng → `ServerException('ERR_UNKNOWN')` được coi là retryable dù retry cùng key nhận lại cache hỏng; N2 nút "Thử lại" ở panel quyền chỉ thử lại cùng nguồn ảnh (chưa cho đổi sang thư viện); N3 catch ở `commitMatched` không log → **Hoãn — gom vào task dọn riêng**.
+  4. Issue #68 ghi snake_case, `household_id`/`shopping_list_id`, lỗi "ảnh mờ", badge `< 0.8`: code theo OAS/BE thật (camelCase, household từ JWT, ảnh mờ = 200 danh sách rỗng → màn empty, badge `< 0.9` do BE chỉ trả matched ≥ 0.85).
+- **Theo:** §6.0 quy tắc 2, §6.2 (OAS thắng mô tả issue), §5 (không tiện tay sửa ngoài phạm vi).
+- **Đảo ngược thế nào:** (1) bỏ nút "Thử lại" ở panel quyền; (3) đổi hằng ngưỡng badge.
+- **Cần người quyết lại không:** Không.
