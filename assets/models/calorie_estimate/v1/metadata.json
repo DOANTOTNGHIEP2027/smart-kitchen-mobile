@@ -1,0 +1,15 @@
+{
+  "task": "calorie_estimate",
+  "modelVersion": 1,
+  "appMinVersion": "0.1.0",
+  "runtime": "rules-only",
+  "payloadFile": "nutrition_table.json",
+  "checksumSha256": null,
+  "inputShape": null,
+  "inputDType": null,
+  "preprocessing": null,
+  "outputShape": null,
+  "outputType": "kcal_estimate",
+  "labelMapFile": null,
+  "quantization": "n/a"
+}

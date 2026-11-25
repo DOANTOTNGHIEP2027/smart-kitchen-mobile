@@ -88,6 +88,10 @@ flutter:
   generate: true
   assets:
     - assets/images/
-    # On-device AI model packages (on-device-ai-runtime.md §5.1) — task nào
+    # On-device AI model packages (on-device-ai-runtime.md §5.1, §5.4.5) — MỌI
+    # thư mục v<N> phải khai ở đây, thiếu thì rootBundle không thấy → task nào
     # chưa có thư mục ở đây thì ModelRegistry coi là "chỉ cloud".
+    - assets/models/receipt_ocr/v1/
+    - assets/models/calorie_estimate/v1/
+    - assets/models/repetition_score/v1/
     - assets/models/rule_based_selection/v1/

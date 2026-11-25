@@ -360,3 +360,15 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đảo ngược thế nào:** đổi `DeviceApi` sang endpoint khác; `NotificationStore.shouldShowRationale` bỏ điều kiện `isAuthenticated` để hỏi trước đăng nhập.
 - **Ghi chú (review code #48 v1):** (a) iOS giữ `.foreground` cho `MARK_USED`/`DISCARD` — bỏ nó cần `onDidReceiveBackgroundNotificationResponse` + Dio/token trong isolate nền; làm cùng Q2. (c) `deleteToken` có timeout 10s nhưng không huỷ được lời gọi plugin; offline lâu có thể vô hiệu token của người đăng nhập kế tiếp — chưa kiểm trên thiết bị, xử lý cùng Q1. (b) `/notifications` không dùng `ViewState`/`AppStateView`: dữ liệu chỉ ở bộ nhớ, không có loading/error fetch — chỉ empty/list + banner quyền/lỗi đăng ký.
 - **Cần người quyết lại không:** Không. Còn mở: API gỡ token ở BE (Q1), iOS (Q2), lưu lâu dài danh sách (Q3).
+
+### OD-42 · #117 hợp đồng đóng gói model on-device — checksum, payload chưa ship, appMinVersion
+- **Ngày:** 2026-11-25 · **Task:** #117 · **Nhánh:** `feature/117_model-packaging-contract`
+- **Tình huống:** Issue #117 yêu cầu đủ 4 package, mỗi package có `metadata.json` hợp lệ, và `mlkit-bundled` có checksum. Nhưng OD-25 (#115) đã chọn checksum của file payload. 3 task NN chưa có model và dữ liệu thật. `appMinVersion` muốn kiểm thì cần `package_info_plus`, mà gói này ngoài D-05.
+- **Đã chọn (user chốt 2026-11-25; thiết kế `on-device-ai-runtime.md` §5.4):**
+  1. `mlkit-bundled`: checksum là SHA-256 của metadata chuẩn hoá, đã bỏ field `checksumSha256`. Runtime khác giữ checksum payload như OD-25. Hàm Dart `canonicalManifestJson` là nguồn sự thật; `tool/model_manifest_checksum.py` sinh checksum và có test khoá hash.
+  2. `calorie_estimate` và `repetition_score` khai payload với `checksumSha256: null`, nên task unavailable với lý do `payloadNotShipped` (chỉ chạy cloud). Không đóng gói dữ liệu giả.
+  3. `appMinVersion` so với hằng `AppVersion.current` (`lib/constants/app_version.dart`). Có test khoá hằng này khớp pubspec.
+  4. `rule_based_selection/v1/metadata.json` sửa tại chỗ (§5.4.5, payload không đổi): thêm đủ field, `appMinVersion` đổi 1.0.0 → 0.1.0. Giữ 1.0.0 thì task tự tắt, vì app đang là 0.1.0.
+- **Lệch AC:** AC "cả 4 `isAvailable == true`" chỉ đạt với bộ asset giả trong test. Asset thật cho 2/4 task (`receipt_ocr`, `rule_based_selection`). `receipt_ocr` khả dụng nhưng engine vẫn báo model chưa có, cho tới khi có benchmark (Guard #2).
+- **Đảo ngược thế nào:** ship payload thật thì tạo `v2`, điền checksum và shape, rồi tăng `ModelRegistry.defaultVersions`.
+- **Cần người quyết lại không:** Không. Còn mở: nguồn `nutrition_table.json` (Q6), pipeline train `repetition_score`.

@@ -1,0 +1,15 @@
+{
+  "task": "repetition_score",
+  "modelVersion": 1,
+  "appMinVersion": "0.1.0",
+  "runtime": "tflite",
+  "payloadFile": "model.tflite",
+  "checksumSha256": null,
+  "inputShape": null,
+  "inputDType": null,
+  "preprocessing": null,
+  "outputShape": null,
+  "outputType": "repetition_scores",
+  "labelMapFile": null,
+  "quantization": "n/a"
+}
