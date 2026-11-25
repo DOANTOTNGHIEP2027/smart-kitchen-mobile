@@ -387,3 +387,17 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Đảo ngược thế nào:** (1) bỏ `vm_service` khỏi dev_dependencies + bỏ `_readHeap` (đo heap tay bằng DevTools); (6) đổi `kAppCachedImageMaxAspect` hoặc quay về `w × dpr`.
 - **Phiên `ai-native` (đã làm trong docs PR #93):** amend D21 ở `app-performance-audit.md` §7.2 và `image-caching-strategy.md`; ghi OD #93 vào `docs/planning/open-decisions.md`.
 - **Cần người quyết lại không:** Không — (3) cần người tạo issue auth riêng.
+
+### OD-44 · #119 repository Receipt OCR + Calorie estimate: endpoint thật, cloud inject, tra bảng calo
+- **Ngày:** 2026-11-25 · **Task:** #119 · **Nhánh:** `feature/119_receipt-calorie-repository`
+- **Tình huống:** Pseudocode của issue #119 gọi `POST /api/v1/inventory/receipt-scan` (JSON base64). BE không có endpoint này; #38 dùng `POST /api/v1/inventory-items/scan` (multipart). BE cũng chưa có endpoint ước tính calo cho món đã có tên. OCR chạy trên máy cần ML Kit, nằm ngoài D-05 và Guard #2 bắt phải benchmark trước.
+- **Đã chọn** (user chốt 2026-11-25; thiết kế `on-device-ai-runtime.md` §6.5):
+  1. Cả 2 repository chạy qua `HybridAIRunner`, không chép lại bảng §8. Phần cloud được inject dưới dạng hàm.
+  2. OCR cloud qua adapter `receiptOcrCloudScan(OcrApi)` (đặt ở scenes/inventory/ocr/data), idempotency key = `sha256(ảnh)`. Có mất thông tin `category`/dedup (D11).
+  3. Calo: `estimate(items, {cloud})` với cloud tuỳ chọn. Engine tra bảng `nutrition_table.json` bằng Dart thuần: so khớp chính xác, giữ dấu, không fuzzy; món không khớp nhận kcal 0 / confidence 0 nhưng vẫn giữ trong kết quả.
+  4. Engine OCR vẫn là stub (`modelUnavailable`). `ReceiptLineParser` đã viết sẵn kèm test.
+  5. Chưa đăng ký DI vì chưa có consumer, giống `MealSelectionRepository`.
+- **Lệch AC/manual test:** trên build thật, OCR offline và ước tính calo (kể cả khi online, vì không có cloud) đều trả `ERR_ONDEVICE_MODEL_UNAVAILABLE`, do bảng calo chưa ship (Q6) và OCR chưa có runtime. Chỉ test bằng payload/engine giả mới chứng minh được logic.
+- **Ghi chú (review code #119):** `sha256(ảnh)` của adapter chạy trên UI isolate (~30–60ms với ảnh 2MB trên PC). Khi có consumer thì chuyển sang `Isolate.run`.
+- **Đảo ngược thế nào:** ship `calorie_estimate/v2` có bảng thật; chọn runtime OCR sau benchmark rồi thay stub trong `OnDeviceInferenceEngineImpl`.
+- **Cần người quyết lại không:** Không. Còn mở: Q6 (nguồn bảng calo), Q8 (khớp `rawName` với inventory).
