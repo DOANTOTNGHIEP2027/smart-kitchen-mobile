@@ -427,11 +427,14 @@ class RealtimeService {
   /// Biến đổi API base URL sang WS base URL gồm đủ context-path `/api`.
   ///
   /// - `http://host:8080`   → `ws://host:8080/api`
-  /// - `https://host:8080/  → `ws://host:8080/api`
+  /// - `https://host:8080/  → `wss://host:8080/api` (HTTPS phải đi WS mã hoá — `ws://` bị
+  ///   reverse proxy chuyển hướng 308 và bị Android chặn cleartext)
   /// - `http://host:8080/api` (đã có sẵn) → `ws://host:8080/api` (không thêm lần 2)
   @visibleForTesting
   static String wsBaseUrlFrom(String apiBaseUrl) {
-    var ws = apiBaseUrl.replaceFirst(RegExp(r'^https?'), 'ws');
+    var ws = apiBaseUrl
+        .replaceFirst(RegExp(r'^https'), 'wss')
+        .replaceFirst(RegExp(r'^http(?!s)'), 'ws');
     final base = ws.replaceFirst(RegExp(r'/$'), '');
     return base.endsWith('/api') ? base : '$base/api';
   }
