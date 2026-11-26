@@ -10,6 +10,8 @@ class AppBottomNavDestination {
     required this.icon,
     required this.activeIcon,
     required this.label,
+    this.badgeCount = 0,
+    this.semanticsLabel,
   });
 
   /// Icon mặc định (không active) — outline.
@@ -19,7 +21,18 @@ class AppBottomNavDestination {
   final IconData activeIcon;
 
   final String label;
+
+  /// Số trên badge góc icon — `<= 0` thì KHÔNG vẽ badge (không hiện "0"),
+  /// `> 99` hiện `99+` (shopping-list-screen §9.7(a)).
+  final int badgeCount;
+
+  /// Nhãn đọc cho trình đọc màn hình khi có badge (đã l10n ở nơi gọi) —
+  /// widget này stateless, không tự đọc store hay l10n.
+  final String? semanticsLabel;
 }
+
+/// Ngưỡng trên của badge — quá ngưỡng hiện `99+`.
+const int _kBadgeMax = 99;
 
 /// Bottom navigation theo chuẩn DESIGN_SYSTEM.md:
 /// Bo tròn mềm mại cạnh trên (20dp), đổ bóng môi trường hắt lên trên nhẹ,
@@ -70,7 +83,11 @@ class AppBottomNav extends StatelessWidget {
                 highlightShape: BoxShape.circle,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Column(
+                  // Có badge: đọc 1 nhãn gộp ("Đi chợ, 2 món…") thay cho tên
+                  // tab + số rời rạc. Bọc BÊN TRONG InkResponse để giữ tap.
+                  child: _semantics(
+                    d,
+                    Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       AnimatedContainer(
@@ -86,12 +103,15 @@ class AppBottomNav extends StatelessWidget {
                               BorderRadius.circular(AppDimens.radiusPill),
                         ),
                         alignment: Alignment.center,
-                        child: Icon(
-                          isActive ? d.activeIcon : d.icon,
-                          size: 20,
-                          color: isActive
-                              ? AppColors.primary
-                              : AppColors.textSecondary,
+                        child: _withBadge(
+                          d.badgeCount,
+                          Icon(
+                            isActive ? d.activeIcon : d.icon,
+                            size: 20,
+                            color: isActive
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -108,12 +128,31 @@ class AppBottomNav extends StatelessWidget {
                       ),
                     ],
                   ),
+                  ),
                 ),
               ),
             );
           }),
         ),
       ),
+    );
+  }
+
+  static Widget _semantics(AppBottomNavDestination d, Widget child) {
+    final label = d.badgeCount > 0 ? d.semanticsLabel : null;
+    if (label == null) return child;
+    return Semantics(label: label, excludeSemantics: true, child: child);
+  }
+
+  /// Badge chỉ tồn tại khi > 0 — 0 thì trả icon trần, không có widget badge.
+  static Widget _withBadge(int count, Widget icon) {
+    if (count <= 0) return icon;
+    return Badge(
+      key: const ValueKey<String>('app-bottom-nav-badge'),
+      backgroundColor: AppColors.error,
+      textColor: AppColors.onPrimary,
+      label: Text(count > _kBadgeMax ? '$_kBadgeMax+' : '$count'),
+      child: icon,
     );
   }
 }

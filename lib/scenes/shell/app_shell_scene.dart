@@ -21,6 +21,7 @@ import '../profile/profile_family_bindings.dart';
 import '../profile/profile_screen.dart';
 import '../shopping/scenes/shopping_list_binding.dart';
 import '../shopping/scenes/shopping_list_scene.dart';
+import '../shopping/stores/shopping_store.dart';
 import 'app_shell_store.dart';
 import 'home_recipe_detail_scene.dart';
 import '../notifications/shell_notification_host.dart';
@@ -76,17 +77,28 @@ class AppShellScene extends StatelessWidget {
                   ProfileScreen(),
                 ],
               ),
-              bottomNavigationBar: AppBottomNav(
-                selectedIndex: index,
-                onDestinationSelected: store.selectTab,
-                destinations: tabs
-                    .map((tab) => AppBottomNavDestination(
-                          icon: tab.icon,
-                          activeIcon: tab.activeIcon,
-                          label: tab.label,
-                        ))
-                    .toList(growable: false),
-              ),
+              // #134 (shopping-list-screen §9.7(a)): Observer RIÊNG cho badge —
+              // đọc số trong Observer ngoài thì mỗi lần Drift emit sẽ dựng lại
+              // cả Scaffold/IndexedStack.
+              bottomNavigationBar: Observer(builder: (context) {
+                final assigned = shoppingAssignedBadgeCount();
+                return AppBottomNav(
+                  selectedIndex: index,
+                  onDestinationSelected: store.selectTab,
+                  destinations: <AppBottomNavDestination>[
+                    for (var i = 0; i < tabs.length; i++)
+                      AppBottomNavDestination(
+                        icon: tabs[i].icon,
+                        activeIcon: tabs[i].activeIcon,
+                        label: tabs[i].label,
+                        badgeCount: i == _shoppingTabIndex ? assigned : 0,
+                        semanticsLabel: i == _shoppingTabIndex
+                            ? context.l10n.navShoppingAssignedSemantics(assigned)
+                            : null,
+                      ),
+                  ],
+                );
+              }),
             ),
           );
         },
@@ -107,6 +119,9 @@ class AppShellScene extends StatelessWidget {
             Icons.person_outline),
       ];
 
+  /// Vị trí tab Đi chợ trong [IndexedStack] / bottom nav.
+  static const int _shoppingTabIndex = 3;
+
   static void _ensureBindings() {
     InventoryListBinding().dependencies();
     WeeklyMealPlanBinding().dependencies();
@@ -114,6 +129,13 @@ class AppShellScene extends StatelessWidget {
     ProfileBinding().dependencies();
   }
 }
+
+/// Số món CHƯA MUA giao cho chính mình — CÙNG nguồn với chip "Của tôi"
+/// (`ShoppingStore.assignedToMeCount`, cục bộ). Store chưa đăng ký ⇒ 0.
+/// Gọi trong Observer để badge tự cập nhật.
+int shoppingAssignedBadgeCount() => Get.isRegistered<ShoppingStore>()
+    ? Get.find<ShoppingStore>().assignedToMeCount
+    : 0;
 
 /// Tab Home — Trang chủ thiết kế theo DESIGN_SYSTEM.md (Soft Modern Kitchen).
 ///

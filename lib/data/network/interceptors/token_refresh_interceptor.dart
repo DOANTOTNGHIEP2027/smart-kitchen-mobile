@@ -4,9 +4,11 @@ import 'package:dio/dio.dart';
 // GetX cũng export một `FormData` riêng — ẩn đi để không lẫn với của Dio.
 import 'package:get/get.dart' hide FormData;
 
+import '../../../domain/auth/auth_refresh_usecase.dart';
 import '../../../routing/app_routes.dart';
 import '../../../stores/session_store.dart';
 import '../../auth/token_storage.dart';
+import '../../notification/cross_isolate_lock.dart';
 import '../api_response.dart';
 
 /// Thuật toán 401 → refresh → retry (fe-app-shell.md §7.5, quyết định D5).
@@ -19,7 +21,9 @@ class TokenRefreshInterceptor extends Interceptor {
     this._dio,
     this._tokenStorage, {
     required this.publicPaths,
-  });
+    RefreshGate? refreshGate,
+  }) : _refreshGate = refreshGate ??
+            RefreshGate(lock: InProcessLock(), tokenStorage: _tokenStorage);
 
   /// Marker trên request gốc, giới hạn đúng một lần refresh-và-retry cho mỗi
   /// request. KHÔNG được xóa — xem §7.5.
@@ -31,7 +35,12 @@ class TokenRefreshInterceptor extends Interceptor {
   final TokenStorage _tokenStorage;
   final Set<String> publicPaths;
 
-  Completer<bool>? _refreshCompleter; // null khi không có refresh nào đang chạy
+  /// Mutex refresh liên isolate (inventory-management.md §20.3 Amendment #134
+  /// A5.4). Single-flight in-process [_refreshCompleter] vẫn giữ BÊN NGOÀI.
+  final RefreshGate _refreshGate;
+
+  // null khi không có refresh nào đang chạy
+  Completer<RefreshOutcome>? _refreshCompleter;
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
@@ -47,8 +56,19 @@ class TokenRefreshInterceptor extends Interceptor {
       return handler.next(err); // ErrorMappingInterceptor phân loại (§7.3)
     }
 
-    final refreshed = await _refreshOnce();
-    if (!refreshed) {
+    final outcome = await _refreshOnce();
+    if (outcome == RefreshOutcome.lockTimeout) {
+      // A5.4/V2-6: hết chờ khoá KHÔNG phải hết phiên — không clear, không về
+      // login, không để 401 gốc trồi lên (sẽ thành AuthExpiredException).
+      // DioException không response ⇒ ErrorMappingInterceptor map thành
+      // NetworkException (copy trung tính `networkError`).
+      return handler.next(DioException(
+        requestOptions: request,
+        type: DioExceptionType.unknown,
+        error: 'auth refresh lock timeout',
+      ));
+    }
+    if (outcome != RefreshOutcome.refreshed) {
       await _tokenStorage.clear();
       if (Get.isRegistered<SessionStore>()) {
         await Get.find<SessionStore>().clear();
@@ -100,11 +120,11 @@ class TokenRefreshInterceptor extends Interceptor {
   /// Single-flight: nếu đã có một refresh đang chạy, await nó thay vì khởi
   /// động refresh thứ hai (rotation của BE là single-use — một lệnh refresh
   /// đồng thời thứ hai sẽ revoke token đang in-flight của caller kia).
-  Future<bool> _refreshOnce() {
+  Future<RefreshOutcome> _refreshOnce() {
     final inFlight = _refreshCompleter;
     if (inFlight != null) return inFlight.future;
 
-    final completer = Completer<bool>();
+    final completer = Completer<RefreshOutcome>();
     _refreshCompleter = completer;
     unawaited(_runRefresh(completer));
     return completer.future;
@@ -113,53 +133,68 @@ class TokenRefreshInterceptor extends Interceptor {
   /// Chạy refresh rồi hoàn tất [completer] — **mọi đường thoát đều phải
   /// complete nó và reset `_refreshCompleter`**.
   ///
-  /// `_doRefresh()` hiện đã nuốt mọi lỗi và trả `false`, nhưng không có gì ép
+  /// `_doRefresh()` hiện đã nuốt mọi lỗi và trả `failed`, nhưng không có gì ép
   /// buộc điều đó về sau. Nếu một thay đổi sau này để lọt exception ra ngoài
   /// mà thiếu `try/finally` ở đây, `_refreshCompleter` sẽ kẹt non-null vĩnh
   /// viễn và mọi 401 tiếp theo await một future không bao giờ resolve — treo
   /// toàn bộ request đã authenticate, không timeout, không lỗi.
-  Future<void> _runRefresh(Completer<bool> completer) async {
+  Future<void> _runRefresh(Completer<RefreshOutcome> completer) async {
     try {
       completer.complete(await _doRefresh());
     } catch (_) {
-      completer.complete(false);
+      completer.complete(RefreshOutcome.failed);
     } finally {
       _refreshCompleter = null;
     }
   }
 
-  Future<bool> _doRefresh() async {
-    try {
-      final refreshToken = await _tokenStorage.readRefreshToken();
-      if (refreshToken == null) return false;
-
-      // Body dùng camelCase theo docs/contracts/naming-convention.md (chốt
-      // 23/08/2026) — tài liệu đó thắng đoạn `refresh_token` còn sót trong
-      // fe-app-shell.md §7.5.
-      final response = await _dio.post<dynamic>(
-        refreshPath,
-        data: <String, dynamic>{'refreshToken': refreshToken},
-      );
-      final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
-        response.data as Map<String, dynamic>,
-        (j) => j as Map<String, dynamic>,
-      );
-      if (!envelope.success || envelope.data == null) return false;
-
-      final newAccessToken = envelope.data!['accessToken'] as String;
-      await _tokenStorage.saveTokens(
-        newAccessToken,
-        // BẮT BUỘC ghi đè — token cũ đã bị revoke trong chính call này.
-        envelope.data!['refreshToken'] as String,
-      );
-      // Silent refresh là con đường duy nhất household_id/role/provider có thể
-      // đổi giữa phiên, nên SessionStore phải được đồng bộ ở đây (§4, §8.1).
-      if (Get.isRegistered<SessionStore>()) {
-        Get.find<SessionStore>().applyRefreshedClaims(newAccessToken);
-      }
-      return true;
-    } catch (_) {
-      return false;
+  /// Đọc RT / ghi cặp mới nằm trong [RefreshGate] (đọc SAU khi giữ khoá, ghi
+  /// TRƯỚC khi nhả — Guard 19). Ngân sách tổng 8 s cắt bằng CancelToken.
+  Future<RefreshOutcome> _doRefresh() async {
+    final result = await _refreshGate.run(
+      wait: RefreshGate.mainWait,
+      budget: RefreshGate.mainBudget,
+      refresh: _postRefresh,
+    );
+    final tokens = result.tokens;
+    // Silent refresh là con đường duy nhất household_id/role/provider có thể
+    // đổi giữa phiên, nên SessionStore phải được đồng bộ ở đây (§4, §8.1).
+    if (result.outcome == RefreshOutcome.refreshed &&
+        tokens != null &&
+        Get.isRegistered<SessionStore>()) {
+      Get.find<SessionStore>().applyRefreshedClaims(tokens.accessToken);
     }
+    return result.outcome;
+  }
+
+  Future<AuthRefreshResult> _postRefresh(
+    String refreshToken,
+    Options options,
+    CancelToken cancelToken,
+  ) async {
+    // Body dùng camelCase theo docs/contracts/naming-convention.md (chốt
+    // 23/08/2026) — tài liệu đó thắng đoạn `refresh_token` còn sót trong
+    // fe-app-shell.md §7.5.
+    final response = await _dio.post<dynamic>(
+      refreshPath,
+      data: <String, dynamic>{'refreshToken': refreshToken},
+      options: options,
+      cancelToken: cancelToken,
+    );
+    final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
+      response.data as Map<String, dynamic>,
+      (j) => j as Map<String, dynamic>,
+    );
+    final data = envelope.data;
+    if (!envelope.success || data == null) {
+      throw StateError('Refresh response without data');
+    }
+    // BẮT BUỘC ghi đè refresh token — token cũ đã bị revoke trong chính call
+    // này (RefreshGate ghi trước khi nhả khoá).
+    return AuthRefreshResult(
+      accessToken: data['accessToken'] as String,
+      refreshToken: data['refreshToken'] as String,
+      expiresIn: data['expiresIn'] as int? ?? 0,
+    );
   }
 }

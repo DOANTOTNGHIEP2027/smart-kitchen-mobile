@@ -1,0 +1,9 @@
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "ERR_INVENTORY_READONLY_ROLE",
+    "message": "Read-only role"
+  },
+  "timestamp": "2026-11-25T08:00:00Z"
+}

@@ -73,6 +73,10 @@ class RecipeDetailStore {
     } on ApiException catch (error) {
       _publishFavoriteAxis(before);
       _publishError(error);
+    } catch (_) {
+      // #134 (§17 luật 2): lỗi không phải ApiException vẫn rollback đúng trục.
+      _publishFavoriteAxis(before);
+      _publishError(ServerException('ERR_UNKNOWN', 'favorite'));
     } finally {
       runInAction(() => _isMutatingFavorite.value = false);
     }
@@ -92,6 +96,10 @@ class RecipeDetailStore {
     } on ApiException catch (error) {
       _publishRatingAxis(before);
       _publishError(error);
+    } catch (_) {
+      // #134 (§17 luật 2): lỗi không phải ApiException vẫn rollback đúng trục.
+      _publishRatingAxis(before);
+      _publishError(ServerException('ERR_UNKNOWN', 'rating'));
     } finally {
       runInAction(() => _isMutatingRating.value = false);
     }

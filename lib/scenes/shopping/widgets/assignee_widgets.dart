@@ -22,7 +22,9 @@ FamilyStore? shoppingFamilyStore() =>
 const Set<String> _assignableRoles = <String>{'OWNER', 'MEMBER'};
 
 /// Chip người phụ trách trên 1 món (#134). KHÔNG BAO GIỜ in UUID thô (Guard #15):
-/// roster chưa tải → skeleton không chữ; tải xong mà không thấy → "Thành viên cũ".
+/// roster đang tải → skeleton không chữ; tải xong (từ mạng) mà không thấy →
+/// "Thành viên cũ"; roster lỗi / từ cache thiếu người / không có FamilyStore →
+/// nhãn trung tính "Đã giao" (§9.7(b) — không để skeleton treo mãi).
 class AssigneeChip extends StatelessWidget {
   const AssigneeChip({
     super.key,
@@ -48,14 +50,23 @@ class AssigneeChip extends StatelessWidget {
     final l10n = context.l10n;
     final id = item.assignedTo;
     final roster = familyStore?.rosterState;
+    // Giao cho người khác mà roster đang tải: chưa có gì để chọn — bấm không
+    // phản hồi tới khi có kết quả (§9.7(b)).
+    final waitingRoster = id != null &&
+        id != currentUserId &&
+        roster is LoadingState<HouseholdRoster>;
     final Widget label;
     if (id == null) {
       label = Text(l10n.shoppingAssign);
     } else if (id == currentUserId) {
       label = Text(l10n.shoppingAssignedMe);
-    } else if (roster is! SuccessState<HouseholdRoster>) {
+    } else if (waitingRoster) {
       // Chưa biết — không được khẳng định gì (AM-TB-2).
       label = const SizedBox(width: 40, height: 10);
+    } else if (roster is! SuccessState<HouseholdRoster>) {
+      // Lỗi / không có FamilyStore: vẫn "chưa biết là ai" nhưng KHÔNG còn
+      // đang tải — skeleton sẽ treo mãi; nhãn trung tính, không khẳng định ai.
+      label = Text(l10n.shoppingAssigneeUnknown);
     } else {
       final member =
           roster.data.members.where((m) => m.userId == id).firstOrNull;
@@ -64,7 +75,7 @@ class AssigneeChip extends StatelessWidget {
       label = member != null
           ? Text(member.fullName)
           : familyStore!.rosterIsFromCache
-              ? const SizedBox(width: 40, height: 10)
+              ? Text(l10n.shoppingAssigneeUnknown)
               : Text(l10n.shoppingAssigneeFormer);
     }
     return Opacity(
@@ -74,7 +85,11 @@ class AssigneeChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
         // Disabled vẫn phải NUỐT tap — `null` để tap lọt xuống InkWell của
         // tile và tick món (Guard #18).
-        onTap: enabled ? onTap : (onDisabledTap ?? () {}),
+        onTap: !enabled
+            ? (onDisabledTap ?? () {})
+            : waitingRoster
+                ? () {}
+                : onTap,
         splashFactory: enabled ? null : NoSplash.splashFactory,
         highlightColor: enabled ? null : Colors.transparent,
         child: Container(

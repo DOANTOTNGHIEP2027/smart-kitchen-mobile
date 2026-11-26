@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/data/notification/fcm_action_payload.dart';
 import 'package:smart_kitchen_mobile/data/notification/quick_action_api.dart';
 
+import 'quick_action_test_support.dart';
+
 void main() {
   Map<String, dynamic> payload(
       {String schema = '1', String? render = 'LOCAL'}) {
@@ -79,5 +81,55 @@ void main() {
 
     expect(result.applied, isFalse);
     expect(result.transactionReason, 'CORRECTED');
+  });
+
+  // #134 A10: parse trên fixture camelCase đúng OAS thay vì map dựng tay.
+  group('fixture notification-quick-actions', () {
+    test('capable_android_3items: render LOCAL, 3 action, itemIds bị cắt 20/23',
+        () {
+      final result = FcmActionPayload.tryParse(
+          notificationFixture('capable_android_3items.json'))!;
+      expect(result.renderLocally, isTrue);
+      expect(result.actions.map((a) => a.id),
+          <String>['COOK_TODAY', 'MARK_USED', 'DISCARD']);
+      expect(result.itemIds, hasLength(20));
+      expect(result.itemCount, 23);
+      expect(result.itemCount > result.itemIds.length, isTrue);
+      expect(result.actionItemId, result.itemIds.first);
+    });
+
+    test('default_partition: không render ⇒ không dựng local', () {
+      final result =
+          FcmActionPayload.tryParse(notificationFixture('default_partition.json'))!;
+      expect(result.renderLocally, isFalse);
+    });
+
+    test('schema_v2: bỏ toàn bộ actions', () {
+      final result =
+          FcmActionPayload.tryParse(notificationFixture('schema_v2.json'))!;
+      expect(result.actions, isEmpty);
+    });
+
+    test('unknown_action: bỏ id lạ, không crash', () {
+      final result =
+          FcmActionPayload.tryParse(notificationFixture('unknown_action.json'))!;
+      expect(result.actions.map((a) => a.id), <String>['MARK_USED']);
+    });
+
+    test('response fixtures map đúng applied/transactionReason', () {
+      for (final (name, applied, reason) in <(String, bool, String?)>[
+        ('qa_applied_true.json', true, 'COOKED'),
+        ('qa_noop_cooked.json', false, 'COOKED'),
+        ('qa_noop_waste.json', false, 'WASTE'),
+        ('qa_noop_corrected.json', false, 'CORRECTED'),
+        ('qa_noop_unknown_reason.json', false, 'SOMETHING_NEW'),
+        ('qa_noop_null.json', false, null),
+      ]) {
+        final result = inventoryQuickActionResultFromJson(
+            Map<String, dynamic>.from(notificationFixture(name)['data'] as Map));
+        expect(result.applied, applied, reason: name);
+        expect(result.transactionReason, reason, reason: name);
+      }
+    });
   });
 }

@@ -1248,6 +1248,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String get notificationActionDiscard => 'Bỏ đi';
 
   @override
+  String get notificationQuickActionProcessing => 'Đang cập nhật kho…';
+
+  @override
+  String get notificationQuickActionSessionExpired =>
+      'Phiên đăng nhập đã hết — chạm để đăng nhập';
+
+  @override
+  String get notificationQuickActionOpenApp => 'Chạm để mở ứng dụng';
+
+  @override
+  String get notificationQuickActionRetry => 'Không thực hiện được — thử lại';
+
+  @override
   String get inventoryOcrScanAction => 'Quét hoá đơn hoặc mặt hàng';
 
   @override
@@ -2588,6 +2601,14 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get shoppingAssignSyncing =>
       'Đang đồng bộ… giao việc được sau khi xong';
+
+  @override
+  String get shoppingAssigneeUnknown => 'Đã giao';
+
+  @override
+  String navShoppingAssignedSemantics(int count) {
+    return 'Đi chợ, $count món được giao cho bạn';
+  }
 
   @override
   String shoppingAddRejected(String name) {

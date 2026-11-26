@@ -329,6 +329,21 @@ void main() {
       await store.refresh();
     }
 
+    // #134 (§17 luật 2): TypeError khi parse → rollback, pending được gỡ.
+    test('setFavorite ném TypeError → rollback trục favorite', () async {
+      await seed();
+      api.onSetFavorite = (_, __) async => throw TypeError();
+
+      await store.toggleFavorite('r1');
+
+      final after = store.recipes.single.favorite;
+      expect(after.myFavorite, isFalse);
+      expect(after.favoriteCount, 2);
+      expect(after.myRating, 3);
+      expect(store.isFavoritePending('r1'), isFalse);
+      expect(store.error, isA<ServerException>());
+    });
+
     test('optimistic → áp state server khi thành công', () async {
       await seed();
       final gate = Completer<RecipeFavoriteState>();
@@ -438,6 +453,82 @@ void main() {
 
       expect(store.recipes.single.favorite.favoriteCount, 9);
       expect(store.recipes.single.favorite.myFavorite, isTrue);
+    });
+
+    // #134 (recipe-list-detail-screens §17 L1/E4a): lỗi favorite của thế hệ
+    // list cũ không được để lại banner lỗi trên list vừa refresh thành công.
+    test('lỗi favorite về muộn sau refresh thành công → error của list vẫn null',
+        () async {
+      await seed();
+      final gate = Completer<RecipeFavoriteState>();
+      api.onSetFavorite = (_, __) => gate.future;
+      final pending = store.toggleFavorite('r1');
+
+      await store.refresh();
+      expect(store.error, isNull);
+      gate.completeError(NetworkException());
+      await pending;
+
+      expect(store.error, isNull);
+      expect(store.status, RecipeListStatus.ready);
+      expect(store.isFavoritePending('r1'), isFalse);
+    });
+  });
+
+  // #134 (§17 L1/E4b): list() ném lỗi không phải ApiException (TypeError khi
+  // parse) thì status phải thoát loading, error = ServerException ERR_UNKNOWN.
+  group('lỗi không phải ApiException khi tải trang', () {
+    test('list() ném TypeError → ready + ServerException(ERR_UNKNOWN)',
+        () async {
+      api.onList = (_) async => throw TypeError();
+
+      await store.refresh();
+
+      expect(store.status, RecipeListStatus.ready);
+      expect(store.error, isA<ServerException>());
+      expect(store.error?.code, 'ERR_UNKNOWN');
+      expect(store.isFirstLoadError, isTrue);
+    });
+
+    test('tab Yêu thích: listFavorites() ném TypeError → không kẹt loading',
+        () async {
+      api.onListFavorites = (_, __) async => throw TypeError();
+
+      store.setTab(RecipeListTab.favorites);
+      await flush();
+
+      expect(store.status, RecipeListStatus.ready);
+      expect(store.error?.code, 'ERR_UNKNOWN');
+    });
+
+    test('loadMore ném FormatException → giữ dữ liệu cũ, thoát loadingMore',
+        () async {
+      api.onList = (call) async {
+        if (call.page == 1) throw const FormatException('json hỏng');
+        return recipePage(<Recipe>[buildRecipe('r1')], totalPages: 2);
+      };
+      await store.refresh();
+
+      await store.loadMore();
+
+      expect(store.status, RecipeListStatus.ready);
+      expect(store.recipes.map((r) => r.id), <String>['r1']);
+      expect(store.error?.code, 'ERR_UNKNOWN');
+      expect(store.hasMore, isTrue);
+    });
+
+    test('lỗi lạ của request cũ về sau không bật trạng thái lỗi', () async {
+      final gate = Completer<RecipePage>();
+      api.onList = (_) => gate.future;
+      final stale = store.refresh();
+
+      api.onList = (_) async => recipePage(<Recipe>[buildRecipe('r2')]);
+      await store.refresh();
+      gate.completeError(TypeError());
+      await stale;
+
+      expect(store.error, isNull);
+      expect(store.recipes.single.id, 'r2');
     });
   });
 

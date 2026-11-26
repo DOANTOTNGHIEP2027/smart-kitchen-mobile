@@ -88,6 +88,19 @@ void main() {
   });
 
   group('toggleFavorite', () {
+    // #134 (§17 luật 2): lỗi không phải ApiException vẫn rollback đúng trục.
+    test('setFavorite ném TypeError → rollback snapshot + ServerException', () async {
+      await loadWith(buildRecipe('r1', favorite: before));
+      api.onSetFavorite = (_, __) async => throw TypeError();
+
+      await store.toggleFavorite();
+
+      expectSameFavorite(store.recipe!.favorite, before);
+      expect(store.mutationError, isA<ServerException>());
+      expect(store.mutationError!.code, 'ERR_UNKNOWN');
+      expect(store.isMutatingFavorite, isFalse);
+    });
+
     test('recipe chưa tải → không gọi API', () async {
       await store.toggleFavorite();
       expect(api.setFavoriteCalls, isEmpty);

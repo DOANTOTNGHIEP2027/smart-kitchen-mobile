@@ -2410,6 +2410,30 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get notificationActionDiscard;
 
+  /// No description provided for @notificationQuickActionProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating inventory…'**
+  String get notificationQuickActionProcessing;
+
+  /// No description provided for @notificationQuickActionSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired — tap to sign in'**
+  String get notificationQuickActionSessionExpired;
+
+  /// No description provided for @notificationQuickActionOpenApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to open the app'**
+  String get notificationQuickActionOpenApp;
+
+  /// No description provided for @notificationQuickActionRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t complete — try again'**
+  String get notificationQuickActionRetry;
+
   /// No description provided for @inventoryOcrScanAction.
   ///
   /// In en, this message translates to:
@@ -4683,6 +4707,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Syncing… you can assign once it\'s done'**
   String get shoppingAssignSyncing;
+
+  /// No description provided for @shoppingAssigneeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned'**
+  String get shoppingAssigneeUnknown;
+
+  /// No description provided for @navShoppingAssignedSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping, {count} items assigned to you'**
+  String navShoppingAssignedSemantics(int count);
 
   /// No description provided for @shoppingAddRejected.
   ///

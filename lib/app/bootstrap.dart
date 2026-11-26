@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
@@ -26,6 +28,7 @@ import '../scenes/profile/api/health_api.dart';
 import '../scenes/profile/api/profile_api.dart';
 import '../scenes/inventory/data/inventory_api.dart';
 import '../scenes/inventory/data/inventory_dao.dart';
+import '../scenes/inventory/inventory_catch_up.dart';
 import '../scenes/inventory/stores/inventory_store.dart';
 import '../scenes/cooking/data/cooking_assist_api.dart';
 import '../scenes/cooking/data/cooking_session_api.dart';
@@ -34,6 +37,8 @@ import '../scenes/recipe/data/recipe_catalog_api.dart';
 import '../scenes/mealplan/data/meal_plan_api.dart';
 import '../scenes/mealplan/data/meal_suggestion_api.dart';
 import '../scenes/mealplan/data/meal_attendance_api.dart';
+import '../data/notification/bg_files.dart';
+import '../data/notification/cross_isolate_lock.dart';
 import '../data/notification/device_api.dart';
 import '../data/notification/notification_service.dart';
 import '../data/notification/quick_action_api.dart';
@@ -71,7 +76,15 @@ Future<void> bootstrap() async {
   final firebaseAvailable = await _initFirebase();
 
   final tokenStorage = TokenStorage();
-  final dioClient = DioClient.build(tokenStorage: tokenStorage);
+  // #134 A5.4: CẢ 3 đường refresh của main isolate (interceptor, bootstrap,
+  // refreshSession) đi qua cùng mutex liên isolate với quick-action nền.
+  final bgFiles = BgFiles.production();
+  final refreshGate = RefreshGate(
+    lock: kIsWeb ? InProcessLock() : FileLeaseLock(directory: bgFiles.directory),
+    tokenStorage: tokenStorage,
+  );
+  final dioClient =
+      DioClient.build(tokenStorage: tokenStorage, refreshGate: refreshGate);
 
   if (EnvConfig.isDemoMode) {
     // Chỉ thay tầng transport — api/store/scene và toàn bộ pipeline
@@ -91,6 +104,7 @@ Future<void> bootstrap() async {
     tokenStorage,
     AuthRefreshUseCase(dioClient.dio),
     revokeUseCase: AuthRevokeUseCase(dioClient.dio),
+    refreshGate: refreshGate,
   );
   Get.put<SessionStore>(sessionStore, permanent: true);
   Get.put<ThemeStore>(ThemeStore(), permanent: true);
@@ -195,6 +209,11 @@ Future<void> bootstrap() async {
   )..attachSink(notificationStore.addNotification);
   Get.put<NotificationService>(notificationService, permanent: true);
 
+  // #134 A8: catch-up kho khi isolate nền đã đổi kho (cờ file + ping port).
+  final inventoryCatchUp = InventoryCatchUp(files: bgFiles);
+  if (!kIsWeb) inventoryCatchUp.listen();
+  Get.put<InventoryCatchUp>(inventoryCatchUp, permanent: true);
+
   _perfMark('perf.session.start');
   await Future.wait<void>(<Future<void>>[
     sessionStore.bootstrap(), // thử silent refresh, set AuthStatus
@@ -223,6 +242,7 @@ Future<void> bootstrap() async {
 
   // Sau runApp: không await, có log, không ném ra zone (#93 §5.4 F1).
   startRealtimeAfterFirstFrame(realtimeStore);
+  unawaited(inventoryCatchUp.run());
 }
 
 /// Issue #16 — phải chạy trước bất kỳ lần dùng `FirebaseAuth`/`GoogleSignIn` nào.

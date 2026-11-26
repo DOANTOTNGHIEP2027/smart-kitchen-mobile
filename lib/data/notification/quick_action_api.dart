@@ -40,19 +40,29 @@ abstract interface class QuickActionApi {
 }
 
 class QuickActionApiImpl implements QuickActionApi {
-  QuickActionApiImpl(this._client);
+  QuickActionApiImpl(DioClient client) : _dio = client.dio;
 
-  final DioClient _client;
+  /// Isolate nền (Amendment #134 A3): Dio tối giản, KHÔNG `DioClient.build()`
+  /// (TokenRefreshInterceptor dùng GetX).
+  QuickActionApiImpl.withDio(Dio dio) : _dio = dio;
 
+  final Dio _dio;
+
+  /// [options] mang header `Authorization` + timeout phụ, [cancelToken] cắt
+  /// ngân sách tổng — chỉ isolate nền truyền (A3/A4).
   @override
   Future<InventoryQuickActionResult> apply({
     required String itemId,
     required String action,
+    Options? options,
+    CancelToken? cancelToken,
   }) async {
     try {
-      final response = await _client.dio.post<Map<String, dynamic>>(
+      final response = await _dio.post<Map<String, dynamic>>(
         '/api/v1/inventory-items/$itemId/quick-action',
         data: <String, dynamic>{'action': action},
+        options: options,
+        cancelToken: cancelToken,
       );
       final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
         response.data ?? const <String, dynamic>{},
@@ -64,8 +74,10 @@ class QuickActionApiImpl implements QuickActionApi {
       final data = envelope.data!;
       return inventoryQuickActionResultFromJson(data);
     } on DioException catch (error) {
-      throw error.error as ApiException? ??
-          ServerException('ERR_UNKNOWN', 'Unexpected response');
+      final mapped = error.error;
+      throw mapped is ApiException
+          ? mapped
+          : ServerException('ERR_UNKNOWN', 'Unexpected response');
     }
   }
 }
