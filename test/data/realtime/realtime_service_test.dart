@@ -15,12 +15,12 @@ void main() {
 
     test('giữ nguyên context-path và không nhân đôi', () {
       expect(RealtimeService.wsBaseUrlFrom('https://api.example.com/api'),
-          'ws://api.example.com/api');
+          'wss://api.example.com/api');
     });
 
     test('bỏ trailing slash nhưng vẫn giữ context-path', () {
       expect(RealtimeService.wsBaseUrlFrom('https://host:8443/'),
-          'ws://host:8443/api');
+          'wss://host:8443/api');
     });
   });
 }
