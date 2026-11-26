@@ -2,6 +2,8 @@ analyzer:
   exclude:
     - build/**
     - android/**
+    # Spike benchmark (#116) là project riêng, có analysis_options riêng.
+    - spikes/**
   errors:
     prefer_const_constructors: warning
     prefer_const_literals_to_create_immutables: warning
