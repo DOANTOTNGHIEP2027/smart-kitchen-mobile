@@ -183,7 +183,8 @@ abstract final class DemoFixtures {
           'guardianActive': true,
           'displayName': 'Bé An',
           'dateOfBirth': '2020-05-15',
-          'dietType': 'NONE',
+          // Chưa thiết lập health-profile (#125 §16.2 i) → `null`, khác 'NONE'.
+          'dietType': null,
           'allergens': <Map<String, dynamic>>[allergens[2]],
         },
       ];

@@ -2299,9 +2299,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'The app automatically excludes allergenic ingredients when suggesting menus for dependents.';
 
   @override
-  String get dependentDefaultName => 'Little member';
-
-  @override
   String dependentAgeAndBirth(int age, String date) {
     String _temp0 = intl.Intl.pluralLogic(
       age,
@@ -2318,7 +2315,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dependentNoAllergens => 'No allergies';
+  String get dependentNoAllergens => 'No allergies recorded';
 
   @override
   String get dependentProfileNav => 'Dependent profiles';
@@ -2334,9 +2331,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Something went wrong while saving the profile';
 
   @override
-  String get dependentBasicInfo => 'Basic information';
-
-  @override
   String get dependentNameLabel => 'Full name or nickname *';
 
   @override
@@ -2346,33 +2340,163 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dependentDateOfBirth => 'Date of birth';
 
   @override
-  String get dependentDietSection => 'Diet';
-
-  @override
-  String get dependentDietHint =>
-      'Choose a special diet if this member has specific nutrition needs.';
-
-  @override
-  String get dependentDietNone => 'Regular';
-
-  @override
-  String get dependentDietVegetarian => 'Lacto-ovo vegetarian';
-
-  @override
-  String get dependentDietVegan => 'Vegan';
-
-  @override
-  String get dependentDietPescatarian => 'Pescatarian';
-
-  @override
-  String get dependentAllergenSection => 'Food allergies';
-
-  @override
-  String get dependentAllergenHint =>
-      'Tick the foods this member is allergic to so the app can warn you.';
-
-  @override
   String get dependentSave => 'Save profile';
+
+  @override
+  String dependentCardCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count profiles',
+      one: '1 profile',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dependentCardEmpty => 'No profiles yet';
+
+  @override
+  String get dependentCardViewAll => 'View all';
+
+  @override
+  String get dependentCardView => 'View';
+
+  @override
+  String get dependentDobHint => 'Optional';
+
+  @override
+  String get dependentDobNotSet => 'Not provided';
+
+  @override
+  String get dependentDobClear => 'Clear date of birth';
+
+  @override
+  String get dependentNameTooLong => 'Name must be 255 characters or fewer';
+
+  @override
+  String get dependentCreatedToast => 'Profile created';
+
+  @override
+  String get dependentGuardianInactiveTag => 'Needs a new guardian';
+
+  @override
+  String get dependentGuardianInactiveBanner =>
+      'This profile\'s guardian has left the household or no longer has permission to manage it. The data is kept; the household owner needs to assign a new guardian before it can be edited.';
+
+  @override
+  String get dependentGuardianInactiveOwnerHint =>
+      'Until an active guardian is assigned, only the household owner can edit the health profile.';
+
+  @override
+  String get dependentSummarySection => 'Summary';
+
+  @override
+  String get dependentHealthRestricted =>
+      'Only the current guardian or the household owner can view the full health profile.';
+
+  @override
+  String get dependentGuardianSection => 'Guardian';
+
+  @override
+  String dependentGuardianYou(String name) {
+    return '$name (you)';
+  }
+
+  @override
+  String get dependentGuardianLeft => 'Left the household';
+
+  @override
+  String get dependentGuardianNoManage => 'No longer allowed to manage';
+
+  @override
+  String get dependentChangeGuardian => 'Change guardian';
+
+  @override
+  String dependentChangeGuardianTitle(String name) {
+    return 'Change guardian — $name';
+  }
+
+  @override
+  String get dependentChangeGuardianEmpty =>
+      'No member can be assigned as guardian.';
+
+  @override
+  String get dependentGuardianChangedToast => 'Guardian changed';
+
+  @override
+  String get dependentDelete => 'Delete profile';
+
+  @override
+  String dependentDeleteConfirmTitle(String name) {
+    return 'Delete $name\'s profile?';
+  }
+
+  @override
+  String get dependentDeleteConfirmBody =>
+      'All health and allergy data of this profile will be permanently deleted. This cannot be undone.';
+
+  @override
+  String get dependentDeletedToast => 'Profile deleted';
+
+  @override
+  String get dependentNotFoundTitle => 'Profile not found';
+
+  @override
+  String get dependentNotFoundBody =>
+      'It may have been deleted or belong to another household.';
+
+  @override
+  String get dependentBackToList => 'Back to list';
+
+  @override
+  String get dependentNoAccessTitle => 'No access';
+
+  @override
+  String get dependentNoAccessHealth =>
+      'Only the current guardian or the household owner can edit this health profile.';
+
+  @override
+  String get dependentNoAccessAllergens =>
+      'Only the current guardian or the household owner can edit these allergies.';
+
+  @override
+  String dependentHealthTitle(String name) {
+    return 'Health — $name';
+  }
+
+  @override
+  String dependentAllergensTitle(String name) {
+    return 'Allergies — $name';
+  }
+
+  @override
+  String get dependentErrorForbidden =>
+      'You don\'t have permission to do this.';
+
+  @override
+  String get dependentErrorNoHousehold => 'Join a household first.';
+
+  @override
+  String get dependentErrorInvalidGuardian =>
+      'This member can\'t be the guardian. Please choose someone else.';
+
+  @override
+  String get dependentGuardianCurrent => 'Current';
+
+  @override
+  String dependentBornOn(String date) {
+    return 'Born $date';
+  }
+
+  @override
+  String get dependentHealthUnknownDiet =>
+      'This profile has a diet this app version doesn\'t support. Update the app to edit it.';
+
+  @override
+  String dependentMoreChip(int count) {
+    return '+$count';
+  }
 
   @override
   String get inventoryStatTotal => 'Total items';

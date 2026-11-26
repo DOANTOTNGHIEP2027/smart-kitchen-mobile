@@ -112,6 +112,11 @@ class DemoBackendAdapter implements HttpClientAdapter {
       .toList(growable: true);
   var _depSequence = 2;
 
+  /// #125 — health-profile theo dependent; chưa PUT = không có entry (mọi
+  /// field `null`, `updatedAt: null`).
+  final Map<String, Map<String, dynamic>> _dependentHealth =
+      <String, Map<String, dynamic>>{};
+
   final Map<String, dynamic> _weeklyRecap = DemoFixtures.weeklyRecap();
   final Map<String, dynamic> _householdStreak = DemoFixtures.householdStreak();
   final List<Map<String, dynamic>> _mealLogs = DemoFixtures.mealLogs()
@@ -641,6 +646,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final depMatch = RegExp(r'^/api/v1/dependents/([^/]+)$').firstMatch(path);
     if (depMatch != null && method == 'GET') {
       return _getDependent(depMatch.group(1)!);
+    }
+    if (depMatch != null && method == 'DELETE') {
+      return _deleteDependent(depMatch.group(1)!);
     }
 
     // ── Insights & Weekly Recap (Demo Mode) ─────────────────────────
@@ -1923,84 +1931,121 @@ class DemoBackendAdapter implements HttpClientAdapter {
 
   // ── Dependent Handlers ───────────────────────────────────────────
 
+  /// OAS `DependentCreateResponse` (#125 §16.2 c): KHÔNG có
+  /// `guardianActive`/`dietType`/`allergens`; DOB thiếu → `null`.
   ResponseBody _createDependent(Map<String, dynamic> body) {
-    final newDep = <String, dynamic>{
-      'id': 'demo-dep-${_depSequence++}',
+    final id = 'demo-dep-${_depSequence++}';
+    final displayName = body['displayName'] as String? ?? '';
+    final dob = body['dateOfBirth'] as String?;
+    _dependents.add(<String, dynamic>{
+      'id': id,
       'guardianUserId': _userId,
       'guardianActive': true,
-      'displayName': body['displayName'] as String? ?? 'Thành viên nhỏ',
-      'dateOfBirth': body['dateOfBirth'] as String? ?? '2021-01-01',
-      'dietType': 'NONE',
+      'displayName': displayName,
+      'dateOfBirth': dob,
+      'dietType': null,
       'allergens': <Map<String, dynamic>>[],
-    };
-    _dependents.add(newDep);
-    return _ok(201, newDep);
-  }
-
-  ResponseBody _getDependent(String id) {
-    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
-    if (dep == null) {
-      return _error(
-        404,
-        'ERR_DEP_NOT_FOUND',
-        'Không tìm thấy hồ sơ người phụ thuộc.',
-      );
-    }
-    return _ok(200, dep);
-  }
-
-  ResponseBody _changeDependentGuardian(String id, Map<String, dynamic> body) {
-    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
-    if (dep == null) {
-      return _error(404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ.');
-    }
-    dep['guardianUserId'] = body['guardianUserId'];
-    return _ok(200, dep);
-  }
-
-  ResponseBody _getDependentHealthProfile(String id) {
-    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
-    if (dep == null) {
-      return _error(404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ.');
-    }
-    return _ok(200, <String, dynamic>{
-      'dependentId': id,
-      'targetDailyCalories': 1400,
-      'dietType': dep['dietType'] ?? 'NONE',
-      'heightCm': 110.0,
-      'weightKg': 20.0,
-      'allergens': dep['allergens'] ?? <dynamic>[],
+    });
+    return _ok(201, <String, dynamic>{
+      'id': id,
+      'householdId': _householdId ?? DemoFixtures.householdId,
+      'guardianUserId': _userId,
+      'displayName': displayName,
+      'dateOfBirth': dob,
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
     });
   }
 
+  Map<String, dynamic>? _findDependent(String id) =>
+      _dependents.where((d) => d['id'] == id).firstOrNull;
+
+  ResponseBody _dependentNotFound() =>
+      _error(404, 'ERR_DEP_001', 'Dependent not found');
+
+  ResponseBody _getDependent(String id) {
+    final dep = _findDependent(id);
+    if (dep == null) return _dependentNotFound();
+    return _ok(200, dep);
+  }
+
+  /// OAS `deleteDependent`: 200 `data: null`.
+  ResponseBody _deleteDependent(String id) {
+    final dep = _findDependent(id);
+    if (dep == null) return _dependentNotFound();
+    _dependents.remove(dep);
+    _dependentHealth.remove(id);
+    return _okEmpty(200);
+  }
+
+  /// Target phải là OWNER/MEMBER của roster demo → nếu không 400
+  /// `ERR_DEP_004`. Thành công → `guardianActive = true`.
+  ResponseBody _changeDependentGuardian(String id, Map<String, dynamic> body) {
+    final dep = _findDependent(id);
+    if (dep == null) return _dependentNotFound();
+    final target = body['guardianUserId'] as String?;
+    final members = _householdRoster()['members'] as List<Map<String, dynamic>>;
+    final valid = members.any((m) =>
+        m['userId'] == target &&
+        (m['role'] == 'OWNER' || m['role'] == 'MEMBER'));
+    if (!valid) {
+      return _error(400, 'ERR_DEP_004', 'Invalid guardian');
+    }
+    dep['guardianUserId'] = target;
+    dep['guardianActive'] = true;
+    return _ok(200, dep);
+  }
+
+  Map<String, dynamic> _dependentHealthOf(
+          String id, Map<String, dynamic> dep) =>
+      <String, dynamic>{
+        'dependentId': id,
+        'targetDailyCalories': null,
+        'dietType': null,
+        'heightCm': null,
+        'weightKg': null,
+        'updatedAt': null,
+        ...?_dependentHealth[id],
+        'allergens': dep['allergens'] ?? <dynamic>[],
+      };
+
+  ResponseBody _getDependentHealthProfile(String id) {
+    final dep = _findDependent(id);
+    if (dep == null) return _dependentNotFound();
+    return _ok(200, _dependentHealthOf(id, dep));
+  }
+
+  /// PUT full-replace: key vắng/`null` = `null` (`PUT {}` reset hết).
   ResponseBody _upsertDependentHealthProfile(
     String id,
     Map<String, dynamic> body,
   ) {
-    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
-    if (dep != null) {
-      dep['dietType'] = body['dietType'] ?? dep['dietType'];
-    }
-    return _ok(200, <String, dynamic>{
-      'dependentId': id,
-      'targetDailyCalories': body['targetDailyCalories'] ?? 1400,
-      'dietType': body['dietType'] ?? 'NONE',
-      'heightCm': body['heightCm'] ?? 110.0,
-      'weightKg': body['weightKg'] ?? 20.0,
-      'allergens': dep?['allergens'] ?? <dynamic>[],
-    });
+    final dep = _findDependent(id);
+    if (dep == null) return _dependentNotFound();
+    _dependentHealth[id] = <String, dynamic>{
+      'targetDailyCalories': body['targetDailyCalories'],
+      'dietType': body['dietType'],
+      'heightCm': body['heightCm'],
+      'weightKg': body['weightKg'],
+      'updatedAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    dep['dietType'] = body['dietType'];
+    return _ok(200, _dependentHealthOf(id, dep));
   }
 
+  /// Full-replace; id không có trong catalog → 400 `ERR_ALLERGEN_NOT_FOUND`.
   ResponseBody _replaceDependentAllergens(
     String id,
     Map<String, dynamic> body,
   ) {
-    final dep = _dependents.where((d) => d['id'] == id).firstOrNull;
-    if (dep == null) {
-      return _error(404, 'ERR_DEP_NOT_FOUND', 'Không tìm thấy hồ sơ.');
+    final dep = _findDependent(id);
+    if (dep == null) return _dependentNotFound();
+    final allergenIds = ((body['allergenIds'] as List<dynamic>?) ?? <dynamic>[])
+        .map((Object? e) => (e as num).toInt())
+        .toSet();
+    final known = DemoFixtures.allergens.map((a) => a['id']).toSet();
+    if (!known.containsAll(allergenIds)) {
+      return _error(400, 'ERR_ALLERGEN_NOT_FOUND', 'Allergen not found');
     }
-    final allergenIds =
-        (body['allergenIds'] as List<dynamic>?)?.cast<int>() ?? <int>[];
     final matched = DemoFixtures.allergens
         .where((a) => allergenIds.contains(a['id']))
         .toList();

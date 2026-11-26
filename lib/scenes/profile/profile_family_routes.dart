@@ -2,7 +2,9 @@ import 'package:get/get.dart';
 
 import '../../routing/route_guards.dart';
 import 'allergen_select_screen.dart';
-import 'dependent_form_screen.dart';
+import 'dependent_allergen_select_screen.dart';
+import 'dependent_detail_screen.dart';
+import 'dependent_health_profile_screen.dart';
 import 'dependent_list_screen.dart';
 import 'edit_profile_screen.dart';
 import 'family_screen.dart';
@@ -22,7 +24,10 @@ abstract class ProfileFamilyRoutes {
   static const String tierUpgrade = '/family/tier-upgrade';
   static const String memberDetail = '/family/:userId';
   static const String dependents = '/dependents';
-  static const String dependentAdd = '/dependents/add';
+  static const String dependentDetail = '/dependents/:dependentId';
+  static const String dependentHealth = '/dependents/:dependentId/health';
+  static const String dependentAllergens =
+      '/dependents/:dependentId/allergens';
 }
 
 final List<GetPage<dynamic>> profileFamilyPages = <GetPage<dynamic>>[
@@ -53,7 +58,8 @@ final List<GetPage<dynamic>> profileFamilyPages = <GetPage<dynamic>>[
   GetPage<void>(
     name: ProfileFamilyRoutes.family,
     page: () => const FamilyScreen(),
-    binding: FamilyBinding(),
+    // Card "Người phụ thuộc" cần DependentStore ngay khi mount (§8.2).
+    bindings: <Bindings>[FamilyBinding(), DependentBinding()],
     middlewares: <GetMiddleware>[AuthGuard()],
   ),
   GetPage<void>(
@@ -68,14 +74,30 @@ final List<GetPage<dynamic>> profileFamilyPages = <GetPage<dynamic>>[
     binding: FamilyBinding(),
     middlewares: <GetMiddleware>[AuthGuard()],
   ),
+  // `/dependents/**` top-level, KHÔNG lồng dưới `/family/` (Guard 8). Mọi
+  // route mang đủ binding — an toàn deep-link nguội.
   GetPage<void>(
     name: ProfileFamilyRoutes.dependents,
     page: () => const DependentListScreen(),
+    bindings: <Bindings>[FamilyBinding(), DependentBinding()],
     middlewares: <GetMiddleware>[AuthGuard()],
   ),
   GetPage<void>(
-    name: ProfileFamilyRoutes.dependentAdd,
-    page: () => const DependentFormScreen(),
+    name: ProfileFamilyRoutes.dependentDetail,
+    page: () => const DependentDetailScreen(),
+    bindings: <Bindings>[FamilyBinding(), DependentBinding()],
+    middlewares: <GetMiddleware>[AuthGuard()],
+  ),
+  GetPage<void>(
+    name: ProfileFamilyRoutes.dependentHealth,
+    page: () => const DependentHealthProfileScreen(),
+    bindings: <Bindings>[FamilyBinding(), DependentBinding()],
+    middlewares: <GetMiddleware>[AuthGuard()],
+  ),
+  GetPage<void>(
+    name: ProfileFamilyRoutes.dependentAllergens,
+    page: () => const DependentAllergenSelectScreen(),
+    bindings: <Bindings>[FamilyBinding(), DependentBinding()],
     middlewares: <GetMiddleware>[AuthGuard()],
   ),
 ];
