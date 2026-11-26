@@ -2290,9 +2290,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Hệ thống tự động loại trừ nguyên liệu gây dị ứng khi gợi ý thực đơn cho các thành viên phụ thuộc.';
 
   @override
-  String get dependentDefaultName => 'Thành viên nhỏ';
-
-  @override
   String dependentAgeAndBirth(int age, String date) {
     return '$age tuổi · Sinh $date';
   }
@@ -2303,7 +2300,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get dependentNoAllergens => 'Không có dị ứng';
+  String get dependentNoAllergens => 'Chưa ghi nhận dị ứng';
 
   @override
   String get dependentProfileNav => 'Hồ sơ người phụ thuộc';
@@ -2318,9 +2315,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get dependentSaveFailed => 'Có lỗi xảy ra khi lưu hồ sơ';
 
   @override
-  String get dependentBasicInfo => 'Thông tin cơ bản';
-
-  @override
   String get dependentNameLabel => 'Họ và tên hoặc biệt danh *';
 
   @override
@@ -2330,33 +2324,158 @@ class AppLocalizationsVi extends AppLocalizations {
   String get dependentDateOfBirth => 'Ngày sinh';
 
   @override
-  String get dependentDietSection => 'Chế độ ăn';
-
-  @override
-  String get dependentDietHint =>
-      'Chọn chế độ ăn đặc thù nếu thành viên có yêu cầu dinh dưỡng riêng.';
-
-  @override
-  String get dependentDietNone => 'Bình thường';
-
-  @override
-  String get dependentDietVegetarian => 'Ăn chay trứng sữa';
-
-  @override
-  String get dependentDietVegan => 'Ăn chay thuần';
-
-  @override
-  String get dependentDietPescatarian => 'Ăn cá & hải sản';
-
-  @override
-  String get dependentAllergenSection => 'Dị ứng thực phẩm';
-
-  @override
-  String get dependentAllergenHint =>
-      'Tích chọn các thực phẩm mà thành viên bị dị ứng để ứng dụng cảnh báo.';
-
-  @override
   String get dependentSave => 'Lưu hồ sơ';
+
+  @override
+  String dependentCardCount(int count) {
+    return '$count hồ sơ';
+  }
+
+  @override
+  String get dependentCardEmpty => 'Chưa có hồ sơ nào';
+
+  @override
+  String get dependentCardViewAll => 'Xem tất cả';
+
+  @override
+  String get dependentCardView => 'Xem';
+
+  @override
+  String get dependentDobHint => 'Không bắt buộc';
+
+  @override
+  String get dependentDobNotSet => 'Chưa cập nhật';
+
+  @override
+  String get dependentDobClear => 'Xoá ngày sinh';
+
+  @override
+  String get dependentNameTooLong => 'Tên tối đa 255 ký tự';
+
+  @override
+  String get dependentCreatedToast => 'Đã tạo hồ sơ';
+
+  @override
+  String get dependentGuardianInactiveTag => 'Cần đổi giám hộ';
+
+  @override
+  String get dependentGuardianInactiveBanner =>
+      'Người giám hộ của hồ sơ này đã rời gia đình hoặc không còn quyền quản lý. Dữ liệu vẫn được giữ nguyên; chủ hộ cần chỉ định người giám hộ mới để tiếp tục chỉnh sửa.';
+
+  @override
+  String get dependentGuardianInactiveOwnerHint =>
+      'Khi chưa có người giám hộ hoạt động, chỉ chủ hộ sửa được hồ sơ sức khoẻ.';
+
+  @override
+  String get dependentSummarySection => 'Tóm tắt';
+
+  @override
+  String get dependentHealthRestricted =>
+      'Chỉ người giám hộ hiện tại hoặc chủ hộ mới xem được hồ sơ sức khoẻ đầy đủ.';
+
+  @override
+  String get dependentGuardianSection => 'Người giám hộ';
+
+  @override
+  String dependentGuardianYou(String name) {
+    return '$name (bạn)';
+  }
+
+  @override
+  String get dependentGuardianLeft => 'Đã rời gia đình';
+
+  @override
+  String get dependentGuardianNoManage => 'Không còn quyền quản lý';
+
+  @override
+  String get dependentChangeGuardian => 'Đổi người giám hộ';
+
+  @override
+  String dependentChangeGuardianTitle(String name) {
+    return 'Đổi người giám hộ — $name';
+  }
+
+  @override
+  String get dependentChangeGuardianEmpty =>
+      'Không có thành viên nào có thể làm người giám hộ.';
+
+  @override
+  String get dependentGuardianChangedToast => 'Đã đổi người giám hộ';
+
+  @override
+  String get dependentDelete => 'Xoá hồ sơ';
+
+  @override
+  String dependentDeleteConfirmTitle(String name) {
+    return 'Xoá hồ sơ \"$name\"?';
+  }
+
+  @override
+  String get dependentDeleteConfirmBody =>
+      'Toàn bộ dữ liệu sức khoẻ và dị ứng của hồ sơ này sẽ bị xoá vĩnh viễn. Không thể hoàn tác.';
+
+  @override
+  String get dependentDeletedToast => 'Đã xoá hồ sơ';
+
+  @override
+  String get dependentNotFoundTitle => 'Không tìm thấy hồ sơ này';
+
+  @override
+  String get dependentNotFoundBody =>
+      'Hồ sơ có thể đã bị xoá hoặc không thuộc gia đình của bạn.';
+
+  @override
+  String get dependentBackToList => 'Quay lại danh sách';
+
+  @override
+  String get dependentNoAccessTitle => 'Không có quyền truy cập';
+
+  @override
+  String get dependentNoAccessHealth =>
+      'Chỉ người giám hộ hiện tại hoặc chủ hộ mới sửa được hồ sơ sức khoẻ này.';
+
+  @override
+  String get dependentNoAccessAllergens =>
+      'Chỉ người giám hộ hiện tại hoặc chủ hộ mới sửa được danh sách dị ứng này.';
+
+  @override
+  String dependentHealthTitle(String name) {
+    return 'Sức khoẻ — $name';
+  }
+
+  @override
+  String dependentAllergensTitle(String name) {
+    return 'Dị ứng — $name';
+  }
+
+  @override
+  String get dependentErrorForbidden =>
+      'Bạn không có quyền thực hiện thao tác này.';
+
+  @override
+  String get dependentErrorNoHousehold =>
+      'Bạn cần tham gia một gia đình trước.';
+
+  @override
+  String get dependentErrorInvalidGuardian =>
+      'Không thể chỉ định người này làm giám hộ. Hãy chọn thành viên khác.';
+
+  @override
+  String get dependentGuardianCurrent => 'Hiện tại';
+
+  @override
+  String dependentBornOn(String date) {
+    return 'Sinh $date';
+  }
+
+  @override
+  String get dependentHealthUnknownDiet =>
+      'Hồ sơ có chế độ ăn mà ứng dụng chưa hỗ trợ. Hãy cập nhật ứng dụng để chỉnh sửa.';
+
+  @override
+  String dependentMoreChip(int count) {
+    return '+$count';
+  }
 
   @override
   String get inventoryStatTotal => 'Tổng mặt hàng';

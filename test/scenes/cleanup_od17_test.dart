@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/meal_type.dart';
-import 'package:smart_kitchen_mobile/scenes/profile/dependent_list_screen.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/domain/dependent_age.dart';
 
 void main() {
   test('ageOn: chưa tới sinh nhật trong năm → trừ 1; đúng ngày sinh nhật → đủ tuổi', () {

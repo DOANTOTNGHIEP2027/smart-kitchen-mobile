@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 import '../../data/db/read_cache_dao.dart';
 import '../../stores/session_store.dart';
 import 'api/avatar_image_processor.dart';
+import 'api/dependent_api.dart';
 import 'api/family_api.dart';
 import 'api/health_api.dart';
 import 'api/profile_api.dart';
+import 'stores/dependent_store.dart';
 import 'stores/family_store.dart';
 import 'stores/profile_store.dart';
 import 'domain/health_profile.dart';
@@ -84,6 +86,28 @@ class FamilyBinding extends Bindings {
         ),
         // B1 (shopping-list-screen §9.6): sống qua điều hướng — /shopping dùng
         // chung instance, pop /family không được xoá mất store.
+        fenix: true,
+      );
+    }
+  }
+}
+
+/// #125 — store hồ sơ phụ thuộc (dependent-profile-screens.md §16.4). Dùng
+/// chung card trong `/family` + 4 route `/dependents/**`; tự đảm bảo
+/// [FamilyStore] (idempotent nhờ `isRegistered`).
+class DependentBinding extends Bindings {
+  @override
+  void dependencies() {
+    FamilyBinding().dependencies();
+    if (!Get.isRegistered<DependentStore>()) {
+      Get.lazyPut<DependentStore>(
+        () => DependentStore(
+          Get.find<DependentApi>(),
+          Get.find<HealthApi>(),
+          Get.find<FamilyStore>(),
+          Get.find<ReadCacheDao>(),
+          Get.find<SessionStore>(),
+        ),
         fenix: true,
       );
     }

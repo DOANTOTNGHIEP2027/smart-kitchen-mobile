@@ -19,6 +19,7 @@ import 'package:smart_kitchen_mobile/scenes/profile/domain/household_member.dart
 import 'package:smart_kitchen_mobile/scenes/profile/domain/household_roster.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/family_screen.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/stores/family_store.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/household_plan_strip.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/widgets/invite_result_sheet.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
 import 'package:smart_kitchen_mobile/widgets/buttons/app_button.dart';
@@ -27,6 +28,7 @@ import 'package:smart_kitchen_mobile/widgets/states/app_loading_view.dart';
 
 import '../../helpers/fake_http_adapter.dart';
 import '../../helpers/secure_storage_channel.dart';
+import 'dependent_test_fakes.dart' show FakeDependentApi, dep, registerFakeDependentStore;
 import 'family_test_fakes.dart';
 
 void main() {
@@ -81,6 +83,7 @@ void main() {
     WidgetTester tester, {
     HouseholdRoster? r,
     void Function(FakeFamilyApi api)? arrange,
+    FakeDependentApi? depApi,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1;
@@ -92,6 +95,8 @@ void main() {
     final st = FamilyStore(api, FakeHealthApi(), ReadCacheDao(db),
         session(r?.callerRole ?? 'OWNER'));
     Get.put<FamilyStore>(st);
+    // #125 MEDIUM-2: FamilyScreen.initState Get.find<DependentStore>().
+    registerFakeDependentStore(api: depApi);
     await tester.pumpWidget(GetMaterialApp(
       theme: AppTheme.light,
       locale: const Locale('vi'),
@@ -310,5 +315,67 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('household-setup-page'), findsOneWidget);
     expect(find.byType(AppErrorView), findsNothing);
+  });
+
+  group('#125 card "Người phụ thuộc" (§16.7)', () {
+    testWidgets('nằm DƯỚI plan strip, TRÊN roster (Guard 12); 0 hồ sơ → "Chưa có hồ sơ nào" + "Thêm hồ sơ"',
+        (tester) async {
+      await pumpFamily(tester, r: roster(members: mixed));
+      final card = tester.getTopLeft(key('family-dependents-card')).dy;
+      expect(card, greaterThan(tester.getTopLeft(find.byType(HouseholdPlanStrip)).dy));
+      expect(card, lessThan(tester.getTopLeft(find.text('Người a')).dy));
+      expect(find.text('Chưa có hồ sơ nào'), findsOneWidget);
+      expect(find.text('Thêm hồ sơ'), findsOneWidget);
+    });
+
+    testWidgets('N hồ sơ → "{n} hồ sơ" + "Xem tất cả"; OWNER thấy badge cần đổi giám hộ',
+        (tester) async {
+      final depApi = FakeDependentApi()
+        ..items = [dep('d1'), dep('d2', guardian: 'x', active: false)];
+      await pumpFamily(tester, depApi: depApi);
+      expect(find.text('2 hồ sơ'), findsOneWidget);
+      expect(find.text('Xem tất cả'), findsOneWidget);
+      expect(key('family-dependents-inactive'), findsOneWidget);
+    });
+
+    testWidgets('REMOTE_VIEWER → "Xem", không có "Thêm hồ sơ"', (tester) async {
+      await pumpFamily(tester, r: roster(callerRole: 'REMOTE_VIEWER', members: mixed));
+      expect(find.text('Xem'), findsOneWidget);
+      expect(find.text('Thêm hồ sơ'), findsNothing);
+    });
+
+    testWidgets('loading → spinner nhỏ trong card', (tester) async {
+      final gate = Completer<void>();
+      final depApi = FakeDependentApi()..listGates.add(gate);
+      await pumpFamily(tester, depApi: depApi);
+      expect(key('family-dependents-loading'), findsOneWidget);
+      gate.complete();
+      await settle(tester);
+      expect(key('family-dependents-loading'), findsNothing);
+      expect(find.text('Chưa có hồ sơ nào'), findsOneWidget);
+    });
+
+    testWidgets('lỗi → "Không thể tải…" + Thử lại', (tester) async {
+      final depApi = FakeDependentApi()
+        ..listError = BusinessException('ERR_SERVER', 'down');
+      await pumpFamily(tester, depApi: depApi);
+      expect(key('family-dependents-error'), findsOneWidget);
+      depApi.listError = null;
+      await tester.tap(key('family-dependents-retry'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Chưa có hồ sơ nào'), findsOneWidget);
+    });
+
+    testWidgets('L4: pull-to-refresh gọi lại loadDependents', (tester) async {
+      final depApi = FakeDependentApi();
+      await pumpFamily(tester, depApi: depApi);
+      final before = depApi.count('list');
+      await tester.fling(find.byType(ListView).first, const Offset(0, 500), 1000);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await settle(tester);
+      expect(depApi.count('list'), greaterThan(before));
+    });
   });
 }

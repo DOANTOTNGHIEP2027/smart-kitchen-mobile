@@ -438,3 +438,20 @@ Phiên `ai-native` gom định kỳ bằng `/status` vào `docs/planning/open-de
 - **Theo:** decision-log #134 E1–E10, F1–F12; quyết định user 2026-11-25.
 - **Đảo ngược thế nào:** iOS: bỏ `.foreground` + nối runner nền khi có `ios/`. Focus item: đổi `NotificationTarget` thành class có payload. Khi BE #130 bật field: #48 thêm `supportsQuickActions` vào `DeviceApi`.
 - **Cần người quyết lại không:** Không. Rủi ro còn lại giữ nguyên A11 (steal kép, mất RT khi process bị giết ngay sau ghi, runner bị OS cắt ⇒ đứng ở S0, demo adapter riêng của isolate nền).
+### OD-46 · #125 màn hồ sơ phụ thuộc — chỗ lệch/bổ sung so với thiết kế v1.2
+- **Ngày:** 2026-11-25 · **Task:** #125 · **Nhánh:** `feature/125_dependent-profile-screens`
+- **Tình huống:** Thiết kế `dependent-profile-screens.md` v1.2 §16 để ngỏ hoặc có chỗ nếu làm đúng từng chữ sẽ gây lỗi; agent tự chốt theo hướng an toàn rồi đi tiếp.
+- **Đã chọn:**
+  1. **Phản ứng 403 `ERR_DEP_002`** (§16.5): KHÔNG gọi `loadDependentDetail(id)` mà gọi `_refreshPermissions(id)` = `loadRoster(keepCurrent)` + `getDependent(id)` rồi patch detail/list tại chỗ. Lý do: `loadHealthProfile` gặp 403 mà gọi lại `loadDependentDetail` sẽ lặp vô hạn nếu client vẫn tính ra có quyền; đồng thời không reset health về Loading (giữ giá trị form đang nhập). UI vẫn chuyển Blocked khi quyền tính lại `false`.
+  2. **`canSaveAllergensFor(id)`** thêm điều kiện detail của đúng id đã Success và `canEditHealthOf(detail)`; **`loadHealthProfile(id)`** tự no-op khi không có quyền (Guard 2 chặn ngay tại store, không chỉ ở UI).
+  3. `dependentErrorMessage(l10n, e, {fallback})` thêm tham số `fallback` để sheet tạo dùng `dependentSaveFailed`, list dùng `dependentLoadFailed` (§16.11 giữ 2 key này nhưng §16.5 không nói chỗ dùng).
+  4. Thêm `widgets/dependent_state_views.dart` (not-found + blocked dùng chung 3 màn) và `DependentStore.ensureRoster()` (UI không gọi thẳng `FamilyStore`, Guard 3) — ngoài cây file §16.4.
+  5. Card trong FamilyScreen: chữ "+ Thêm hồ sơ" = icon `add` + `dependentAddProfile` (không hardcode "+"). Nút "Sửa hồ sơ sức khỏe" trên detail dùng key `healthProfileEditTitle` (cùng copy mock-up). Tiêu đề màn dị ứng lúc chưa có tên dùng `healthProfileAllergensSection` ("Dị ứng"), vì `allergensTitle` là "Dị ứng của tôi" (self).
+  6. Màn dị ứng nạp catalog SAU khi guard pass và health đã tải (tuần tự, không song song như S-A1) — đảm bảo S-A0 không gọi catalog.
+  7. `tier_gate_test.dart`: ngoài `registerFakeDependentStore()` còn phải nới viewport cho 1 test (card mới đẩy dòng roster ra khỏi ListView lazy ở 800×600).
+  8. Thêm `test/demo/demo_dependents_test.dart` khoá demo adapter theo contract (Slice 0).
+  9. Review #125 v1 L5 (id dị ứng "ma" còn trong `selected` sau `ERR_ALLERGEN_NOT_FOUND` + nạp lại catalog): **Hoãn — gom vào task dọn riêng.** Nợ chung với `AllergenSelectScreen` của self (S11.3 "giữ tick"), không phải hồi quy của #125; sửa thì làm cho cả 2 màn cùng lúc.
+- **Theo:** §6.0 quy tắc 2 (chọn phương án an toàn hơn), §5.
+- **Đảo ngược thế nào:** (1) đổi `_refreshPermissions` trong `_fail` thành `loadDependentDetail(id)` — nhưng phải giữ nhánh trong `loadHealthProfile` để không lặp; (2) bỏ vế detail trong `canSaveAllergensFor`.
+- **Phiên `ai-native`:** cập nhật §16.5 (phản ứng 403) và §16.4 (file phụ) của `dependent-profile-screens.md`; gom OD này vào `docs/planning/open-decisions.md`.
+- **Cần người quyết lại không:** Không.

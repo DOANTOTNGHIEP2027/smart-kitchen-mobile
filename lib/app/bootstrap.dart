@@ -22,6 +22,7 @@ import '../scenes/auth/api/auth_api.dart';
 import '../scenes/auth/stores/auth_store.dart';
 import '../scenes/household/api/household_api.dart';
 import '../scenes/household/stores/household_store.dart';
+import '../scenes/profile/api/dependent_api.dart';
 import '../scenes/profile/api/family_api.dart';
 import '../scenes/profile/api/health_api.dart';
 import '../scenes/profile/api/profile_api.dart';
@@ -129,6 +130,7 @@ Future<void> bootstrap() async {
   Get.put<ReadCacheDao>(ReadCacheDao(Get.find<AppDatabase>()), permanent: true);
   Get.put<HealthApi>(HealthApiImpl(dioClient), permanent: true);
   Get.put<FamilyApi>(FamilyApiImpl(dioClient), permanent: true);
+  Get.put<DependentApi>(DependentApiImpl(dioClient), permanent: true);
   Get.put<ProfileApi>(ProfileApiImpl(dioClient), permanent: true);
 
   // FE-5: InventoryApi + InventoryDao đăng ký permanent — InventoryStore và

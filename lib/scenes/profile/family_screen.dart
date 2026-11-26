@@ -16,9 +16,11 @@ import 'domain/household_member.dart';
 import 'domain/household_roster.dart';
 import 'family_error_l10n.dart';
 import 'profile_family_routes.dart';
+import 'stores/dependent_store.dart';
 import 'stores/family_store.dart';
 import 'stores/form_status.dart';
 import 'widgets/change_role_sheet.dart';
+import 'widgets/dependents_family_card.dart';
 import 'widgets/household_budget_sheet.dart';
 import 'widgets/household_plan_strip.dart';
 import 'widgets/invite_result_sheet.dart';
@@ -35,6 +37,7 @@ class FamilyScreen extends StatefulWidget {
 
 class _FamilyScreenState extends State<FamilyScreen> {
   late final FamilyStore store = Get.find<FamilyStore>();
+  late final DependentStore dependentStore = Get.find<DependentStore>();
   late final ReactionDisposer _noHouseholdRedirect;
 
   @override
@@ -53,6 +56,7 @@ class _FamilyScreenState extends State<FamilyScreen> {
     store.loadRoster();
     // Pipeline độc lập với roster (§19.3).
     store.loadBudget();
+    dependentStore.loadDependents();
   }
 
   @override
@@ -172,8 +176,11 @@ class _FamilyScreenState extends State<FamilyScreen> {
               final isOwner = store.isOwner;
               final fromCache = store.rosterIsFromCache;
               return RefreshIndicator(
-                onRefresh: () => Future.wait(
-                    <Future<void>>[store.loadRoster(), store.loadBudget()]),
+                onRefresh: () => Future.wait(<Future<void>>[
+                  store.loadRoster(),
+                  store.loadBudget(),
+                  dependentStore.loadDependents(keepCurrent: true),
+                ]),
                 child: AppStateView<HouseholdRoster>(
                   state: state,
                   onRetry: () => store.loadRoster(),
@@ -213,6 +220,13 @@ class _FamilyScreenState extends State<FamilyScreen> {
             onChangePlan: _openTierUpgrade,
             onEditBudget: _openBudgetSheet,
           ),
+        ),
+        // #125 §16.7 — NGAY dưới plan strip, TRƯỚC khối mời (Guard 12).
+        Padding(
+          key: const ValueKey<String>('family-dependents-card'),
+          padding: const EdgeInsets.fromLTRB(
+              AppDimens.md, AppDimens.md, AppDimens.md, 0),
+          child: DependentsFamilyCard(store: dependentStore),
         ),
         if (invite != null && hasOthers) invite,
         ...roster.members.map(

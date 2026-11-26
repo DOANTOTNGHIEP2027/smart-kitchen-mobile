@@ -37,6 +37,7 @@ import 'package:smart_kitchen_mobile/stores/session_store.dart';
 import '../../helpers/fake_http_adapter.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/secure_storage_channel.dart';
+import 'dependent_test_fakes.dart' show registerFakeDependentStore;
 import 'family_test_fakes.dart';
 
 class _NoopHealthApi implements HealthApi {
@@ -274,6 +275,7 @@ void main() {
         final (st, api, _) = await store(r: roster(callerRole: 'REMOTE_VIEWER'), load: false);
         api.rosterError = ServerException('ERR_SERVER', 'down');
         Get.put<FamilyStore>(st);
+        registerFakeDependentStore(); // #125 MEDIUM-2
       });
       await tester.pumpAppWidget(const FamilyScreen(), wrapInScaffold: false);
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
@@ -282,6 +284,12 @@ void main() {
     });
 
     testWidgets('FamilyScreen: "Đổi vai trò" chỉ cho OWNER, không trên dòng của mình/OWNER (§10.3)', (tester) async {
+      // #125: card "Người phụ thuộc" đẩy roster xuống — màn cao hơn để mọi
+      // dòng (ListView lazy) đều được dựng.
+      tester.view.physicalSize = const Size(900, 1800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       Future<void> pumpFamily(String callerRole) async {
         await tester.runAsync(() async {
           Get.reset();
@@ -294,6 +302,7 @@ void main() {
             load: false,
           );
           Get.put<FamilyStore>(st);
+          registerFakeDependentStore(); // #125 MEDIUM-2
         });
         // Key khác nhau → State mới, đọc lại FamilyStore vừa đăng ký.
         await tester.pumpAppWidget(FamilyScreen(key: ValueKey<String>(callerRole)), wrapInScaffold: false);
