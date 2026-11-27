@@ -951,9 +951,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventoryDeleteWaste => 'Expired, spoiled, or discarded';
 
   @override
-  String get inventoryDeleteCorrected => 'Deleted by mistake, correct data';
-
-  @override
   String get inventoryEditItem => 'Edit item';
 
   @override
@@ -4015,4 +4012,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get healthProfileCalorieSuggestionHint =>
       'Enter height, weight, sex, date of birth and activity level to get a suggestion';
+
+  @override
+  String recipeCardServes(int count) {
+    return '$count servings';
+  }
+
+  @override
+  String get recipesFilterApply => 'Apply';
+
+  @override
+  String get recipesFilterReset => 'Reset';
+
+  @override
+  String recipesFilterMaxMinutes(int minutes) {
+    return '≤ $minutes min';
+  }
 }

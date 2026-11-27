@@ -944,9 +944,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get inventoryDeleteWaste => 'Hết hạn, hỏng, bỏ đi';
 
   @override
-  String get inventoryDeleteCorrected => 'Xoá nhầm, sửa số liệu';
-
-  @override
   String get inventoryEditItem => 'Sửa mặt hàng';
 
   @override
@@ -3941,4 +3938,20 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get healthProfileCalorieSuggestionHint =>
       'Nhập chiều cao, cân nặng, giới tính, ngày sinh, mức vận động để được gợi ý';
+
+  @override
+  String recipeCardServes(int count) {
+    return '$count người';
+  }
+
+  @override
+  String get recipesFilterApply => 'Áp dụng';
+
+  @override
+  String get recipesFilterReset => 'Đặt lại';
+
+  @override
+  String recipesFilterMaxMinutes(int minutes) {
+    return '≤ $minutes phút';
+  }
 }

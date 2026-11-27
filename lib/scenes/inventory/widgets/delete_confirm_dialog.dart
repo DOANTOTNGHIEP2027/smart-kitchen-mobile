@@ -10,7 +10,11 @@ import 'waste_cause_sheet.dart';
 /// 2. [showDeleteReasonSheet] — MỘT sheet lý do duy nhất, map sang `reason`
 ///    của BE trên endpoint DELETE (`/v1/inventory-items/{id}` nhận
 ///    `WASTE | COOKED | CORRECTED`, inventory-core OAS v1.2.0) và `wasteCause`
-///    khi bỏ đi (qua [wasteChoiceFor]). Đóng sheet không chọn → `CORRECTED`.
+///    khi bỏ đi (qua [wasteChoiceFor]). Đóng sheet hoặc bấm `Huỷ` → `null`,
+///    caller KHÔNG xoá (#201 vòng 2: bỏ lựa chọn "Xoá nhầm").
+///
+/// [DeleteReason.corrected] vẫn giữ cho các luồng khác (sửa số lượng về 0,
+/// hàng đợi offline) — sheet này không còn đưa ra lựa chọn đó.
 enum DeleteReason { cooked, waste, corrected }
 
 class DeleteReasonChoice {
@@ -70,16 +74,14 @@ class DeleteConfirmDialog extends StatelessWidget {
   }
 }
 
-/// Sheet lý do xoá. Bỏ qua (vuốt/chạm ngoài) → `CORRECTED`.
-Future<DeleteReasonChoice> showDeleteReasonSheet(BuildContext context) async {
-  final result = await showModalBottomSheet<DeleteReasonChoice>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    builder: (_) => const _DeleteReasonSheet(),
-  );
-  return result ?? const DeleteReasonChoice(DeleteReason.corrected);
-}
+/// Sheet lý do xoá. Bỏ qua (vuốt/chạm ngoài) hoặc bấm `Huỷ` → `null` = huỷ xoá.
+Future<DeleteReasonChoice?> showDeleteReasonSheet(BuildContext context) =>
+    showModalBottomSheet<DeleteReasonChoice>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const _DeleteReasonSheet(),
+    );
 
 class _DeleteReasonSheet extends StatelessWidget {
   const _DeleteReasonSheet();
@@ -107,13 +109,6 @@ class _DeleteReasonSheet extends StatelessWidget {
               label: l10n.inventoryDeleteCooked,
               choice: const DeleteReasonChoice(DeleteReason.cooked),
             ),
-            _tile(
-              context,
-              key: 'delete-reason-corrected',
-              icon: Icons.edit_note_outlined,
-              label: l10n.inventoryDeleteCorrected,
-              choice: const DeleteReasonChoice(DeleteReason.corrected),
-            ),
             const Divider(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -126,6 +121,12 @@ class _DeleteReasonSheet extends StatelessWidget {
                 l10n.inventoryWasteForgotten, WasteCause.forgotten),
             _waste(context, Icons.warning_amber_outlined,
                 l10n.inventoryWasteSpoiledEarly, WasteCause.spoiledEarly),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              key: const ValueKey<String>('delete-reason-cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
           ],
         ),
       ),

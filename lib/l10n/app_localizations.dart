@@ -1834,12 +1834,6 @@ abstract class AppLocalizations {
   /// **'Expired, spoiled, or discarded'**
   String get inventoryDeleteWaste;
 
-  /// No description provided for @inventoryDeleteCorrected.
-  ///
-  /// In en, this message translates to:
-  /// **'Deleted by mistake, correct data'**
-  String get inventoryDeleteCorrected;
-
   /// No description provided for @inventoryEditItem.
   ///
   /// In en, this message translates to:
@@ -7023,6 +7017,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter height, weight, sex, date of birth and activity level to get a suggestion'**
   String get healthProfileCalorieSuggestionHint;
+
+  /// No description provided for @recipeCardServes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} servings'**
+  String recipeCardServes(int count);
+
+  /// No description provided for @recipesFilterApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get recipesFilterApply;
+
+  /// No description provided for @recipesFilterReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get recipesFilterReset;
+
+  /// No description provided for @recipesFilterMaxMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'≤ {minutes} min'**
+  String recipesFilterMaxMinutes(int minutes);
 }
 
 class _AppLocalizationsDelegate

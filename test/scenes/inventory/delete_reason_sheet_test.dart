@@ -54,13 +54,39 @@ void main() {
     expect(choice?.wasteCause, 'FORGOTTEN');
   });
 
-  testWidgets('đóng sheet không chọn → CORRECTED', (tester) async {
+  testWidgets('sheet không còn lựa chọn "Xoá nhầm"', (tester) async {
+    await pumpOpener(tester, (c) async => showDeleteReasonSheet(c));
+    expect(find.byKey(const ValueKey<String>('delete-reason-corrected')),
+        findsNothing);
+    expect(find.byKey(const ValueKey<String>('delete-reason-cancel')),
+        findsOneWidget);
+  });
+
+  testWidgets('đóng sheet không chọn → null (huỷ xoá)', (tester) async {
     DeleteReasonChoice? choice;
-    await pumpOpener(
-        tester, (c) async => choice = await showDeleteReasonSheet(c));
+    var returned = false;
+    await pumpOpener(tester, (c) async {
+      choice = await showDeleteReasonSheet(c);
+      returned = true;
+    });
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
-    expect(choice?.wire, 'CORRECTED');
-    expect(choice?.wasteCause, isNull);
+    expect(returned, isTrue);
+    expect(choice, isNull);
+  });
+
+  testWidgets('bấm Huỷ → null (huỷ xoá)', (tester) async {
+    DeleteReasonChoice? choice;
+    var returned = false;
+    await pumpOpener(tester, (c) async {
+      choice = await showDeleteReasonSheet(c);
+      returned = true;
+    });
+    final cancel = find.byKey(const ValueKey<String>('delete-reason-cancel'));
+    await tester.ensureVisible(cancel);
+    await tester.tap(cancel);
+    await tester.pumpAndSettle();
+    expect(returned, isTrue);
+    expect(choice, isNull);
   });
 }

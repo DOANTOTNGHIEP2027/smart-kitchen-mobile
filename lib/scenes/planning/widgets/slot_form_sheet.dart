@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/buttons/app_button.dart';
+import '../../../widgets/inputs/chip_choice_group.dart';
 import '../domain/meal_slot_template_item.dart';
 
 /// Loại bữa có sẵn — `slotKey` khớp DEFAULT_SLOTS của BE; `custom` sinh key
@@ -149,16 +150,15 @@ class _SlotFormSheetState extends State<SlotFormSheet> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppDimens.md),
-            DropdownButtonFormField<SlotPreset>(
-              key: const ValueKey<String>('slot-form-type'),
-              initialValue: _preset,
-              decoration: InputDecoration(labelText: l10n.planningSlotFormType),
-              items: <DropdownMenuItem<SlotPreset>>[
+            ChipChoiceGroup<SlotPreset>(
+              groupKey: 'slot-form-type',
+              title: l10n.planningSlotFormType,
+              value: _preset,
+              allowDeselect: false,
+              options: <ChipChoiceOption<SlotPreset>>[
                 for (final p in SlotPreset.values)
-                  DropdownMenuItem<SlotPreset>(
-                    value: p,
-                    child: Text(slotPresetLabel(context, p)),
-                  ),
+                  ChipChoiceOption<SlotPreset>(
+                      p, slotPresetLabel(context, p), p.name),
               ],
               onChanged: (SlotPreset? p) {
                 if (p == null) return;

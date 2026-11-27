@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
-import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
 import '../../data/network/api_exception.dart';
 import '../../l10n/app_localizations.dart';
@@ -12,6 +11,7 @@ import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
+import '../../widgets/inputs/chip_choice_group.dart';
 import '../../widgets/states/app_state_view.dart';
 import 'domain/allergen.dart';
 import 'domain/calorie_suggestion.dart';
@@ -327,15 +327,16 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
               ),
             ),
             const SizedBox(height: AppDimens.md),
-            _ChipGroup<Gender>(
+            ChipChoiceGroup<Gender>(
               groupKey: 'health-gender',
               icon: Icons.wc_outlined,
               title: l.healthProfileGender,
               value: _gender,
               enabled: enabled,
-              options: <(Gender, String, String)>[
+              options: <ChipChoiceOption<Gender>>[
                 for (final g in Gender.values)
-                  (g, _genderLabel(l, g), genderToWire(g)),
+                  ChipChoiceOption<Gender>(
+                      g, _genderLabel(l, g), genderToWire(g)),
               ],
               onChanged: (Gender? v) {
                 _onFieldEdited();
@@ -361,15 +362,16 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
               ),
             ),
             const SizedBox(height: AppDimens.md),
-            _ChipGroup<ActivityLevel>(
+            ChipChoiceGroup<ActivityLevel>(
               groupKey: 'health-activity',
               icon: Icons.directions_run_outlined,
               title: l.healthProfileActivityLevel,
               value: _activity,
               enabled: enabled,
-              options: <(ActivityLevel, String, String)>[
+              options: <ChipChoiceOption<ActivityLevel>>[
                 for (final a in ActivityLevel.values)
-                  (a, _activityLabel(l, a), activityLevelToWire(a)),
+                  ChipChoiceOption<ActivityLevel>(
+                      a, _activityLabel(l, a), activityLevelToWire(a)),
               ],
               onChanged: (ActivityLevel? v) {
                 _onFieldEdited();
@@ -420,76 +422,6 @@ String _activityLabel(AppLocalizations l, ActivityLevel a) => switch (a) {
       ActivityLevel.active => l.activityLevelActive,
       ActivityLevel.veryActive => l.activityLevelVeryActive,
     };
-
-/// #201: nhóm chip một lựa chọn, tự xuống dòng — cùng kiểu với
-/// `DietTypeSelector`. Bấm lại chip đang chọn = bỏ chọn (`null`).
-class _ChipGroup<T> extends StatelessWidget {
-  const _ChipGroup({
-    required this.groupKey,
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.enabled,
-    required this.options,
-    required this.onChanged,
-  });
-
-  final String groupKey;
-  final IconData icon;
-  final String title;
-  final T? value;
-  final bool enabled;
-
-  /// (giá trị, nhãn, hậu tố key).
-  final List<(T, String, String)> options;
-  final ValueChanged<T?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      key: ValueKey<String>(groupKey),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Icon(icon, size: 20, color: AppColors.textSecondary),
-            const SizedBox(width: AppDimens.sm),
-            Text(title, style: theme.textTheme.titleSmall),
-          ],
-        ),
-        const SizedBox(height: AppDimens.sm),
-        Wrap(
-          spacing: AppDimens.sm,
-          runSpacing: AppDimens.xs,
-          children: <Widget>[
-            for (final (option, label, keySuffix) in options)
-              ChoiceChip(
-                key: ValueKey<String>('$groupKey-$keySuffix'),
-                label: Text(label),
-                selected: option == value,
-                showCheckmark: false,
-                selectedColor: AppColors.primaryContainer,
-                side: BorderSide(
-                  color:
-                      option == value ? AppColors.primary : AppColors.border,
-                ),
-                labelStyle: theme.textTheme.bodyMedium?.copyWith(
-                  color: option == value
-                      ? AppColors.onPrimaryContainer
-                      : AppColors.textPrimary,
-                  fontWeight:
-                      option == value ? FontWeight.w700 : FontWeight.w500,
-                ),
-                onSelected:
-                    enabled ? (bool v) => onChanged(v ? option : null) : null,
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
 
 String _formatNumber(double? v) {
   if (v == null) return '';
