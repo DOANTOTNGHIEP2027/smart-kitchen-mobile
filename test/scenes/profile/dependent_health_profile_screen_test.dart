@@ -65,7 +65,7 @@ void main() {
     expect(f.api.count('health:'), 0);
   });
 
-  testWidgets('Guard 6: lưu gửi đủ 4 key (null tường minh) → về view + toast', (tester) async {
+  testWidgets('Guard 6: lưu gửi đủ 6 key (null tường minh) → về view + toast', (tester) async {
     final f = await pumpHealth(tester);
     await tester.tap(byKey('dependent-health-edit'));
     await tester.pumpAndSettle();
@@ -75,7 +75,10 @@ void main() {
     await tester.tap(byKey('health-save'));
     await tester.pumpAndSettle();
     final payload = f.api.healthWrites.single;
-    expect(payload.keys, unorderedEquals(<String>['targetDailyCalories', 'dietType', 'heightCm', 'weightKg']));
+    expect(payload.keys, unorderedEquals(<String>['targetDailyCalories', 'dietType', 'heightCm', 'weightKg', 'gender', 'activityLevel']));
+    expect(payload['gender'], isNull);
+    expect(payload['activityLevel'], isNull);
+    expect(payload.containsKey('dateOfBirth'), isFalse); // chỉ đọc
     expect(payload['targetDailyCalories'], 1400); // không chạm slider → giữ nguyên
     expect(payload['dietType'], 'VEGETARIAN');
     expect(payload['heightCm'], 112.0);
@@ -96,6 +99,49 @@ void main() {
     expect(find.text(l.healthProfileHeightInvalid), findsOneWidget);
     expect(find.textContaining('must be'), findsNothing); // không in message BE
     expect(find.text('250'), findsOneWidget);
+  });
+
+  testWidgets('#201: người lớn đủ dữ liệu → gợi ý calo, Áp dụng; lưu gửi gender/activityLevel', (tester) async {
+    final f = await pumpHealth(tester,
+        d: dep('d1', dob: DateTime(1990, 1, 1)),
+        arrange: (f) => f.api.health['d1'] =
+            depHealth('d1', height: 175, weight: 70, gender: 'MALE', dob: '1990-01-01'));
+    expect(byKey('dependent-health-view-gender'), findsOneWidget);
+    expect(find.text(l.healthProfileGenderMale), findsOneWidget);
+    expect(find.text('01/01/1990'), findsOneWidget);
+    await tester.tap(byKey('dependent-health-edit'));
+    await tester.pumpAndSettle();
+    // Chưa chọn mức vận động → hint thiếu dữ liệu.
+    expect(find.text(l.healthProfileCalorieSuggestionHint), findsOneWidget);
+    await tester.ensureVisible(byKey('health-activity-MODERATE'));
+    await tester.tap(byKey('health-activity-MODERATE'));
+    await tester.pumpAndSettle();
+    expect(byKey('health-calorie-suggestion'), findsOneWidget);
+    expect(find.text(l.healthProfileCalorieSuggestionAdultOnly), findsNothing);
+    await tester.ensureVisible(byKey('health-calorie-apply'));
+    await tester.tap(byKey('health-calorie-apply'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(byKey('health-save'));
+    await tester.tap(byKey('health-save'));
+    await tester.pumpAndSettle();
+    final payload = f.api.healthWrites.single;
+    expect(payload['gender'], 'MALE');
+    expect(payload['activityLevel'], 'MODERATE');
+    expect(payload['targetDailyCalories'], isNot(1400));
+  });
+
+  testWidgets('#201: dưới 18 tuổi → KHÔNG gợi ý, hiện dòng "từ 18 tuổi"', (tester) async {
+    final now = DateTime.now();
+    final childDob = DateTime(now.year - 8, 1, 1);
+    await pumpHealth(tester,
+        d: dep('d1', dob: childDob),
+        arrange: (f) => f.api.health['d1'] = depHealth('d1',
+            height: 120, weight: 25, gender: 'FEMALE', activity: 'ACTIVE'));
+    await tester.tap(byKey('dependent-health-edit'));
+    await tester.pumpAndSettle();
+    expect(byKey('health-calorie-suggestion'), findsNothing);
+    expect(byKey('health-calorie-apply'), findsNothing);
+    expect(find.text(l.healthProfileCalorieSuggestionAdultOnly), findsOneWidget);
   });
 
   testWidgets('HIGH-1: dietType lạ → không có nút Chỉnh sửa, hiện ghi chú', (tester) async {

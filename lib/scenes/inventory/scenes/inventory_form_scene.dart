@@ -363,7 +363,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     final confirmed = await showDeleteConfirmDialog(context);
     if (!confirmed || !mounted) return;
     final choice = await showDeleteReasonSheet(context);
-    if (!mounted) return;
+    // #201: đóng sheet / bấm Huỷ = huỷ xoá, mặt hàng còn nguyên.
+    if (choice == null || !mounted) return;
     final ok = await store.delete(
       reason: choice.wire,
       wasteCause: choice.wasteCause,

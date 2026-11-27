@@ -9,6 +9,7 @@ import '../../../utils/l10n_x.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_cached_image.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/inputs/chip_choice_group.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/app_loading_view.dart';
@@ -110,45 +111,75 @@ class _RecipeListSceneState extends State<RecipeListScene> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: _store.refresh,
-            child: GridView.builder(
-              padding: const EdgeInsets.all(AppDimens.md),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: AppDimens.sm,
-                mainAxisSpacing: AppDimens.sm,
-                childAspectRatio: 0.64,
-              ),
-              itemCount: _store.recipes.length +
-                  (_store.hasMore || _store.favoritesListDirty ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index < _store.recipes.length) {
-                  final recipe = _store.recipes[index];
-                  return _RecipeCard(
-                    key: ValueKey<String>('$kRecipeCardKeyPrefix${recipe.id}'),
-                    recipe: recipe,
-                    isFavoritePending: _store.isFavoritePending(recipe.id),
-                    onOpen: widget.onSelect != null
-                        ? () => widget.onSelect!(recipe)
-                        : () => Get.toNamed(
-                              AppRoutes.recipeDetail
-                                  .replaceFirst(':id', recipe.id),
-                            ),
-                    onToggleFavorite: () => _store.toggleFavorite(recipe.id),
-                  );
-                }
-                if (_store.favoritesListDirty) {
-                  return _ReloadCard(
-                    message: context.l10n.recipesListChanged,
-                    label: context.l10n.recipesReload,
-                    onPressed: _store.refresh,
-                  );
-                }
-                return _LoadMoreCard(
-                  isLoading: _store.status == RecipeListStatus.loadingMore,
-                  label: context.l10n.recipesLoadMore,
-                  onPressed: _store.loadMore,
-                );
-              },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: <Widget>[
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDimens.md,
+                    AppDimens.md,
+                    AppDimens.md,
+                    0,
+                  ),
+                  sliver: SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: AppDimens.sm,
+                      mainAxisSpacing: AppDimens.sm,
+                      // #201: chiều cao ô tính theo bề rộng (ảnh 4:3) + cỡ
+                      // chữ hệ thống → không tràn ở 360dp, text scale 1.3.
+                      mainAxisExtent: _RecipeCard.extentFor(
+                        (MediaQuery.sizeOf(context).width -
+                                AppDimens.md * 2 -
+                                AppDimens.sm) /
+                            2,
+                        MediaQuery.textScalerOf(context),
+                      ),
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final recipe = _store.recipes[index];
+                        return _RecipeCard(
+                          key: ValueKey<String>(
+                              '$kRecipeCardKeyPrefix${recipe.id}'),
+                          recipe: recipe,
+                          isFavoritePending:
+                              _store.isFavoritePending(recipe.id),
+                          onOpen: widget.onSelect != null
+                              ? () => widget.onSelect!(recipe)
+                              : () => Get.toNamed(
+                                    AppRoutes.recipeDetail
+                                        .replaceFirst(':id', recipe.id),
+                                  ),
+                          onToggleFavorite: () =>
+                              _store.toggleFavorite(recipe.id),
+                        );
+                      },
+                      childCount: _store.recipes.length,
+                    ),
+                  ),
+                ),
+                // #201: tải thêm / tải lại nằm dưới lưới, không chiếm một ô.
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppDimens.md),
+                    child: _store.favoritesListDirty
+                        ? _ReloadCard(
+                            message: context.l10n.recipesListChanged,
+                            label: context.l10n.recipesReload,
+                            onPressed: _store.refresh,
+                          )
+                        : _store.hasMore
+                            ? _LoadMoreCard(
+                                isLoading: _store.status ==
+                                    RecipeListStatus.loadingMore,
+                                label: context.l10n.recipesLoadMore,
+                                onPressed: _store.loadMore,
+                              )
+                            : const SizedBox.shrink(),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -160,91 +191,131 @@ class _RecipeListSceneState extends State<RecipeListScene> {
     String? dietType = _store.dietType;
     String? difficulty = _store.difficulty;
     int? maxPrepTime = _store.maxPrepTime;
+    final l10n = context.l10n;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       builder: (sheetContext) => StatefulBuilder(
-        builder: (_, setSheetState) => Padding(
-          padding: EdgeInsets.fromLTRB(
-            AppDimens.md,
-            AppDimens.lg,
-            AppDimens.md,
-            AppDimens.md + MediaQuery.of(sheetContext).viewInsets.bottom,
+        // #201: chip thay dropdown; phần chip cuộn được, nút cố định đáy.
+        builder: (_, setSheetState) => ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.85,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              DropdownButtonFormField<String?>(
-                initialValue: dietType,
-                decoration:
-                    InputDecoration(labelText: context.l10n.recipesFilterDiet),
-                items: <DropdownMenuItem<String?>>[
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(context.l10n.all),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.md,
                   ),
-                  ..._dietTypes(context).entries.map(
-                        (entry) => DropdownMenuItem<String?>(
-                          value: entry.key,
-                          child: Text(entry.value),
+                  child: Text(
+                    l10n.recipesFilters,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppDimens.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        ChipChoiceGroup<String>(
+                          groupKey: 'recipe-filter-diet',
+                          icon: Icons.eco_outlined,
+                          title: l10n.recipesFilterDiet,
+                          allLabel: l10n.all,
+                          value: dietType,
+                          options: <ChipChoiceOption<String>>[
+                            for (final entry in _dietTypes(context).entries)
+                              ChipChoiceOption<String>(
+                                  entry.key, entry.value, entry.key),
+                          ],
+                          onChanged: (value) =>
+                              setSheetState(() => dietType = value),
+                        ),
+                        const SizedBox(height: AppDimens.md),
+                        ChipChoiceGroup<String>(
+                          groupKey: 'recipe-filter-difficulty',
+                          icon: Icons.signal_cellular_alt_rounded,
+                          title: l10n.recipesFilterDifficulty,
+                          allLabel: l10n.all,
+                          value: difficulty,
+                          options: <ChipChoiceOption<String>>[
+                            for (final entry
+                                in _difficultyLabels(context).entries)
+                              ChipChoiceOption<String>(
+                                  entry.key, entry.value, entry.key),
+                          ],
+                          onChanged: (value) =>
+                              setSheetState(() => difficulty = value),
+                        ),
+                        const SizedBox(height: AppDimens.md),
+                        ChipChoiceGroup<int>(
+                          groupKey: 'recipe-filter-time',
+                          icon: Icons.schedule_rounded,
+                          title: l10n.recipesFilterPrepTime,
+                          allLabel: l10n.all,
+                          value: maxPrepTime,
+                          options: <ChipChoiceOption<int>>[
+                            for (final minutes in const <int>[15, 30, 60])
+                              ChipChoiceOption<int>(
+                                minutes,
+                                l10n.recipesFilterMaxMinutes(minutes),
+                                '$minutes',
+                              ),
+                          ],
+                          onChanged: (value) =>
+                              setSheetState(() => maxPrepTime = value),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDimens.md,
+                    0,
+                    AppDimens.md,
+                    AppDimens.md,
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: OutlinedButton(
+                          key: const ValueKey<String>('recipe-filter-reset'),
+                          onPressed: () => setSheetState(() {
+                            dietType = null;
+                            difficulty = null;
+                            maxPrepTime = null;
+                          }),
+                          child: Text(l10n.recipesFilterReset),
                         ),
                       ),
-                ],
-                onChanged: (value) => setSheetState(() => dietType = value),
-              ),
-              const SizedBox(height: AppDimens.sm),
-              DropdownButtonFormField<String?>(
-                initialValue: difficulty,
-                decoration: InputDecoration(
-                  labelText: context.l10n.recipesFilterDifficulty,
-                ),
-                items: <DropdownMenuItem<String?>>[
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(context.l10n.all),
-                  ),
-                  ..._difficultyLabels(context).entries.map(
-                        (entry) => DropdownMenuItem<String?>(
-                          value: entry.key,
-                          child: Text(entry.value),
+                      const SizedBox(width: AppDimens.sm),
+                      Expanded(
+                        child: FilledButton(
+                          key: const ValueKey<String>('recipe-filter-apply'),
+                          onPressed: () {
+                            _store.setFilters(
+                              dietType: dietType,
+                              difficulty: difficulty,
+                              maxPrepTime: maxPrepTime,
+                            );
+                            Navigator.pop(sheetContext);
+                          },
+                          child: Text(l10n.recipesFilterApply),
                         ),
                       ),
-                ],
-                onChanged: (value) => setSheetState(() => difficulty = value),
-              ),
-              const SizedBox(height: AppDimens.sm),
-              DropdownButtonFormField<int?>(
-                initialValue: maxPrepTime,
-                decoration: InputDecoration(
-                  labelText: context.l10n.recipesFilterPrepTime,
-                ),
-                items: <DropdownMenuItem<int?>>[
-                  DropdownMenuItem<int?>(
-                    value: null,
-                    child: Text(context.l10n.all),
+                    ],
                   ),
-                  const DropdownMenuItem<int?>(value: 15, child: Text('≤15')),
-                  const DropdownMenuItem<int?>(value: 30, child: Text('≤30')),
-                  const DropdownMenuItem<int?>(value: 60, child: Text('≤60')),
-                ],
-                onChanged: (value) => setSheetState(() => maxPrepTime = value),
-              ),
-              const SizedBox(height: AppDimens.lg),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    _store.setFilters(
-                      dietType: dietType,
-                      difficulty: difficulty,
-                      maxPrepTime: maxPrepTime,
-                    );
-                    Navigator.pop(sheetContext);
-                  },
-                  child: Text(context.l10n.saveChanges),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -380,96 +451,146 @@ class _RecipeCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onToggleFavorite;
 
+  static const double _radius = 16;
+  static const double _bodyPadding = 12;
+  static const double _lineHeight = 1.25;
+  static const double _titleSize = 13;
+  static const double _smallSize = 11;
+  static const double _metaIcon = 14;
+  static const double _badgeVPadding = 3;
+
+  /// Chiều cao ô lưới: ảnh 4:3 + thân thẻ (2 dòng tên, 1 hàng meta, 1 hàng
+  /// badge) theo [textScaler]. Chữ trong thân thẻ đặt `height` cố định nên
+  /// đo trước được.
+  static double extentFor(double tileWidth, TextScaler textScaler) {
+    final title = textScaler.scale(_titleSize) * _lineHeight * 2;
+    final small = textScaler.scale(_smallSize) * _lineHeight;
+    final meta = small > _metaIcon ? small : _metaIcon;
+    final badge = _badgeHeight(textScaler);
+    const gaps = 4 + 6 + 4; // 2 khoảng cách + dư an toàn
+    return tileWidth * 3 / 4 + _bodyPadding * 2 + title + meta + badge + gaps;
+  }
+
+  static double _badgeHeight(TextScaler textScaler) =>
+      textScaler.scale(_smallSize) * _lineHeight + _badgeVPadding * 2;
+
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-          boxShadow: const <BoxShadow>[
-            BoxShadow(
-              color: Color(0x0A000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-            onTap: onOpen,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: Stack(
-                    children: <Widget>[
-                      Positioned.fill(child: _RecipeArtwork(recipe: recipe)),
+  Widget build(BuildContext context) {
+    final totalMinutes =
+        (recipe.prepTimeMinutes ?? 0) + (recipe.cookTimeMinutes ?? 0);
+    final calories = recipe.nutrition?.calories;
+    final serves = recipe.serves;
+    const smallStyle = TextStyle(
+      fontSize: _smallSize,
+      height: _lineHeight,
+      fontWeight: FontWeight.w600,
+      color: AppColors.textSecondary,
+    );
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(_radius),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: AppColors.ambientShadow,
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(_radius),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onOpen,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              AspectRatio(
+                aspectRatio: 4 / 3,
+                child: Stack(
+                  children: <Widget>[
+                    Positioned.fill(child: _RecipeArtwork(recipe: recipe)),
+                    if (totalMinutes > 0)
                       Positioned(
-                        top: AppDimens.xs,
-                        right: AppDimens.xs,
-                        child: Material(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          shape: const CircleBorder(),
-                          child: InkWell(
-                            customBorder: const CircleBorder(),
-                            onTap: isFavoritePending ? null : onToggleFavorite,
-                            child: Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: isFavoritePending
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: AppColors.primary,
-                                      ),
-                                    )
-                                  : Icon(
-                                      recipe.favorite.myFavorite
-                                          ? Icons.favorite_rounded
-                                          : Icons.favorite_border_rounded,
-                                      size: 18,
-                                      color: recipe.favorite.myFavorite
-                                          ? AppColors.error
-                                          : AppColors.textSecondary,
-                                    ),
-                            ),
-                          ),
+                        left: AppDimens.sm,
+                        bottom: AppDimens.sm,
+                        child: _TimePill(
+                          label: context.l10n.homeRecipeMinutes(totalMinutes),
                         ),
                       ),
-                    ],
-                  ),
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: _FavoriteButton(
+                        isFavorite: recipe.favorite.myFavorite,
+                        isPending: isFavoritePending,
+                        onPressed: onToggleFavorite,
+                      ),
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(AppDimens.sm),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        recipe.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w800,
-                            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(_bodyPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      recipe.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: _titleSize,
+                        height: _lineHeight,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _meta(context, recipe),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: <Widget>[
+                        if (calories != null) ...<Widget>[
+                          const Icon(Icons.local_fire_department_rounded,
+                              size: _metaIcon, color: AppColors.primary),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              context.l10n
+                                  .homeRecipeCalories(calories.round()),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: smallStyle,
                             ),
-                      ),
-                      const SizedBox(height: 4),
-                      Wrap(
+                          ),
+                          const SizedBox(width: AppDimens.sm),
+                        ],
+                        if (serves != null) ...<Widget>[
+                          const Icon(Icons.people_alt_outlined,
+                              size: _metaIcon, color: AppColors.textSecondary),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              context.l10n.recipeCardServes(serves),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: smallStyle,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Một hàng badge: badge không vừa bị cắt thay vì đẩy thẻ
+                    // tràn xuống.
+                    SizedBox(
+                      height: _badgeHeight(MediaQuery.textScalerOf(context)),
+                      child: Wrap(
                         spacing: 4,
                         runSpacing: 4,
+                        clipBehavior: Clip.hardEdge,
                         children: <Widget>[
                           if (recipe.difficulty != null)
                             _Badge(
@@ -479,24 +600,100 @@ class _RecipeCard extends StatelessWidget {
                           for (final diet in recipe.dietTypes.take(1))
                             _Badge(
                               label: _dietLabel(context, diet),
-                              color: AppColors.primaryContainer,
-                              textColor: AppColors.onPrimaryContainer,
+                              color: AppColors.sageLight,
+                              textColor: AppColors.sageDark,
                             ),
                           if (recipe.favorite.avgRating != null)
                             _Badge(
-                              label:
-                                  '★ ${recipe.favorite.avgRating!.toStringAsFixed(1)}',
-                              color: const Color(0xFFFFF7E0),
-                              textColor: const Color(0xFFD97706),
+                              icon: Icons.star_rounded,
+                              label: recipe.favorite.avgRating!
+                                  .toStringAsFixed(1),
+                              color: AppColors.warningSurface,
+                              textColor: AppColors.warning,
                             ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FavoriteButton extends StatelessWidget {
+  const _FavoriteButton({
+    required this.isFavorite,
+    required this.isPending,
+    required this.onPressed,
+  });
+
+  final bool isFavorite;
+  final bool isPending;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: Colors.white.withValues(alpha: 0.9),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: isPending ? null : onPressed,
+          child: Padding(
+            padding: const EdgeInsets.all(7),
+            child: isPending
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  )
+                : Icon(
+                    isFavorite
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+          ),
+        ),
+      );
+}
+
+/// Pill thời gian (chuẩn bị + nấu) đè lên góc dưới trái ảnh.
+class _TimePill extends StatelessWidget {
+  const _TimePill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(Icons.schedule_rounded, size: 12, color: Colors.white),
+            const SizedBox(width: 3),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                height: 1.25,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       );
 }
@@ -512,19 +709,14 @@ class _RecipeArtwork extends StatelessWidget {
     if (imageUrl == null || imageUrl.isEmpty) {
       return const _RecipeArtworkFallback();
     }
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(AppDimens.radiusMd),
-      ),
-      child: AppCachedImage(
-        url: imageUrl,
-        width: double.infinity,
-        height: double.infinity,
-        shape: AppCachedImageShape.rectangle,
-        borderRadius: BorderRadius.zero,
-        placeholderIcon: Icons.restaurant_menu_rounded,
-        errorIcon: Icons.restaurant_menu_rounded,
-      ),
+    return AppCachedImage(
+      url: imageUrl,
+      width: double.infinity,
+      height: double.infinity,
+      shape: AppCachedImageShape.rectangle,
+      borderRadius: BorderRadius.zero,
+      placeholderIcon: Icons.restaurant_menu_rounded,
+      errorIcon: Icons.restaurant_menu_rounded,
     );
   }
 }
@@ -535,48 +727,72 @@ class _RecipeArtworkFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.primaryContainer,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: <Color>[AppColors.primaryContainer, AppColors.primaryLight],
+          ),
         ),
         child: Center(
           child: Icon(
-            Icons.restaurant_menu_rounded,
+            Icons.ramen_dining_rounded,
             color: AppColors.primary,
-            size: 32,
+            size: 44,
           ),
         ),
       );
 }
 
+/// Badge dạng pill (DESIGN_SYSTEM §4.3): radius 999, chữ 11sp w700.
 class _Badge extends StatelessWidget {
   const _Badge({
     required this.label,
+    this.icon,
     this.color,
     this.textColor,
   });
 
   final String label;
+  final IconData? icon;
   final Color? color;
   final Color? textColor;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 6,
-          vertical: 2,
-        ),
-        decoration: BoxDecoration(
-          color: color ?? AppColors.secondaryFill,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: textColor ?? AppColors.textSecondary,
+  Widget build(BuildContext context) {
+    final fg = textColor ?? AppColors.textSecondary;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: _RecipeCard._badgeVPadding,
+      ),
+      decoration: BoxDecoration(
+        color: color ?? AppColors.surfaceSubtle,
+        borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (icon != null) ...<Widget>[
+            Icon(icon, size: 12, color: fg),
+            const SizedBox(width: 2),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: _RecipeCard._smallSize,
+                height: _RecipeCard._lineHeight,
+                fontWeight: FontWeight.w700,
+                color: fg,
+              ),
+            ),
           ),
-        ),
-      );
+        ],
+      ),
+    );
+  }
 }
 
 class _LoadMoreCard extends StatelessWidget {
@@ -588,14 +804,16 @@ class _LoadMoreCard extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(BuildContext context) => OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
-        child: isLoading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2))
-            : Text(label),
+  Widget build(BuildContext context) => Center(
+        child: OutlinedButton(
+          onPressed: isLoading ? null : onPressed,
+          child: isLoading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : Text(label),
+        ),
       );
 }
 
@@ -657,14 +875,3 @@ String _dietLabel(BuildContext context, String value) =>
     _dietTypes(context)[value] ?? value;
 String _difficultyLabel(BuildContext context, String value) =>
     _difficultyLabels(context)[value] ?? value;
-
-String _meta(BuildContext context, Recipe recipe) {
-  final parts = <String>[];
-  if (recipe.prepTimeMinutes != null) {
-    parts.add(context.l10n.homeRecipeMinutes(recipe.prepTimeMinutes!));
-  }
-  if (recipe.cuisine != null && recipe.cuisine!.isNotEmpty) {
-    parts.add(recipe.cuisine!);
-  }
-  return parts.join(' · ');
-}

@@ -282,14 +282,16 @@ void main() {
       return f;
     }
 
-    test('gửi đủ 4 key (null tường minh) + patch detail/list bằng dietType của RESPONSE', () async {
+    test('gửi đủ 6 key (null tường minh, #201) + patch detail/list bằng dietType của RESPONSE', () async {
       final f = await loaded();
       final ok = await f.store.saveHealthProfile('d1',
           targetDailyCalories: null, dietTypeWire: 'KETO', heightCm: 112, weightKg: null);
       expect(ok, isTrue);
       final payload = f.api.healthWrites.single;
-      expect(payload.keys, unorderedEquals(<String>['targetDailyCalories', 'dietType', 'heightCm', 'weightKg']));
+      expect(payload.keys, unorderedEquals(<String>['targetDailyCalories', 'dietType', 'heightCm', 'weightKg', 'gender', 'activityLevel']));
       expect(payload['weightKg'], isNull);
+      expect(payload['gender'], isNull);
+      expect(payload['activityLevel'], isNull);
       expect(healthOf(f).dietType, DietType.keto);
       expect(detailOf(f).dietType, DietType.keto);
       expect(listOf(f).single.dietType, DietType.keto);

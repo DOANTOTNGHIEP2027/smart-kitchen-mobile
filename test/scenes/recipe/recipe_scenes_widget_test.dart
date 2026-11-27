@@ -101,6 +101,9 @@ void main() {
       expect(find.text('Món 0'), findsOneWidget);
       expect(find.text(l10n.recipesLoadMore), findsOneWidget);
 
+      // #201: nút nằm dưới lưới (không còn là một ô) → cuộn tới trước.
+      await tester.ensureVisible(find.text(l10n.recipesLoadMore));
+      await tester.pump();
       await tester.tap(find.text(l10n.recipesLoadMore));
       await tester.pumpAndSettle();
 
@@ -142,6 +145,65 @@ void main() {
       expect(find.byType(MaterialBanner), findsOneWidget);
       expect(find.text(l10n.networkError), findsOneWidget);
       expect(find.text('Canh chua'), findsOneWidget);
+    });
+
+    testWidgets('#201: card đủ badge không tràn ở 360dp, text scale 1.3',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 780);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      api.onList = (_) async => recipePage(<Recipe>[
+            for (final id in <String>['a', 'b', 'c'])
+              Recipe(
+                id: id,
+                name: 'Canh chua cá lóc nấu kiểu miền Tây rất dài $id',
+                dietTypes: const <String>['GLUTEN_FREE'],
+                source: 'MANUAL',
+                createdAt: fixedTime,
+                updatedAt: fixedTime,
+                prepTimeMinutes: 15,
+                cookTimeMinutes: 30,
+                serves: 4,
+                difficulty: 'MEDIUM',
+                nutrition: const RecipeNutrition(calories: 523.4),
+                favorite: const RecipeFavoriteState(avgRating: 4.5),
+              ),
+          ]);
+      await pumpList(tester);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(l10n.homeRecipeMinutes(45)), findsNWidgets(3));
+      expect(find.text(l10n.homeRecipeCalories(523)), findsNWidgets(3));
+      expect(find.text(l10n.recipeCardServes(4)), findsNWidgets(3));
+    });
+
+    testWidgets('#201: sheet lọc dùng chip, Áp dụng gửi filter đã chọn',
+        (tester) async {
+      await pumpList(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.tune_rounded));
+      await tester.pumpAndSettle();
+      expect(find.byType(DropdownButtonFormField<String?>), findsNothing);
+
+      await tester
+          .tap(find.byKey(const ValueKey<String>('recipe-filter-diet-VEGAN')));
+      await tester.pump();
+      final time = find.byKey(const ValueKey<String>('recipe-filter-time-30'));
+      await tester.ensureVisible(time);
+      await tester.pump();
+      await tester.tap(time);
+      await tester.pump();
+      await tester
+          .tap(find.byKey(const ValueKey<String>('recipe-filter-apply')));
+      await tester.pumpAndSettle();
+
+      expect(api.listCalls.last.dietType, 'VEGAN');
+      expect(api.listCalls.last.maxPrepTime, 30);
+      expect(api.listCalls.last.difficulty, isNull);
     });
   });
 

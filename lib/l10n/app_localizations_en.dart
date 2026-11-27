@@ -951,9 +951,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventoryDeleteWaste => 'Expired, spoiled, or discarded';
 
   @override
-  String get inventoryDeleteCorrected => 'Deleted by mistake, correct data';
-
-  @override
   String get inventoryEditItem => 'Edit item';
 
   @override
@@ -2895,7 +2892,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Existing dishes will only be replaced after a complete new menu is ready.';
 
   @override
-  String get mealComposeRegenerate => 'Create another menu';
+  String get mealComposeRegenerate => 'Re-suggest the whole meal';
 
   @override
   String get mealComposeGenerate => 'Create meal menu';
@@ -4015,4 +4012,51 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get healthProfileCalorieSuggestionHint =>
       'Enter height, weight, sex, date of birth and activity level to get a suggestion';
+
+  @override
+  String recipeCardServes(int count) {
+    return '$count servings';
+  }
+
+  @override
+  String get recipesFilterApply => 'Apply';
+
+  @override
+  String get recipesFilterReset => 'Reset';
+
+  @override
+  String recipesFilterMaxMinutes(int minutes) {
+    return '≤ $minutes min';
+  }
+
+  @override
+  String get healthProfileCalorieSuggestionAdultOnly =>
+      'The suggestion formula applies to people aged 18 and over';
+
+  @override
+  String get healthProfileChoiceInvalid =>
+      'Invalid choice, please choose again';
+
+  @override
+  String get mealDishRoleStaple => 'Staple';
+
+  @override
+  String get mealDishRoleMain => 'Main dish';
+
+  @override
+  String get mealDishRoleVegetable => 'Vegetable dish';
+
+  @override
+  String get mealDishRoleSoup => 'Soup';
+
+  @override
+  String get mealDishRoleCompleteMeal => 'One-dish meal';
+
+  @override
+  String get mealDishRoleLightMeal => 'Light meal';
+
+  @override
+  String mealComposeServingsShort(String servings) {
+    return '$servings servings';
+  }
 }

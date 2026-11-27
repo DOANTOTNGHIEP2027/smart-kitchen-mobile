@@ -12,8 +12,10 @@
 ///                   --dart-define=APP_ENV=prod
 /// ```
 abstract class EnvConfig {
+  /// #201: bật mặc định; tắt bằng `--dart-define=MEAL_COMPOSITION_ENABLED=false`.
   static const bool automaticMealComposition = bool.fromEnvironment(
     'MEAL_COMPOSITION_ENABLED',
+    defaultValue: true,
   );
   static const String appEnv = String.fromEnvironment(
     'APP_ENV',

@@ -21,6 +21,7 @@ class CalorieTargetField extends StatelessWidget {
     this.errorText,
     this.suggestion,
     this.onApplySuggestion,
+    this.suggestionHint,
   });
 
   /// Giá trị đang lưu trên server (có thể ngoài khoảng slider).
@@ -39,6 +40,10 @@ class CalorieTargetField extends StatelessWidget {
   /// gợi ý cách nhập đủ.
   final int? suggestion;
   final VoidCallback? onApplySuggestion;
+
+  /// Thay câu chỉ dẫn mặc định khi [suggestion] `null` (vd. người dưới 18
+  /// tuổi — công thức không áp dụng).
+  final String? suggestionHint;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +73,7 @@ class CalorieTargetField extends StatelessWidget {
         _SuggestionRow(
           suggestion: suggestion,
           onApply: enabled ? onApplySuggestion : null,
+          hint: suggestionHint,
         ),
         if (legacyOutOfRange)
           Text(
@@ -114,10 +120,15 @@ class CalorieTargetField extends StatelessWidget {
 
 /// #201: "Gợi ý: N kcal · Áp dụng" khi đủ dữ liệu, ngược lại chỉ dẫn nhập đủ.
 class _SuggestionRow extends StatelessWidget {
-  const _SuggestionRow({required this.suggestion, required this.onApply});
+  const _SuggestionRow({
+    required this.suggestion,
+    required this.onApply,
+    this.hint,
+  });
 
   final int? suggestion;
   final VoidCallback? onApply;
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +139,7 @@ class _SuggestionRow extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.only(top: AppDimens.xs),
         child: Text(
-          l.healthProfileCalorieSuggestionHint,
+          hint ?? l.healthProfileCalorieSuggestionHint,
           key: const ValueKey<String>('health-calorie-suggestion-hint'),
           style: theme.textTheme.bodySmall
               ?.copyWith(color: theme.colorScheme.onSurfaceVariant),

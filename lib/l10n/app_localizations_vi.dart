@@ -944,9 +944,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get inventoryDeleteWaste => 'Hết hạn, hỏng, bỏ đi';
 
   @override
-  String get inventoryDeleteCorrected => 'Xoá nhầm, sửa số liệu';
-
-  @override
   String get inventoryEditItem => 'Sửa mặt hàng';
 
   @override
@@ -2859,7 +2856,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Chỉ thay món hiện có sau khi tạo xong bộ thực đơn mới.';
 
   @override
-  String get mealComposeRegenerate => 'Tạo lại thực đơn';
+  String get mealComposeRegenerate => 'Gợi ý lại cả bữa';
 
   @override
   String get mealComposeGenerate => 'Tạo thực đơn';
@@ -3941,4 +3938,51 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get healthProfileCalorieSuggestionHint =>
       'Nhập chiều cao, cân nặng, giới tính, ngày sinh, mức vận động để được gợi ý';
+
+  @override
+  String recipeCardServes(int count) {
+    return '$count người';
+  }
+
+  @override
+  String get recipesFilterApply => 'Áp dụng';
+
+  @override
+  String get recipesFilterReset => 'Đặt lại';
+
+  @override
+  String recipesFilterMaxMinutes(int minutes) {
+    return '≤ $minutes phút';
+  }
+
+  @override
+  String get healthProfileCalorieSuggestionAdultOnly =>
+      'Công thức gợi ý áp dụng cho người từ 18 tuổi';
+
+  @override
+  String get healthProfileChoiceInvalid =>
+      'Lựa chọn không hợp lệ, hãy chọn lại';
+
+  @override
+  String get mealDishRoleStaple => 'Món tinh bột';
+
+  @override
+  String get mealDishRoleMain => 'Món mặn';
+
+  @override
+  String get mealDishRoleVegetable => 'Món rau';
+
+  @override
+  String get mealDishRoleSoup => 'Món canh';
+
+  @override
+  String get mealDishRoleCompleteMeal => 'Món một đĩa';
+
+  @override
+  String get mealDishRoleLightMeal => 'Bữa nhẹ';
+
+  @override
+  String mealComposeServingsShort(String servings) {
+    return '$servings khẩu phần';
+  }
 }
