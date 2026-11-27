@@ -2887,7 +2887,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceClear => 'Clear response';
 
   @override
-  String get attendanceClosed => 'Attendance for this meal is read-only.';
+  String get attendanceClosed =>
+      'This meal has passed or you only have view access, so attendance can\'t be changed.';
 
   @override
   String get attendanceLoadFailed => 'Could not load attendance';
@@ -3849,4 +3850,199 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errShopItemNotBought =>
       'Only bought items can be put in the pantry.';
+
+  @override
+  String get homeGreetingMorning => 'Good morning';
+
+  @override
+  String get homeGreetingNoon => 'Hello';
+
+  @override
+  String get familyMemberActions => 'Member actions';
+
+  @override
+  String get mealPlanDishSourceTitle => 'How do you want to pick this dish?';
+
+  @override
+  String get mealPlanDishSourceAi => 'AI suggestions';
+
+  @override
+  String get inventoryDeleteConfirmMessage =>
+      'This item will be removed from the pantry.';
+
+  @override
+  String get inventoryDeleteReasonTitle => 'Why are you removing this item?';
+
+  @override
+  String get allergenGluten => 'Gluten';
+
+  @override
+  String get allergenCrustaceans => 'Crustaceans';
+
+  @override
+  String get allergenEggs => 'Eggs';
+
+  @override
+  String get allergenFish => 'Fish';
+
+  @override
+  String get allergenPeanuts => 'Peanuts';
+
+  @override
+  String get allergenSoybeans => 'Soybeans';
+
+  @override
+  String get allergenMilk => 'Milk';
+
+  @override
+  String get allergenTreeNuts => 'Tree nuts';
+
+  @override
+  String get allergenCelery => 'Celery';
+
+  @override
+  String get allergenMustard => 'Mustard';
+
+  @override
+  String get allergenSesame => 'Sesame';
+
+  @override
+  String get allergenSulphurDioxide => 'Sulphur dioxide';
+
+  @override
+  String get allergenLupin => 'Lupin';
+
+  @override
+  String get allergenMolluscs => 'Molluscs';
+
+  @override
+  String get dietTypeUnsetShort => 'Not set';
+
+  @override
+  String get dietTypeNoneShort => 'No restriction';
+
+  @override
+  String get dietTypeUnsetDescription =>
+      'No diet chosen — meal plans apply no diet constraint.';
+
+  @override
+  String get dietTypeNoneDescription =>
+      'Regular eating, no food groups excluded.';
+
+  @override
+  String get dietTypeKetoDescription =>
+      'Very low carb, high fat — limits rice, bread and sweets.';
+
+  @override
+  String get dietTypeVegetarianDescription =>
+      'No meat or fish; eggs and dairy are fine.';
+
+  @override
+  String get dietTypeVeganDescription =>
+      'Plant-based only: no meat, fish, eggs, dairy or other animal products.';
+
+  @override
+  String get dietTypePescatarianDescription =>
+      'No meat, but fish and seafood are fine.';
+
+  @override
+  String get dietTypeGlutenFreeDescription =>
+      'Avoids wheat, barley and other gluten-containing foods.';
+
+  @override
+  String get dietTypeDiabeticDescription =>
+      'Limits sugar and fast-absorbing carbs, favours low-sugar dishes.';
+
+  @override
+  String get inventoryZeroQuantityTitle => 'Used up this item?';
+
+  @override
+  String get inventoryZeroQuantityConfirm => 'Confirm';
+
+  @override
+  String get attendanceUnsure => 'Not sure';
+
+  @override
+  String attendanceYou(String status) {
+    return 'You: $status';
+  }
+
+  @override
+  String get planningGuestSlotTitle => 'Guests for this meal';
+
+  @override
+  String get planningGuestSlotScopeBanner =>
+      'Temporary guests — only for this meal, not saved to the family profile. For people who eat with you regularly (young children, live-in grandparents) use Dependents in the family profile.';
+
+  @override
+  String get planningGuestSlotEmpty => 'No guests for this meal yet.';
+
+  @override
+  String get planningGuestSlotDeleteConfirm =>
+      'Remove this guest from this meal?';
+
+  @override
+  String get planningGuestSlotUpdated =>
+      'Updated. AI suggestions for this meal may have changed.';
+
+  @override
+  String planningGuestSlotCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count guests',
+      one: '1 guest',
+      zero: 'No guests yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthProfileGender => 'Sex';
+
+  @override
+  String get healthProfileGenderMale => 'Male';
+
+  @override
+  String get healthProfileGenderFemale => 'Female';
+
+  @override
+  String get healthProfileBirthDate => 'Date of birth';
+
+  @override
+  String get healthProfileBirthDateChoose => 'Choose date of birth…';
+
+  @override
+  String get healthProfileBirthDateInvalid =>
+      'Date of birth must be in the past';
+
+  @override
+  String get healthProfileActivityLevel => 'Activity level';
+
+  @override
+  String get activityLevelSedentary => 'Sedentary';
+
+  @override
+  String get activityLevelLight => 'Light (1–3 days/week)';
+
+  @override
+  String get activityLevelModerate => 'Moderate (3–5 days/week)';
+
+  @override
+  String get activityLevelActive => 'Active (6–7 days/week)';
+
+  @override
+  String get activityLevelVeryActive => 'Very active (physical work)';
+
+  @override
+  String healthProfileCalorieSuggestion(int value) {
+    return 'Suggested: $value kcal';
+  }
+
+  @override
+  String get healthProfileCalorieApply => 'Apply';
+
+  @override
+  String get healthProfileCalorieSuggestionHint =>
+      'Enter height, weight, sex, date of birth and activity level to get a suggestion';
 }

@@ -37,6 +37,7 @@ Future<WasteReasonChoice> showWasteCauseSheet(
 }) async {
   final result = await showModalBottomSheet<WasteReasonChoice>(
     context: context,
+    isScrollControlled: true,
     showDragHandle: true,
     builder: (context) => _WasteCauseSheet(endpoint: endpoint),
   );
@@ -51,7 +52,7 @@ class _WasteCauseSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,

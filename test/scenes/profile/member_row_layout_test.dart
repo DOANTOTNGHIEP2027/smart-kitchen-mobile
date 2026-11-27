@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/household_member.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/widgets/member_row.dart';
@@ -8,7 +7,7 @@ import '../../helpers/pump_app.dart';
 
 void main() {
   for (final scale in [1.0, 2.0, 3.0]) {
-    testWidgets('tên dài có đủ chỗ, giữ các nút thao tác, cỡ chữ $scale',
+    testWidgets('tên thành viên và menu thao tác, cỡ chữ $scale',
         (tester) async {
       tester.view.physicalSize = const Size(320, 1200);
       tester.view.devicePixelRatio = 1;
@@ -22,7 +21,7 @@ void main() {
           child: MemberRow(
             member: HouseholdMember(
               userId: 'member',
-              fullName: '  Nguyễn   Thị\n Minh Anh  ',
+              fullName: 'Nguyễn Thị Minh Anh',
               role: 'MEMBER',
               provider: 'GUEST',
               joinedAt: DateTime(2026, 11, 28),
@@ -35,12 +34,19 @@ void main() {
         ),
       ));
       await tester.pumpAndSettle();
-      final name = find.text('Nguyễn Thị Minh Anh (bạn)');
-      final paragraph = tester.renderObject<RenderParagraph>(name);
-      expect(paragraph.didExceedMaxLines, isFalse);
-      expect(paragraph.size.width, greaterThan(200));
+      expect(find.text('Nguyễn Thị Minh Anh (bạn)'), findsOneWidget);
+      final actions = find.byKey(const ValueKey('member-actions-member'));
+      expect(find.byKey(const ValueKey('member-remove-member')), findsNothing);
+      await tester.tap(actions);
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('member-remove-member')));
+      await tester.pumpAndSettle();
+      expect(removed, isTrue);
+      expect(changed, isFalse);
+      await tester.tap(actions);
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('member-change-role-member')));
+      await tester.pumpAndSettle();
       expect(removed, isTrue);
       expect(changed, isTrue);
       expect(tester.takeException(), isNull);

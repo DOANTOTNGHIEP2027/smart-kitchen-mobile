@@ -15,6 +15,7 @@ import 'package:smart_kitchen_mobile/scenes/profile/api/family_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/profile_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/allergen.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/domain/calorie_suggestion.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/diet_type.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/health_profile.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/member_health_summary.dart';
@@ -89,11 +90,11 @@ void main() {
 
   // Thiết kế §10.3 (D13/D16): ô nhập calo tự do được thay bằng slider
   // 800–5000 + "Chưa đặt", màn có chế độ xem/sửa. Các test dưới giữ đúng ý
-  // đồ cũ (PUT đủ 4 field, null ≠ NONE, lỗi giữ bản nháp, không tự retry).
+  // đồ cũ (PUT đủ 7 field theo #201, null ≠ NONE, lỗi giữ bản nháp, không tự retry).
   group('Health profile full replacement', () {
     for (final goal in <int?>[null, 0, 1800, 6000, 10000]) {
       testWidgets(
-          'untouched goal $goal is sent unchanged with the other 3 fields',
+          'untouched goal $goal is sent unchanged with all profile fields',
           (tester) async {
         api.profile = _profile(diet: DietType.glutenFree, goal: goal);
         api.writeError = NetworkException();
@@ -105,6 +106,9 @@ void main() {
           'dietType': 'GLUTEN_FREE',
           'heightCm': 170.0,
           'weightKg': 65.0,
+          'gender': null,
+          'birthDate': null,
+          'activityLevel': null,
         });
         expect(api.allergenWrites, isEmpty);
       });
@@ -117,9 +121,8 @@ void main() {
       expect(find.text('Chưa chọn chế độ ăn'), findsOneWidget);
       expect(find.text('Chưa có mục dị ứng được lưu'), findsOneWidget);
       await openEdit(tester);
-      await tester.tap(input('diet'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Không chọn chế độ ăn đặc biệt').last);
+      await tester.ensureVisible(input('diet-NONE'));
+      await tester.tap(input('diet-NONE'));
       await tester.pumpAndSettle();
       await save(tester);
       expect(api.profileWrites.single['dietType'], 'NONE');
@@ -197,13 +200,18 @@ void main() {
 
     testWidgets('diet can be reset independently without erasing other fields',
         (tester) async {
-      api.profile = _profile(diet: DietType.glutenFree, goal: 2000);
+      api.profile = _profile(
+        diet: DietType.glutenFree,
+        goal: 2000,
+        gender: Gender.female,
+        birthDate: DateTime(1995, 6, 15),
+        activityLevel: ActivityLevel.moderate,
+      );
       api.writeError = NetworkException();
       await pumpScreen(tester, const HealthProfileScreen());
       await openEdit(tester);
-      await tester.tap(input('diet'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Chưa chọn chế độ ăn').last);
+      await tester.ensureVisible(input('diet-unset'));
+      await tester.tap(input('diet-unset'));
       await tester.pumpAndSettle();
       await save(tester);
       expect(api.profileWrites.single, <String, dynamic>{
@@ -211,6 +219,9 @@ void main() {
         'dietType': null,
         'heightCm': 170.0,
         'weightKg': 65.0,
+        'gender': 'FEMALE',
+        'birthDate': '1995-06-15',
+        'activityLevel': 'MODERATE',
       });
       expect(api.allergenWrites, isEmpty);
     });
@@ -301,7 +312,7 @@ void main() {
           userId: 'member', allergens: [Allergen(id: 1, name: 'Gluten')]);
       await tester.tap(find.text('Thử lại'));
       await tester.pumpAndSettle();
-      expect(find.widgetWithText(Chip, 'Gluten'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Gluten (lúa mì)'), findsOneWidget);
       expect(api.summaryReads, 2);
       expect(api.profileWrites, isEmpty);
     });
@@ -317,13 +328,21 @@ void main() {
 }
 
 HealthProfile _profile(
-        {DietType? diet, int? goal, List<Allergen> allergens = const []}) =>
+        {DietType? diet,
+        int? goal,
+        Gender? gender,
+        DateTime? birthDate,
+        ActivityLevel? activityLevel,
+        List<Allergen> allergens = const []}) =>
     HealthProfile(
       userId: 'me',
       targetDailyCalories: goal,
       dietType: diet,
       heightCm: 170,
       weightKg: 65,
+      gender: gender,
+      birthDate: birthDate,
+      activityLevel: activityLevel,
       updatedAt: DateTime.utc(2026, 11, 15),
       allergens: allergens,
     );

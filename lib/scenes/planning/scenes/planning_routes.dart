@@ -25,6 +25,13 @@ abstract class PlanningRoutes {
   static String guestDinersOf(String planId) =>
       '/meal-plan/plan/$planId/guest-diners';
 
+  /// #201: khách ăn cùng RIÊNG một bữa (mở từ màn sửa bữa).
+  static const String slotGuestDiners =
+      '/meal-plan/plan/:planId/slots/:slotId/guest-diners';
+
+  static String slotGuestDinersOf(String planId, String slotId) =>
+      '/meal-plan/plan/$planId/slots/$slotId/guest-diners';
+
   /// Ứng viên AI của kế hoạch tuần. Query tuỳ chọn: `sessionId` (lọc 1 phiên),
   /// `slotId` + `dishId` (cho phép sinh gợi ý cho đúng món đó), `noSession=1`
   /// (món chưa từng mở phiên) — OD-08.
@@ -72,6 +79,8 @@ class GuestDinerBinding extends Bindings {
           Get.find<GuestDinerApi>(),
           Get.find<HealthApi>(),
           Get.parameters['planId']!,
+          // #201: route theo bữa có `slotId`; route theo tuần thì không.
+          slotId: Get.parameters['slotId'],
         ));
   }
 }
@@ -124,6 +133,12 @@ final List<GetPage<dynamic>> planningPages = <GetPage<dynamic>>[
   ),
   GetPage<void>(
     name: PlanningRoutes.guestDiners,
+    page: () => const GuestDinerScene(),
+    binding: GuestDinerBinding(),
+    middlewares: <GetMiddleware>[AuthGuard()],
+  ),
+  GetPage<void>(
+    name: PlanningRoutes.slotGuestDiners,
     page: () => const GuestDinerScene(),
     binding: GuestDinerBinding(),
     middlewares: <GetMiddleware>[AuthGuard()],

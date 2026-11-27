@@ -90,9 +90,12 @@ class _CalorieConfirmSheetState extends State<CalorieConfirmSheet> {
         widget.store.confirmStatus == FormStatus.submitting;
     final confirmError = widget.store.confirmError;
 
+    // Đẩy nội dung lên trên bàn phím (viewInsets của chính sheet) và cho
+    // cuộn khi màn thấp — không thì ô nhập bị bàn phím che.
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+            16, 20, 16, 24 + MediaQuery.viewInsetsOf(context).bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

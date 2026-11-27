@@ -28,6 +28,7 @@ import 'widgets/calorie_target_field.dart';
 import 'widgets/dependent_row.dart';
 import 'widgets/dependent_state_views.dart';
 import 'widgets/diet_type_label.dart';
+import 'widgets/diet_type_selector.dart';
 
 /// Hồ sơ sức khoẻ của một dependent (§9.5, §16.10, §16.12) — tinh thần
 /// `HealthProfileScreen` (S10.x) nhưng bind `DependentStore`.
@@ -267,30 +268,13 @@ class _DependentHealthProfileScreenState
               },
             ),
             const SizedBox(height: AppDimens.md),
-            DropdownButtonFormField<DietType?>(
-              key: const ValueKey<String>('health-diet'),
-              initialValue: _diet,
-              isExpanded: true,
-              hint: Text(l.healthProfileDietUnset),
-              decoration: InputDecoration(
-                labelText: l.healthProfileDietType,
-                prefixIcon: const Icon(Icons.restaurant_menu_outlined),
-              ),
-              items: <DropdownMenuItem<DietType?>>[
-                DropdownMenuItem<DietType?>(
-                  value: null,
-                  child: Text(l.healthProfileDietUnset),
-                ),
-                for (final DietType t in DietType.values)
-                  DropdownMenuItem<DietType?>(
-                      value: t, child: Text(t.label(l))),
-              ],
-              onChanged: enabled
-                  ? (DietType? v) {
-                      _onFieldEdited();
-                      setState(() => _diet = v);
-                    }
-                  : null,
+            DietTypeSelector(
+              value: _diet,
+              enabled: enabled,
+              onChanged: (DietType? v) {
+                _onFieldEdited();
+                setState(() => _diet = v);
+              },
             ),
             const SizedBox(height: AppDimens.sm),
             TextFormField(

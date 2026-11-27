@@ -11,7 +11,6 @@ import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_loading_view.dart';
-import '../inventory_routes.dart';
 import '../stores/inventory_store.dart';
 import '../widgets/inventory_item_tile.dart';
 import '../widgets/inventory_presentation.dart';
@@ -57,11 +56,6 @@ class _InventoryListSceneState extends State<InventoryListScene> {
     return AppScaffold(
       title: context.l10n.inventoryTitle,
       actions: <Widget>[
-        IconButton(
-          tooltip: context.l10n.inventoryOcrScanAction,
-          icon: const Icon(Icons.document_scanner_outlined),
-          onPressed: () => Get.toNamed(InventoryRoutes.scan),
-        ),
         IconButton(
           tooltip: context.l10n.add,
           icon: const Icon(Icons.add_rounded),
@@ -304,14 +298,8 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                         AppButton(
                           label: context.l10n.inventoryAddItem,
                           icon: Icons.add,
+                          expanded: false,
                           onPressed: () => Get.toNamed('/inventory/add'),
-                        ),
-                        const SizedBox(height: AppDimens.sm),
-                        AppButton(
-                          label: context.l10n.inventoryOcrScanAction,
-                          icon: Icons.document_scanner_outlined,
-                          variant: AppButtonVariant.outline,
-                          onPressed: () => Get.toNamed(InventoryRoutes.scan),
                         ),
                       ],
                     ),
@@ -345,20 +333,14 @@ class _InventoryListSceneState extends State<InventoryListScene> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         heroTag: 'inventory-list-fab',
+        tooltip: context.l10n.inventoryAddItem,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
-        ),
         onPressed: () => Get.toNamed('/inventory/add'),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(
-          context.l10n.inventoryAddItem,
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
+        child: const Icon(Icons.add_rounded),
       ),
     );
   }

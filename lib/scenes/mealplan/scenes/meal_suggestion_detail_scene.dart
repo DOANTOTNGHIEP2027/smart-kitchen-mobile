@@ -10,6 +10,8 @@ import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../domain/shopping_list_sink.dart';
+import '../../recipe/domain/recipe.dart';
+import '../../recipe/scenes/recipe_list_scene.dart';
 import '../../shopping/scenes/shopping_list_binding.dart';
 import '../../shell/app_shell_store.dart';
 import '../../../routing/app_routes.dart';
@@ -61,6 +63,24 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
   @override
   Widget build(BuildContext context) => AppScaffold(
         title: context.l10n.mealplanSuggestionsTitle,
+        actions: <Widget>[
+          Observer(
+            builder: (_) =>
+                _store.actionStatus == SuggestionActionStatus.rerolling
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: AppDimens.sm),
+                        child: Center(
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+          ),
+          Observer(builder: (_) => _moreMenu(context)),
+        ],
         body: Observer(builder: (_) {
           final suggestion = _store.currentSuggestion;
           return SingleChildScrollView(
@@ -90,6 +110,29 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
                         ? context.l10n.mealplanSuggestionsUnavailable
                         : context.l10n.mealplanSuggestionsExhausted,
                   ),
+                if (suggestion == null &&
+                    !_store.loading &&
+                    !_store.outcomeUnknown) ...[
+                  const SizedBox(height: AppDimens.md),
+                  AppButton(
+                    label: context.l10n.mealPlanGenerateSuggestions,
+                    icon: Icons.auto_awesome,
+                    isLoading:
+                        _store.actionStatus == SuggestionActionStatus.rerolling,
+                    onPressed:
+                        _store.canWrite ? _store.refreshSuggestions : null,
+                  ),
+                  const SizedBox(height: AppDimens.sm),
+                  AppButton(
+                    label: context.l10n.mealPlanChooseRecipe,
+                    variant: AppButtonVariant.secondary,
+                    icon: Icons.menu_book_outlined,
+                    onPressed: _store.canWrite &&
+                            _store.actionStatus == SuggestionActionStatus.idle
+                        ? () => _chooseFromRecipe(context)
+                        : null,
+                  ),
+                ],
                 if (suggestion != null) ...[
                   if (suggestion.isBlocked)
                     Text(
@@ -120,38 +163,13 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
                     onNext: _store.viewNext,
                   ),
                 ],
-                if (!_store.outcomeUnknown)
-                  AppButton(
-                    label: context.l10n.mealplanReadAgain,
-                    variant: AppButtonVariant.secondary,
-                    onPressed: _store.isReading ? null : _store.load,
-                  ),
-                const SizedBox(height: AppDimens.sm),
-                AppButton(
-                  label: context.l10n.mealPlanGenerateSuggestions,
-                  variant: AppButtonVariant.secondary,
-                  icon: Icons.refresh,
-                  isLoading:
-                      _store.actionStatus == SuggestionActionStatus.rerolling,
-                  onPressed: _store.canWrite ? _store.refreshSuggestions : null,
-                ),
                 if (suggestion != null) ...[
-                  if (suggestion.missingIngredients.isNotEmpty)
-                    AppButton(
-                      label: context.l10n.mealplanAddShoppingList,
-                      variant: AppButtonVariant.secondary,
-                      icon: Icons.shopping_cart_outlined,
-                      onPressed: !_store.outcomeUnknown &&
-                              _store.actionStatus == SuggestionActionStatus.idle
-                          ? () => _addMissingToShopping(context)
-                          : null,
-                    ),
                   const SizedBox(height: AppDimens.sm),
                   Row(children: [
                     Expanded(
                         child: AppButton(
                       label: context.l10n.skip,
-                      variant: AppButtonVariant.secondary,
+                      variant: AppButtonVariant.text,
                       onPressed:
                           _store.actionStatus == SuggestionActionStatus.idle
                               ? _store.rejectSuggestion
@@ -179,21 +197,108 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
         }),
       );
 
+  /// Hành động phụ gom vào ⋮ để màn chỉ còn pager + "Chọn món" / "Bỏ qua".
+  /// "Đọc lại" ẩn khi recovery card đang hiện (card đã có nút riêng).
+  Widget _moreMenu(BuildContext context) {
+    final l10n = context.l10n;
+    final suggestion = _store.currentSuggestion;
+    final idle = _store.actionStatus == SuggestionActionStatus.idle;
+    return PopupMenuButton<_DetailAction>(
+      key: const ValueKey<String>('suggestion-more-actions'),
+      icon: const Icon(Icons.more_vert),
+      onSelected: (action) {
+        switch (action) {
+          case _DetailAction.reload:
+            _store.load();
+          case _DetailAction.regenerate:
+            _store.refreshSuggestions();
+          case _DetailAction.chooseRecipe:
+            _chooseFromRecipe(context);
+          case _DetailAction.addShopping:
+            _addMissingToShopping(context);
+        }
+      },
+      itemBuilder: (_) => <PopupMenuEntry<_DetailAction>>[
+        if (!_store.outcomeUnknown)
+          PopupMenuItem<_DetailAction>(
+            value: _DetailAction.reload,
+            enabled: !_store.isReading,
+            child: _menuRow(Icons.sync, l10n.mealplanReadAgain),
+          ),
+        PopupMenuItem<_DetailAction>(
+          value: _DetailAction.regenerate,
+          enabled: _store.canWrite &&
+              _store.actionStatus != SuggestionActionStatus.rerolling,
+          child: _menuRow(Icons.refresh, l10n.mealPlanGenerateSuggestions),
+        ),
+        PopupMenuItem<_DetailAction>(
+          value: _DetailAction.chooseRecipe,
+          enabled: _store.canWrite && !_store.outcomeUnknown && idle,
+          child: _menuRow(Icons.menu_book_outlined, l10n.mealPlanChooseRecipe),
+        ),
+        if (suggestion != null && suggestion.missingIngredients.isNotEmpty)
+          PopupMenuItem<_DetailAction>(
+            value: _DetailAction.addShopping,
+            enabled: !_store.outcomeUnknown && idle,
+            child: _menuRow(
+                Icons.shopping_cart_outlined, l10n.mealplanAddShoppingList),
+          ),
+      ],
+    );
+  }
+
+  Widget _menuRow(IconData icon, String label) => Row(
+        children: <Widget>[
+          Icon(icon, size: 20),
+          const SizedBox(width: AppDimens.md),
+          Flexible(child: Text(label)),
+        ],
+      );
+
+  /// Chọn thẳng một công thức cho món này thay vì gợi ý AI — cùng luồng với
+  /// "Chọn từ công thức" ở màn chỉnh bữa (`assignManual`).
+  Future<void> _chooseFromRecipe(BuildContext context) async {
+    final recipe = await Get.to<Recipe>(
+      () =>
+          RecipeListScene(onSelect: (value) => Get.back<Recipe>(result: value)),
+    );
+    if (recipe == null || !mounted) return;
+    final ok = await Get.find<MealPlanStore>().assignManual(
+      _store.slotId,
+      _store.dishId,
+      recipe.id,
+      recipe.name,
+    );
+    if (!mounted) return;
+    if (ok) {
+      Get.back<void>();
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+            SnackBar(content: Text(context.l10n.mealplanUnableToChoose)));
+    }
+  }
+
   Widget _recovery(BuildContext context) => Card(
         child: Padding(
           padding: const EdgeInsets.all(AppDimens.md),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Text(context.l10n.mealplanOutcomeUnknown),
-            if (_store.readError != null)
+            if (_store.readError != null) ...[
+              const SizedBox(height: AppDimens.xs),
               Text(apiErrorMessage(context.l10n, _store.readError),
                   style: const TextStyle(color: AppColors.error)),
+            ],
+            const SizedBox(height: AppDimens.md),
             AppButton(
               label: context.l10n.mealplanReadAgain,
               variant: AppButtonVariant.secondary,
               isLoading: _store.isReading,
               onPressed: _store.isReading ? null : _store.recheck,
             ),
+            const SizedBox(height: AppDimens.sm),
             AppButton(
               label: context.l10n.mealplanContinueSnapshot,
               onPressed:
@@ -228,6 +333,8 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
     }
   }
 }
+
+enum _DetailAction { reload, regenerate, chooseRecipe, addShopping }
 
 class _SuggestionPager extends StatelessWidget {
   const _SuggestionPager({

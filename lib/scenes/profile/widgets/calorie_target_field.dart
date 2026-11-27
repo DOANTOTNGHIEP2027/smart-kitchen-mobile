@@ -19,6 +19,8 @@ class CalorieTargetField extends StatelessWidget {
     required this.onSliderChanged,
     required this.onNotSetChanged,
     this.errorText,
+    this.suggestion,
+    this.onApplySuggestion,
   });
 
   /// Giá trị đang lưu trên server (có thể ngoài khoảng slider).
@@ -32,6 +34,11 @@ class CalorieTargetField extends StatelessWidget {
 
   /// Lỗi từ `fieldErrors.targetDailyCalories` của BE (S10.5).
   final String? errorText;
+
+  /// #201: gợi ý từ `suggestDailyCalories`; `null` = thiếu dữ liệu → hiện
+  /// gợi ý cách nhập đủ.
+  final int? suggestion;
+  final VoidCallback? onApplySuggestion;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +64,10 @@ class CalorieTargetField extends StatelessWidget {
           valueText,
           key: const ValueKey<String>('health-calorie-label'),
           style: theme.textTheme.titleLarge,
+        ),
+        _SuggestionRow(
+          suggestion: suggestion,
+          onApply: enabled ? onApplySuggestion : null,
         ),
         if (legacyOutOfRange)
           Text(
@@ -96,6 +107,52 @@ class CalorieTargetField extends StatelessWidget {
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.error),
           ),
+      ],
+    );
+  }
+}
+
+/// #201: "Gợi ý: N kcal · Áp dụng" khi đủ dữ liệu, ngược lại chỉ dẫn nhập đủ.
+class _SuggestionRow extends StatelessWidget {
+  const _SuggestionRow({required this.suggestion, required this.onApply});
+
+  final int? suggestion;
+  final VoidCallback? onApply;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final value = suggestion;
+    if (value == null) {
+      return Padding(
+        padding: const EdgeInsets.only(top: AppDimens.xs),
+        child: Text(
+          l.healthProfileCalorieSuggestionHint,
+          key: const ValueKey<String>('health-calorie-suggestion-hint'),
+          style: theme.textTheme.bodySmall
+              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+      );
+    }
+    return Row(
+      children: <Widget>[
+        Icon(Icons.lightbulb_outline,
+            size: 18, color: theme.colorScheme.primary),
+        const SizedBox(width: AppDimens.xs),
+        Expanded(
+          child: Text(
+            l.healthProfileCalorieSuggestion(value),
+            key: const ValueKey<String>('health-calorie-suggestion'),
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+        TextButton(
+          key: const ValueKey<String>('health-calorie-apply'),
+          onPressed: onApply,
+          child: Text(l.healthProfileCalorieApply),
+        ),
       ],
     );
   }

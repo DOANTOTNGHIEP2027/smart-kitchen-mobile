@@ -2,24 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
+import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
 import '../../data/network/api_exception.dart';
 import '../../l10n/app_localizations.dart';
 import '../../routing/app_routes.dart';
+import '../../utils/date_format.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
 import '../../widgets/states/app_state_view.dart';
 import 'domain/allergen.dart';
+import 'domain/calorie_suggestion.dart';
 import 'domain/calorie_target.dart';
 import 'domain/diet_type.dart';
 import 'domain/health_measurement.dart';
 import 'domain/health_profile.dart';
 import 'stores/form_status.dart';
 import 'stores/profile_store.dart';
+import 'widgets/allergen_label.dart';
 import 'widgets/calorie_target_field.dart';
 import 'widgets/diet_type_label.dart';
+import 'widgets/diet_type_selector.dart';
 import 'widgets/stale_data_banner.dart';
 
 /// Hồ sơ sức khỏe — chế độ xem (S10.2 empty / S10.3 view / S10.3c cache) +
@@ -40,6 +45,10 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
 
   bool _isEditing = false;
   DietType? _diet;
+  // #201: đầu vào gợi ý calo.
+  Gender? _gender;
+  DateTime? _birthDate;
+  ActivityLevel? _activity;
   // State cục bộ của CalorieTargetField (Guard 14).
   int? _storedCalories;
   bool _caloriesTouched = false;
@@ -68,6 +77,9 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     setState(() {
       _isEditing = true;
       _diet = p.dietType;
+      _gender = p.gender;
+      _birthDate = p.birthDate;
+      _activity = p.activityLevel;
       heightCtl.text = _formatNumber(p.heightCm);
       weightCtl.text = _formatNumber(p.weightKg);
       _storedCalories = p.targetDailyCalories;
@@ -88,6 +100,30 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     }
   }
 
+  /// #201: gợi ý tính lại theo giá trị ĐANG nhập trên form (chưa lưu).
+  int? get _calorieSuggestion => suggestDailyCalories(
+        weightKg: HealthMeasurement.parse(weightCtl.text),
+        heightCm: HealthMeasurement.parse(heightCtl.text),
+        gender: _gender,
+        birthDate: _birthDate,
+        activityLevel: _activity,
+      );
+
+  Future<void> _pickBirthDate() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? DateTime(today.year - 30, 1, 1),
+      firstDate: DateTime(1900),
+      // OAS: birthDate phải ở quá khứ.
+      lastDate: today.subtract(const Duration(days: 1)),
+    );
+    if (picked == null || !mounted) return;
+    _onFieldEdited();
+    setState(() => _birthDate = picked);
+  }
+
   Future<void> _save() async {
     if (_formKey.currentState?.validate() != true) return;
     final ok = await store.saveHealthProfile(
@@ -100,6 +136,11 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
       dietTypeWire: _diet == null ? null : dietTypeToWire(_diet!),
       heightCm: HealthMeasurement.parse(heightCtl.text),
       weightKg: HealthMeasurement.parse(weightCtl.text),
+      // #201: PUT thay toàn bộ — luôn gửi, `null` khi chưa chọn.
+      genderWire: _gender == null ? null : genderToWire(_gender!),
+      birthDate: _birthDate == null ? null : toApiDate(_birthDate!),
+      activityLevelWire:
+          _activity == null ? null : activityLevelToWire(_activity!),
     );
     if (!ok || !mounted) return;
     setState(() => _isEditing = false);
@@ -205,6 +246,17 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
               errorText: fieldErrors.containsKey('targetDailyCalories')
                   ? l.healthProfileCaloriesServerInvalid
                   : null,
+              suggestion: _calorieSuggestion,
+              onApplySuggestion: () {
+                final value = _calorieSuggestion;
+                if (value == null) return;
+                _onFieldEdited();
+                setState(() {
+                  _caloriesTouched = true;
+                  _caloriesNotSet = false;
+                  _sliderValue = value;
+                });
+              },
               onSliderChanged: (int v) {
                 _onFieldEdited();
                 setState(() {
@@ -221,39 +273,24 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
               },
             ),
             const SizedBox(height: AppDimens.md),
-            DropdownButtonFormField<DietType?>(
-              key: const ValueKey<String>('health-diet'),
-              initialValue: _diet,
-              isExpanded: true,
-              hint: Text(l.healthProfileDietUnset),
-              decoration: InputDecoration(
-                labelText: l.healthProfileDietType,
-                helperText: l.healthProfileDietHelp,
-                helperMaxLines: 4,
-                prefixIcon: const Icon(Icons.restaurant_menu_outlined),
-              ),
-              items: <DropdownMenuItem<DietType?>>[
-                DropdownMenuItem<DietType?>(
-                  value: null,
-                  child: Text(l.healthProfileDietUnset),
-                ),
-                for (final DietType d in DietType.values)
-                  DropdownMenuItem<DietType?>(
-                      value: d, child: Text(d.label(l))),
-              ],
-              onChanged: enabled
-                  ? (DietType? v) {
-                      _onFieldEdited();
-                      setState(() => _diet = v);
-                    }
-                  : null,
+            DietTypeSelector(
+              value: _diet,
+              enabled: enabled,
+              helpText: l.healthProfileDietHelp,
+              onChanged: (DietType? v) {
+                _onFieldEdited();
+                setState(() => _diet = v);
+              },
             ),
             const SizedBox(height: AppDimens.sm),
             TextFormField(
               key: const ValueKey<String>('health-height'),
               controller: heightCtl,
               enabled: enabled,
-              onChanged: (_) => _onFieldEdited(),
+              onChanged: (_) {
+                _onFieldEdited();
+                setState(() {}); // tính lại gợi ý calo
+              },
               validator: (value) => HealthMeasurement.isValidHeight(value ?? '')
                   ? null
                   : l.healthProfileHeightInvalid,
@@ -272,7 +309,10 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
               key: const ValueKey<String>('health-weight'),
               controller: weightCtl,
               enabled: enabled,
-              onChanged: (_) => _onFieldEdited(),
+              onChanged: (_) {
+                _onFieldEdited();
+                setState(() {}); // tính lại gợi ý calo
+              },
               validator: (value) => HealthMeasurement.isValidWeight(value ?? '')
                   ? null
                   : l.healthProfileWeightInvalid,
@@ -285,6 +325,56 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                     ? l.healthProfileWeightInvalid
                     : null,
               ),
+            ),
+            const SizedBox(height: AppDimens.md),
+            _ChipGroup<Gender>(
+              groupKey: 'health-gender',
+              icon: Icons.wc_outlined,
+              title: l.healthProfileGender,
+              value: _gender,
+              enabled: enabled,
+              options: <(Gender, String, String)>[
+                for (final g in Gender.values)
+                  (g, _genderLabel(l, g), genderToWire(g)),
+              ],
+              onChanged: (Gender? v) {
+                _onFieldEdited();
+                setState(() => _gender = v);
+              },
+            ),
+            const SizedBox(height: AppDimens.md),
+            InkWell(
+              key: const ValueKey<String>('health-birth-date'),
+              onTap: enabled ? _pickBirthDate : null,
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  enabled: enabled,
+                  labelText: l.healthProfileBirthDate,
+                  prefixIcon: const Icon(Icons.cake_outlined),
+                  errorText: fieldErrors.containsKey('birthDate')
+                      ? l.healthProfileBirthDateInvalid
+                      : null,
+                ),
+                child: Text(_birthDate == null
+                    ? l.healthProfileBirthDateChoose
+                    : _formatDate(_birthDate!)),
+              ),
+            ),
+            const SizedBox(height: AppDimens.md),
+            _ChipGroup<ActivityLevel>(
+              groupKey: 'health-activity',
+              icon: Icons.directions_run_outlined,
+              title: l.healthProfileActivityLevel,
+              value: _activity,
+              enabled: enabled,
+              options: <(ActivityLevel, String, String)>[
+                for (final a in ActivityLevel.values)
+                  (a, _activityLabel(l, a), activityLevelToWire(a)),
+              ],
+              onChanged: (ActivityLevel? v) {
+                _onFieldEdited();
+                setState(() => _activity = v);
+              },
             ),
             const SizedBox(height: AppDimens.lg),
             AppButton(
@@ -310,7 +400,96 @@ const Set<String> _mappedFields = <String>{
   'targetDailyCalories',
   'heightCm',
   'weightKg',
+  'birthDate',
 };
+
+String _formatDate(DateTime d) {
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${two(d.day)}/${two(d.month)}/${d.year}';
+}
+
+String _genderLabel(AppLocalizations l, Gender g) => switch (g) {
+      Gender.male => l.healthProfileGenderMale,
+      Gender.female => l.healthProfileGenderFemale,
+    };
+
+String _activityLabel(AppLocalizations l, ActivityLevel a) => switch (a) {
+      ActivityLevel.sedentary => l.activityLevelSedentary,
+      ActivityLevel.light => l.activityLevelLight,
+      ActivityLevel.moderate => l.activityLevelModerate,
+      ActivityLevel.active => l.activityLevelActive,
+      ActivityLevel.veryActive => l.activityLevelVeryActive,
+    };
+
+/// #201: nhóm chip một lựa chọn, tự xuống dòng — cùng kiểu với
+/// `DietTypeSelector`. Bấm lại chip đang chọn = bỏ chọn (`null`).
+class _ChipGroup<T> extends StatelessWidget {
+  const _ChipGroup({
+    required this.groupKey,
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.enabled,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String groupKey;
+  final IconData icon;
+  final String title;
+  final T? value;
+  final bool enabled;
+
+  /// (giá trị, nhãn, hậu tố key).
+  final List<(T, String, String)> options;
+  final ValueChanged<T?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      key: ValueKey<String>(groupKey),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Icon(icon, size: 20, color: AppColors.textSecondary),
+            const SizedBox(width: AppDimens.sm),
+            Text(title, style: theme.textTheme.titleSmall),
+          ],
+        ),
+        const SizedBox(height: AppDimens.sm),
+        Wrap(
+          spacing: AppDimens.sm,
+          runSpacing: AppDimens.xs,
+          children: <Widget>[
+            for (final (option, label, keySuffix) in options)
+              ChoiceChip(
+                key: ValueKey<String>('$groupKey-$keySuffix'),
+                label: Text(label),
+                selected: option == value,
+                showCheckmark: false,
+                selectedColor: AppColors.primaryContainer,
+                side: BorderSide(
+                  color:
+                      option == value ? AppColors.primary : AppColors.border,
+                ),
+                labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                  color: option == value
+                      ? AppColors.onPrimaryContainer
+                      : AppColors.textPrimary,
+                  fontWeight:
+                      option == value ? FontWeight.w700 : FontWeight.w500,
+                ),
+                onSelected:
+                    enabled ? (bool v) => onChanged(v ? option : null) : null,
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
 String _formatNumber(double? v) {
   if (v == null) return '';
@@ -423,6 +602,24 @@ class _ProfileDetailsView extends StatelessWidget {
                     ? l.healthProfileNotSetUp
                     : _formatNumber(p.weightKg),
               ),
+              _InfoRow(
+                label: l.healthProfileGender,
+                value: p.gender == null
+                    ? l.healthProfileNotSetUp
+                    : _genderLabel(l, p.gender!),
+              ),
+              _InfoRow(
+                label: l.healthProfileBirthDate,
+                value: p.birthDate == null
+                    ? l.healthProfileNotSetUp
+                    : _formatDate(p.birthDate!),
+              ),
+              _InfoRow(
+                label: l.healthProfileActivityLevel,
+                value: p.activityLevel == null
+                    ? l.healthProfileNotSetUp
+                    : _activityLabel(l, p.activityLevel!),
+              ),
             ],
           ),
         ),
@@ -517,7 +714,7 @@ class _AllergensSummary extends StatelessWidget {
               spacing: AppDimens.sm,
               runSpacing: AppDimens.xs,
               children: <Widget>[
-                for (final a in allergens) Chip(label: Text(a.name)),
+                for (final a in allergens) Chip(label: Text(a.label(context.l10n))),
               ],
             ),
           Align(
@@ -576,6 +773,9 @@ String? _fieldLabel(AppLocalizations l, String field) => switch (field) {
       'heightCm' => l.healthProfileHeight,
       'weightKg' => l.healthProfileWeight,
       'dietType' => l.healthProfileDietType,
+      'gender' => l.healthProfileGender,
+      'birthDate' => l.healthProfileBirthDate,
+      'activityLevel' => l.healthProfileActivityLevel,
       _ => null,
     };
 

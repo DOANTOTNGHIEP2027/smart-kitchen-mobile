@@ -6,7 +6,6 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../routing/app_routes.dart';
 import '../../../utils/l10n_x.dart';
-import '../../../routing/app_routes.dart';
 import '../../shell/app_shell_store.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';

@@ -5,10 +5,11 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 import 'package:mobx/mobx.dart';
 
+import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../data/network/api_exception.dart';
+import '../../../domain/shared/food_category.dart';
 import '../../../utils/l10n_x.dart';
-import '../../../utils/inventory_notes.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
@@ -35,9 +36,7 @@ class InventoryFormScene extends StatefulWidget {
 class _InventoryFormScreenState extends State<InventoryFormScene> {
   late final InventoryFormStore store;
   late final TextEditingController _nameCtrl;
-  late final TextEditingController _categoryCtrl;
   late final TextEditingController _quantityCtrl;
-  late final TextEditingController _unitCtrl;
   late final TextEditingController _lowStockCtrl;
   late final TextEditingController _noteCtrl;
   late final ReactionDisposer _conflictReactionDisposer;
@@ -45,6 +44,9 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
 
   UnitOption? _unit;
   DateTime? _expiryDate;
+
+  /// #201: phân loại chọn từ danh sách chuẩn; giữ nguyên tên cũ khi sửa.
+  String? _category;
   // Tránh mở dialog 2 lần giữa lúc đó conflict vẫn còn.
   bool _conflictDialogOpen = false;
 
@@ -56,29 +58,24 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     final item = args is InventoryItemModel ? args : null;
     _initialItem = item;
     _nameCtrl = TextEditingController(text: item?.name ?? '');
-    _categoryCtrl = TextEditingController(text: item?.category ?? '');
     _quantityCtrl = TextEditingController(
         text: item == null
             ? ''
             : (item.displayQuantity ?? item.quantity).toString());
     _lowStockCtrl =
         TextEditingController(text: item?.lowStockThreshold?.toString() ?? '');
-    _noteCtrl = TextEditingController(text: visibleInventoryNote(item?.note));
+    _noteCtrl = TextEditingController(text: item?.note ?? '');
     if (item?.displayUnit != null) {
       _unit = unitOptions.firstWhere(
         (u) => u.value == item!.displayUnit,
-        // Giữ đơn vị backend (hộp, con, chai...) khi kiểm tra đồ vừa nhập kho;
-        // không đổi âm thầm về g rồi lưu sai số lượng.
-        orElse: () => UnitOption(
-          value: item!.displayUnit!,
-          label: item.displayUnit!,
-          canonical: item.unit,
-          isWholeNumber: item.unit == 'PIECE' || item.unit == 'UNIT',
-        ),
+        orElse: () => unitOptions.first,
       );
     }
-    _unitCtrl = TextEditingController(text: _unit?.value ?? '');
     _expiryDate = item?.expiryDate;
+    final initialCategory = item?.category?.trim();
+    _category = initialCategory == null || initialCategory.isEmpty
+        ? null
+        : initialCategory;
 
     // Reaction mở dialog ngay khi store.conflict != null (Phase 0 US 2.1 AC 2).
     _conflictReactionDisposer = reaction<InventoryConflict?>(
@@ -96,9 +93,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   void dispose() {
     _conflictReactionDisposer();
     _nameCtrl.dispose();
-    _categoryCtrl.dispose();
     _quantityCtrl.dispose();
-    _unitCtrl.dispose();
     _lowStockCtrl.dispose();
     _noteCtrl.dispose();
     super.dispose();
@@ -127,7 +122,6 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                     onRetry: store.clearError,
                   ),
                 TextField(
-                  key: const ValueKey<String>('inventory-name'),
                   controller: _nameCtrl,
                   decoration: InputDecoration(
                     labelText: context.l10n.inventoryItemName,
@@ -135,97 +129,51 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                     prefixIcon: const Icon(Icons.inventory_2_outlined),
                   ),
                   textInputAction: TextInputAction.next,
-                  textCapitalization: TextCapitalization.sentences,
                 ),
                 const SizedBox(height: AppDimens.md),
-                TextField(
-                  key: const ValueKey<String>('inventory-category'),
-                  controller: _categoryCtrl,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.inventoryCategoryOptional,
-                    hintText: context.l10n.inventoryCategoryHint,
-                    prefixIcon: const Icon(Icons.category_outlined),
-                    suffixIcon: PopupMenuButton<String>(
-                      tooltip: context.l10n.inventoryCategory,
-                      icon: const Icon(Icons.expand_more_rounded),
-                      onSelected: (value) => _categoryCtrl.text = value,
-                      itemBuilder: (_) => <String>[
-                        context.l10n.inventoryCategoryVegetables,
-                        context.l10n.inventoryCategorySeafood,
-                        context.l10n.inventoryCategoryMeat,
-                        context.l10n.inventoryCategorySpices,
-                        context.l10n.inventoryCategoryFruit,
-                        context.l10n.inventoryCategoryDairy,
-                        context.l10n.inventoryCategoryDry,
-                        context.l10n.inventoryCategoryDrinks,
-                      ]
-                          .map((name) => PopupMenuItem(
-                                value: name,
-                                child: Text(name),
-                              ))
-                          .toList(),
-                    ),
-                  ),
-                  textCapitalization: TextCapitalization.sentences,
-                  textInputAction: TextInputAction.next,
+                _CategoryChips(
+                  selected: _category,
+                  onChanged: (c) => setState(() => _category = c),
                 ),
                 const SizedBox(height: AppDimens.md),
-                LayoutBuilder(builder: (context, constraints) {
-                  final stacked = constraints.maxWidth <
-                      320 * MediaQuery.textScalerOf(context).scale(1);
-                  final quantity = TextField(
-                        key: const ValueKey<String>('inventory-quantity'),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      flex: 2,
+                      child: TextField(
                         controller: _quantityCtrl,
                         decoration: InputDecoration(
                           labelText: context.l10n.inventoryQuantity,
                           prefixIcon: const Icon(Icons.scale_outlined),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
                         textInputAction: TextInputAction.next,
                       ),
-                      unit = TextField(
-                        key: const ValueKey<String>('inventory-unit'),
-                        controller: _unitCtrl,
-                        readOnly: true,
+                    ),
+                    const SizedBox(width: AppDimens.sm),
+                    Expanded(
+                      flex: 2,
+                      child: InkWell(
                         onTap: () async {
                           final selected =
                               await showUnitPicker(context, selected: _unit);
-                          if (selected != null && mounted) {
-                            setState(() {
-                              _unit = selected;
-                              _unitCtrl.text = selected.value;
-                            });
+                          if (selected != null) {
+                            setState(() => _unit = selected);
                           }
                         },
-                        decoration: InputDecoration(
-                          labelText: context.l10n.inventoryUnit,
-                          hintText: context.l10n.choose,
-                          prefixIcon: const Icon(Icons.straighten_outlined),
-                          suffixIcon: const Icon(Icons.expand_more_rounded),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: context.l10n.inventoryUnit,
+                            prefixIcon: const Icon(Icons.straighten_outlined),
+                          ),
+                          child: Text(_unit?.label ?? context.l10n.choose),
                         ),
-                      );
-                  if (stacked) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        quantity,
-                        const SizedBox(height: AppDimens.md),
-                        unit,
-                      ],
-                    );
-                  }
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Expanded(child: quantity),
-                      const SizedBox(width: AppDimens.sm),
-                      Expanded(child: unit),
-                    ],
-                  );
-                }),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: AppDimens.md),
                 TextField(
                   controller: _lowStockCtrl,
@@ -345,6 +293,11 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       return;
     }
     final quantity = double.parse(_quantityCtrl.text.trim());
+    // #201: sửa về 0 = đã dùng hết — BE xoá mềm item; hỏi trước khi lưu.
+    if (store.mode == InventoryFormMode.edit && quantity <= 0) {
+      final confirmed = await _confirmZeroQuantity();
+      if (!confirmed || !mounted) return;
+    }
     WasteReasonChoice wasteChoice = const WasteReasonChoice.skipped();
     final initial = _initialItem;
     if (store.mode == InventoryFormMode.edit &&
@@ -361,12 +314,13 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     final lowStock = double.tryParse(_lowStockCtrl.text.trim());
     final ok = await store.save(
       name: _nameCtrl.text,
-      category: _categoryCtrl.text,
+      // #201: luôn gửi category (PUT là thay toàn bộ — thiếu là bị xoá).
+      category: _category,
       quantity: quantity,
       unit: _unit!.value,
       lowStockThreshold: lowStock,
       expiryDate: _expiryDate,
-      note: preserveShoppingMarker(_initialItem?.note, _noteCtrl.text),
+      note: _noteCtrl.text,
       reason: wasteChoice.reason,
       wasteCause: wasteChoice.wasteCause,
     );
@@ -381,21 +335,37 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     // Nếu conflict đã mở → dialog tự bật qua _onConflictChanged; không SnackBar.
   }
 
+  Future<bool> _confirmZeroQuantity() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.inventoryZeroQuantityTitle),
+        content: Text(context.l10n.inventoryDeleteConfirmMessage),
+        actions: <Widget>[
+          TextButton(
+            key: const ValueKey<String>('inventory-zero-cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(context.l10n.cancel),
+          ),
+          FilledButton(
+            key: const ValueKey<String>('inventory-zero-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(context.l10n.inventoryZeroQuantityConfirm),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   Future<void> _onDelete() async {
-    final choice = await showDeleteConfirmDialog(context);
-    if (choice == null) return;
+    final confirmed = await showDeleteConfirmDialog(context);
+    if (!confirmed || !mounted) return;
+    final choice = await showDeleteReasonSheet(context);
     if (!mounted) return;
-    WasteReasonChoice wasteChoice = const WasteReasonChoice.skipped();
-    if (choice.reason == DeleteReason.waste) {
-      wasteChoice = await showWasteCauseSheet(
-        context,
-        endpoint: WasteEndpoint.delete,
-      );
-      if (!mounted) return;
-    }
     final ok = await store.delete(
       reason: choice.wire,
-      wasteCause: wasteChoice.wasteCause,
+      wasteCause: choice.wasteCause,
     );
     if (!mounted) return;
     if (ok) {
@@ -426,6 +396,61 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
         },
       ),
     ).then((_) => _conflictDialogOpen = false);
+  }
+}
+
+/// #201: hàng chip phân loại chuẩn (Wrap ngang, giống chip chế độ ăn). Tên cũ
+/// không thuộc danh sách chuẩn (vd "Thịt cá") vẫn hiện thành chip riêng để
+/// sửa không làm mất dữ liệu.
+class _CategoryChips extends StatelessWidget {
+  const _CategoryChips({required this.selected, required this.onChanged});
+
+  final String? selected;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final options = <String>[
+      ...FoodCategory.labels,
+      if (selected != null && !FoodCategory.labels.contains(selected))
+        selected!,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          context.l10n.inventoryCategoryOptional,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: AppDimens.sm,
+          runSpacing: AppDimens.xs,
+          children: options.map((name) {
+            final isSelected = selected == name;
+            final style = FoodCategory.styleOf(name);
+            return ChoiceChip(
+              key: ValueKey<String>('inventory-category-$name'),
+              avatar: Icon(style.icon, size: 16, color: style.iconColor),
+              label: Text(name),
+              selected: isSelected,
+              showCheckmark: false,
+              selectedColor: AppColors.primaryContainer,
+              labelStyle: TextStyle(
+                color: isSelected
+                    ? AppColors.onPrimaryContainer
+                    : AppColors.textPrimary,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+              onSelected: (v) => onChanged(v ? name : null),
+            );
+          }).toList(),
+        ),
+      ],
+    );
   }
 }
 

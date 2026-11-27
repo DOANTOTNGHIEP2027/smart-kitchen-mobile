@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../domain/shared/food_category.dart';
 import '../../../routing/app_routes.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
@@ -11,6 +12,7 @@ import '../../../utils/api_error_l10n.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/money_format.dart';
 import '../../../utils/quantity_format.dart';
+import '../../../utils/text_format.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/view_state.dart';
@@ -708,7 +710,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        item.name,
+                        capitalizeFirst(item.name),
                         style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: isCompleted
@@ -789,10 +791,16 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                 Get.find<SessionStore>().currentUser?.id,
                             // Guard #18: chỉ gán khi row đã SYNCED; §9.5:
                             // ONLINE-ONLY → offline thì khoá ngay tại chip.
+                            // #201: đã mua / đã vào kho thì không giao việc
+                            // nữa (BE trả 409 ERR_SHOP_ITEM_ALREADY_IN_INVENTORY).
                             enabled: isOnline &&
                                 !item.isPendingSync &&
+                                !isCompleted &&
+                                !item.inInventory &&
                                 !store.isAssigning(item.id),
-                            onDisabledTap: !isOnline || item.isPendingSync
+                            onDisabledTap: isCompleted || item.inInventory
+                                ? () {}
+                                : !isOnline || item.isPendingSync
                                 ? () async {
                                     // Kiểm lại mạng thật — isOnline() cập nhật
                                     // isOnlineNow nên chip tự mở nếu stream lỡ
@@ -884,15 +892,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
     String unit = unitOptions.first.value;
     String? category;
 
-    final defaultCategories = <String>[
-      'Rau củ',
-      'Thịt cá',
-      'Gia vị',
-      'Trứng sữa',
-      'Thực phẩm khô',
-      'Đồ uống',
-      'Khác',
-    ];
+    // #201: bộ phân loại chuẩn dùng chung kho/đi chợ/hoá đơn.
+    final defaultCategories = FoodCategory.labels;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -902,12 +903,14 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (bottomSheetContext) => StatefulBuilder(
-        builder: (ctx, setModalState) => Padding(
+        // viewInsets phải đọc từ context CỦA SHEET — context màn ngoài không
+        // thấy bàn phím nên sheet bị che. Cuộn được khi màn thấp.
+        builder: (ctx, setModalState) => SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
             AppDimens.lg,
             AppDimens.lg,
             AppDimens.lg,
-            MediaQuery.of(context).viewInsets.bottom + AppDimens.lg,
+            MediaQuery.viewInsetsOf(ctx).bottom + AppDimens.lg,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

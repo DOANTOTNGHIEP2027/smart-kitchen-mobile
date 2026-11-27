@@ -13,6 +13,7 @@ import '../../widgets/states/view_state.dart';
 import 'family_error_l10n.dart';
 import 'domain/member_health_summary.dart';
 import 'stores/family_store.dart';
+import 'widgets/allergen_label.dart';
 import 'widgets/diet_type_label.dart';
 
 class MemberDetailScreen extends StatefulWidget {
@@ -92,7 +93,8 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                     spacing: AppDimens.sm,
                     runSpacing: AppDimens.xs,
                     children: <Widget>[
-                      for (final a in s.allergens) Chip(label: Text(a.name)),
+                      for (final a in s.allergens)
+                        Chip(label: Text(a.label(context.l10n))),
                     ],
                   ),
                 if (isViewer) ...<Widget>[

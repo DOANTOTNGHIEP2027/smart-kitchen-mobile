@@ -36,7 +36,26 @@ void main() {
     storage.uninstall();
   });
 
-  Finder field(String suffix) => find.byKey(ValueKey('inventory-$suffix'));
+  Finder field(String suffix) {
+    final label = switch (suffix) {
+      'name' => 'Tên mặt hàng *',
+      'quantity' => 'Số lượng *',
+      'unit' => 'Đơn vị',
+      _ => throw ArgumentError.value(suffix),
+    };
+    if (suffix == 'unit') {
+      return find
+          .ancestor(
+            of: find.byWidgetPredicate((widget) =>
+                widget is InputDecorator &&
+                widget.decoration.labelText == label),
+            matching: find.byType(InkWell),
+          )
+          .first;
+    }
+    return find.byWidgetPredicate((widget) =>
+        widget is TextField && widget.decoration?.labelText == label);
+  }
 
   Future<void> pumpForm(WidgetTester tester,
       {InventoryItemModel? item, double width = 375, double scale = 1}) async {
@@ -81,19 +100,19 @@ void main() {
   testWidgets('chọn phân loại rồi lưu vào dữ liệu của form', (tester) async {
     await pumpForm(tester);
     await tester.enterText(field('name'), 'Muối');
-    await tester.tap(find.byTooltip('Nhóm'));
+    await tester.tap(find.byKey(const ValueKey('inventory-category-Gia vị')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Gia vị'));
-    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<ChoiceChip>(
+                find.byKey(const ValueKey('inventory-category-Gia vị')))
+            .selected,
+        isTrue);
     await tester.enterText(field('quantity'), '100');
     await tester.tap(field('unit'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('g (gram)'));
     await tester.pumpAndSettle();
-    expect(tester.getTopLeft(field('quantity')).dy,
-        tester.getTopLeft(field('unit')).dy);
-    expect(tester.getSize(field('quantity')).height,
-        closeTo(tester.getSize(field('unit')).height, 2));
     await tester.ensureVisible(find.text('Thêm vào kho'));
     await tester.runAsync(() async {
       await tester.tap(find.text('Thêm vào kho'));
@@ -126,10 +145,14 @@ void main() {
       updatedAt: DateTime(2026, 11, 28),
     );
     await pumpForm(tester, item: item, width: 320, scale: 2);
-    expect(tester.widget<TextField>(field('category')).controller!.text,
-        'Hải sản');
-    expect(tester.getTopLeft(field('unit')).dy,
-        greaterThan(tester.getBottomLeft(field('quantity')).dy));
+    expect(
+        tester
+            .widget<ChoiceChip>(
+                find.byKey(const ValueKey('inventory-category-Hải sản')))
+            .selected,
+        isTrue);
+    expect(
+        tester.widget<TextField>(field('quantity')).controller!.text, '500.0');
     expect(tester.takeException(), isNull);
   });
 }

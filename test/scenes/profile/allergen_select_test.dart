@@ -70,7 +70,7 @@ void main() {
       expect(store.healthProfileIsFromCache, isTrue);
       expect(find.byType(StaleDataBanner), findsOneWidget);
       expect(find.text('Cần kết nối mạng để sửa dị ứng.'), findsOneWidget);
-      expect(find.widgetWithText(Chip, 'Gluten'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Gluten (lúa mì)'), findsOneWidget);
       expect(find.byType(CheckboxListTile), findsNothing);
       expect(byKey('allergens-save'), findsNothing);
       expect(await store.saveAllergens(const <int>[]), isFalse);

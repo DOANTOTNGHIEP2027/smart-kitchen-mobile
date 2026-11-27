@@ -30,7 +30,7 @@ class HouseholdRosterMapper {
   static HouseholdMember _memberFromJson(Map<String, dynamic> json) =>
       HouseholdMember(
         userId: json['userId'] as String,
-        fullName: json['fullName'] as String,
+        fullName: json['fullName'] as String? ?? '',
         avatarUrl: json['avatarUrl'] as String?,
         role: json['role'] as String,
         provider: json['provider'] as String,

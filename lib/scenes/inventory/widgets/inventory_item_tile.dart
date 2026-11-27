@@ -30,6 +30,8 @@ class InventoryItemTile extends StatelessWidget {
     final visual = foodCategoryVisual(context, item.category, item.name);
     final displayQty = item.displayQuantity ?? item.quantity;
     final displayUnitStr = item.displayUnit ?? item.unit;
+    // #201: hết hàng (0) không phải "sắp hết".
+    final lowStock = item.showsLowStock;
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -97,7 +99,7 @@ class InventoryItemTile extends StatelessWidget {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: item.isLowStock
+                              color: lowStock
                                   ? AppColors.error.withValues(alpha: 0.1)
                                   : AppColors.primaryContainer,
                               borderRadius:
@@ -108,7 +110,7 @@ class InventoryItemTile extends StatelessWidget {
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 13,
-                                color: item.isLowStock
+                                color: lowStock
                                     ? AppColors.error
                                     : AppColors.onPrimaryContainer,
                               ),
@@ -160,7 +162,7 @@ class InventoryItemTile extends StatelessWidget {
                           ],
                         ],
                       ),
-                      if (item.isLowStock ||
+                      if (lowStock ||
                           item.isExpiringSoon ||
                           item.isPendingSync ||
                           item.hasConflict) ...<Widget>[
@@ -169,7 +171,7 @@ class InventoryItemTile extends StatelessWidget {
                           spacing: AppDimens.xs,
                           runSpacing: AppDimens.xs,
                           children: <Widget>[
-                            if (item.isLowStock)
+                            if (lowStock)
                               _Badge(
                                 label: context.l10n.inventoryLowStock,
                                 color: AppColors.error,

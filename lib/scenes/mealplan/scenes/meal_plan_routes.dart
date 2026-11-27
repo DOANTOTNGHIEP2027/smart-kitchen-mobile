@@ -10,10 +10,6 @@ import '../../../stores/session_store.dart';
 import '../data/meal_attendance_api.dart';
 import '../data/meal_suggestion_api.dart';
 import '../stores/meal_plan_store.dart';
-import '../../nutrition/stores/nutrition_store.dart';
-import '../../profile/profile_family_bindings.dart';
-import '../../profile/api/health_api.dart';
-import '../../recipe/data/recipe_catalog_api.dart';
 import 'meal_suggestion_detail_scene.dart';
 
 import 'weekly_meal_plan_scene.dart';
@@ -49,19 +45,6 @@ class WeeklyMealPlanBinding extends Bindings {
         ),
         permanent: false,
       );
-      // #64 — tổng hợp dinh dưỡng theo tuần đang xem (nutrition-summary-
-      // widget.md §8.1); sống cùng MealPlanStore.
-      if (!Get.isRegistered<NutritionStore>(tag: NutritionStore.mealPlanTag)) {
-        Get.put<NutritionStore>(
-          NutritionStore(
-            recipeApi: Get.find<RecipeCatalogApi>(),
-            healthApi: Get.find<HealthApi>(),
-          ),
-          tag: NutritionStore.mealPlanTag,
-        )
-          ..attach(Get.find<MealPlanStore>())
-          ..followTarget(profileTargetSource());
-      }
       if (EnvConfig.automaticMealComposition) {
         Get.put<MealCompositionStore>(
           MealCompositionStore(
