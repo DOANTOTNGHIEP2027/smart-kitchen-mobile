@@ -1522,6 +1522,42 @@ abstract class AppLocalizations {
   /// **'{days} day(s)'**
   String assistantHorizonOption(int days);
 
+  /// No description provided for @assistantActionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to meal plan'**
+  String get assistantActionConfirm;
+
+  /// No description provided for @assistantActionCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get assistantActionCancel;
+
+  /// No description provided for @assistantActionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to the meal plan'**
+  String get assistantActionDone;
+
+  /// No description provided for @assistantActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add ({code})'**
+  String assistantActionFailed(String code);
+
+  /// No description provided for @assistantActionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This suggestion has expired'**
+  String get assistantActionExpired;
+
+  /// No description provided for @assistantActionRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get assistantActionRejected;
+
   /// No description provided for @allergensTitle.
   ///
   /// In en, this message translates to:

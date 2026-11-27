@@ -23,6 +23,7 @@ class AssistantChatView extends StatefulWidget {
     this.hasStep,
     this.onStepTap,
     this.onEnded,
+    this.onRecipeTap,
   });
 
   final AssistantStore assist;
@@ -39,6 +40,9 @@ class AssistantChatView extends StatefulWidget {
 
   /// Phiên trợ lý mất (404/409 SESSION_*) — bên chứa quyết định đóng.
   final VoidCallback? onEnded;
+
+  /// Bấm thẻ món; `null` ⇒ thẻ không bấm được.
+  final ValueChanged<RecipeCard>? onRecipeTap;
 
   @override
   State<AssistantChatView> createState() => _AssistantChatViewState();
@@ -137,6 +141,12 @@ class _AssistantChatViewState extends State<AssistantChatView> {
           message: m,
           hasStep: widget.hasStep,
           onStepTap: widget.onStepTap,
+          onRecipeTap: widget.onRecipeTap,
+          actionStatus: _assist.actionStatus,
+          actionCode: _assist.actionCode,
+          isActionInFlight: _assist.isActionInFlight,
+          onConfirmAction: _assist.confirmAction,
+          onRejectAction: _assist.rejectAction,
           // Chỉ câu hỏi lại MỚI NHẤT còn trả lời nhanh được.
           onAnswer:
               identical(m, _assist.messages.last) && _assist.canSend('x')
