@@ -14,6 +14,7 @@ import '../../../widgets/states/app_loading_view.dart';
 import '../inventory_routes.dart';
 import '../stores/inventory_store.dart';
 import '../widgets/inventory_item_tile.dart';
+import '../widgets/inventory_presentation.dart';
 
 /// Danh sách kho thực phẩm — phong cách Tasty:
 /// Sáng sủa, hiện đại, banner thống kê trực quan, tìm kiếm & bộ lọc nhanh.
@@ -123,8 +124,12 @@ class _InventoryListSceneState extends State<InventoryListScene> {
               children: <Widget>[
                 Observer(
                   builder: (_) {
-                    final items = store.items;
+                    final items = stockedInventoryItems(store.items);
                     if (items.isEmpty) return const SizedBox.shrink();
+                    final expiringCount =
+                        items.where((item) => item.isExpiringSoon).length;
+                    final lowStockCount =
+                        items.where((item) => item.isLowStock).length;
                     return Column(
                       children: <Widget>[
                         Container(
@@ -159,9 +164,9 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                               ),
                               _StatItem(
                                 label: context.l10n.inventoryStatExpiring,
-                                value: '${store.expiringCount}',
+                                value: '$expiringCount',
                                 icon: Icons.access_time_rounded,
-                                color: store.expiringCount > 0
+                                color: expiringCount > 0
                                     ? AppColors.warning
                                     : AppColors.textSecondary,
                               ),
@@ -172,9 +177,9 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                               ),
                               _StatItem(
                                 label: context.l10n.inventoryStatLowStock,
-                                value: '${store.lowStockCount}',
+                                value: '$lowStockCount',
                                 icon: Icons.trending_down_rounded,
-                                color: store.lowStockCount > 0
+                                color: lowStockCount > 0
                                     ? AppColors.error
                                     : AppColors.textSecondary,
                               ),
@@ -242,9 +247,15 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                           selected: store.selectedCategory == null,
                           onTap: () => store.setCategory(null),
                         ),
-                        ...store.knownCategories.map(
+                        ...(stockedInventoryItems(store.items)
+                                .map((item) => item.category)
+                                .whereType<String>()
+                                .toSet()
+                                .toList()
+                              ..sort())
+                            .map(
                           (c) => _CategoryPill(
-                            label: c,
+                            label: inventoryDisplayName(c),
                             selected: store.selectedCategory == c,
                             onTap: () => store.setCategory(c),
                           ),
@@ -271,7 +282,7 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                 if (store.status == InventoryLoadStatus.loading) {
                   return const AppLoadingView();
                 }
-                final filtered = store.filteredItems;
+                final filtered = stockedInventoryItems(store.filteredItems);
                 if (filtered.isEmpty) {
                   final isEmptyDueToFilters = store.searchQuery.isNotEmpty ||
                       store.selectedCategory != null;

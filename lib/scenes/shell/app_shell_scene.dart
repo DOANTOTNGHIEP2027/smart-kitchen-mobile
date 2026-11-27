@@ -32,6 +32,7 @@ import '../shopping/stores/shopping_store.dart';
 import '../assistant/scenes/assistant_routes.dart';
 import 'app_shell_store.dart';
 import 'home_recipe_detail_scene.dart';
+import 'home_greeting.dart';
 import '../notifications/shell_notification_host.dart';
 
 /// Khung bottom-nav (fe-app-shell.md §12).
@@ -90,7 +91,7 @@ class AppShellScene extends StatelessWidget {
               body: IndexedStack(
                 index: index,
                 children: const <Widget>[
-                  _HomeTab(),
+                  HomeTab(),
                   InventoryListScene(),
                   WeeklyMealPlanScene(),
                   ShoppingListScene(),
@@ -163,8 +164,8 @@ int shoppingAssignedBadgeCount() => Get.isRegistered<ShoppingStore>()
 /// Áp dụng màu Cam tươi mới (#FF7A45), 100% Solid Color (không dùng gradient),
 /// bo góc tròn mềm mại 18dp, bóng ambient đổ nhẹ tự nhiên.
 /// Demo dùng fixture; backend thật tải công thức từ catalog, không gọi AI.
-class _HomeTab extends StatelessWidget {
-  const _HomeTab();
+class HomeTab extends StatelessWidget {
+  const HomeTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +179,6 @@ class _HomeTab extends StatelessWidget {
               AppDimens.lg, AppDimens.md, AppDimens.lg, AppDimens.xl),
           children: <Widget>[
             _HomeHeader(
-              greeting: context.l10n.homeGreeting,
               displayName:
                   session?.currentUser?.displayName ?? context.l10n.appTitle,
             ),
@@ -207,49 +207,55 @@ class _HomeTab extends StatelessWidget {
               onTap: _openMealPlan,
             ),
             const SizedBox(height: AppDimens.sm),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: _HomeActionCard(
-                    title: context.l10n.homeInventoryTitle,
-                    subtitle: context.l10n.homeInventorySubtitle,
-                    icon: Icons.kitchen_outlined,
-                    onTap: () => Get.find<AppShellStore>().selectTab(1),
+            LayoutBuilder(builder: (context, constraints) {
+              final twoColumns = constraints.maxWidth >=
+                  600 * MediaQuery.textScalerOf(context).scale(1);
+              final width = twoColumns
+                  ? (constraints.maxWidth - AppDimens.sm) / 2
+                  : constraints.maxWidth;
+              return Wrap(
+                spacing: AppDimens.sm,
+                runSpacing: AppDimens.sm,
+                children: <Widget>[
+                  SizedBox(
+                    width: width,
+                    child: _HomeActionCard(
+                      title: context.l10n.homeInventoryTitle,
+                      subtitle: context.l10n.homeInventorySubtitle,
+                      icon: Icons.kitchen_outlined,
+                      onTap: () => Get.find<AppShellStore>().selectTab(1),
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppDimens.sm),
-                Expanded(
-                  child: _HomeActionCard(
-                    title: context.l10n.homeMealPlanTitle,
-                    subtitle: context.l10n.homeMealPlanSubtitle,
-                    icon: Icons.event_note_outlined,
-                    onTap: _openMealPlan,
+                  SizedBox(
+                    width: width,
+                    child: _HomeActionCard(
+                      title: context.l10n.homeMealPlanTitle,
+                      subtitle: context.l10n.homeMealPlanSubtitle,
+                      icon: Icons.event_note_outlined,
+                      onTap: _openMealPlan,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppDimens.sm),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: _HomeActionCard(
-                    title: context.l10n.navShopping,
-                    subtitle: 'Danh sách đồ cần mua sắm',
-                    icon: Icons.shopping_cart_outlined,
-                    onTap: () => Get.find<AppShellStore>().selectTab(3),
+                  SizedBox(
+                    width: width,
+                    child: _HomeActionCard(
+                      title: context.l10n.navShopping,
+                      subtitle: context.l10n.homeShoppingSubtitle,
+                      icon: Icons.shopping_cart_outlined,
+                      onTap: () => Get.find<AppShellStore>().selectTab(3),
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppDimens.sm),
-                Expanded(
-                  child: _HomeActionCard(
-                    title: context.l10n.mealLogTitle,
-                    subtitle: 'Theo dõi dinh dưỡng & calo',
-                    icon: Icons.analytics_outlined,
-                    onTap: () => Get.toNamed<void>(CookingRoutes.mealLog),
+                  SizedBox(
+                    width: width,
+                    child: _HomeActionCard(
+                      title: context.l10n.mealLogTitle,
+                      subtitle: context.l10n.homeMealLogSubtitle,
+                      icon: Icons.analytics_outlined,
+                      onTap: () => Get.toNamed<void>(CookingRoutes.mealLog),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            }),
             if (EnvConfig.isDemoMode) ...<Widget>[
               const SizedBox(height: AppDimens.xl),
               Text(
@@ -384,9 +390,8 @@ class _HomeRecipeCatalogState extends State<HomeRecipeCatalog> {
 }
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.greeting, required this.displayName});
+  const _HomeHeader({required this.displayName});
 
-  final String greeting;
   final String displayName;
 
   @override
@@ -425,8 +430,7 @@ class _HomeHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                greeting,
+              HomeGreeting(
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
@@ -615,8 +619,6 @@ class _HomeActionCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: foreground,
                             fontWeight: FontWeight.w700,
@@ -626,8 +628,6 @@ class _HomeActionCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      maxLines: primary ? 1 : 2,
-                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: primary
                                 ? AppColors.textOnPrimary

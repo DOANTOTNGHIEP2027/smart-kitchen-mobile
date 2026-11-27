@@ -35,7 +35,9 @@ class InventoryFormScene extends StatefulWidget {
 class _InventoryFormScreenState extends State<InventoryFormScene> {
   late final InventoryFormStore store;
   late final TextEditingController _nameCtrl;
+  late final TextEditingController _categoryCtrl;
   late final TextEditingController _quantityCtrl;
+  late final TextEditingController _unitCtrl;
   late final TextEditingController _lowStockCtrl;
   late final TextEditingController _noteCtrl;
   late final ReactionDisposer _conflictReactionDisposer;
@@ -54,6 +56,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     final item = args is InventoryItemModel ? args : null;
     _initialItem = item;
     _nameCtrl = TextEditingController(text: item?.name ?? '');
+    _categoryCtrl = TextEditingController(text: item?.category ?? '');
     _quantityCtrl = TextEditingController(
         text: item == null
             ? ''
@@ -74,6 +77,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
         ),
       );
     }
+    _unitCtrl = TextEditingController(text: _unit?.value ?? '');
     _expiryDate = item?.expiryDate;
 
     // Reaction mở dialog ngay khi store.conflict != null (Phase 0 US 2.1 AC 2).
@@ -92,7 +96,9 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   void dispose() {
     _conflictReactionDisposer();
     _nameCtrl.dispose();
+    _categoryCtrl.dispose();
     _quantityCtrl.dispose();
+    _unitCtrl.dispose();
     _lowStockCtrl.dispose();
     _noteCtrl.dispose();
     super.dispose();
@@ -121,6 +127,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                     onRetry: store.clearError,
                   ),
                 TextField(
+                  key: const ValueKey<String>('inventory-name'),
                   controller: _nameCtrl,
                   decoration: InputDecoration(
                     labelText: context.l10n.inventoryItemName,
@@ -128,46 +135,97 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                     prefixIcon: const Icon(Icons.inventory_2_outlined),
                   ),
                   textInputAction: TextInputAction.next,
+                  textCapitalization: TextCapitalization.sentences,
                 ),
                 const SizedBox(height: AppDimens.md),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(
-                      flex: 2,
-                      child: TextField(
+                TextField(
+                  key: const ValueKey<String>('inventory-category'),
+                  controller: _categoryCtrl,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.inventoryCategoryOptional,
+                    hintText: context.l10n.inventoryCategoryHint,
+                    prefixIcon: const Icon(Icons.category_outlined),
+                    suffixIcon: PopupMenuButton<String>(
+                      tooltip: context.l10n.inventoryCategory,
+                      icon: const Icon(Icons.expand_more_rounded),
+                      onSelected: (value) => _categoryCtrl.text = value,
+                      itemBuilder: (_) => <String>[
+                        context.l10n.inventoryCategoryVegetables,
+                        context.l10n.inventoryCategorySeafood,
+                        context.l10n.inventoryCategoryMeat,
+                        context.l10n.inventoryCategorySpices,
+                        context.l10n.inventoryCategoryFruit,
+                        context.l10n.inventoryCategoryDairy,
+                        context.l10n.inventoryCategoryDry,
+                        context.l10n.inventoryCategoryDrinks,
+                      ]
+                          .map((name) => PopupMenuItem(
+                                value: name,
+                                child: Text(name),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                  textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: AppDimens.md),
+                LayoutBuilder(builder: (context, constraints) {
+                  final stacked = constraints.maxWidth <
+                      320 * MediaQuery.textScalerOf(context).scale(1);
+                  final quantity = TextField(
+                        key: const ValueKey<String>('inventory-quantity'),
                         controller: _quantityCtrl,
                         decoration: InputDecoration(
                           labelText: context.l10n.inventoryQuantity,
                           prefixIcon: const Icon(Icons.scale_outlined),
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
                         textInputAction: TextInputAction.next,
                       ),
-                    ),
-                    const SizedBox(width: AppDimens.sm),
-                    Expanded(
-                      flex: 2,
-                      child: InkWell(
+                      unit = TextField(
+                        key: const ValueKey<String>('inventory-unit'),
+                        controller: _unitCtrl,
+                        readOnly: true,
                         onTap: () async {
                           final selected =
                               await showUnitPicker(context, selected: _unit);
-                          if (selected != null) {
-                            setState(() => _unit = selected);
+                          if (selected != null && mounted) {
+                            setState(() {
+                              _unit = selected;
+                              _unitCtrl.text = selected.value;
+                            });
                           }
                         },
-                        child: InputDecorator(
-                          decoration: InputDecoration(
-                            labelText: context.l10n.inventoryUnit,
-                            prefixIcon: const Icon(Icons.straighten_outlined),
-                          ),
-                          child: Text(_unit?.label ?? context.l10n.choose),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.inventoryUnit,
+                          hintText: context.l10n.choose,
+                          prefixIcon: const Icon(Icons.straighten_outlined),
+                          suffixIcon: const Icon(Icons.expand_more_rounded),
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
                         ),
-                      ),
-                    ),
-                  ],
-                ),
+                      );
+                  if (stacked) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        quantity,
+                        const SizedBox(height: AppDimens.md),
+                        unit,
+                      ],
+                    );
+                  }
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Expanded(child: quantity),
+                      const SizedBox(width: AppDimens.sm),
+                      Expanded(child: unit),
+                    ],
+                  );
+                }),
                 const SizedBox(height: AppDimens.md),
                 TextField(
                   controller: _lowStockCtrl,
@@ -303,6 +361,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     final lowStock = double.tryParse(_lowStockCtrl.text.trim());
     final ok = await store.save(
       name: _nameCtrl.text,
+      category: _categoryCtrl.text,
       quantity: quantity,
       unit: _unit!.value,
       lowStockThreshold: lowStock,

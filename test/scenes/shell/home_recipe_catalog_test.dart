@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
@@ -35,6 +36,47 @@ void main() {
   Future<void> pumpCatalog(WidgetTester tester) => tester.pumpAppWidget(
         const SingleChildScrollView(child: HomeRecipeCatalog()),
       );
+
+  for (final width in [320.0, 375.0, 800.0]) {
+    for (final scale in [1.0, 2.0, 3.0]) {
+      testWidgets('Home: đủ nhãn hành động ở rộng $width, cỡ chữ $scale',
+          (tester) async {
+        tester.view.physicalSize = Size(width, width == 800 ? 375 : 1600);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpAppWidget(
+          MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+            child: const HomeTab(),
+          ),
+          wrapInScaffold: false,
+        );
+        await tester.pumpAndSettle();
+        for (final label in [
+          l10n.homeStartCooking,
+          l10n.homeStartCookingSubtitle,
+          l10n.homeInventoryTitle,
+          l10n.homeInventorySubtitle,
+          l10n.homeMealPlanTitle,
+          l10n.homeMealPlanSubtitle,
+          l10n.navShopping,
+          l10n.homeShoppingSubtitle,
+          l10n.mealLogTitle,
+          l10n.homeMealLogSubtitle,
+        ]) {
+          final text = find.text(label);
+          await tester.ensureVisible(text);
+          await tester.pumpAndSettle();
+          expect(tester.renderObject<RenderParagraph>(text).didExceedMaxLines,
+              isFalse,
+              reason: label);
+        }
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+  }
 
   testWidgets('đang tải rồi catalog rỗng: không thay bằng món demo',
       (tester) async {

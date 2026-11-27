@@ -42,6 +42,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeGreeting => 'Good morning';
 
   @override
+  String get homeGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get homeGreetingEvening => 'Good evening';
+
+  @override
+  String get homeGreetingNight => 'Hello, night owl';
+
+  @override
+  String get homeShoppingSubtitle => 'Your grocery shopping list';
+
+  @override
+  String get homeMealLogSubtitle => 'Track nutrition and calories';
+
+  @override
+  String get inventoryCategoryOptional => 'Category (optional)';
+
+  @override
+  String get inventoryCategoryHint => 'e.g. Spices, seafood, vegetables';
+
+  @override
+  String get inventoryCategoryVegetables => 'Vegetables';
+
+  @override
+  String get inventoryCategorySeafood => 'Seafood';
+
+  @override
+  String get inventoryCategoryMeat => 'Meat';
+
+  @override
+  String get inventoryCategorySpices => 'Spices';
+
+  @override
+  String get inventoryCategoryFruit => 'Fruit';
+
+  @override
+  String get inventoryCategoryDairy => 'Dairy and eggs';
+
+  @override
+  String get inventoryCategoryDry => 'Dry goods';
+
+  @override
+  String get inventoryCategoryDrinks => 'Drinks';
+
+  @override
   String get homeQuickActions => 'What would you like to do today?';
 
   @override

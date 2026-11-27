@@ -13,6 +13,7 @@ import 'package:smart_kitchen_mobile/scenes/inventory/domain/inventory_item.dart
 import 'package:smart_kitchen_mobile/scenes/inventory/domain/sync_status.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/scenes/inventory_list_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/stores/inventory_store.dart';
+import 'package:smart_kitchen_mobile/scenes/inventory/widgets/inventory_item_tile.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
 
 import '../../helpers/pump_app.dart';
@@ -78,6 +79,39 @@ void main() {
     Get.reset();
     await store.dispose();
     await db.close();
+  });
+
+  testWidgets('hết lượng biến mất khỏi kho, số đếm và nhóm; DB vẫn giữ lịch sử',
+      (tester) async {
+    await tester.runAsync(() async {
+      await dao.upsertItem(item('a', 'cà chua', 'Rau củ', low: true));
+      // canonical quantity is authoritative even when displayQuantity is stale.
+      await dao.upsertItem(item('b', 'muối', 'Gia vị', low: true)
+          .copyWith(quantity: 0, displayQuantity: 500));
+      await store.init();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    });
+    await tester.pumpAppWidget(const InventoryListScene(),
+        wrapInScaffold: false);
+    await tester.pump();
+    expect(find.text('Cà chua'), findsOneWidget);
+    expect(find.text('Muối'), findsNothing);
+    expect(find.text('Gia vị'), findsNothing);
+    expect(find.byType(InventoryItemTile), findsOneWidget);
+    expect(find.text('1'), findsNWidgets(2),
+        reason: 'tổng mặt hàng và số sắp hết đều là 1');
+
+    await tester.runAsync(() async {
+      final current = await dao.getById('a');
+      await dao.upsertItem(current!.copyWith(quantity: 0, displayQuantity: 0));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    });
+    await tester.pump();
+    expect(find.byType(InventoryItemTile), findsNothing);
+    expect(find.text('Sắp hết'), findsNothing);
+    expect(find.text('Chưa có mặt hàng nào.'), findsOneWidget);
+    expect(await tester.runAsync(() => dao.getById('a')), isNotNull);
+    await tester.pumpWidget(const SizedBox());
   });
 
   testWidgets('đổi category → chip dựng lại; banner + ô tìm KHÔNG dựng lại',

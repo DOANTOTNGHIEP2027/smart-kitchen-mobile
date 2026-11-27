@@ -38,70 +38,83 @@ class MemberRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final avatar = member.avatarUrl;
     final l10n = context.l10n;
-    final name =
-        member.fullName.isEmpty ? l10n.familyRoleMember : member.fullName;
+    final fullName = member.fullName.trim().replaceAll(RegExp(r'\s+'), ' ');
+    final name = fullName.isEmpty ? l10n.familyRoleMember : fullName;
     final joined = DateFormat.yMd(Localizations.localeOf(context).toString())
         .format(member.joinedAt.toLocal());
     return Padding(
       padding: const EdgeInsets.fromLTRB(
           AppDimens.md, AppDimens.sm, AppDimens.md, 0),
       child: AppCard(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.all(AppDimens.md),
         onTap: onTap,
-        child: ListTile(
-          leading: AppCachedImage(
-            url: avatar,
-            width: 40,
-            height: 40,
-            shape: AppCachedImageShape.circle,
-            placeholderIcon: Icons.person,
-          ),
-          title: Wrap(
-            spacing: AppDimens.xs,
-            runSpacing: AppDimens.xs,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: <Widget>[
-              Text(isMe ? l10n.familyMemberYou(name) : name,
-                  style: AppTextStyles.bodyMedium),
-              if (member.provider == 'GUEST')
-                _Badge(
-                  key: ValueKey<String>('member-guest-${member.userId}'),
-                  label: l10n.familyGuestBadge,
-                  filled: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                AppCachedImage(
+                  url: avatar,
+                  width: 40,
+                  height: 40,
+                  shape: AppCachedImageShape.circle,
+                  placeholderIcon: Icons.person,
                 ),
-            ],
-          ),
-          subtitle:
-              Text(l10n.familyJoinedAt(joined), style: AppTextStyles.label),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              if (member.role == 'OWNER')
-                _Badge(label: context.l10n.householdOwner, filled: true)
-              else if (member.role == 'MEMBER')
-                _Badge(label: context.l10n.familyRoleMember, filled: false)
-              else if (member.isRemoteViewer)
-                _Badge(label: context.l10n.tierRoleViewOnly, filled: false),
-              if (isOwner && onChangeRole != null) ...<Widget>[
-                const SizedBox(width: AppDimens.xs),
-                IconButton(
-                  key: ValueKey<String>('member-change-role-${member.userId}'),
-                  tooltip: context.l10n.tierChangeRoleAction,
-                  icon: const Icon(Icons.manage_accounts_outlined, size: 20),
-                  onPressed: onChangeRole,
-                ),
-              ],
-              if (isOwner && onRemove != null) ...<Widget>[
                 const SizedBox(width: AppDimens.sm),
-                IconButton(
-                  key: ValueKey<String>('member-remove-${member.userId}'),
-                  tooltip: context.l10n.familyRemove,
-                  icon: const Icon(Icons.person_remove_outlined, size: 20),
-                  onPressed: onRemove,
-                ),
+                Expanded(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(isMe ? l10n.familyMemberYou(name) : name,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                        )),
+                    const SizedBox(height: AppDimens.xs),
+                    Text(l10n.familyJoinedAt(joined),
+                        style: AppTextStyles.label),
+                  ],
+                )),
               ],
-            ],
-          ),
+            ),
+            const SizedBox(height: AppDimens.sm),
+            Wrap(
+              spacing: AppDimens.xs,
+              runSpacing: AppDimens.xs,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: <Widget>[
+                if (member.provider == 'GUEST')
+                  _Badge(
+                    key: ValueKey<String>('member-guest-${member.userId}'),
+                    label: l10n.familyGuestBadge,
+                    filled: false,
+                  ),
+                if (member.role == 'OWNER')
+                  _Badge(label: context.l10n.householdOwner, filled: true)
+                else if (member.role == 'MEMBER')
+                  _Badge(label: context.l10n.familyRoleMember, filled: false)
+                else if (member.isRemoteViewer)
+                  _Badge(label: context.l10n.tierRoleViewOnly, filled: false),
+                if (isOwner && onChangeRole != null) ...<Widget>[
+                  IconButton(
+                    key:
+                        ValueKey<String>('member-change-role-${member.userId}'),
+                    tooltip: context.l10n.tierChangeRoleAction,
+                    icon: const Icon(Icons.manage_accounts_outlined, size: 20),
+                    onPressed: onChangeRole,
+                  ),
+                ],
+                if (isOwner && onRemove != null) ...<Widget>[
+                  IconButton(
+                    key: ValueKey<String>('member-remove-${member.userId}'),
+                    tooltip: context.l10n.familyRemove,
+                    icon: const Icon(Icons.person_remove_outlined, size: 20),
+                    onPressed: onRemove,
+                  ),
+                ],
+              ],
+            ),
+          ],
         ),
       ),
     );
