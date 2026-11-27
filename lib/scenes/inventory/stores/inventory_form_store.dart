@@ -239,9 +239,12 @@ class InventoryFormStore {
         return false;
       }
 
+      final cleanCategory =
+          category?.trim().isEmpty == true ? null : category?.trim();
       final optimistic = previous.copyWith(
         name: name.trim(),
-        category: category?.trim().isEmpty == true ? null : category?.trim(),
+        category: cleanCategory,
+        clearCategory: cleanCategory == null,
         quantity: quantity,
         unit: unit,
         displayQuantity: quantity,
@@ -251,7 +254,9 @@ class InventoryFormStore {
         note: note?.trim().isEmpty == true ? null : note?.trim(),
         updatedAt: now,
         version: previous.version + 1,
-        isLowStock: lowStockThreshold != null && quantity <= lowStockThreshold,
+        isLowStock: lowStockThreshold != null &&
+            quantity > 0 &&
+            quantity <= lowStockThreshold,
         isExpiringSoon: expiryDate != null &&
             !expiryDate.isAfter(now.add(const Duration(days: 3))),
         syncStatus: SyncStatus.pendingUpdate,
@@ -276,7 +281,13 @@ class InventoryFormStore {
           version: previous.version,
           payload: payload,
         );
-        await _dao.markSynced(id, serverItem);
+        // #201: lưu số lượng 0 = BE xoá mềm và trả state đã xoá (quantity 0)
+        // → xử lý như xoá: bỏ row local, không đánh dấu synced.
+        if (serverItem.isInStock) {
+          await _dao.markSynced(id, serverItem);
+        } else {
+          await _dao.deleteItem(id);
+        }
         runInAction(() {
           _isSaving.value = false;
           _conflict.value = null;

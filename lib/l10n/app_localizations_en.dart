@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -120,11 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-    int startDay,
-    int startMonth,
-    int endDay,
-    int endMonth,
-  ) {
+      int startDay, int startMonth, int endDay, int endMonth) {
     return 'Week $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -611,11 +606,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-    String required,
-    String available,
-    String shortfall,
-    String unit,
-  ) {
+      String required, String available, String shortfall, String unit) {
     return 'Need $required · Have $available · Short $shortfall $unit';
   }
 
@@ -2851,7 +2842,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceClear => 'Clear response';
 
   @override
-  String get attendanceClosed => 'Attendance for this meal is read-only.';
+  String get attendanceClosed =>
+      'This meal has passed or you only have view access, so attendance can\'t be changed.';
 
   @override
   String get attendanceLoadFailed => 'Could not load attendance';
@@ -3927,4 +3919,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dietTypeDiabeticDescription =>
       'Limits sugar and fast-absorbing carbs, favours low-sugar dishes.';
+
+  @override
+  String get inventoryCategoryOptional => 'Category (optional)';
+
+  @override
+  String get inventoryZeroQuantityTitle => 'Used up this item?';
+
+  @override
+  String get inventoryZeroQuantityConfirm => 'Confirm';
+
+  @override
+  String get attendanceUnsure => 'Not sure';
+
+  @override
+  String attendanceYou(String status) {
+    return 'You: $status';
+  }
 }

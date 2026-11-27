@@ -824,7 +824,7 @@
   "attendanceNo": "Không ăn",
   "attendanceUnknown": "Chưa phản hồi",
   "attendanceClear": "Bỏ phản hồi",
-  "attendanceClosed": "Không thể thay đổi xác nhận ăn cho bữa này.",
+  "attendanceClosed": "Bữa này đã qua hoặc bạn chỉ có quyền xem nên không đổi được xác nhận ăn.",
   "attendanceLoadFailed": "Không tải được xác nhận ăn",
   "attendanceSaveFailed": "Chưa lưu được phản hồi. Hãy thử lại.",
   "attendanceMember": "Thành viên",
@@ -1175,5 +1175,11 @@
   "dietTypeVeganDescription": "Thuần chay: không thịt, cá, trứng, sữa hay sản phẩm từ động vật.",
   "dietTypePescatarianDescription": "Không ăn thịt nhưng vẫn ăn cá và hải sản.",
   "dietTypeGlutenFreeDescription": "Tránh lúa mì, lúa mạch và thực phẩm chứa gluten.",
-  "dietTypeDiabeticDescription": "Hạn chế đường và tinh bột hấp thu nhanh, ưu tiên món ít ngọt."
+  "dietTypeDiabeticDescription": "Hạn chế đường và tinh bột hấp thu nhanh, ưu tiên món ít ngọt.",
+  "inventoryCategoryOptional": "Phân loại (tuỳ chọn)",
+  "inventoryZeroQuantityTitle": "Đã dùng hết mặt hàng này?",
+  "inventoryZeroQuantityConfirm": "Xác nhận",
+  "attendanceUnsure": "Chưa rõ",
+  "attendanceYou": "Bạn: {status}",
+  "@attendanceYou": {"placeholders": {"status": {"type": "String"}}}
 }

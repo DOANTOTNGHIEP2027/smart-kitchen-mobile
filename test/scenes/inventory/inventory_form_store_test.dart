@@ -293,6 +293,36 @@ void main() {
       expect(got.syncStatus, SyncStatus.synced);
     });
 
+    test('#201 lưu số lượng 0 → BE trả state đã xoá → xoá row local',
+        () async {
+      final previous = await seedItem(id: 'i1', version: 1);
+      api.onUpdate = (_, __, payload) async => previous.copyWith(
+            quantity: (payload['quantity'] as num).toDouble(),
+            version: previous.version + 1,
+          );
+
+      final store = editStore('i1');
+      final ok = await store.save(name: previous.name, quantity: 0, unit: 'g');
+
+      expect(ok, isTrue);
+      expect(await dao.getById('i1'), isNull);
+    });
+
+    test('#201 sửa luôn gửi category (PUT thay toàn bộ)', () async {
+      await seedItem(id: 'i1', version: 1);
+      Map<String, dynamic>? sent;
+      api.onUpdate = (_, __, payload) async {
+        sent = payload;
+        return (await dao.getById('i1'))!.copyWith(version: 2);
+      };
+
+      final store = editStore('i1');
+      await store.save(
+          name: 'Cà chua', category: 'Rau củ', quantity: 200, unit: 'g');
+
+      expect(sent!['category'], 'Rau củ');
+    });
+
     test('rollback về đúng snapshot, không cleared field — Phase 0 US 2.1 AC',
         () async {
       // Seed item với nhiều field có giá trị để kiểm rollback không trả null

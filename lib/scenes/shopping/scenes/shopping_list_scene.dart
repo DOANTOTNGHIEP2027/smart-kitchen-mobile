@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../domain/shared/food_category.dart';
 import '../../../routing/app_routes.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
@@ -780,10 +781,16 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                 Get.find<SessionStore>().currentUser?.id,
                             // Guard #18: chỉ gán khi row đã SYNCED; §9.5:
                             // ONLINE-ONLY → offline thì khoá ngay tại chip.
+                            // #201: đã mua / đã vào kho thì không giao việc
+                            // nữa (BE trả 409 ERR_SHOP_ITEM_ALREADY_IN_INVENTORY).
                             enabled: isOnline &&
                                 !item.isPendingSync &&
+                                !isCompleted &&
+                                !item.inInventory &&
                                 !store.isAssigning(item.id),
-                            onDisabledTap: !isOnline || item.isPendingSync
+                            onDisabledTap: isCompleted || item.inInventory
+                                ? () {}
+                                : !isOnline || item.isPendingSync
                                 ? () async {
                                     // Kiểm lại mạng thật — isOnline() cập nhật
                                     // isOnlineNow nên chip tự mở nếu stream lỡ
@@ -875,15 +882,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
     String unit = unitOptions.first.value;
     String? category;
 
-    final defaultCategories = <String>[
-      'Rau củ',
-      'Thịt cá',
-      'Gia vị',
-      'Trứng sữa',
-      'Thực phẩm khô',
-      'Đồ uống',
-      'Khác',
-    ];
+    // #201: bộ phân loại chuẩn dùng chung kho/đi chợ/hoá đơn.
+    final defaultCategories = FoodCategory.labels;
 
     await showModalBottomSheet<void>(
       context: context,

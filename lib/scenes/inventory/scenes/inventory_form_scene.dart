@@ -5,8 +5,10 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 import 'package:mobx/mobx.dart';
 
+import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../data/network/api_exception.dart';
+import '../../../domain/shared/food_category.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -42,6 +44,9 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
 
   UnitOption? _unit;
   DateTime? _expiryDate;
+
+  /// #201: phân loại chọn từ danh sách chuẩn; giữ nguyên tên cũ khi sửa.
+  String? _category;
   // Tránh mở dialog 2 lần giữa lúc đó conflict vẫn còn.
   bool _conflictDialogOpen = false;
 
@@ -67,6 +72,10 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       );
     }
     _expiryDate = item?.expiryDate;
+    final initialCategory = item?.category?.trim();
+    _category = initialCategory == null || initialCategory.isEmpty
+        ? null
+        : initialCategory;
 
     // Reaction mở dialog ngay khi store.conflict != null (Phase 0 US 2.1 AC 2).
     _conflictReactionDisposer = reaction<InventoryConflict?>(
@@ -120,6 +129,11 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
                     prefixIcon: const Icon(Icons.inventory_2_outlined),
                   ),
                   textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: AppDimens.md),
+                _CategoryChips(
+                  selected: _category,
+                  onChanged: (c) => setState(() => _category = c),
                 ),
                 const SizedBox(height: AppDimens.md),
                 Row(
@@ -279,6 +293,11 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       return;
     }
     final quantity = double.parse(_quantityCtrl.text.trim());
+    // #201: sửa về 0 = đã dùng hết — BE xoá mềm item; hỏi trước khi lưu.
+    if (store.mode == InventoryFormMode.edit && quantity <= 0) {
+      final confirmed = await _confirmZeroQuantity();
+      if (!confirmed || !mounted) return;
+    }
     WasteReasonChoice wasteChoice = const WasteReasonChoice.skipped();
     final initial = _initialItem;
     if (store.mode == InventoryFormMode.edit &&
@@ -295,6 +314,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     final lowStock = double.tryParse(_lowStockCtrl.text.trim());
     final ok = await store.save(
       name: _nameCtrl.text,
+      // #201: luôn gửi category (PUT là thay toàn bộ — thiếu là bị xoá).
+      category: _category,
       quantity: quantity,
       unit: _unit!.value,
       lowStockThreshold: lowStock,
@@ -313,6 +334,29 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       );
     }
     // Nếu conflict đã mở → dialog tự bật qua _onConflictChanged; không SnackBar.
+  }
+
+  Future<bool> _confirmZeroQuantity() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.inventoryZeroQuantityTitle),
+        content: Text(context.l10n.inventoryDeleteConfirmMessage),
+        actions: <Widget>[
+          TextButton(
+            key: const ValueKey<String>('inventory-zero-cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(context.l10n.cancel),
+          ),
+          FilledButton(
+            key: const ValueKey<String>('inventory-zero-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(context.l10n.inventoryZeroQuantityConfirm),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   Future<void> _onDelete() async {
@@ -354,6 +398,61 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
         },
       ),
     ).then((_) => _conflictDialogOpen = false);
+  }
+}
+
+/// #201: hàng chip phân loại chuẩn (Wrap ngang, giống chip chế độ ăn). Tên cũ
+/// không thuộc danh sách chuẩn (vd "Thịt cá") vẫn hiện thành chip riêng để
+/// sửa không làm mất dữ liệu.
+class _CategoryChips extends StatelessWidget {
+  const _CategoryChips({required this.selected, required this.onChanged});
+
+  final String? selected;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final options = <String>[
+      ...FoodCategory.labels,
+      if (selected != null && !FoodCategory.labels.contains(selected))
+        selected!,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          context.l10n.inventoryCategoryOptional,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: AppDimens.sm,
+          runSpacing: AppDimens.xs,
+          children: options.map((name) {
+            final isSelected = selected == name;
+            final style = FoodCategory.styleOf(name);
+            return ChoiceChip(
+              key: ValueKey<String>('inventory-category-$name'),
+              avatar: Icon(style.icon, size: 16, color: style.iconColor),
+              label: Text(name),
+              selected: isSelected,
+              showCheckmark: false,
+              selectedColor: AppColors.primaryContainer,
+              labelStyle: TextStyle(
+                color: isSelected
+                    ? AppColors.onPrimaryContainer
+                    : AppColors.textPrimary,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+              onSelected: (v) => onChanged(v ? name : null),
+            );
+          }).toList(),
+        ),
+      ],
+    );
   }
 }
 

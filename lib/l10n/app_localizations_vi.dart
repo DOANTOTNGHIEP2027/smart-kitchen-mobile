@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -118,11 +117,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-    int startDay,
-    int startMonth,
-    int endDay,
-    int endMonth,
-  ) {
+      int startDay, int startMonth, int endDay, int endMonth) {
     return 'Tuần $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -605,11 +600,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-    String required,
-    String available,
-    String shortfall,
-    String unit,
-  ) {
+      String required, String available, String shortfall, String unit) {
     return 'Cần $required · Có $available · Thiếu $shortfall $unit';
   }
 
@@ -2815,7 +2806,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get attendanceClear => 'Bỏ phản hồi';
 
   @override
-  String get attendanceClosed => 'Không thể thay đổi xác nhận ăn cho bữa này.';
+  String get attendanceClosed =>
+      'Bữa này đã qua hoặc bạn chỉ có quyền xem nên không đổi được xác nhận ăn.';
 
   @override
   String get attendanceLoadFailed => 'Không tải được xác nhận ăn';
@@ -3856,4 +3848,21 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get dietTypeDiabeticDescription =>
       'Hạn chế đường và tinh bột hấp thu nhanh, ưu tiên món ít ngọt.';
+
+  @override
+  String get inventoryCategoryOptional => 'Phân loại (tuỳ chọn)';
+
+  @override
+  String get inventoryZeroQuantityTitle => 'Đã dùng hết mặt hàng này?';
+
+  @override
+  String get inventoryZeroQuantityConfirm => 'Xác nhận';
+
+  @override
+  String get attendanceUnsure => 'Chưa rõ';
+
+  @override
+  String attendanceYou(String status) {
+    return 'Bạn: $status';
+  }
 }

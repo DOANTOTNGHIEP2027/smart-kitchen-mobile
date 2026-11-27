@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../domain/shared/food_category.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/quantity_format.dart';
 import '../../../utils/text_format.dart';
@@ -28,6 +29,10 @@ class InventoryItemTile extends StatelessWidget {
     final theme = Theme.of(context);
     final displayQty = item.displayQuantity ?? item.quantity;
     final displayUnitStr = item.displayUnit ?? item.unit;
+    // #201: một bảng phân loại chuẩn, khớp lỏng cả tên cũ ("Thịt cá"…).
+    final categoryStyle = FoodCategory.styleOf(item.category);
+    // #201: hết hàng (0) không phải "sắp hết".
+    final lowStock = item.showsLowStock;
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -63,12 +68,12 @@ class InventoryItemTile extends StatelessWidget {
                   height: 48,
                   margin: const EdgeInsets.only(right: AppDimens.md),
                   decoration: BoxDecoration(
-                    color: _categoryBackgroundColor(item.category),
+                    color: categoryStyle.backgroundColor,
                     borderRadius: BorderRadius.circular(AppDimens.radiusMd),
                   ),
                   child: Icon(
-                    _categoryIcon(item.category),
-                    color: _categoryIconColor(item.category),
+                    categoryStyle.icon,
+                    color: categoryStyle.iconColor,
                     size: 24,
                   ),
                 ),
@@ -95,7 +100,7 @@ class InventoryItemTile extends StatelessWidget {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: item.isLowStock
+                              color: lowStock
                                   ? AppColors.error.withValues(alpha: 0.1)
                                   : AppColors.primaryContainer,
                               borderRadius:
@@ -106,7 +111,7 @@ class InventoryItemTile extends StatelessWidget {
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 13,
-                                color: item.isLowStock
+                                color: lowStock
                                     ? AppColors.error
                                     : AppColors.onPrimaryContainer,
                               ),
@@ -151,7 +156,7 @@ class InventoryItemTile extends StatelessWidget {
                           ],
                         ],
                       ),
-                      if (item.isLowStock ||
+                      if (lowStock ||
                           item.isExpiringSoon ||
                           item.isPendingSync ||
                           item.hasConflict) ...<Widget>[
@@ -160,7 +165,7 @@ class InventoryItemTile extends StatelessWidget {
                           spacing: AppDimens.xs,
                           runSpacing: AppDimens.xs,
                           children: <Widget>[
-                            if (item.isLowStock)
+                            if (lowStock)
                               _Badge(
                                 label: context.l10n.inventoryLowStock,
                                 color: AppColors.error,
@@ -204,61 +209,6 @@ class InventoryItemTile extends StatelessWidget {
     final d = date.day.toString().padLeft(2, '0');
     final m = date.month.toString().padLeft(2, '0');
     return 'HSD: $d/$m/${date.year}';
-  }
-
-  Color _categoryBackgroundColor(String? category) {
-    switch (category) {
-      case 'Rau củ':
-        return AppColors.successSurface;
-      case 'Thịt cá':
-        return const Color(0xFFFFECE5);
-      case 'Trứng sữa':
-        return const Color(0xFFFFF7E0);
-      case 'Gia vị':
-        return const Color(0xFFFFF0E6);
-      case 'Đồ uống':
-        return const Color(0xFFE8F4FD);
-      case 'Thực phẩm khô':
-      default:
-        return AppColors.secondaryFill;
-    }
-  }
-
-  Color _categoryIconColor(String? category) {
-    switch (category) {
-      case 'Rau củ':
-        return AppColors.success;
-      case 'Thịt cá':
-        return const Color(0xFFE85F2A);
-      case 'Trứng sữa':
-        return const Color(0xFFE5A100);
-      case 'Gia vị':
-        return const Color(0xFFD97706);
-      case 'Đồ uống':
-        return const Color(0xFF0284C7);
-      case 'Thực phẩm khô':
-      default:
-        return const Color(0xFF78716C);
-    }
-  }
-
-  IconData _categoryIcon(String? category) {
-    switch (category) {
-      case 'Rau củ':
-        return Icons.eco_rounded;
-      case 'Thịt cá':
-        return Icons.set_meal_rounded;
-      case 'Trứng sữa':
-        return Icons.egg_outlined;
-      case 'Gia vị':
-        return Icons.soup_kitchen_rounded;
-      case 'Đồ uống':
-        return Icons.local_cafe_rounded;
-      case 'Thực phẩm khô':
-        return Icons.grain_rounded;
-      default:
-        return Icons.kitchen_outlined;
-    }
   }
 }
 

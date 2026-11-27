@@ -63,7 +63,7 @@ import 'app_localizations_vi.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('vi'),
+    Locale('vi')
   ];
 
   /// Application name shown in the OS task switcher
@@ -307,11 +307,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Week {startDay}/{startMonth} – {endDay}/{endMonth}'**
   String mealPlanWeekRange(
-    int startDay,
-    int startMonth,
-    int endDay,
-    int endMonth,
-  );
+      int startDay, int startMonth, int endDay, int endMonth);
 
   /// No description provided for @mealPlanDaySchedule.
   ///
@@ -1218,11 +1214,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Need {required} · Have {available} · Short {shortfall} {unit}'**
   String cookingShortfallLine(
-    String required,
-    String available,
-    String shortfall,
-    String unit,
-  );
+      String required, String available, String shortfall, String unit);
 
   /// No description provided for @cookingShortfallNoDetail.
   ///
@@ -5073,7 +5065,7 @@ abstract class AppLocalizations {
   /// No description provided for @attendanceClosed.
   ///
   /// In en, this message translates to:
-  /// **'Attendance for this meal is read-only.'**
+  /// **'This meal has passed or you only have view access, so attendance can\'t be changed.'**
   String get attendanceClosed;
 
   /// No description provided for @attendanceLoadFailed.
@@ -6875,6 +6867,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Limits sugar and fast-absorbing carbs, favours low-sugar dishes.'**
   String get dietTypeDiabeticDescription;
+
+  /// No description provided for @inventoryCategoryOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Category (optional)'**
+  String get inventoryCategoryOptional;
+
+  /// No description provided for @inventoryZeroQuantityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Used up this item?'**
+  String get inventoryZeroQuantityTitle;
+
+  /// No description provided for @inventoryZeroQuantityConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get inventoryZeroQuantityConfirm;
+
+  /// No description provided for @attendanceUnsure.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure'**
+  String get attendanceUnsure;
+
+  /// No description provided for @attendanceYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You: {status}'**
+  String attendanceYou(String status);
 }
 
 class _AppLocalizationsDelegate
@@ -6904,9 +6926,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }
