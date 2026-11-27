@@ -160,6 +160,26 @@ void main() {
   });
 
   group('save EDIT — rollback đúng snapshot', () {
+    test('ngày chọn từ date picker (nửa đêm local) gửi đúng ngày lịch', () async {
+      final previous = await seedItem(id: 'i-date', version: 1);
+      Map<String, dynamic>? sent;
+      api.onUpdate = (_, __, payload) async {
+        sent = Map<String, dynamic>.from(payload);
+        return previous.copyWith(version: 2);
+      };
+
+      // showDatePicker trả DateTime local nửa đêm; trước đây toUtc() ở UTC+7
+      // cắt ra '2026-11-29'.
+      await editStore('i-date').save(
+        name: previous.name,
+        quantity: previous.quantity,
+        unit: previous.unit,
+        expiryDate: DateTime(2026, 11, 30),
+      );
+
+      expect(sent!['expiryDate'], '2026-11-30');
+    });
+
     test('giảm số lượng gửi reason/wasteCause đúng contract', () async {
       final previous = await seedItem(id: 'i1', version: 2);
       Map<String, dynamic>? sent;
