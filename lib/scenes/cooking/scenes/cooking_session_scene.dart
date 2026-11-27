@@ -13,7 +13,7 @@ import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/cards/app_card.dart';
 import '../../../widgets/states/app_loading_view.dart';
-import '../stores/cooking_assist_store.dart';
+import '../../assistant/stores/assistant_store.dart';
 import '../domain/missing_ingredient.dart';
 import '../stores/cooking_session_store.dart';
 import '../widgets/cooking_assist_sheet.dart';
@@ -46,7 +46,7 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
   late final CookingSessionStore _store;
 
   /// Trợ lý (#157) — `null` khi binding không đăng ký (vd. test cũ).
-  CookingAssistStore? _assist;
+  AssistantStore? _assist;
   ReactionDisposer? _wakelockReaction;
   ReactionDisposer? _actionErrorReaction;
   ReactionDisposer? _shortfallReaction;
@@ -64,8 +64,8 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
   void initState() {
     super.initState();
     _store = Get.find<CookingSessionStore>();
-    if (Get.isRegistered<CookingAssistStore>()) {
-      _assist = Get.find<CookingAssistStore>();
+    if (Get.isRegistered<AssistantStore>()) {
+      _assist = Get.find<AssistantStore>();
     }
     WidgetsBinding.instance.addObserver(this);
 
@@ -355,7 +355,7 @@ class _ActiveStepView extends StatelessWidget {
   });
 
   final CookingSessionStore store;
-  final CookingAssistStore? assist;
+  final AssistantStore? assist;
   final Future<void> Function() onAbandon;
 
   @override
@@ -478,7 +478,7 @@ class _ActiveStepView extends StatelessWidget {
 /// FAB trợ lý — chỉ ở `phase=active` (view này) và khi trợ lý chưa bị tắt
 /// (409/404). Đẩy lên trên hàng nút "Bước tiếp" để không che nút.
 Widget? _assistFab(BuildContext context, CookingSessionStore store,
-    CookingAssistStore? assist) {
+    AssistantStore? assist) {
   if (assist == null) return null;
   return Observer(
     builder: (_) => assist.isDisabled

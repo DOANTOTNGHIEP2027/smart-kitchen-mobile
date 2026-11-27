@@ -8,14 +8,14 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../utils/l10n_x.dart';
-import '../domain/cooking_assist.dart';
-import '../stores/cooking_assist_store.dart';
+import '../../assistant/domain/assistant_models.dart';
+import '../../assistant/stores/assistant_store.dart';
 import '../stores/cooking_session_store.dart';
 
 /// Mở sheet chat trợ lý (~70% màn hình, kéo xuống để đóng — §14.1).
 Future<void> showCookingAssistSheet(
   BuildContext context, {
-  required CookingAssistStore assist,
+  required AssistantStore assist,
   required CookingSessionStore cooking,
 }) {
   return showModalBottomSheet<void>(
@@ -31,7 +31,8 @@ Future<void> showCookingAssistSheet(
   );
 }
 
-/// Nội dung sheet trợ lý nấu ăn (FE design §14.4–§14.5).
+/// Nội dung sheet trợ lý ở màn nấu — nguồn là [AssistantStore] ngữ cảnh
+/// COOKING (#204, FE design `kitchen-assistant.md` v2 S3, S5–S5c, S8, S9, S11).
 class CookingAssistSheet extends StatefulWidget {
   const CookingAssistSheet({
     super.key,
@@ -39,7 +40,7 @@ class CookingAssistSheet extends StatefulWidget {
     required this.cooking,
   });
 
-  final CookingAssistStore assist;
+  final AssistantStore assist;
   final CookingSessionStore cooking;
 
   @override
@@ -50,12 +51,12 @@ class _CookingAssistSheetState extends State<CookingAssistSheet> {
   final TextEditingController _input = TextEditingController();
   final List<ReactionDisposer> _reactions = <ReactionDisposer>[];
 
-  CookingAssistStore get _assist => widget.assist;
+  AssistantStore get _assist => widget.assist;
 
   @override
   void initState() {
     super.initState();
-    // 409 ALREADY_ENDED / 404 → đóng sheet; màn nấu tự xử lý phần còn lại.
+    // Phiên trợ lý mất (404/409 SESSION_*) → đóng sheet; màn nấu tự xử lý.
     _reactions.add(reaction<AssistErrorKind?>(
       (_) => _assist.errorKind,
       (kind) {
@@ -143,12 +144,17 @@ class _CookingAssistSheetState extends State<CookingAssistSheet> {
             widget.cooking.viewStepNumber(n);
             Navigator.of(context).maybePop();
           },
+          // Chỉ câu hỏi lại MỚI NHẤT còn trả lời nhanh được.
+          onAnswer: identical(m, _assist.messages.last) &&
+                  _assist.canSend('x')
+              ? _assist.send
+              : null,
         ));
       }
     }
     if (_assist.isSending) {
       items.add(_Bubble(
-        text: l10n.cookingAssistSending,
+        text: _progressText(context, _assist.progressTool),
         mine: false,
         footnote: _assist.isSlow ? l10n.cookingAssistSlow : null,
       ));
@@ -164,6 +170,19 @@ class _CookingAssistSheetState extends State<CookingAssistSheet> {
       if (notice != null) items.add(_Bubble(text: notice, mine: false));
     }
     return items;
+  }
+
+  /// Nhãn tiến trình theo tool AI đang chạy (`turn.progress`); tool lạ ⇒
+  /// "đang soạn…" như trước.
+  static String _progressText(BuildContext context, String? tool) {
+    final l10n = context.l10n;
+    return switch (tool) {
+      'assess_allergen_risk' => l10n.cookingAssistProgressAllergen,
+      'kg_substitute' || 'kg_neighbors' => l10n.cookingAssistProgressSubstitute,
+      'scale_recipe' => l10n.cookingAssistProgressScale,
+      'step_qa' || 'get_recipe' => l10n.cookingAssistProgressStep,
+      _ => l10n.cookingAssistSending,
+    };
   }
 
   Widget _buildStatus(BuildContext context) {
@@ -207,7 +226,7 @@ class _CookingAssistSheetState extends State<CookingAssistSheet> {
                     minLines: 1,
                     maxLines: 4,
                     // Quá 500: hiện bộ đếm + khoá gửi, KHÔNG cắt chữ (§14.2).
-                    maxLength: CookingAssistStore.maxMessageLength,
+                    maxLength: AssistantStore.maxMessageLength,
                     maxLengthEnforcement: MaxLengthEnforcement.none,
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _send(),
@@ -307,17 +326,22 @@ class _AssistantReply extends StatelessWidget {
     required this.message,
     required this.cooking,
     required this.onStepTap,
+    this.onAnswer,
   });
 
   final AssistMessage message;
   final CookingSessionStore cooking;
   final ValueChanged<int> onStepTap;
 
+  /// Gửi một lựa chọn của `question` như tin nhắn mới; `null` ⇒ chỉ hiển thị.
+  final ValueChanged<String>? onAnswer;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final data = message.data;
+    final reply = message.reply;
+    final data = reply?.cooking;
     final small = theme.textTheme.bodySmall;
     final stepRef = data?.stepRef;
     final showStepChip =
@@ -328,8 +352,8 @@ class _AssistantReply extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _Bubble(text: message.text, mine: false),
-          if (data != null) ...<Widget>[
-            if (showStepChip || data.fallback)
+          if (reply != null) ...<Widget>[
+            if (showStepChip || reply.fallback)
               Wrap(
                 spacing: AppDimens.sm,
                 children: <Widget>[
@@ -338,7 +362,7 @@ class _AssistantReply extends StatelessWidget {
                       label: Text(l10n.cookingAssistStepChip(stepRef)),
                       onPressed: () => onStepTap(stepRef),
                     ),
-                  if (data.fallback)
+                  if (reply.fallback)
                     Chip(
                       label: Text(l10n.cookingAssistDegraded),
                       backgroundColor: AppColors.surfaceSubtle,
@@ -347,13 +371,40 @@ class _AssistantReply extends StatelessWidget {
                     ),
                 ],
               ),
-            for (final s in data.substitutes) _SubstituteCard(option: s),
-            if (data.showGuestsWarning)
+            // Câu dị ứng chỉ hiện đúng nguyên văn BE/AI trả, dòng riêng.
+            if (reply.allergenNote != null)
               Padding(
                 padding: const EdgeInsets.only(top: AppDimens.xs),
-                child: Text('⚠ ${l10n.cookingAssistGuestsUnknown}',
+                child: Text('⚠ ${reply.allergenNote}',
                     style: small?.copyWith(color: AppColors.warning)),
               ),
+            for (final d in reply.suspectedDishes)
+              Padding(
+                padding: const EdgeInsets.only(top: AppDimens.xs),
+                child: Text(l10n.cookingAssistSuspected(d.name, d.allergen),
+                    style: small?.copyWith(color: AppColors.textSecondary)),
+              ),
+            if (reply.needsInput && reply.question != null) ...<Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: AppDimens.xs),
+                child: Text(reply.question!.text,
+                    style: theme.textTheme.bodyMedium),
+              ),
+              Wrap(
+                spacing: AppDimens.sm,
+                children: <Widget>[
+                  for (final option in reply.question!.options)
+                    ActionChip(
+                      label: Text(option),
+                      onPressed:
+                          onAnswer == null ? null : () => onAnswer!(option),
+                    ),
+                ],
+              ),
+            ],
+          ],
+          if (data != null) ...<Widget>[
+            for (final s in data.substitutes) _SubstituteCard(option: s),
             if (data.blockedSubstitutes.isNotEmpty)
               ExpansionTile(
                 tilePadding: EdgeInsets.zero,
@@ -370,7 +421,7 @@ class _AssistantReply extends StatelessWidget {
               ),
             if (data.scaledIngredients.isNotEmpty)
               _ScaledTable(items: data.scaledIngredients),
-            if (data.intent == AssistIntent.stepQa)
+            if (data.isStepAnswer)
               Padding(
                 padding: const EdgeInsets.only(top: AppDimens.xs),
                 child: Text(l10n.cookingAssistFoodSafety,

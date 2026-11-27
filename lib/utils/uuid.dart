@@ -1,5 +1,9 @@
 import 'dart:math';
 
+/// UUID v4 ngẫu nhiên (khoá idempotency, `clientTurnId`…). Gom từ hai bản sao
+/// riêng ở `ocr_store.dart` và `receipt_scan_store.dart` khi trợ lý bếp (#204)
+/// là nơi dùng thứ ba — `uuid` chỉ là dependency bắc cầu, không khai trong
+/// pubspec.
 /// UUID v4 ngẫu nhiên — dùng làm `X-Idempotency-Key` (scan kho, scan hoá đơn,
 /// cất đồ vào kho #239). `uuid` chỉ là dependency bắc cầu nên tự viết.
 String createUuidV4() {

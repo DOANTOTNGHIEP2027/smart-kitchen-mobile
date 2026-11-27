@@ -4,6 +4,7 @@ import 'package:dio/dio.dart' show CancelToken;
 import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
+import '../../../utils/uuid.dart';
 import '../../inventory/ocr/data/ocr_image_service.dart';
 import '../../inventory/ocr/domain/ocr_scan_result.dart' show OcrImageSource;
 import '../../inventory/ocr/stores/ocr_store.dart'

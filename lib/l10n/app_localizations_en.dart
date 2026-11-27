@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -119,7 +120,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-      int startDay, int startMonth, int endDay, int endMonth) {
+    int startDay,
+    int startMonth,
+    int endDay,
+    int endMonth,
+  ) {
     return 'Week $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -606,7 +611,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-      String required, String available, String shortfall, String unit) {
+    String required,
+    String available,
+    String shortfall,
+    String unit,
+  ) {
     return 'Need $required · Have $available · Short $shortfall $unit';
   }
 
@@ -699,10 +708,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cookingAssistUnverified => 'Suggestion not checked for allergens';
 
   @override
-  String get cookingAssistGuestsUnknown =>
-      'Guests\' allergies are not taken into account';
-
-  @override
   String get cookingAssistBlocked => 'Not suggested because of allergies';
 
   @override
@@ -715,6 +720,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String cookingAssistStepChip(int step) {
     return 'Step $step';
+  }
+
+  @override
+  String get cookingAssistProgressAllergen => 'checking allergens…';
+
+  @override
+  String get cookingAssistProgressSubstitute => 'looking for substitutes…';
+
+  @override
+  String get cookingAssistProgressScale => 'working out the servings…';
+
+  @override
+  String get cookingAssistProgressStep => 'reading the recipe…';
+
+  @override
+  String cookingAssistSuspected(String dish, String allergen) {
+    return 'Left out $dish — may contain $allergen';
   }
 
   @override

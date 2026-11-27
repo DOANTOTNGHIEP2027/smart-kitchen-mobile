@@ -14,7 +14,7 @@ import 'package:smart_kitchen_mobile/scenes/auth/widgets/auth_frame.dart'
     as _i4;
 import 'package:smart_kitchen_mobile/scenes/cooking/data/cooking_progress_store.dart'
     as _i5;
-import 'package:smart_kitchen_mobile/scenes/cooking/stores/cooking_assist_store.dart'
+import 'package:smart_kitchen_mobile/scenes/assistant/stores/assistant_store.dart'
     as _i6;
 import 'package:smart_kitchen_mobile/scenes/cooking/stores/cooking_session_store.dart'
     as _i7;
