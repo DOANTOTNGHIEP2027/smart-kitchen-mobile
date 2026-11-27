@@ -22,6 +22,7 @@ import '../profile/profile_screen.dart';
 import '../shopping/scenes/shopping_list_binding.dart';
 import '../shopping/scenes/shopping_list_scene.dart';
 import '../shopping/stores/shopping_store.dart';
+import '../assistant/scenes/assistant_routes.dart';
 import 'app_shell_store.dart';
 import 'home_recipe_detail_scene.dart';
 import '../notifications/shell_notification_host.dart';
@@ -67,6 +68,18 @@ class AppShellScene extends StatelessWidget {
               }
             },
             child: Scaffold(
+              // Trợ lý bếp GLOBAL (#204, FE design v2 §1). Góc trái để không đè
+              // FAB của tab Kho/Đi chợ (end-float); ẩn khi bàn phím mở.
+              floatingActionButtonLocation:
+                  FloatingActionButtonLocation.startFloat,
+              floatingActionButton: MediaQuery.viewInsetsOf(context).bottom > 0
+                  ? null
+                  : FloatingActionButton.small(
+                      heroTag: 'assistant-fab',
+                      tooltip: context.l10n.assistantFabTooltip,
+                      onPressed: AssistantRoutes.openGlobal,
+                      child: const Icon(Icons.assistant_outlined),
+                    ),
               body: IndexedStack(
                 index: index,
                 children: const <Widget>[

@@ -63,7 +63,7 @@ import 'app_localizations_vi.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('vi'),
+    Locale('vi')
   ];
 
   /// Application name shown in the OS task switcher
@@ -307,11 +307,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Week {startDay}/{startMonth} – {endDay}/{endMonth}'**
   String mealPlanWeekRange(
-    int startDay,
-    int startMonth,
-    int endDay,
-    int endMonth,
-  );
+      int startDay, int startMonth, int endDay, int endMonth);
 
   /// No description provided for @mealPlanDaySchedule.
   ///
@@ -1218,11 +1214,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Need {required} · Have {available} · Short {shortfall} {unit}'**
   String cookingShortfallLine(
-    String required,
-    String available,
-    String shortfall,
-    String unit,
-  );
+      String required, String available, String shortfall, String unit);
 
   /// No description provided for @cookingShortfallNoDetail.
   ///
@@ -1433,6 +1425,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Left out {dish} — may contain {allergen}'**
   String cookingAssistSuspected(String dish, String allergen);
+
+  /// No description provided for @assistantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen assistant'**
+  String get assistantTitle;
+
+  /// No description provided for @assistantGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! Ask me what to cook, what to use up, or how to plan meals.'**
+  String get assistantGreeting;
+
+  /// No description provided for @assistantPlanningGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Let us plan this meal together.'**
+  String get assistantPlanningGreeting;
+
+  /// No description provided for @assistantSuggestTonight.
+  ///
+  /// In en, this message translates to:
+  /// **'What should we cook tonight?'**
+  String get assistantSuggestTonight;
+
+  /// No description provided for @assistantSuggestExpiring.
+  ///
+  /// In en, this message translates to:
+  /// **'What can I cook with food about to expire?'**
+  String get assistantSuggestExpiring;
+
+  /// No description provided for @assistantSuggestFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'A dish the whole family can eat?'**
+  String get assistantSuggestFamily;
+
+  /// No description provided for @assistantSuggestQuick.
+  ///
+  /// In en, this message translates to:
+  /// **'A quick breakfast idea?'**
+  String get assistantSuggestQuick;
+
+  /// No description provided for @assistantSuggestPlanMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest dishes for this meal'**
+  String get assistantSuggestPlanMeal;
+
+  /// No description provided for @assistantRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'You are asking a bit fast — try again in a minute.'**
+  String get assistantRateLimited;
+
+  /// No description provided for @assistantProgressSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'looking for dishes…'**
+  String get assistantProgressSearch;
+
+  /// No description provided for @assistantMissingIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing: {items}'**
+  String assistantMissingIngredients(String items);
+
+  /// No description provided for @assistantPlanDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}'**
+  String assistantPlanDay(int day);
+
+  /// No description provided for @assistantFabTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the kitchen assistant'**
+  String get assistantFabTooltip;
+
+  /// No description provided for @assistantAskSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the assistant'**
+  String get assistantAskSlot;
+
+  /// No description provided for @assistantHorizonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan for how many days?'**
+  String get assistantHorizonTitle;
+
+  /// No description provided for @assistantHorizonOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} day(s)'**
+  String assistantHorizonOption(int days);
 
   /// No description provided for @allergensTitle.
   ///
@@ -6598,9 +6686,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

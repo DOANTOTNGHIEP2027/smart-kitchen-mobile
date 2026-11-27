@@ -103,6 +103,47 @@ class SuspectedDish {
   final String reason;
 }
 
+/// Thẻ món AI gợi ý (S4). `kbRecipeId` là id món trong kho tri thức AI, chưa
+/// phải `recipes.id` của BE.
+class RecipeCard {
+  const RecipeCard({
+    required this.kbRecipeId,
+    required this.name,
+    this.reason,
+    this.missingIngredients = const <String>[],
+    this.allergenTags = const <String>[],
+  });
+
+  final String kbRecipeId;
+  final String name;
+  final String? reason;
+  final List<String> missingIngredients;
+  final List<String> allergenTags;
+}
+
+/// Một bữa trong thực đơn nhiều ngày (`mealPlan`), `day` tính từ 1.
+class PlanSlot {
+  const PlanSlot(
+      {required this.day, required this.mealType, required this.dishes});
+
+  final int day;
+  final String mealType;
+  final List<RecipeCard> dishes;
+}
+
+/// Một dòng của `GET /assistant/sessions` — đủ để mở lại phiên gần nhất.
+class AssistantSessionSummary {
+  const AssistantSessionSummary({
+    required this.id,
+    required this.contextType,
+    required this.updatedAt,
+  });
+
+  final String id;
+  final String contextType;
+  final DateTime updatedAt;
+}
+
 /// AI cần hỏi lại (`NEEDS_INPUT`); mỗi option là một câu trả lời nhanh.
 class AssistantQuestion {
   const AssistantQuestion({required this.text, required this.options});
@@ -123,6 +164,8 @@ class AssistantReply {
     this.allergenNote,
     this.cooking,
     this.question,
+    this.recipeCards = const <RecipeCard>[],
+    this.mealPlan = const <PlanSlot>[],
   });
 
   final String turnId;
@@ -140,6 +183,12 @@ class AssistantReply {
 
   /// Job kết thúc `DEGRADED` (BE gửi kèm header `X-AI-Fallback`).
   final bool fallback;
+
+  /// Thẻ món (S4) — FE hiện tối đa 5.
+  final List<RecipeCard> recipeCards;
+
+  /// Thực đơn nhiều ngày của phiên PLANNING.
+  final List<PlanSlot> mealPlan;
 }
 
 /// Trạng thái một lượt — từ POST messages, GET turns, hoặc sự kiện SSE.

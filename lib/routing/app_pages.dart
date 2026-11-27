@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../app/env_config.dart';
+import '../scenes/assistant/scenes/assistant_routes.dart';
 import '../scenes/auth/auth_landing_scene.dart';
 import '../scenes/auth/email_login_scene.dart';
 import '../scenes/auth/email_register_scene.dart';
@@ -46,6 +47,7 @@ class AppPages {
     ...mealPlanPages,
     ...planningPages,
     ...shoppingPages,
+    ...assistantPages,
     ...receiptPages,
     ...insightsPages,
     ...recapPages,

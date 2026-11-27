@@ -25,9 +25,15 @@ enum AssistErrorKind {
   /// `ERR_ASSISTANT_SESSION_NOT_FOUND` / `_CLOSED` — đóng UI, tắt trợ lý.
   ended,
 
+  /// `ERR_ASSISTANT_RATE_LIMIT` — hỏi quá nhanh: khoá ô nhập một lúc (S10).
+  rateLimited,
+
   /// 400/403/khác — câu báo chung.
   generic,
 }
+
+/// Ngữ cảnh của phiên PLANNING (ô bữa trong thực đơn + số ngày cần lên).
+typedef PlanningArgs = ({String mealPlanId, String slotId, int horizonDays});
 
 /// Trợ lý bếp (#204, FE design `kitchen-assistant.md` v2 §3).
 ///
@@ -45,6 +51,7 @@ class AssistantStore {
     required String? Function() contextKey,
     required bool Function() isOnline,
     int? Function()? currentStep,
+    PlanningArgs? Function()? planning,
     String? Function()? accountScope,
     String Function()? clientTurnIdGenerator,
     this.slowAfter = const Duration(seconds: 5),
@@ -52,7 +59,10 @@ class AssistantStore {
     this.streamSilence = const Duration(seconds: 15),
     this.inFlightRetryDelay = const Duration(seconds: 5),
     this.maxWait = const Duration(seconds: 100),
+    this.reuseWithin = const Duration(hours: 2),
+    this.rateLimitCooldown = const Duration(minutes: 1),
   })  : _api = api,
+        _planningOf = planning,
         _contextKeyOf = contextKey,
         _currentStepOf = currentStep,
         _isOnline = isOnline,
@@ -71,7 +81,6 @@ class AssistantStore {
     'ERR_AI_SERVICE_DOWN',
     'ERR_AI_INVALID_OUTPUT',
     'ERR_AI_RATE_LIMIT',
-    'ERR_ASSISTANT_RATE_LIMIT',
     'ERR_NETWORK',
     // 4xx không envelope (vd. 429 từ gateway) — interceptor không biết mã.
     'ERR_UNKNOWN',
@@ -88,6 +97,16 @@ class AssistantStore {
   final Duration streamSilence;
   final Duration inFlightRetryDelay;
   final Duration maxWait;
+
+  /// FAB toàn cục mở lại phiên GLOBAL gần nhất nếu còn trong khoảng này.
+  final Duration reuseWithin;
+
+  /// Bị `ERR_ASSISTANT_RATE_LIMIT` thì khoá ô nhập trong khoảng này.
+  final Duration rateLimitCooldown;
+  final PlanningArgs? Function()? _planningOf;
+  Timer? _cooldownTimer;
+  bool _opened = false;
+  final Observable<bool> _loadingHistory = Observable<bool>(false);
   ReactionDisposer? _scopeReaction;
 
   /// Token của request đang chờ — kết quả mang token khác bị bỏ.
@@ -152,9 +171,49 @@ class AssistantStore {
         text.length <= maxMessageLength &&
         !isSending &&
         !isDisabled &&
+        !isLoadingHistory &&
+        errorKind != AssistErrorKind.rateLimited &&
         !isOffline &&
         _contextKeyOf() != null &&
         (!_needsStep || _currentStepOf?.call() != null);
+  }
+
+  /// Đang nạp lịch sử của phiên mở lại.
+  bool get isLoadingHistory => _loadingHistory.value;
+
+  /// Mở màn trợ lý. GLOBAL: dùng lại phiên GLOBAL gần nhất nếu cập nhật trong
+  /// [reuseWithin] và nạp lịch sử của nó; ngữ cảnh khác luôn là phiên mới, tạo
+  /// lười ở câu hỏi đầu. Lỗi khi nạp chỉ làm mất lịch sử cũ — vẫn hỏi được.
+  Future<void> open() async {
+    final key = _contextKeyOf();
+    if (key == null) return;
+    _bind(key);
+    if (_opened || contextType != AssistantContextType.global || isOffline) {
+      return;
+    }
+    _opened = true;
+    runInAction(() => _loadingHistory.value = true);
+    try {
+      final sessions = await _api.listSessions();
+      final cutoff = DateTime.now().subtract(reuseWithin);
+      AssistantSessionSummary? recent;
+      for (final s in sessions) {
+        if (s.contextType == 'GLOBAL' && s.updatedAt.isAfter(cutoff)) {
+          recent = s;
+          break;
+        }
+      }
+      if (recent == null || _boundKey != key) return;
+      final history = await _api.listMessages(recent.id);
+      if (_boundKey != key) return;
+      _sessionId = recent.id;
+      runInAction(() => messages.addAll(history));
+    } on ApiException catch (e) {
+      developer.log('Assistant history unavailable: ${e.code}',
+          name: 'assistant');
+    } finally {
+      runInAction(() => _loadingHistory.value = false);
+    }
   }
 
   Future<void> send(String raw) async {
@@ -250,10 +309,16 @@ class AssistantStore {
     final existing = _sessionId;
     if (existing != null) return existing;
     final key = _contextKeyOf()!;
+    final planning = contextType == AssistantContextType.planning
+        ? _planningOf?.call()
+        : null;
     final id = await _api.createSession(
       contextType,
       cookingSessionId:
           contextType == AssistantContextType.cooking ? key : null,
+      mealPlanId: planning?.mealPlanId,
+      slotId: planning?.slotId,
+      horizonDays: planning?.horizonDays,
     );
     if (_boundKey == key) _sessionId = id;
     return id;
@@ -357,17 +422,30 @@ class AssistantStore {
         _disabled.value = true;
       }
     });
+    if (kind == AssistErrorKind.rateLimited) {
+      _cooldownTimer?.cancel();
+      _cooldownTimer = Timer(rateLimitCooldown, () {
+        if (_disposed || errorKind != AssistErrorKind.rateLimited) return;
+        runInAction(() {
+          _state.value = AssistRequestState.idle;
+          _errorKind.value = null;
+          _errorCode.value = null;
+        });
+      });
+    }
   }
 
   /// Lượt FAILED ở BE: mọi mã đều gửi lại được, trừ hai mã dưới.
   static AssistErrorKind _classifyTurnCode(String? code) => switch (code) {
         'ERR_AI_CONTENT_FILTERED' => AssistErrorKind.filtered,
         'ERR_ASSISTANT_CONTEXT_INVALID' => AssistErrorKind.unavailable,
+        'ERR_ASSISTANT_RATE_LIMIT' => AssistErrorKind.rateLimited,
         _ => AssistErrorKind.busy,
       };
 
   static AssistErrorKind _classify(ApiException e) {
     if (e.code == 'ERR_AI_CONTENT_FILTERED') return AssistErrorKind.filtered;
+    if (e.code == 'ERR_ASSISTANT_RATE_LIMIT') return AssistErrorKind.rateLimited;
     if (e.code == 'ERR_ASSISTANT_CONTEXT_INVALID') {
       return AssistErrorKind.unavailable;
     }
@@ -410,8 +488,11 @@ class AssistantStore {
     _failedStep = null;
     _boundKey = null;
     _sessionId = null;
+    _opened = false;
     _slowTimer?.cancel();
     _slowTimer = null;
+    _cooldownTimer?.cancel();
+    _cooldownTimer = null;
     runInAction(() {
       messages.clear();
       _state.value = AssistRequestState.idle;
@@ -430,6 +511,8 @@ class AssistantStore {
     _scopeReaction = null;
     _slowTimer?.cancel();
     _slowTimer = null;
+    _cooldownTimer?.cancel();
+    _cooldownTimer = null;
     _pendingToken = 0;
     runInAction(() => messages.clear());
   }

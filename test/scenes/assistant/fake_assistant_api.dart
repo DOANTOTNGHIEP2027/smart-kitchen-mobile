@@ -14,6 +14,12 @@ class SendCall {
 /// Stub programmable cho [AssistantApi] — bám pattern FakeCookingApi.
 class FakeAssistantApi implements AssistantApi {
   final List<String> createdFor = <String>[];
+
+  /// `(mealPlanId, slotId, horizonDays)` của lần tạo phiên PLANNING gần nhất.
+  ({String? mealPlanId, String? slotId, int? horizonDays})? lastPlanning;
+  List<AssistantSessionSummary> sessions = <AssistantSessionSummary>[];
+  Map<String, List<AssistMessage>> history = <String, List<AssistMessage>>{};
+  int listSessionsCalls = 0;
   final List<SendCall> sends = <SendCall>[];
   int statusCalls = 0;
   int streamCalls = 0;
@@ -32,11 +38,27 @@ class FakeAssistantApi implements AssistantApi {
     String? cookingSessionId,
     String? mealPlanId,
     String? slotId,
+    int? horizonDays,
   }) async {
     createdFor.add(cookingSessionId ?? type.wire);
+    if (type == AssistantContextType.planning) {
+      lastPlanning =
+          (mealPlanId: mealPlanId, slotId: slotId, horizonDays: horizonDays);
+    }
     if (onCreate != null) return onCreate!(type, cookingSessionId);
     return 'as-${createdFor.length}';
   }
+
+  @override
+  Future<List<AssistantSessionSummary>> listSessions({int limit = 20}) async {
+    listSessionsCalls++;
+    return sessions;
+  }
+
+  @override
+  Future<List<AssistMessage>> listMessages(String sessionId,
+          {int limit = 30}) async =>
+      history[sessionId] ?? <AssistMessage>[];
 
   @override
   Future<AssistantTurnStatus> sendMessage(
@@ -87,6 +109,8 @@ AssistantReply assistantReply({
   List<SuspectedDish> suspected = const <SuspectedDish>[],
   AssistantQuestion? question,
   bool fallback = false,
+  List<RecipeCard> recipeCards = const <RecipeCard>[],
+  List<PlanSlot> mealPlan = const <PlanSlot>[],
 }) =>
     AssistantReply(
       turnId: turnId,
@@ -98,4 +122,6 @@ AssistantReply assistantReply({
       question: question,
       needsInput: question != null,
       fallback: fallback,
+      recipeCards: recipeCards,
+      mealPlan: mealPlan,
     );
