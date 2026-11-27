@@ -1,9 +1,12 @@
-import 'dart:math';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:mobx/mobx.dart';
 
 import '../../../../data/network/api_exception.dart';
+import '../../../../utils/date_format.dart';
+import '../../../../utils/uuid.dart';
+import '../../data/inventory_batch_api.dart';
 import '../../stores/inventory_form_store.dart';
 import '../data/ocr_api.dart';
 import '../data/ocr_image_service.dart';
@@ -21,17 +24,30 @@ class OcrStore {
     required OcrImageCompressor imageCompressor,
     required InventoryFormStoreFactory formStoreFactory,
     String Function()? idempotencyKeyGenerator,
+    InventoryBatchApi? batchApi,
+    Future<void> Function()? onBatchCommitted,
   })  : _api = api,
         _imagePicker = imagePicker,
         _imageCompressor = imageCompressor,
         _formStoreFactory = formStoreFactory,
-        _idempotencyKeyGenerator = idempotencyKeyGenerator ?? _createUuidV4;
+        _idempotencyKeyGenerator = idempotencyKeyGenerator ?? createUuidV4,
+        _batchApi = batchApi,
+        _onBatchCommitted = onBatchCommitted;
 
   final OcrApi _api;
   final OcrImagePicker _imagePicker;
   final OcrImageCompressor _imageCompressor;
   final InventoryFormStoreFactory _formStoreFactory;
   final String Function() _idempotencyKeyGenerator;
+
+  /// #239: có thì "Xác nhận tất cả" ghi MỘT lần batch (all-or-nothing) thay
+  /// vì lặp `POST /inventory-items`. Lưu từng thẻ vẫn đi đường cũ.
+  final InventoryBatchApi? _batchApi;
+  final Future<void> Function()? _onBatchCommitted;
+
+  /// Cùng nội dung gửi lại (vd. sau timeout) dùng lại key để BE không tạo trùng.
+  String? _batchKey;
+  String? _batchBody;
 
   final Observable<OcrStatus> _status = Observable(OcrStatus.idle);
   final Observable<OcrScanMode> _mode = Observable(OcrScanMode.item);
@@ -240,6 +256,7 @@ class OcrStore {
 
   Future<void> confirmAll() async {
     if (items.isEmpty) return;
+    if (_batchApi != null) return _confirmAllBatch(_batchApi);
     runInAction(() => _status.value = OcrStatus.confirming);
     final ids = items
         .where((item) => item.confirmStatus != OcrConfirmStatus.confirmed)
@@ -254,6 +271,75 @@ class OcrStore {
           items.every(_isConfirmed) ? OcrStatus.done : OcrStatus.reviewing;
     });
   }
+
+  Future<void> _confirmAllBatch(InventoryBatchApi batchApi) async {
+    final ids = <String>[];
+    runInAction(() {
+      _status.value = OcrStatus.confirming;
+      for (var i = 0; i < items.length; i++) {
+        final item = items[i];
+        if (item.confirmStatus == OcrConfirmStatus.confirmed) continue;
+        if (!item.isValidForConfirm) {
+          items[i] = item.copyWith(confirmError: 'INVALID_OCR_ITEM');
+          continue;
+        }
+        ids.add(item.itemId);
+        items[i] = item.copyWith(
+          confirmStatus: OcrConfirmStatus.confirming,
+          confirmError: null,
+        );
+      }
+    });
+    if (ids.isEmpty) {
+      runInAction(() => _status.value =
+          items.every(_isConfirmed) ? OcrStatus.done : OcrStatus.reviewing);
+      return;
+    }
+    final payload = <Map<String, dynamic>>[
+      for (final id in ids) _batchPayload(items.firstWhere((i) => i.itemId == id)),
+    ];
+    String? failure;
+    Set<int> failedRows = const <int>{};
+    final body = jsonEncode(payload);
+    if (_batchKey == null || _batchBody != body) {
+      _batchKey = createUuidV4();
+      _batchBody = body;
+    }
+    try {
+      await batchApi.batchCreate(payload, idempotencyKey: _batchKey!);
+      _batchKey = null;
+      _batchBody = null;
+      await _onBatchCommitted?.call();
+    } on ApiException catch (e) {
+      failure = e.message;
+      failedRows = batchErrorRows(e);
+    }
+    runInAction(() {
+      for (var k = 0; k < ids.length; k++) {
+        final index = items.indexWhere((i) => i.itemId == ids[k]);
+        if (index < 0) continue;
+        final current = items[index];
+        items[index] = failure == null
+            ? current.copyWith(confirmStatus: OcrConfirmStatus.confirmed, confirmError: null)
+            // All-or-nothing: cả lô thất bại; dòng BE chỉ đích danh mang lỗi.
+            : current.copyWith(
+                confirmStatus: OcrConfirmStatus.failed,
+                confirmError: failedRows.isEmpty || failedRows.contains(k) ? failure : null,
+              );
+      }
+      _status.value = items.isNotEmpty && items.every(_isConfirmed)
+          ? OcrStatus.done
+          : OcrStatus.reviewing;
+    });
+  }
+
+  static Map<String, dynamic> _batchPayload(OcrItem item) => <String, dynamic>{
+        'name': item.name,
+        if (item.category != null) 'category': item.category,
+        'quantity': item.quantity,
+        'unit': item.unit,
+        if (item.expiryEstimate != null) 'expiryDate': toApiDate(item.expiryEstimate!),
+      };
 
   void reset() {
     _compressedBytes = null;
@@ -272,15 +358,3 @@ class OcrStore {
 }
 
 const Object _notProvided = Object();
-
-String _createUuidV4() {
-  final random = Random.secure();
-  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  String pair(int value) => value.toRadixString(16).padLeft(2, '0');
-  final hex = bytes.map(pair).join();
-  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
-      '${hex.substring(12, 16)}-${hex.substring(16, 20)}-'
-      '${hex.substring(20)}';
-}

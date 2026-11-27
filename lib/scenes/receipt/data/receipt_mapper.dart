@@ -1,3 +1,5 @@
+import '../../../utils/date_format.dart';
+import '../../inventory/domain/expiry_source.dart';
 import '../domain/receipt_matched_item.dart';
 import '../domain/receipt_scan_result.dart';
 import '../domain/receipt_unmatched_item.dart';
@@ -57,6 +59,7 @@ class ReceiptMapper {
   static ReceiptUnmatchedItem _unmatched(Map<String, dynamic> json) {
     final rawName = json['rawName'] as String;
     final quantity = (json['quantity'] as num).toDouble();
+    final expiry = parseApiDate(json['suggestedExpiryDate']);
     return ReceiptUnmatchedItem(
       itemId: json['itemId'] as String,
       name: _nonBlank(json['mappedName']) ?? rawName,
@@ -69,6 +72,10 @@ class ReceiptMapper {
       unitPrice: (json['unitPrice'] as num?)?.toDouble(),
       totalPrice: (json['totalPrice'] as num?)?.toDouble(),
       matchConfidence: (json['matchConfidence'] as num?)?.toDouble(),
+      // #239 additive — BE cũ không gửi thì không có hạn gợi ý.
+      expiryDate: expiry,
+      suggestedExpiry: expiry,
+      expirySource: ExpirySource.fromJson(json['expirySource']),
     );
   }
 }

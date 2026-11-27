@@ -23,6 +23,8 @@ part 'app_database.g.dart';
 ///   mới đã có cột này nên chỉ ALTER khi đi từ đúng v4.
 /// - 6 (#134): thêm cột `assigned_to` — ALTER khi đi từ v4 hoặc v5.
 /// - 7 (#69): thêm bảng [ShoppingCategories] (category local-only).
+/// - 8 (#239): thêm cột `in_inventory` cho shopping_list_items. DB đi từ <4
+///   tạo bảng mới đã có cột này nên chỉ ALTER khi đi từ v4..v7.
 @DriftDatabase(tables: <Type>[
   ReadCacheEntries,
   InventoryItems,
@@ -38,7 +40,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -65,6 +67,10 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 7) {
             await m.createTable(shoppingCategories);
+          }
+          if (from >= 4 && from < 8) {
+            // #239 — món đã cất vào kho.
+            await m.addColumn(shoppingListItems, shoppingListItems.inInventory);
           }
         },
       );

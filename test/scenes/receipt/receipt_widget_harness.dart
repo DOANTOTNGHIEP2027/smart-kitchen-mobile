@@ -27,6 +27,9 @@ import 'package:smart_kitchen_mobile/scenes/shopping/stores/shopping_store.dart'
 const String kHomeText = 'HOME-SHELL';
 const String kShoppingText = 'SHOPPING-STANDALONE';
 
+/// #239: màn cất vào kho mở sau khi cập nhật món khớp — stub trong harness.
+const String kCheckoutText = 'CHECKOUT-STUB';
+
 class FakeReceiptApi implements ReceiptApi {
   final List<String> keys = <String>[];
 
@@ -172,6 +175,11 @@ class ReceiptHarness {
             name: AppRoutes.shopping,
             page: () =>
                 const Scaffold(body: Center(child: Text(kShoppingText))),
+          ),
+          GetPage<void>(
+            name: AppRoutes.shoppingCheckout,
+            page: () =>
+                const Scaffold(body: Center(child: Text(kCheckoutText))),
           ),
           GetPage<void>(
             name: AppRoutes.receiptScan,

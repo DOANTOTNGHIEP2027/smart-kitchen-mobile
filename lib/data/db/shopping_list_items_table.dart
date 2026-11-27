@@ -21,6 +21,8 @@ class ShoppingListItems extends Table {
   RealColumn get price => real().nullable()();
   /// UUID thành viên được giao mua (#134) — `null` = chưa giao.
   TextColumn get assignedTo => text().nullable()();
+  /// #239: món đã được cất vào kho (BE `inInventory`).
+  BoolColumn get inInventory => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
