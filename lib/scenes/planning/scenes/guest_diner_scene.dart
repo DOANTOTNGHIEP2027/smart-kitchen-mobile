@@ -13,6 +13,7 @@ import '../../../widgets/cards/app_card.dart';
 import '../../../widgets/states/app_state_view.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../profile/domain/allergen.dart';
+import '../../profile/widgets/allergen_label.dart';
 import '../domain/guest_diner.dart';
 import '../stores/guest_diner_store.dart';
 import '../widgets/allergen_multi_select.dart';
@@ -209,7 +210,7 @@ class _GuestDinerRow extends StatelessWidget {
               children: <Widget>[
                 for (final a in diner.allergens)
                   Chip(
-                    label: Text(a.name),
+                    label: Text(a.label(l10n)),
                     visualDensity: VisualDensity.compact,
                   ),
               ],

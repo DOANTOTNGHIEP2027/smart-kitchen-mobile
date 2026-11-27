@@ -10,6 +10,7 @@ import '../../../stores/session_store.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/money_format.dart';
 import '../../../utils/quantity_format.dart';
+import '../../../utils/text_format.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../inventory/domain/unit_option.dart';
@@ -698,7 +699,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        item.name,
+                        capitalizeFirst(item.name),
                         style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: isCompleted
@@ -892,12 +893,14 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (bottomSheetContext) => StatefulBuilder(
-        builder: (ctx, setModalState) => Padding(
+        // viewInsets phải đọc từ context CỦA SHEET — context màn ngoài không
+        // thấy bàn phím nên sheet bị che. Cuộn được khi màn thấp.
+        builder: (ctx, setModalState) => SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
             AppDimens.lg,
             AppDimens.lg,
             AppDimens.lg,
-            MediaQuery.of(context).viewInsets.bottom + AppDimens.lg,
+            MediaQuery.viewInsetsOf(ctx).bottom + AppDimens.lg,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

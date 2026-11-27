@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../utils/l10n_x.dart';
 import '../../profile/domain/allergen.dart';
+import '../../profile/widgets/allergen_label.dart';
 
 /// Chọn nhiều allergen từ catalog — widget thuần, không gắn store (thiết kế
 /// D4). Chỉ hiển thị allergen có trong [catalog] (I9: không cho chọn ngoài
@@ -30,7 +32,7 @@ class AllergenMultiSelect extends StatelessWidget {
         for (final allergen in catalog)
           FilterChip(
             key: ValueKey<String>('allergen-chip-${allergen.id}'),
-            label: Text(allergen.name),
+            label: Text(allergen.label(context.l10n)),
             selected: selectedIds.contains(allergen.id),
             // Cùng tông chip dị ứng của form hồ sơ: chọn = tông đỏ cảnh báo.
             selectedColor: AppColors.error.withValues(alpha: 0.15),

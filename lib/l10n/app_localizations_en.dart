@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -119,7 +120,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-      int startDay, int startMonth, int endDay, int endMonth) {
+    int startDay,
+    int startMonth,
+    int endDay,
+    int endMonth,
+  ) {
     return 'Week $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -606,7 +611,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-      String required, String available, String shortfall, String unit) {
+    String required,
+    String available,
+    String shortfall,
+    String unit,
+  ) {
     return 'Need $required · Have $available · Short $shortfall $unit';
   }
 
@@ -3804,4 +3813,118 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errShopItemNotBought =>
       'Only bought items can be put in the pantry.';
+
+  @override
+  String get homeGreetingMorning => 'Good morning';
+
+  @override
+  String get homeGreetingNoon => 'Hello';
+
+  @override
+  String get homeGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get homeGreetingEvening => 'Good evening';
+
+  @override
+  String get homeShoppingSubtitle => 'Your list of things to buy';
+
+  @override
+  String get homeMealLogSubtitle => 'Track nutrition & calories';
+
+  @override
+  String get familyMemberActions => 'Member actions';
+
+  @override
+  String get mealPlanDishSourceTitle => 'How do you want to pick this dish?';
+
+  @override
+  String get mealPlanDishSourceAi => 'AI suggestions';
+
+  @override
+  String get inventoryDeleteConfirmMessage =>
+      'This item will be removed from the pantry.';
+
+  @override
+  String get inventoryDeleteReasonTitle => 'Why are you removing this item?';
+
+  @override
+  String get allergenGluten => 'Gluten';
+
+  @override
+  String get allergenCrustaceans => 'Crustaceans';
+
+  @override
+  String get allergenEggs => 'Eggs';
+
+  @override
+  String get allergenFish => 'Fish';
+
+  @override
+  String get allergenPeanuts => 'Peanuts';
+
+  @override
+  String get allergenSoybeans => 'Soybeans';
+
+  @override
+  String get allergenMilk => 'Milk';
+
+  @override
+  String get allergenTreeNuts => 'Tree nuts';
+
+  @override
+  String get allergenCelery => 'Celery';
+
+  @override
+  String get allergenMustard => 'Mustard';
+
+  @override
+  String get allergenSesame => 'Sesame';
+
+  @override
+  String get allergenSulphurDioxide => 'Sulphur dioxide';
+
+  @override
+  String get allergenLupin => 'Lupin';
+
+  @override
+  String get allergenMolluscs => 'Molluscs';
+
+  @override
+  String get dietTypeUnsetShort => 'Not set';
+
+  @override
+  String get dietTypeNoneShort => 'No restriction';
+
+  @override
+  String get dietTypeUnsetDescription =>
+      'No diet chosen — meal plans apply no diet constraint.';
+
+  @override
+  String get dietTypeNoneDescription =>
+      'Regular eating, no food groups excluded.';
+
+  @override
+  String get dietTypeKetoDescription =>
+      'Very low carb, high fat — limits rice, bread and sweets.';
+
+  @override
+  String get dietTypeVegetarianDescription =>
+      'No meat or fish; eggs and dairy are fine.';
+
+  @override
+  String get dietTypeVeganDescription =>
+      'Plant-based only: no meat, fish, eggs, dairy or other animal products.';
+
+  @override
+  String get dietTypePescatarianDescription =>
+      'No meat, but fish and seafood are fine.';
+
+  @override
+  String get dietTypeGlutenFreeDescription =>
+      'Avoids wheat, barley and other gluten-containing foods.';
+
+  @override
+  String get dietTypeDiabeticDescription =>
+      'Limits sugar and fast-absorbing carbs, favours low-sugar dishes.';
 }

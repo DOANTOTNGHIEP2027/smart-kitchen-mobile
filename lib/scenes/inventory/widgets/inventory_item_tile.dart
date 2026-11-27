@@ -4,6 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/quantity_format.dart';
+import '../../../utils/text_format.dart';
 import '../domain/inventory_item.dart';
 
 /// Hiển thị một [InventoryItemModel] trong danh sách kho.
@@ -81,7 +82,7 @@ class InventoryItemTile extends StatelessWidget {
                         children: <Widget>[
                           Expanded(
                             child: Text(
-                              item.name,
+                              capitalizeFirst(item.name),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.textPrimary,

@@ -18,6 +18,7 @@ import 'domain/allergen.dart';
 import 'domain/health_profile.dart';
 import 'stores/form_status.dart';
 import 'stores/profile_store.dart';
+import 'widgets/allergen_label.dart';
 import 'widgets/stale_data_banner.dart';
 
 /// Picker dị ứng (`/profile/allergens`) — 3 nhánh theo trạng thái health
@@ -197,7 +198,7 @@ class _AllergenSelectScreenState extends State<AllergenSelectScreen> {
                                 selected.remove(a.id);
                               }
                             }),
-                    title: Text(a.name),
+                    title: Text(a.label(context.l10n)),
                   ),
                 ),
               );
@@ -277,7 +278,7 @@ class _CachedAllergensView extends StatelessWidget {
                     spacing: AppDimens.sm,
                     runSpacing: AppDimens.xs,
                     children: <Widget>[
-                      for (final a in allergens) Chip(label: Text(a.name)),
+                      for (final a in allergens) Chip(label: Text(a.label(context.l10n))),
                     ],
                   ),
                 const SizedBox(height: AppDimens.sm),

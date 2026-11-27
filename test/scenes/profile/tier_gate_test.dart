@@ -311,9 +311,18 @@ void main() {
       }
 
       await pumpFamily('OWNER');
+      // Đổi vai trò nằm trong menu ⋮ của từng dòng (không có trên dòng mình).
+      expect(find.byKey(const ValueKey<String>('member-actions-me')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey<String>('member-actions-a')));
+      await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey<String>('member-change-role-a')), findsOneWidget);
+      await tester.tapAt(Offset.zero);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('member-actions-v')));
+      await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey<String>('member-change-role-v')), findsOneWidget);
-      expect(find.byKey(const ValueKey<String>('member-change-role-me')), findsNothing);
+      await tester.tapAt(Offset.zero);
+      await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey<String>('remote-viewer-banner')), findsNothing);
 
       await pumpFamily('MEMBER');

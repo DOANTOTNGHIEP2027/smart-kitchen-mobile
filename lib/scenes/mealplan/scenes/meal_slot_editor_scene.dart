@@ -49,13 +49,64 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
         _showActionError(context.l10n.mealPlanAddDishFailed);
         return;
       }
-      await _openSuggestions(dish.id);
+      // Thêm món xong hỏi cách chọn: gợi ý AI (luồng cũ) hay chọn thẳng
+      // từ công thức. Đóng sheet = để món "chưa chọn", chọn sau cũng được.
+      final source = await _askDishSource();
+      if (!mounted) return;
+      switch (source) {
+        case _DishSource.ai:
+          await _openSuggestions(dish.id);
+        case _DishSource.recipe:
+          await _chooseManual(dish.id);
+        case null:
+          break;
+      }
     } catch (_) {
       if (mounted) _showActionError(context.l10n.mealPlanAddDishFailed);
     } finally {
       if (mounted) setState(() => _isAdding = false);
     }
   }
+
+  Future<_DishSource?> _askDishSource() => showModalBottomSheet<_DishSource>(
+        context: context,
+        showDragHandle: true,
+        builder: (sheetCtx) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: AppDimens.md),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimens.lg, vertical: AppDimens.sm),
+                  child: Text(
+                    sheetCtx.l10n.mealPlanDishSourceTitle,
+                    style: Theme.of(sheetCtx).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+                ListTile(
+                  key: const ValueKey<String>('dish-source-ai'),
+                  leading: const Icon(Icons.auto_awesome,
+                      color: AppColors.primary),
+                  title: Text(sheetCtx.l10n.mealPlanDishSourceAi),
+                  onTap: () => Navigator.of(sheetCtx).pop(_DishSource.ai),
+                ),
+                ListTile(
+                  key: const ValueKey<String>('dish-source-recipe'),
+                  leading: const Icon(Icons.menu_book_outlined,
+                      color: AppColors.primary),
+                  title: Text(sheetCtx.l10n.mealPlanChooseRecipe),
+                  onTap: () => Navigator.of(sheetCtx).pop(_DishSource.recipe),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
 
   Future<void> _openSuggestions(String dishId) async {
     try {
@@ -112,6 +163,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
     final store = Get.find<MealPlanStore>();
     return AppScaffold(
       title: '${widget.mealLabel} · ${widget.dateLabel}',
+      titleMaxLines: 2,
       body: Observer(
         builder: (_) {
           final key = store.slotKeyOf(widget.slotId);
@@ -232,6 +284,8 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
   }
 }
 
+enum _DishSource { ai, recipe }
+
 class _EditableDishCard extends StatelessWidget {
   const _EditableDishCard({
     required this.dish,
@@ -276,11 +330,11 @@ class _EditableDishCard extends StatelessWidget {
             child: RecipeCoverImage(
               recipeId: recipe.recipeId,
               recipeName: recipe.recipeName,
-              width: 72,
-              height: 72,
+              width: 64,
+              height: 64,
             ),
           ),
-          const SizedBox(width: AppDimens.md),
+          const SizedBox(width: AppDimens.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,12 +358,16 @@ class _EditableDishCard extends StatelessWidget {
                         color: AppColors.primaryDark,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        context.l10n.homeRecipeMinutes(minutes),
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: AppColors.textSecondary),
+                      Flexible(
+                        child: Text(
+                          context.l10n.homeRecipeMinutes(minutes),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
                       ),
                     ],
                   ),
@@ -320,6 +378,7 @@ class _EditableDishCard extends StatelessWidget {
           _InsightsButton(onPressed: onInsights),
           IconButton(
             onPressed: onDelete,
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.delete_outline_rounded),
             color: AppColors.error,
             tooltip: context.l10n.mealplanDeleteDish,
@@ -374,6 +433,8 @@ class _PendingDishCard extends StatelessWidget {
             Expanded(
               child: Text(
                 context.l10n.mealPlanDishUnselected,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w700,
@@ -383,6 +444,7 @@ class _PendingDishCard extends StatelessWidget {
             if (onChoose != null)
               IconButton.filledTonal(
                 onPressed: onChoose,
+                visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.primaryContainer,
@@ -392,8 +454,10 @@ class _PendingDishCard extends StatelessWidget {
             _InsightsButton(onPressed: onInsights),
             IconButton(
               onPressed: onDelete,
+              visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.delete_outline_rounded),
               color: AppColors.error,
+              tooltip: context.l10n.mealplanDeleteDish,
             ),
           ],
         ),
@@ -410,6 +474,7 @@ class _InsightsButton extends StatelessWidget {
   Widget build(BuildContext context) => IconButton(
         key: const ValueKey<String>('dish-candidate-insights'),
         onPressed: onPressed,
+        visualDensity: VisualDensity.compact,
         icon: const Icon(Icons.auto_awesome_outlined),
         color: AppColors.primary,
         tooltip: context.l10n.planningCandidateTooltip,

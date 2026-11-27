@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -117,7 +118,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-      int startDay, int startMonth, int endDay, int endMonth) {
+    int startDay,
+    int startMonth,
+    int endDay,
+    int endMonth,
+  ) {
     return 'Tuần $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -600,7 +605,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-      String required, String available, String shortfall, String unit) {
+    String required,
+    String available,
+    String shortfall,
+    String unit,
+  ) {
     return 'Cần $required · Có $available · Thiếu $shortfall $unit';
   }
 
@@ -3734,4 +3743,117 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get errShopItemNotBought => 'Chỉ món đã mua mới cất vào kho được.';
+
+  @override
+  String get homeGreetingMorning => 'Chào buổi sáng';
+
+  @override
+  String get homeGreetingNoon => 'Chào buổi trưa';
+
+  @override
+  String get homeGreetingAfternoon => 'Chào buổi chiều';
+
+  @override
+  String get homeGreetingEvening => 'Chào buổi tối';
+
+  @override
+  String get homeShoppingSubtitle => 'Danh sách đồ cần mua sắm';
+
+  @override
+  String get homeMealLogSubtitle => 'Theo dõi dinh dưỡng & calo';
+
+  @override
+  String get familyMemberActions => 'Thao tác với thành viên';
+
+  @override
+  String get mealPlanDishSourceTitle => 'Chọn món bằng cách nào?';
+
+  @override
+  String get mealPlanDishSourceAi => 'Gợi ý AI';
+
+  @override
+  String get inventoryDeleteConfirmMessage => 'Mặt hàng sẽ bị xoá khỏi kho.';
+
+  @override
+  String get inventoryDeleteReasonTitle => 'Vì sao xoá mặt hàng này?';
+
+  @override
+  String get allergenGluten => 'Gluten (lúa mì)';
+
+  @override
+  String get allergenCrustaceans => 'Giáp xác (tôm, cua)';
+
+  @override
+  String get allergenEggs => 'Trứng';
+
+  @override
+  String get allergenFish => 'Cá';
+
+  @override
+  String get allergenPeanuts => 'Đậu phộng';
+
+  @override
+  String get allergenSoybeans => 'Đậu nành';
+
+  @override
+  String get allergenMilk => 'Sữa';
+
+  @override
+  String get allergenTreeNuts => 'Hạt cây (hạnh nhân, óc chó…)';
+
+  @override
+  String get allergenCelery => 'Cần tây';
+
+  @override
+  String get allergenMustard => 'Mù tạt';
+
+  @override
+  String get allergenSesame => 'Mè (vừng)';
+
+  @override
+  String get allergenSulphurDioxide => 'Sulfit (SO₂)';
+
+  @override
+  String get allergenLupin => 'Đậu lupin';
+
+  @override
+  String get allergenMolluscs => 'Nhuyễn thể (mực, sò…)';
+
+  @override
+  String get dietTypeUnsetShort => 'Chưa chọn';
+
+  @override
+  String get dietTypeNoneShort => 'Không kiêng';
+
+  @override
+  String get dietTypeUnsetDescription =>
+      'Chưa chọn chế độ ăn — thực đơn không áp ràng buộc nào.';
+
+  @override
+  String get dietTypeNoneDescription =>
+      'Ăn bình thường, không kiêng nhóm thực phẩm nào.';
+
+  @override
+  String get dietTypeKetoDescription =>
+      'Rất ít tinh bột, nhiều chất béo — hạn chế cơm, bánh mì, đồ ngọt.';
+
+  @override
+  String get dietTypeVegetarianDescription =>
+      'Không ăn thịt, cá; vẫn dùng trứng và sữa.';
+
+  @override
+  String get dietTypeVeganDescription =>
+      'Thuần chay: không thịt, cá, trứng, sữa hay sản phẩm từ động vật.';
+
+  @override
+  String get dietTypePescatarianDescription =>
+      'Không ăn thịt nhưng vẫn ăn cá và hải sản.';
+
+  @override
+  String get dietTypeGlutenFreeDescription =>
+      'Tránh lúa mì, lúa mạch và thực phẩm chứa gluten.';
+
+  @override
+  String get dietTypeDiabeticDescription =>
+      'Hạn chế đường và tinh bột hấp thu nhanh, ưu tiên món ít ngọt.';
 }

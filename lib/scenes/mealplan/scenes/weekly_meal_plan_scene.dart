@@ -5,11 +5,11 @@ import 'package:get/get.dart';
 import '../../assistant/scenes/assistant_routes.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
-import '../../../routing/app_routes.dart';
 import '../../../stores/session_store.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/app_loading_view.dart';
@@ -18,8 +18,6 @@ import '../domain/meal_plan_slot.dart';
 import '../stores/meal_plan_store.dart';
 import '../widgets/recipe_cover_image.dart';
 import 'meal_slot_editor_scene.dart';
-import '../../nutrition/stores/nutrition_store.dart';
-import '../../nutrition/widgets/nutrition_summary_widget.dart';
 
 /// Lưới lịch bữa ăn tuần (FE-7 §12, 7 ngày × 3 bữa) — Phong cách Tasty:
 /// Sáng sủa, thoáng đãng, các thẻ bữa ăn solid-color với shadow nhẹ,
@@ -69,24 +67,6 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene>
     return AppScaffold(
       title: context.l10n.mealPlanTitle,
       actions: <Widget>[
-        Observer(
-            builder: (_) => TextButton(
-                onPressed: store.status != MealPlanLoadStatus.ready ||
-                        store.isConfirmed ||
-                        store.isConfirming ||
-                        session.role != 'OWNER'
-                    ? null
-                    : () async {
-                        final ok = await store.confirm();
-                        if (!ok && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content:
-                                  Text(context.l10n.mealPlanConfirmFailed)));
-                        }
-                      },
-                child: Text(store.isConfirmed
-                    ? context.l10n.mealPlanConfirmed
-                    : context.l10n.mealPlanConfirm))),
         Observer(builder: (_) {
           // `currentPlanId` không bị xoá khi tải tuần mới lỗi/đang tải — chỉ
           // tin khi status ready, tránh mở khách của tuần TRƯỚC.
@@ -102,17 +82,29 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene>
                 Get.toNamed<void>(PlanningRoutes.guestDinersOf(planId)),
           );
         }),
-        IconButton(
-          key: const ValueKey<String>('meal-plan-repetition'),
-          tooltip: context.l10n.planningRepetitionTooltip,
-          icon: const Icon(Icons.bar_chart_rounded),
-          onPressed: () => Get.toNamed<void>(PlanningRoutes.repetitionSummary),
-        ),
-        IconButton(
-          key: const ValueKey<String>('meal-plan-slot-config'),
-          tooltip: context.l10n.planningSlotConfigTooltip,
-          icon: const Icon(Icons.tune),
-          onPressed: () => Get.toNamed<void>(PlanningRoutes.slotConfig),
+        // Icon ít dùng gom vào ⋮ để tiêu đề không bị cắt.
+        PopupMenuButton<String>(
+          key: const ValueKey<String>('meal-plan-more'),
+          icon: const Icon(Icons.more_vert),
+          onSelected: (route) => Get.toNamed<void>(route),
+          itemBuilder: (menuCtx) => <PopupMenuEntry<String>>[
+            PopupMenuItem<String>(
+              key: const ValueKey<String>('meal-plan-repetition'),
+              value: PlanningRoutes.repetitionSummary,
+              child: _MenuRow(
+                icon: Icons.bar_chart_rounded,
+                label: menuCtx.l10n.planningRepetitionTooltip,
+              ),
+            ),
+            PopupMenuItem<String>(
+              key: const ValueKey<String>('meal-plan-slot-config'),
+              value: PlanningRoutes.slotConfig,
+              child: _MenuRow(
+                icon: Icons.tune,
+                label: menuCtx.l10n.planningSlotConfigTooltip,
+              ),
+            ),
+          ],
         ),
       ],
       body: Observer(
@@ -141,6 +133,14 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene>
                   dateInCurrentWeek ? selectedDate : store.currentWeekStart;
               return _WeekCalendar(
                 store: store,
+                canConfirm: session.role == 'OWNER',
+                onConfirm: () async {
+                  final ok = await store.confirm();
+                  if (!ok && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(context.l10n.mealPlanConfirmFailed)));
+                  }
+                },
                 selectedDate: effectiveSelectedDate,
                 onDateSelected: (date) => setState(() => _selectedDate = date),
                 onNavigateWeek: (direction) => _navigateWeek(store, direction),
@@ -152,31 +152,40 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene>
   }
 }
 
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: <Widget>[
+          Icon(icon, size: 20),
+          const SizedBox(width: AppDimens.md),
+          Flexible(child: Text(label)),
+        ],
+      );
+}
+
 class _WeekCalendar extends StatelessWidget {
   const _WeekCalendar({
     required this.store,
+    required this.canConfirm,
+    required this.onConfirm,
     required this.selectedDate,
     required this.onDateSelected,
     required this.onNavigateWeek,
   });
 
   final MealPlanStore store;
+
+  /// Chỉ OWNER được chốt thực đơn tuần.
+  final bool canConfirm;
+  final Future<void> Function() onConfirm;
   final DateTime selectedDate;
   final ValueChanged<DateTime> onDateSelected;
   final Future<void> Function(int direction) onNavigateWeek;
-
-  static Widget _nutritionSection() {
-    if (!Get.isRegistered<NutritionStore>(tag: NutritionStore.mealPlanTag)) {
-      return const SizedBox.shrink();
-    }
-    return Padding(
-      padding: const EdgeInsets.only(top: AppDimens.lg),
-      child: NutritionSummaryWidget(
-        store: Get.find<NutritionStore>(tag: NutritionStore.mealPlanTag),
-        onSetTarget: () async => Get.toNamed<void>(AppRoutes.profileHealth),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) => Observer(
@@ -195,6 +204,20 @@ class _WeekCalendar extends StatelessWidget {
               onNext: () => onNavigateWeek(1),
             ),
             const SizedBox(height: AppDimens.sm),
+            // "Chốt thực đơn tuần" — trước nằm trên app bar làm tiêu đề bị cắt.
+            if (store.isConfirmed)
+              _ConfirmedBanner(label: context.l10n.mealPlanConfirmed)
+            else if (canConfirm)
+              AppButton(
+                key: const ValueKey<String>('meal-plan-confirm'),
+                label: context.l10n.mealPlanConfirm,
+                icon: Icons.task_alt_rounded,
+                variant: AppButtonVariant.secondary,
+                isLoading: store.isConfirming,
+                onPressed: store.isConfirming ? null : onConfirm,
+              ),
+            if (store.isConfirmed || canConfirm)
+              const SizedBox(height: AppDimens.sm),
 
             // 7 Days Calendar Strip
             Container(
@@ -215,7 +238,7 @@ class _WeekCalendar extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
-                  childAspectRatio: 0.82,
+                  childAspectRatio: 0.7,
                 ),
                 itemCount: 7,
                 itemBuilder: (_, index) {
@@ -261,8 +284,6 @@ class _WeekCalendar extends StatelessWidget {
                 ),
               ),
             ),
-            // #64 — tổng hợp dinh dưỡng tuần đang xem.
-            _nutritionSection(),
           ],
         ),
       );
@@ -331,12 +352,17 @@ class _WeekNavigation extends StatelessWidget {
               icon: const Icon(Icons.chevron_left_rounded),
               onPressed: onPrevious,
             ),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
-                  ),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.chevron_right_rounded),
@@ -370,7 +396,7 @@ class _CalendarDay extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppDimens.radiusSm),
           child: Container(
-            margin: const EdgeInsets.all(2),
+            margin: const EdgeInsets.all(1),
             decoration: BoxDecoration(
               color: selected ? AppColors.primary : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
@@ -389,6 +415,9 @@ class _CalendarDay extends StatelessWidget {
               children: <Widget>[
                 Text(
                   label,
+                  maxLines: 1,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
                   style: TextStyle(
                     fontSize: 11,
                     color: selected
@@ -420,6 +449,39 @@ class _CalendarDay extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      );
+}
+
+class _ConfirmedBanner extends StatelessWidget {
+  const _ConfirmedBanner({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        key: const ValueKey<String>('meal-plan-confirmed'),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.md, vertical: AppDimens.sm),
+        decoration: BoxDecoration(
+          color: AppColors.primaryContainer,
+          borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        ),
+        child: Row(
+          children: <Widget>[
+            const Icon(Icons.task_alt_rounded,
+                size: 18, color: AppColors.primaryDark),
+            const SizedBox(width: AppDimens.sm),
+            Expanded(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.onPrimaryContainer,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+          ],
         ),
       );
 }
@@ -542,14 +604,17 @@ class _MealScheduleCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: AppDimens.sm),
-                    Text(
-                      periodLabel,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w800,
-                          ),
+                    Expanded(
+                      child: Text(
+                        periodLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
                     ),
-                    const Spacer(),
                     // Trợ lý bếp ngữ cảnh PLANNING (#204): nút riêng, không kích
                     // InkWell của thẻ.
                     if (canEdit &&
@@ -666,7 +731,7 @@ class _ScheduledDishCard extends StatelessWidget {
               children: <Widget>[
                 Text(
                   recipe.recipeName,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textPrimary,
@@ -674,24 +739,31 @@ class _ScheduledDishCard extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 2),
-                Row(
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: <Widget>[
-                    if (minutes != null) ...<Widget>[
-                      const Icon(
-                        Icons.access_time_rounded,
-                        size: 11,
-                        color: AppColors.textSecondary,
+                    if (minutes != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          const Icon(
+                            Icons.access_time_rounded,
+                            size: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            context.l10n.homeRecipeMinutes(minutes),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary,
+                                    ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 3),
-                      Text(
-                        context.l10n.homeRecipeMinutes(minutes),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 11,
-                              color: AppColors.textSecondary,
-                            ),
-                      ),
-                      const SizedBox(width: 6),
-                    ],
                     _dishStatusChip(context, dish.status),
                   ],
                 ),

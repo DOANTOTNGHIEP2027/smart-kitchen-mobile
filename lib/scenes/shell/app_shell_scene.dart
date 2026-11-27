@@ -8,6 +8,7 @@ import '../../constants/app_dimens.dart';
 import '../../demo/fixtures/demo_fixtures.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
+import '../../utils/greeting.dart';
 import '../../stores/session_store.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/buttons/app_button.dart';
@@ -170,7 +171,7 @@ class _HomeTab extends StatelessWidget {
               AppDimens.lg, AppDimens.md, AppDimens.lg, AppDimens.xl),
           children: <Widget>[
             _HomeHeader(
-              greeting: context.l10n.homeGreeting,
+              greeting: _greetingText(context),
               displayName:
                   session?.currentUser?.displayName ?? context.l10n.appTitle,
             ),
@@ -199,48 +200,58 @@ class _HomeTab extends StatelessWidget {
               onTap: _openMealPlan,
             ),
             const SizedBox(height: AppDimens.sm),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: _HomeActionCard(
-                    title: context.l10n.homeInventoryTitle,
-                    subtitle: context.l10n.homeInventorySubtitle,
-                    icon: Icons.kitchen_outlined,
-                    onTap: () => Get.find<AppShellStore>().selectTab(1),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    child: _HomeActionCard(
+                      compact: true,
+                      title: context.l10n.homeInventoryTitle,
+                      subtitle: context.l10n.homeInventorySubtitle,
+                      icon: Icons.kitchen_outlined,
+                      onTap: () => Get.find<AppShellStore>().selectTab(1),
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppDimens.sm),
-                Expanded(
-                  child: _HomeActionCard(
-                    title: context.l10n.homeMealPlanTitle,
-                    subtitle: context.l10n.homeMealPlanSubtitle,
-                    icon: Icons.event_note_outlined,
-                    onTap: _openMealPlan,
+                  const SizedBox(width: AppDimens.sm),
+                  Expanded(
+                    child: _HomeActionCard(
+                      compact: true,
+                      title: context.l10n.homeMealPlanTitle,
+                      subtitle: context.l10n.homeMealPlanSubtitle,
+                      icon: Icons.event_note_outlined,
+                      onTap: _openMealPlan,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: AppDimens.sm),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: _HomeActionCard(
-                    title: context.l10n.navShopping,
-                    subtitle: 'Danh sách đồ cần mua sắm',
-                    icon: Icons.shopping_cart_outlined,
-                    onTap: () => Get.find<AppShellStore>().selectTab(3),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    child: _HomeActionCard(
+                      compact: true,
+                      title: context.l10n.navShopping,
+                      subtitle: context.l10n.homeShoppingSubtitle,
+                      icon: Icons.shopping_cart_outlined,
+                      onTap: () => Get.find<AppShellStore>().selectTab(3),
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppDimens.sm),
-                Expanded(
-                  child: _HomeActionCard(
-                    title: context.l10n.mealLogTitle,
-                    subtitle: 'Theo dõi dinh dưỡng & calo',
-                    icon: Icons.analytics_outlined,
-                    onTap: () => Get.toNamed<void>(CookingRoutes.mealLog),
+                  const SizedBox(width: AppDimens.sm),
+                  Expanded(
+                    child: _HomeActionCard(
+                      compact: true,
+                      title: context.l10n.mealLogTitle,
+                      subtitle: context.l10n.homeMealLogSubtitle,
+                      icon: Icons.analytics_outlined,
+                      onTap: () => Get.toNamed<void>(CookingRoutes.mealLog),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             if (EnvConfig.isDemoMode) ...<Widget>[
               const SizedBox(height: AppDimens.xl),
@@ -276,6 +287,16 @@ class _HomeTab extends StatelessWidget {
   }
 
   void _openMealPlan() => Get.find<AppShellStore>().selectTab(2);
+
+  String _greetingText(BuildContext context) {
+    final l10n = context.l10n;
+    return switch (greetingFor(DateTime.now().hour)) {
+      GreetingPeriod.morning => l10n.homeGreetingMorning,
+      GreetingPeriod.noon => l10n.homeGreetingNoon,
+      GreetingPeriod.afternoon => l10n.homeGreetingAfternoon,
+      GreetingPeriod.evening => l10n.homeGreetingEvening,
+    };
+  }
 }
 
 class _HomeHeader extends StatelessWidget {
@@ -437,6 +458,7 @@ class _HomeActionCard extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.primary = false,
+    this.compact = false,
   });
 
   final String title;
@@ -444,6 +466,10 @@ class _HomeActionCard extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final bool primary;
+
+  /// Ô nửa chiều rộng: xếp dọc (icon trên, chữ dưới, không mũi tên) để
+  /// tiêu đề/mô tả đọc được hết thay vì bị "…".
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -484,82 +510,123 @@ class _HomeActionCard extends StatelessWidget {
                     ),
                   ],
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                width: primary ? 46 : 40,
-                height: primary ? 46 : 40,
-                decoration: BoxDecoration(
-                  color: primary
-                      ? AppColors.textOnPrimary.withValues(alpha: 0.18)
-                      : AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  size: primary ? 24 : 20,
-                  color: primary
-                      ? AppColors.textOnPrimary
-                      : AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+          child: compact
+              ? _buildCompact(context, foreground)
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: foreground,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                          ),
+                    Container(
+                      width: primary ? 46 : 40,
+                      height: primary ? 46 : 40,
+                      decoration: BoxDecoration(
+                        color: primary
+                            ? AppColors.textOnPrimary.withValues(alpha: 0.18)
+                            : AppColors.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: primary ? 24 : 20,
+                        color: primary
+                            ? AppColors.textOnPrimary
+                            : AppColors.primary,
+                      ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      maxLines: primary ? 1 : 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: primary
-                                ? AppColors.textOnPrimary.withValues(alpha: 0.88)
-                                : AppColors.textSecondary,
-                            height: 1.25,
-                            fontSize: 12,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  color: foreground,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
                           ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            maxLines: primary ? 1 : 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: primary
+                                      ? AppColors.textOnPrimary.withValues(alpha: 0.88)
+                                      : AppColors.textSecondary,
+                                  height: 1.25,
+                                  fontSize: 12,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: primary
+                            ? AppColors.textOnPrimary.withValues(alpha: 0.15)
+                            : AppColors.surfaceSubtle,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_rounded,
+                        color: primary
+                            ? AppColors.textOnPrimary
+                            : AppColors.textSecondary,
+                        size: 15,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: primary
-                      ? AppColors.textOnPrimary.withValues(alpha: 0.15)
-                      : AppColors.surfaceSubtle,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  color: primary
-                      ? AppColors.textOnPrimary
-                      : AppColors.textSecondary,
-                  size: 15,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
   }
+
+  Widget _buildCompact(BuildContext context, Color foreground) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: AppColors.primary),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  height: 1.25,
+                ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.25,
+                  fontSize: 12,
+                ),
+          ),
+        ],
+      );
 }
 
 class _HomeRecipeCard extends StatelessWidget {

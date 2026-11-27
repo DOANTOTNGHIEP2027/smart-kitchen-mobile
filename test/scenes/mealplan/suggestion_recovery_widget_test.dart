@@ -61,6 +61,29 @@ Future<void> _tap(WidgetTester tester, String label) async {
   await tester.pumpAndSettle();
 }
 
+/// Hành động phụ (Đọc lại / Tạo gợi ý / …) nằm trong menu ⋮ trên app bar.
+Future<void> _openMenu(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey<String>('suggestion-more-actions')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapMenu(WidgetTester tester, String label) async {
+  await _openMenu(tester);
+  await tester.tap(find.text(label).last);
+  await tester.pumpAndSettle();
+}
+
+Future<bool> _menuItemEnabled(WidgetTester tester, String label) async {
+  await _openMenu(tester);
+  final item = tester.widget<PopupMenuItem<Object?>>(find.ancestor(
+      of: find.text(label).last,
+      matching: find.byWidgetPredicate((w) => w is PopupMenuItem)));
+  final enabled = item.enabled;
+  await tester.tapAt(Offset.zero);
+  await tester.pumpAndSettle();
+  return enabled;
+}
+
 void main() {
   tearDown(() async {
     Get.reset();
@@ -83,7 +106,7 @@ void main() {
     final plan = await _open(tester, api);
     await tester.pumpAndSettle();
     final l10n = _l10n(tester);
-    await _tap(tester, l10n.mealPlanGenerateSuggestions);
+    await _tapMenu(tester, l10n.mealPlanGenerateSuggestions);
     expect(find.text(l10n.mealplanOutcomeUnknown), findsOneWidget);
     expect(find.text(l10n.mealplanActionRolledBack), findsNothing);
     expect(find.text('Saved soup'), findsWidgets);
@@ -121,11 +144,11 @@ void main() {
     final l10n = _l10n(tester);
     expect(find.text(l10n.mealplanSuggestionsExhausted), findsOneWidget);
     api.onList = () async => throw NetworkException();
-    await _tap(tester, l10n.mealplanReadAgain);
+    await _tapMenu(tester, l10n.mealplanReadAgain);
     expect(find.text(l10n.mealplanSuggestionsUnavailable), findsOneWidget);
     expect(writes, 0);
     api.onList = () async => [_a];
-    await _tap(tester, l10n.mealplanReadAgain);
+    await _tapMenu(tester, l10n.mealplanReadAgain);
     expect(find.text('Saved soup'), findsWidgets);
     expect(writes, 0);
   });
@@ -139,12 +162,13 @@ void main() {
     await _open(tester, api);
     await tester.pumpAndSettle();
     final l10n = _l10n(tester);
-    await _tap(tester, l10n.mealPlanGenerateSuggestions);
+    await _tapMenu(tester, l10n.mealPlanGenerateSuggestions);
     api.onList = () async => throw NetworkException();
     await _tap(tester, l10n.mealplanReadAgain);
     expect(find.text(l10n.mealplanOutcomeUnknown), findsOneWidget);
     expect(_button(tester, l10n.mealplanContinueSnapshot).onPressed, null);
-    expect(_button(tester, l10n.mealPlanGenerateSuggestions).onPressed, null);
+    expect(await _menuItemEnabled(tester, l10n.mealPlanGenerateSuggestions),
+        isFalse);
     expect(find.text('Saved soup'), findsWidgets);
   });
 }

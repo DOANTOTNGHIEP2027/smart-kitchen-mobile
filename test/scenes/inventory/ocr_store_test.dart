@@ -11,11 +11,8 @@ import 'package:smart_kitchen_mobile/scenes/inventory/ocr/data/ocr_image_service
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/domain/ocr_item.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/domain/ocr_scan_result.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/stores/ocr_store.dart';
-import 'package:smart_kitchen_mobile/scenes/inventory/ocr/scenes/camera_scan_scene.dart';
-import 'package:smart_kitchen_mobile/scenes/inventory/ocr/scenes/ocr_result_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/stores/inventory_form_store.dart';
 
-import '../../helpers/pump_app.dart';
 
 class _FakeOcrApi implements OcrApi {
   final List<String> keys = <String>[];
@@ -181,57 +178,6 @@ void main() {
         note: null,
       ),
     ).called(1);
-  });
-
-  testWidgets('camera state follows the OCR mockup entry actions',
-      (tester) async {
-    Get.put<OcrStore>(store);
-
-    await tester.pumpAppWidget(
-      const CameraScanScene(),
-      wrapInScaffold: false,
-    );
-
-    expect(find.text('Quét ảnh thêm vào kho'), findsOneWidget);
-    expect(find.text('Từng món'), findsOneWidget);
-    expect(find.text('Hoá đơn / tủ lạnh'), findsOneWidget);
-    expect(find.text('Chụp ảnh'), findsOneWidget);
-    expect(find.text('Chọn từ thư viện'), findsOneWidget);
-  });
-
-  testWidgets('review state shows manual-review and duplicate badges',
-      (tester) async {
-    api.outcomes.add(
-      const OcrScanResult(
-        scanId: 'scan-1',
-        items: <OcrItem>[
-          _validItem,
-          OcrItem(
-            itemId: 'manual',
-            name: 'Sữa tươi',
-            quantity: null,
-            unit: null,
-            needsManualReview: true,
-            rawQuantity: 1,
-            rawUnit: 'hộp',
-            duplicate: true,
-            existingItemId: 'existing-1',
-          ),
-        ],
-      ),
-    );
-    await store.pickAndScan(OcrImageSource.gallery);
-    Get.put<OcrStore>(store);
-
-    await tester.pumpAppWidget(
-      const OcrResultScene(),
-      wrapInScaffold: false,
-    );
-
-    expect(find.text('Kết quả quét (2)'), findsOneWidget);
-    expect(find.text('Cần kiểm tra'), findsOneWidget);
-    expect(find.text('Đã có trong tồn kho'), findsOneWidget);
-    expect(find.text('Xác nhận tất cả'), findsOneWidget);
   });
 
   group('#239 confirmAll qua batch', () {

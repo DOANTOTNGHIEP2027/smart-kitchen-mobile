@@ -316,20 +316,13 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   }
 
   Future<void> _onDelete() async {
-    final choice = await showDeleteConfirmDialog(context);
-    if (choice == null) return;
+    final confirmed = await showDeleteConfirmDialog(context);
+    if (!confirmed || !mounted) return;
+    final choice = await showDeleteReasonSheet(context);
     if (!mounted) return;
-    WasteReasonChoice wasteChoice = const WasteReasonChoice.skipped();
-    if (choice.reason == DeleteReason.waste) {
-      wasteChoice = await showWasteCauseSheet(
-        context,
-        endpoint: WasteEndpoint.delete,
-      );
-      if (!mounted) return;
-    }
     final ok = await store.delete(
       reason: choice.wire,
-      wasteCause: wasteChoice.wasteCause,
+      wasteCause: choice.wasteCause,
     );
     if (!mounted) return;
     if (ok) {

@@ -93,9 +93,7 @@ void main() {
     expect(byKey('health-calorie-legacy-note'), findsOneWidget);
     expect(tester.widget<Slider>(byKey('health-calorie-slider')).value, 5000);
 
-    await tester.tap(byKey('health-diet'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Ăn chay').last);
+    await tapKey(tester, 'health-diet-VEGETARIAN');
     await tester.pumpAndSettle();
     await save(tester);
     expect(api.profileWrites.single['targetDailyCalories'], 6000);
@@ -158,7 +156,7 @@ void main() {
     await pumpHealthScreen(tester, const HealthProfileScreen());
     expect(find.text('Không gluten'), findsOneWidget);
     expect(find.text('GLUTEN_FREE'), findsNothing);
-    expect(find.widgetWithText(Chip, 'Gluten'), findsOneWidget);
+    expect(find.widgetWithText(Chip, 'Gluten (lúa mì)'), findsOneWidget);
   });
 
   testWidgets(

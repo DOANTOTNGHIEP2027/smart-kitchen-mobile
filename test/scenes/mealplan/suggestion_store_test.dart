@@ -56,9 +56,12 @@ void main() {
     expect(find.text('Soup'), findsOneWidget);
     final l10n = AppLocalizations.of(
         tester.element(find.byType(MealSuggestionDetailScene)));
-    final regenerate = find.text(l10n.mealPlanGenerateSuggestions);
-    await tester.ensureVisible(regenerate);
-    await tester.tap(regenerate);
+    // "Tạo gợi ý món" nằm trong menu ⋮ trên app bar.
+    await tester
+        .tap(find.byKey(const ValueKey<String>('suggestion-more-actions')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.mealPlanGenerateSuggestions).last);
+    await tester.pump();
     await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsWidgets);
     gate.completeError(ServerException('ERR_AI_TIMEOUT', 'timeout'));

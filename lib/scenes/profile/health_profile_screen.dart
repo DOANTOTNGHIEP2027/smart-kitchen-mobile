@@ -18,8 +18,10 @@ import 'domain/health_measurement.dart';
 import 'domain/health_profile.dart';
 import 'stores/form_status.dart';
 import 'stores/profile_store.dart';
+import 'widgets/allergen_label.dart';
 import 'widgets/calorie_target_field.dart';
 import 'widgets/diet_type_label.dart';
+import 'widgets/diet_type_selector.dart';
 import 'widgets/stale_data_banner.dart';
 
 /// Hồ sơ sức khỏe — chế độ xem (S10.2 empty / S10.3 view / S10.3c cache) +
@@ -221,32 +223,14 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
               },
             ),
             const SizedBox(height: AppDimens.md),
-            DropdownButtonFormField<DietType?>(
-              key: const ValueKey<String>('health-diet'),
-              initialValue: _diet,
-              isExpanded: true,
-              hint: Text(l.healthProfileDietUnset),
-              decoration: InputDecoration(
-                labelText: l.healthProfileDietType,
-                helperText: l.healthProfileDietHelp,
-                helperMaxLines: 4,
-                prefixIcon: const Icon(Icons.restaurant_menu_outlined),
-              ),
-              items: <DropdownMenuItem<DietType?>>[
-                DropdownMenuItem<DietType?>(
-                  value: null,
-                  child: Text(l.healthProfileDietUnset),
-                ),
-                for (final DietType d in DietType.values)
-                  DropdownMenuItem<DietType?>(
-                      value: d, child: Text(d.label(l))),
-              ],
-              onChanged: enabled
-                  ? (DietType? v) {
-                      _onFieldEdited();
-                      setState(() => _diet = v);
-                    }
-                  : null,
+            DietTypeSelector(
+              value: _diet,
+              enabled: enabled,
+              helpText: l.healthProfileDietHelp,
+              onChanged: (DietType? v) {
+                _onFieldEdited();
+                setState(() => _diet = v);
+              },
             ),
             const SizedBox(height: AppDimens.sm),
             TextFormField(
@@ -517,7 +501,7 @@ class _AllergensSummary extends StatelessWidget {
               spacing: AppDimens.sm,
               runSpacing: AppDimens.xs,
               children: <Widget>[
-                for (final a in allergens) Chip(label: Text(a.name)),
+                for (final a in allergens) Chip(label: Text(a.label(context.l10n))),
               ],
             ),
           Align(

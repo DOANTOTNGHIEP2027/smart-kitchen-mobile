@@ -63,7 +63,7 @@ import 'app_localizations_vi.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('vi')
+    Locale('vi'),
   ];
 
   /// Application name shown in the OS task switcher
@@ -307,7 +307,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Week {startDay}/{startMonth} – {endDay}/{endMonth}'**
   String mealPlanWeekRange(
-      int startDay, int startMonth, int endDay, int endMonth);
+    int startDay,
+    int startMonth,
+    int endDay,
+    int endMonth,
+  );
 
   /// No description provided for @mealPlanDaySchedule.
   ///
@@ -1214,7 +1218,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Need {required} · Have {available} · Short {shortfall} {unit}'**
   String cookingShortfallLine(
-      String required, String available, String shortfall, String unit);
+    String required,
+    String available,
+    String shortfall,
+    String unit,
+  );
 
   /// No description provided for @cookingShortfallNoDetail.
   ///
@@ -6657,6 +6665,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only bought items can be put in the pantry.'**
   String get errShopItemNotBought;
+
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get homeGreetingMorning;
+
+  /// No description provided for @homeGreetingNoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello'**
+  String get homeGreetingNoon;
+
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get homeGreetingAfternoon;
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get homeGreetingEvening;
+
+  /// No description provided for @homeShoppingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your list of things to buy'**
+  String get homeShoppingSubtitle;
+
+  /// No description provided for @homeMealLogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track nutrition & calories'**
+  String get homeMealLogSubtitle;
+
+  /// No description provided for @familyMemberActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Member actions'**
+  String get familyMemberActions;
+
+  /// No description provided for @mealPlanDishSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you want to pick this dish?'**
+  String get mealPlanDishSourceTitle;
+
+  /// No description provided for @mealPlanDishSourceAi.
+  ///
+  /// In en, this message translates to:
+  /// **'AI suggestions'**
+  String get mealPlanDishSourceAi;
+
+  /// No description provided for @inventoryDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This item will be removed from the pantry.'**
+  String get inventoryDeleteConfirmMessage;
+
+  /// No description provided for @inventoryDeleteReasonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you removing this item?'**
+  String get inventoryDeleteReasonTitle;
+
+  /// No description provided for @allergenGluten.
+  ///
+  /// In en, this message translates to:
+  /// **'Gluten'**
+  String get allergenGluten;
+
+  /// No description provided for @allergenCrustaceans.
+  ///
+  /// In en, this message translates to:
+  /// **'Crustaceans'**
+  String get allergenCrustaceans;
+
+  /// No description provided for @allergenEggs.
+  ///
+  /// In en, this message translates to:
+  /// **'Eggs'**
+  String get allergenEggs;
+
+  /// No description provided for @allergenFish.
+  ///
+  /// In en, this message translates to:
+  /// **'Fish'**
+  String get allergenFish;
+
+  /// No description provided for @allergenPeanuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Peanuts'**
+  String get allergenPeanuts;
+
+  /// No description provided for @allergenSoybeans.
+  ///
+  /// In en, this message translates to:
+  /// **'Soybeans'**
+  String get allergenSoybeans;
+
+  /// No description provided for @allergenMilk.
+  ///
+  /// In en, this message translates to:
+  /// **'Milk'**
+  String get allergenMilk;
+
+  /// No description provided for @allergenTreeNuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Tree nuts'**
+  String get allergenTreeNuts;
+
+  /// No description provided for @allergenCelery.
+  ///
+  /// In en, this message translates to:
+  /// **'Celery'**
+  String get allergenCelery;
+
+  /// No description provided for @allergenMustard.
+  ///
+  /// In en, this message translates to:
+  /// **'Mustard'**
+  String get allergenMustard;
+
+  /// No description provided for @allergenSesame.
+  ///
+  /// In en, this message translates to:
+  /// **'Sesame'**
+  String get allergenSesame;
+
+  /// No description provided for @allergenSulphurDioxide.
+  ///
+  /// In en, this message translates to:
+  /// **'Sulphur dioxide'**
+  String get allergenSulphurDioxide;
+
+  /// No description provided for @allergenLupin.
+  ///
+  /// In en, this message translates to:
+  /// **'Lupin'**
+  String get allergenLupin;
+
+  /// No description provided for @allergenMolluscs.
+  ///
+  /// In en, this message translates to:
+  /// **'Molluscs'**
+  String get allergenMolluscs;
+
+  /// No description provided for @dietTypeUnsetShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get dietTypeUnsetShort;
+
+  /// No description provided for @dietTypeNoneShort.
+  ///
+  /// In en, this message translates to:
+  /// **'No restriction'**
+  String get dietTypeNoneShort;
+
+  /// No description provided for @dietTypeUnsetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No diet chosen — meal plans apply no diet constraint.'**
+  String get dietTypeUnsetDescription;
+
+  /// No description provided for @dietTypeNoneDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular eating, no food groups excluded.'**
+  String get dietTypeNoneDescription;
+
+  /// No description provided for @dietTypeKetoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Very low carb, high fat — limits rice, bread and sweets.'**
+  String get dietTypeKetoDescription;
+
+  /// No description provided for @dietTypeVegetarianDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No meat or fish; eggs and dairy are fine.'**
+  String get dietTypeVegetarianDescription;
+
+  /// No description provided for @dietTypeVeganDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant-based only: no meat, fish, eggs, dairy or other animal products.'**
+  String get dietTypeVeganDescription;
+
+  /// No description provided for @dietTypePescatarianDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No meat, but fish and seafood are fine.'**
+  String get dietTypePescatarianDescription;
+
+  /// No description provided for @dietTypeGlutenFreeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoids wheat, barley and other gluten-containing foods.'**
+  String get dietTypeGlutenFreeDescription;
+
+  /// No description provided for @dietTypeDiabeticDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits sugar and fast-absorbing carbs, favours low-sugar dishes.'**
+  String get dietTypeDiabeticDescription;
 }
 
 class _AppLocalizationsDelegate
@@ -6686,8 +6904,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }
