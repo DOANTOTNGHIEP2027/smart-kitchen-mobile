@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:get/get.dart';
+
 import '../../../constants/app_dimens.dart';
+import '../../../routing/app_routes.dart';
 import '../../../utils/l10n_x.dart';
 import '../domain/assistant_models.dart';
 import '../stores/assistant_store.dart';
@@ -39,6 +42,13 @@ class _AssistantSceneState extends State<AssistantScene> {
     // Store GLOBAL bền qua các lần mở; store PLANNING chỉ sống cùng màn.
     if (!_isGlobal && widget.store == null) _store.dispose();
     super.dispose();
+  }
+
+  /// Thẻ món mang id KB; BE trả `recipeId` (vật chất hoá như khi thêm món).
+  Future<void> _openRecipe(RecipeCard card) async {
+    final recipeId = await _store.resolveRecipe(card.kbRecipeId);
+    if (recipeId == null || !mounted) return;
+    await Get.toNamed<void>(AppRoutes.recipeDetail.replaceFirst(':id', recipeId));
   }
 
   @override
@@ -83,6 +93,7 @@ class _AssistantSceneState extends State<AssistantScene> {
                 onEnded: () {
                   if (mounted) Navigator.of(context).maybePop();
                 },
+                onRecipeTap: _openRecipe,
               ),
             ),
           ],

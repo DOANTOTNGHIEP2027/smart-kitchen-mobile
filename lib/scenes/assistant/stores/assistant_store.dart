@@ -107,6 +107,11 @@ class AssistantStore {
   Timer? _cooldownTimer;
   bool _opened = false;
   final Observable<bool> _loadingHistory = Observable<bool>(false);
+
+  /// Trạng thái đề xuất đổi trong phiên (sau khi bấm), đè trạng thái lúc tải.
+  final ObservableMap<String, ActionResult> _actionResults =
+      ObservableMap<String, ActionResult>();
+  final ObservableSet<String> _actionsInFlight = ObservableSet<String>();
   ReactionDisposer? _scopeReaction;
 
   /// Token của request đang chờ — kết quả mang token khác bị bỏ.
@@ -176,6 +181,63 @@ class AssistantStore {
         !isOffline &&
         _contextKeyOf() != null &&
         (!_needsStep || _currentStepOf?.call() != null);
+  }
+
+  /// Trạng thái hiện tại của một đề xuất: kết quả bấm trong phiên, nếu chưa
+  /// bấm thì trạng thái BE; PENDING quá `expiresAt` theo giờ máy ⇒ hết hạn
+  /// (không bao giờ hiện nút xác nhận cho đề xuất đã hết hạn — FE design §4).
+  ActionStatus actionStatus(AssistantAction action) {
+    final local = _actionResults[action.actionId];
+    if (local != null) return local.status;
+    final expires = action.expiresAt;
+    if (action.status == ActionStatus.pending &&
+        expires != null &&
+        expires.isBefore(DateTime.now())) {
+      return ActionStatus.expired;
+    }
+    return action.status;
+  }
+
+  String? actionCode(String actionId) => _actionResults[actionId]?.code;
+
+  bool isActionInFlight(String actionId) =>
+      _actionsInFlight.contains(actionId);
+
+  /// Thêm món đề xuất vào thực đơn — đường duy nhất thực thi đề xuất.
+  Future<void> confirmAction(String actionId) =>
+      _decide(actionId, () => _api.confirmAction(actionId));
+
+  Future<void> rejectAction(String actionId) =>
+      _decide(actionId, () => _api.rejectAction(actionId));
+
+  Future<void> _decide(
+      String actionId, Future<ActionResult> Function() call) async {
+    if (_actionsInFlight.contains(actionId)) return;
+    runInAction(() => _actionsInFlight.add(actionId));
+    try {
+      final result = await call();
+      runInAction(() => _actionResults[actionId] = result);
+    } on ApiException catch (e) {
+      final status = switch (e.code) {
+        'ERR_ASSISTANT_ACTION_EXPIRED' => ActionStatus.expired,
+        _ => ActionStatus.failed,
+      };
+      runInAction(() =>
+          _actionResults[actionId] = ActionResult(status: status, code: e.code));
+    } finally {
+      runInAction(() => _actionsInFlight.remove(actionId));
+    }
+  }
+
+  /// `recipeId` của món trên thẻ; `null` khi không mở được (AI/mạng lỗi).
+  Future<String?> resolveRecipe(String kbRecipeId) async {
+    try {
+      return await _api.resolveRecipe(kbRecipeId);
+    } on ApiException catch (e) {
+      developer.log('Assistant recipe unavailable: ${e.code}',
+          name: 'assistant');
+      return null;
+    }
   }
 
   /// Đang nạp lịch sử của phiên mở lại.
@@ -495,6 +557,7 @@ class AssistantStore {
     _cooldownTimer = null;
     runInAction(() {
       messages.clear();
+      _actionResults.clear();
       _state.value = AssistRequestState.idle;
       _errorCode.value = null;
       _errorKind.value = null;
