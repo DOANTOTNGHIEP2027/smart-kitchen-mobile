@@ -988,7 +988,7 @@
   },
   "mealComposeReplaceTitle": "Replace this meal menu?",
   "mealComposeReplaceBody": "Existing dishes will only be replaced after a complete new menu is ready.",
-  "mealComposeRegenerate": "Create another menu",
+  "mealComposeRegenerate": "Re-suggest the whole meal",
   "mealComposeGenerate": "Create meal menu",
   "mealComposeLoading": "Choosing a complete menu…",
   "mealComposeRunning": "The request is still processing. Refresh to check; your existing menu is preserved.",
@@ -1370,5 +1370,13 @@
   "recipesFilterMaxMinutes": "≤ {minutes} min",
   "@recipesFilterMaxMinutes": {"placeholders": {"minutes": {"type": "int"}}},
   "healthProfileCalorieSuggestionAdultOnly": "The suggestion formula applies to people aged 18 and over",
-  "healthProfileChoiceInvalid": "Invalid choice, please choose again"
+  "healthProfileChoiceInvalid": "Invalid choice, please choose again",
+  "mealDishRoleStaple": "Staple",
+  "mealDishRoleMain": "Main dish",
+  "mealDishRoleVegetable": "Vegetable dish",
+  "mealDishRoleSoup": "Soup",
+  "mealDishRoleCompleteMeal": "One-dish meal",
+  "mealDishRoleLightMeal": "Light meal",
+  "mealComposeServingsShort": "{servings} servings",
+  "@mealComposeServingsShort": {"placeholders": {"servings": {"type": "String"}}}
 }

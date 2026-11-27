@@ -46,8 +46,10 @@ class WeeklyMealPlanBinding extends Bindings {
         permanent: false,
       );
       if (EnvConfig.automaticMealComposition) {
-        Get.put<MealCompositionStore>(
-          MealCompositionStore(
+        // #201: cờ bật mặc định → tạo lười, chỉ khi editor bữa cần tới
+        // (tránh kéo DioClient/MealCompositionApi lúc dựng shell).
+        Get.lazyPut<MealCompositionStore>(
+          () => MealCompositionStore(
             Get.find<MealCompositionApi>(),
             Get.find<MealPlanStore>(),
           ),

@@ -856,7 +856,7 @@
   },
   "mealComposeReplaceTitle": "Thay toàn bộ thực đơn bữa này?",
   "mealComposeReplaceBody": "Chỉ thay món hiện có sau khi tạo xong bộ thực đơn mới.",
-  "mealComposeRegenerate": "Tạo lại thực đơn",
+  "mealComposeRegenerate": "Gợi ý lại cả bữa",
   "mealComposeGenerate": "Tạo thực đơn",
   "mealComposeLoading": "Đang chọn thực đơn hoàn chỉnh…",
   "mealComposeRunning": "Yêu cầu vẫn đang xử lý. Bấm kiểm tra để tải kết quả; thực đơn cũ được giữ nguyên.",
@@ -1212,5 +1212,13 @@
   "recipesFilterMaxMinutes": "≤ {minutes} phút",
   "@recipesFilterMaxMinutes": {"placeholders": {"minutes": {"type": "int"}}},
   "healthProfileCalorieSuggestionAdultOnly": "Công thức gợi ý áp dụng cho người từ 18 tuổi",
-  "healthProfileChoiceInvalid": "Lựa chọn không hợp lệ, hãy chọn lại"
+  "healthProfileChoiceInvalid": "Lựa chọn không hợp lệ, hãy chọn lại",
+  "mealDishRoleStaple": "Món tinh bột",
+  "mealDishRoleMain": "Món mặn",
+  "mealDishRoleVegetable": "Món rau",
+  "mealDishRoleSoup": "Món canh",
+  "mealDishRoleCompleteMeal": "Món một đĩa",
+  "mealDishRoleLightMeal": "Bữa nhẹ",
+  "mealComposeServingsShort": "{servings} khẩu phần",
+  "@mealComposeServingsShort": {"placeholders": {"servings": {"type": "String"}}}
 }

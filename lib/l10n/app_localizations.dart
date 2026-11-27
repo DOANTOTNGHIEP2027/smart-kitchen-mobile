@@ -5149,7 +5149,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealComposeRegenerate.
   ///
   /// In en, this message translates to:
-  /// **'Create another menu'**
+  /// **'Re-suggest the whole meal'**
   String get mealComposeRegenerate;
 
   /// No description provided for @mealComposeGenerate.
@@ -7053,6 +7053,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid choice, please choose again'**
   String get healthProfileChoiceInvalid;
+
+  /// No description provided for @mealDishRoleStaple.
+  ///
+  /// In en, this message translates to:
+  /// **'Staple'**
+  String get mealDishRoleStaple;
+
+  /// No description provided for @mealDishRoleMain.
+  ///
+  /// In en, this message translates to:
+  /// **'Main dish'**
+  String get mealDishRoleMain;
+
+  /// No description provided for @mealDishRoleVegetable.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetable dish'**
+  String get mealDishRoleVegetable;
+
+  /// No description provided for @mealDishRoleSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Soup'**
+  String get mealDishRoleSoup;
+
+  /// No description provided for @mealDishRoleCompleteMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'One-dish meal'**
+  String get mealDishRoleCompleteMeal;
+
+  /// No description provided for @mealDishRoleLightMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Light meal'**
+  String get mealDishRoleLightMeal;
+
+  /// No description provided for @mealComposeServingsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{servings} servings'**
+  String mealComposeServingsShort(String servings);
 }
 
 class _AppLocalizationsDelegate

@@ -48,9 +48,14 @@ class CompositionIngredient {
 }
 
 class ComposedMealDish {
-  const ComposedMealDish(this.name, this.servings, this.requirements);
+  const ComposedMealDish(this.name, this.servings, this.requirements,
+      {this.role});
   final String name;
   final double servings;
+
+  /// STAPLE | MAIN | VEGETABLE | SOUP | COMPLETE_MEAL | LIGHT_MEAL; `null` /
+  /// giá trị lạ → không hiện nhãn vai trò.
+  final String? role;
   final List<CompositionIngredient> requirements;
   factory ComposedMealDish.fromJson(Map<String, dynamic> json) =>
       ComposedMealDish(
@@ -61,6 +66,7 @@ class ComposedMealDish {
               (v) => CompositionIngredient.fromJson(v as Map<String, dynamic>),
             )
             .toList(),
+        role: json['role'] as String?,
       );
 }
 

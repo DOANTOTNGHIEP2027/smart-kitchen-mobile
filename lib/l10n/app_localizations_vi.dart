@@ -2856,7 +2856,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Chỉ thay món hiện có sau khi tạo xong bộ thực đơn mới.';
 
   @override
-  String get mealComposeRegenerate => 'Tạo lại thực đơn';
+  String get mealComposeRegenerate => 'Gợi ý lại cả bữa';
 
   @override
   String get mealComposeGenerate => 'Tạo thực đơn';
@@ -3962,4 +3962,27 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get healthProfileChoiceInvalid =>
       'Lựa chọn không hợp lệ, hãy chọn lại';
+
+  @override
+  String get mealDishRoleStaple => 'Món tinh bột';
+
+  @override
+  String get mealDishRoleMain => 'Món mặn';
+
+  @override
+  String get mealDishRoleVegetable => 'Món rau';
+
+  @override
+  String get mealDishRoleSoup => 'Món canh';
+
+  @override
+  String get mealDishRoleCompleteMeal => 'Món một đĩa';
+
+  @override
+  String get mealDishRoleLightMeal => 'Bữa nhẹ';
+
+  @override
+  String mealComposeServingsShort(String servings) {
+    return '$servings khẩu phần';
+  }
 }

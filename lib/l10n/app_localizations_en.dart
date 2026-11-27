@@ -2892,7 +2892,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Existing dishes will only be replaced after a complete new menu is ready.';
 
   @override
-  String get mealComposeRegenerate => 'Create another menu';
+  String get mealComposeRegenerate => 'Re-suggest the whole meal';
 
   @override
   String get mealComposeGenerate => 'Create meal menu';
@@ -4036,4 +4036,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get healthProfileChoiceInvalid =>
       'Invalid choice, please choose again';
+
+  @override
+  String get mealDishRoleStaple => 'Staple';
+
+  @override
+  String get mealDishRoleMain => 'Main dish';
+
+  @override
+  String get mealDishRoleVegetable => 'Vegetable dish';
+
+  @override
+  String get mealDishRoleSoup => 'Soup';
+
+  @override
+  String get mealDishRoleCompleteMeal => 'One-dish meal';
+
+  @override
+  String get mealDishRoleLightMeal => 'Light meal';
+
+  @override
+  String mealComposeServingsShort(String servings) {
+    return '$servings servings';
+  }
 }

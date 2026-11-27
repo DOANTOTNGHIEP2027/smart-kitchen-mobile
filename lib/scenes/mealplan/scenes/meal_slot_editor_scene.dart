@@ -8,6 +8,7 @@ import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../planning/scenes/planning_routes.dart';
 import '../../planning/widgets/slot_guest_diner_entry.dart';
+import '../domain/meal_composition.dart';
 import '../domain/meal_plan_slot.dart';
 import '../../recipe/domain/recipe.dart';
 import '../../recipe/scenes/recipe_list_scene.dart';
@@ -38,6 +39,14 @@ class MealSlotEditorScene extends StatefulWidget {
 
 class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
   bool _isAdding = false;
+
+  /// `null` khi cờ tắt HOẶC store chưa đăng ký (binding chỉ tạo khi tạo mới
+  /// MealPlanStore) — không `Get.find` mù.
+  MealCompositionStore? get _compositionStore =>
+      EnvConfig.automaticMealComposition &&
+              Get.isRegistered<MealCompositionStore>()
+          ? Get.find<MealCompositionStore>()
+          : null;
 
   Future<void> _addDish() async {
     if (_isAdding) return;
@@ -170,6 +179,14 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
           final key = store.slotKeyOf(widget.slotId);
           final slot = key == null ? null : store.slots[key];
           final dishes = slot?.dishes ?? const <MealPlanDish>[];
+          // #201: món do AI ghép bữa đã được BE lưu thành dish thường của
+          // slot → chỉ render `dishes` (không render lại menu), menu chỉ bổ
+          // sung vai trò + khẩu phần cho thẻ.
+          final composition = _compositionStore;
+          final composed = composeInfoByDish(
+            dishes,
+            composition?.contexts[widget.slotId]?.menu,
+          );
           return ListView(
             padding: const EdgeInsets.all(AppDimens.lg),
             children: <Widget>[
@@ -200,26 +217,23 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                     ?.copyWith(color: AppColors.textSecondary),
               ),
               const SizedBox(height: AppDimens.lg),
-              if (EnvConfig.automaticMealComposition)
+              if (composition != null)
                 MealCompositionPanel(
-                  store: Get.find<MealCompositionStore>(),
+                  store: composition,
                   slotId: widget.slotId,
                   hasDishes: dishes.isNotEmpty,
                   readOnly: store.isConfirmed,
                 ),
-              if (!EnvConfig.automaticMealComposition ||
-                  Get.find<MealCompositionStore>()
-                          .contexts[widget.slotId]
-                          ?.menu ==
-                      null)
-                ...dishes.map(
+              ...dishes.map(
                   (dish) => Padding(
                     padding: const EdgeInsets.only(bottom: AppDimens.sm),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _EditableDishCard(
+                          key: ValueKey<String>('slot-dish-${dish.id}'),
                           dish: dish,
+                          composed: composed[dish.id],
                           onDelete: !store.canEditDish(dish.id)
                               ? null
                               : () => store.removeDish(widget.slotId, dish.id),
@@ -232,8 +246,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                           Wrap(
                             spacing: 8,
                             children: [
-                              if (dish.recipe != null &&
-                                  !EnvConfig.automaticMealComposition)
+                              if (dish.recipe != null)
                                 TextButton.icon(
                                   onPressed: () => _openSuggestions(dish.id),
                                   icon: const Icon(Icons.auto_awesome),
@@ -293,15 +306,40 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
 
 enum _DishSource { ai, recipe }
 
+/// Ghép món của menu AI vào dish của slot theo tên công thức (BE lưu
+/// `recipe_name = mealName`), mỗi món menu chỉ dùng một lần. Dish đã bị đổi /
+/// thêm tay không khớp → không có nhãn vai trò.
+Map<String, ComposedMealDish> composeInfoByDish(
+  List<MealPlanDish> dishes,
+  ComposedMeal? menu,
+) {
+  if (menu == null) return const <String, ComposedMealDish>{};
+  final remaining = List<ComposedMealDish>.of(menu.dishes);
+  final result = <String, ComposedMealDish>{};
+  for (final dish in dishes) {
+    final name = dish.recipe?.recipeName;
+    if (name == null) continue;
+    final index = remaining.indexWhere((m) => m.name == name);
+    if (index < 0) continue;
+    result[dish.id] = remaining.removeAt(index);
+  }
+  return result;
+}
+
 class _EditableDishCard extends StatelessWidget {
   const _EditableDishCard({
+    super.key,
     required this.dish,
     required this.onDelete,
     required this.onInsights,
     this.onChoose,
+    this.composed,
   });
 
   final MealPlanDish dish;
+
+  /// #201: thông tin vai trò/khẩu phần khi món đến từ AI ghép bữa.
+  final ComposedMealDish? composed;
   final VoidCallback? onDelete;
   final VoidCallback onInsights;
   final VoidCallback? onChoose;
@@ -317,6 +355,8 @@ class _EditableDishCard extends StatelessWidget {
       );
     }
     final minutes = RecipeCoverImage.demoPrepTimeMinutes(recipe.recipeId);
+    final info = composed;
+    final roleText = info == null ? null : dishRoleLabel(context, info.role);
     return Container(
       padding: const EdgeInsets.all(AppDimens.sm),
       decoration: BoxDecoration(
@@ -355,6 +395,24 @@ class _EditableDishCard extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                 ),
+                if (info != null) ...<Widget>[
+                  const SizedBox(height: AppDimens.xs),
+                  Text(
+                    <String>[
+                      if (roleText != null) roleText,
+                      context.l10n.mealComposeServingsShort(
+                        _formatServings(info.servings),
+                      ),
+                    ].join(' · '),
+                    key: ValueKey<String>('slot-dish-role-${dish.id}'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.primaryDark,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
                 if (minutes != null) ...<Widget>[
                   const SizedBox(height: AppDimens.xs),
                   Row(
@@ -395,6 +453,23 @@ class _EditableDishCard extends StatelessWidget {
     );
   }
 }
+
+/// Nhãn tiếng Việt của vai trò món trong bữa (AI ghép bữa); lạ → `null`.
+String? dishRoleLabel(BuildContext context, String? role) {
+  final l = context.l10n;
+  return switch (role) {
+    'STAPLE' => l.mealDishRoleStaple,
+    'MAIN' => l.mealDishRoleMain,
+    'VEGETABLE' => l.mealDishRoleVegetable,
+    'SOUP' => l.mealDishRoleSoup,
+    'COMPLETE_MEAL' => l.mealDishRoleCompleteMeal,
+    'LIGHT_MEAL' => l.mealDishRoleLightMeal,
+    _ => null,
+  };
+}
+
+String _formatServings(double v) =>
+    v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
 
 class _PendingDishCard extends StatelessWidget {
   const _PendingDishCard({
