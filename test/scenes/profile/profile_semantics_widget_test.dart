@@ -105,6 +105,9 @@ void main() {
           'dietType': 'GLUTEN_FREE',
           'heightCm': 170.0,
           'weightKg': 65.0,
+          'gender': null,
+          'birthDate': null,
+          'activityLevel': null,
         });
         expect(api.allergenWrites, isEmpty);
       });
@@ -209,6 +212,9 @@ void main() {
         'dietType': null,
         'heightCm': 170.0,
         'weightKg': 65.0,
+        'gender': null,
+        'birthDate': null,
+        'activityLevel': null,
       });
       expect(api.allergenWrites, isEmpty);
     });
