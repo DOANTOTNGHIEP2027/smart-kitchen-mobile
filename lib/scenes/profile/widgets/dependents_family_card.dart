@@ -50,15 +50,20 @@ class DependentsFamilyCard extends StatelessWidget {
               if (addFirst)
                 Icon(Icons.add_rounded,
                     size: 18, color: theme.colorScheme.primary),
-              Text(
-                addFirst
-                    ? l10n.dependentAddProfile
-                    : (canAdd
-                        ? l10n.dependentCardViewAll
-                        : l10n.dependentCardView),
-                key: const ValueKey<String>('family-dependents-action'),
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(color: theme.colorScheme.primary),
+              Flexible(
+                child: Text(
+                  addFirst
+                      ? l10n.dependentAddProfile
+                      : (canAdd
+                          ? l10n.dependentCardViewAll
+                          : l10n.dependentCardView),
+                  key: const ValueKey<String>('family-dependents-action'),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(color: theme.colorScheme.primary),
+                ),
               ),
             ],
           );
@@ -109,7 +114,10 @@ class DependentsFamilyCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailingWidget != null) trailingWidget,
+            if (trailingWidget != null) ...<Widget>[
+              const SizedBox(width: AppDimens.sm),
+              Flexible(child: trailingWidget),
+            ],
           ],
         ),
       );

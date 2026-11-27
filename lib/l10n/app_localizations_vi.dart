@@ -2806,7 +2806,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get attendanceClear => 'Bỏ phản hồi';
 
   @override
-  String get attendanceClosed => 'Không thể thay đổi xác nhận ăn cho bữa này.';
+  String get attendanceClosed =>
+      'Bữa này đã qua hoặc bạn chỉ có quyền xem nên không đổi được xác nhận ăn.';
 
   @override
   String get attendanceLoadFailed => 'Không tải được xác nhận ăn';
@@ -3734,4 +3735,210 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get errShopItemNotBought => 'Chỉ món đã mua mới cất vào kho được.';
+
+  @override
+  String get homeGreetingMorning => 'Chào buổi sáng';
+
+  @override
+  String get homeGreetingNoon => 'Chào buổi trưa';
+
+  @override
+  String get homeGreetingAfternoon => 'Chào buổi chiều';
+
+  @override
+  String get homeGreetingEvening => 'Chào buổi tối';
+
+  @override
+  String get homeShoppingSubtitle => 'Danh sách đồ cần mua sắm';
+
+  @override
+  String get homeMealLogSubtitle => 'Theo dõi dinh dưỡng & calo';
+
+  @override
+  String get familyMemberActions => 'Thao tác với thành viên';
+
+  @override
+  String get mealPlanDishSourceTitle => 'Chọn món bằng cách nào?';
+
+  @override
+  String get mealPlanDishSourceAi => 'Gợi ý AI';
+
+  @override
+  String get inventoryDeleteConfirmMessage => 'Mặt hàng sẽ bị xoá khỏi kho.';
+
+  @override
+  String get inventoryDeleteReasonTitle => 'Vì sao xoá mặt hàng này?';
+
+  @override
+  String get allergenGluten => 'Gluten (lúa mì)';
+
+  @override
+  String get allergenCrustaceans => 'Giáp xác (tôm, cua)';
+
+  @override
+  String get allergenEggs => 'Trứng';
+
+  @override
+  String get allergenFish => 'Cá';
+
+  @override
+  String get allergenPeanuts => 'Đậu phộng';
+
+  @override
+  String get allergenSoybeans => 'Đậu nành';
+
+  @override
+  String get allergenMilk => 'Sữa';
+
+  @override
+  String get allergenTreeNuts => 'Hạt cây (hạnh nhân, óc chó…)';
+
+  @override
+  String get allergenCelery => 'Cần tây';
+
+  @override
+  String get allergenMustard => 'Mù tạt';
+
+  @override
+  String get allergenSesame => 'Mè (vừng)';
+
+  @override
+  String get allergenSulphurDioxide => 'Sulfit (SO₂)';
+
+  @override
+  String get allergenLupin => 'Đậu lupin';
+
+  @override
+  String get allergenMolluscs => 'Nhuyễn thể (mực, sò…)';
+
+  @override
+  String get dietTypeUnsetShort => 'Chưa chọn';
+
+  @override
+  String get dietTypeNoneShort => 'Không kiêng';
+
+  @override
+  String get dietTypeUnsetDescription =>
+      'Chưa chọn chế độ ăn — thực đơn không áp ràng buộc nào.';
+
+  @override
+  String get dietTypeNoneDescription =>
+      'Ăn bình thường, không kiêng nhóm thực phẩm nào.';
+
+  @override
+  String get dietTypeKetoDescription =>
+      'Rất ít tinh bột, nhiều chất béo — hạn chế cơm, bánh mì, đồ ngọt.';
+
+  @override
+  String get dietTypeVegetarianDescription =>
+      'Không ăn thịt, cá; vẫn dùng trứng và sữa.';
+
+  @override
+  String get dietTypeVeganDescription =>
+      'Thuần chay: không thịt, cá, trứng, sữa hay sản phẩm từ động vật.';
+
+  @override
+  String get dietTypePescatarianDescription =>
+      'Không ăn thịt nhưng vẫn ăn cá và hải sản.';
+
+  @override
+  String get dietTypeGlutenFreeDescription =>
+      'Tránh lúa mì, lúa mạch và thực phẩm chứa gluten.';
+
+  @override
+  String get dietTypeDiabeticDescription =>
+      'Hạn chế đường và tinh bột hấp thu nhanh, ưu tiên món ít ngọt.';
+
+  @override
+  String get inventoryCategoryOptional => 'Phân loại (tuỳ chọn)';
+
+  @override
+  String get inventoryZeroQuantityTitle => 'Đã dùng hết mặt hàng này?';
+
+  @override
+  String get inventoryZeroQuantityConfirm => 'Xác nhận';
+
+  @override
+  String get attendanceUnsure => 'Chưa rõ';
+
+  @override
+  String attendanceYou(String status) {
+    return 'Bạn: $status';
+  }
+
+  @override
+  String get planningGuestSlotTitle => 'Khách ăn cùng bữa này';
+
+  @override
+  String get planningGuestSlotScopeBanner =>
+      'Khách ăn tạm thời — chỉ áp dụng cho bữa này, không lưu vào hồ sơ gia đình. Người ăn thường xuyên (con nhỏ, ông bà sống cùng) thì dùng mục Thành viên phụ thuộc trong hồ sơ gia đình.';
+
+  @override
+  String get planningGuestSlotEmpty => 'Bữa này chưa có khách nào.';
+
+  @override
+  String get planningGuestSlotDeleteConfirm => 'Xoá khách này khỏi bữa này?';
+
+  @override
+  String get planningGuestSlotUpdated =>
+      'Đã cập nhật. Gợi ý AI của bữa này có thể đã thay đổi.';
+
+  @override
+  String planningGuestSlotCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count khách',
+      zero: 'Chưa có khách',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthProfileGender => 'Giới tính';
+
+  @override
+  String get healthProfileGenderMale => 'Nam';
+
+  @override
+  String get healthProfileGenderFemale => 'Nữ';
+
+  @override
+  String get healthProfileBirthDate => 'Ngày sinh';
+
+  @override
+  String get healthProfileBirthDateChoose => 'Chọn ngày sinh…';
+
+  @override
+  String get healthProfileBirthDateInvalid => 'Ngày sinh phải ở quá khứ';
+
+  @override
+  String get healthProfileActivityLevel => 'Mức vận động';
+
+  @override
+  String get activityLevelSedentary => 'Ít vận động';
+
+  @override
+  String get activityLevelLight => 'Nhẹ (1–3 buổi/tuần)';
+
+  @override
+  String get activityLevelModerate => 'Vừa (3–5 buổi/tuần)';
+
+  @override
+  String get activityLevelActive => 'Nhiều (6–7 buổi/tuần)';
+
+  @override
+  String get activityLevelVeryActive => 'Rất nhiều (lao động nặng)';
+
+  @override
+  String healthProfileCalorieSuggestion(int value) {
+    return 'Gợi ý: $value kcal';
+  }
+
+  @override
+  String get healthProfileCalorieApply => 'Áp dụng';
+
+  @override
+  String get healthProfileCalorieSuggestionHint =>
+      'Nhập chiều cao, cân nặng, giới tính, ngày sinh, mức vận động để được gợi ý';
 }

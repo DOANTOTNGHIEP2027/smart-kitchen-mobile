@@ -5,16 +5,11 @@ import 'scenes/inventory_form_scene.dart';
 import 'scenes/inventory_list_binding.dart';
 import 'scenes/inventory_list_scene.dart';
 import 'scenes/inventory_history_scene.dart';
-import 'ocr/scenes/camera_scan_scene.dart';
-import 'ocr/scenes/ocr_binding.dart';
-import 'ocr/scenes/ocr_result_scene.dart';
 
 /// Hằng số route name cho inventory (FE-5 §13).
 abstract class InventoryRoutes {
   static const String list = '/inventory';
   static const String add = '/inventory/add';
-  static const String scan = '/inventory/scan';
-  static const String scanReview = '/inventory/scan/review';
   static const String edit = '/inventory/:id/edit';
   static const String history = '/inventory/:id/history';
 }
@@ -33,18 +28,6 @@ final List<GetPage<dynamic>> inventoryPages = <GetPage<dynamic>>[
     name: InventoryRoutes.add,
     page: () => const InventoryFormScene(),
     binding: InventoryFormBinding(),
-    middlewares: <GetMiddleware>[AuthGuard()],
-  ),
-  GetPage<void>(
-    name: InventoryRoutes.scan,
-    page: () => const CameraScanScene(),
-    binding: OcrBinding(),
-    middlewares: <GetMiddleware>[AuthGuard()],
-  ),
-  GetPage<void>(
-    name: InventoryRoutes.scanReview,
-    page: () => const OcrResultScene(),
-    binding: OcrBinding(),
     middlewares: <GetMiddleware>[AuthGuard()],
   ),
   GetPage<void>(

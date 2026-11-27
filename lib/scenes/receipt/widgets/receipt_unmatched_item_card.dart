@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../domain/shared/food_category.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/quantity_format.dart';
@@ -55,7 +56,8 @@ class ReceiptUnmatchedItemCard extends StatefulWidget {
 class _ReceiptUnmatchedItemCardState extends State<ReceiptUnmatchedItemCard> {
   late final TextEditingController _nameController;
   late final TextEditingController _quantityController;
-  late final TextEditingController _categoryController;
+  // #201: phân loại chọn từ danh sách chuẩn (chip), không gõ tự do.
+  String? _category;
 
   @override
   void initState() {
@@ -65,14 +67,14 @@ class _ReceiptUnmatchedItemCardState extends State<ReceiptUnmatchedItemCard> {
     _quantityController = TextEditingController(
       text: item.quantity == null ? '' : formatQuantity(item.quantity!),
     );
-    _categoryController = TextEditingController(text: item.category ?? '');
+    final suggested = item.category?.trim();
+    _category = suggested == null || suggested.isEmpty ? null : suggested;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _quantityController.dispose();
-    _categoryController.dispose();
     super.dispose();
   }
 
@@ -122,18 +124,7 @@ class _ReceiptUnmatchedItemCardState extends State<ReceiptUnmatchedItemCard> {
             ],
           ),
           const SizedBox(height: AppDimens.sm),
-          TextField(
-            key: ValueKey<String>('receipt-unmatched-category-${item.itemId}'),
-            controller: _categoryController,
-            enabled: !locked,
-            decoration: InputDecoration(
-              labelText: l10n.receiptCategoryOptional,
-              isDense: true,
-            ),
-            onChanged: (value) => widget.onCategoryChanged(
-              value.trim().isEmpty ? null : value,
-            ),
-          ),
+          _categoryChips(context, locked),
           const SizedBox(height: AppDimens.sm),
           // #239: hạn gợi ý của BE, luôn hiện để người dùng tự thêm/sửa.
           Align(
@@ -188,6 +179,58 @@ class _ReceiptUnmatchedItemCardState extends State<ReceiptUnmatchedItemCard> {
               style: secondary,
             ),
           ),
+      ],
+    );
+  }
+
+  Widget _categoryChips(BuildContext context, bool locked) {
+    final selected = _category;
+    // Gợi ý cũ/tự do của BE không thuộc bộ chuẩn vẫn hiện để không mất.
+    final options = <String>[
+      ...FoodCategory.labels,
+      if (selected != null && !FoodCategory.labels.contains(selected))
+        selected,
+    ];
+    return Column(
+      key: ValueKey<String>('receipt-unmatched-category-${widget.item.itemId}'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          context.l10n.receiptCategoryOptional,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: AppDimens.xs),
+        Wrap(
+          spacing: AppDimens.xs,
+          runSpacing: AppDimens.xs,
+          children: options.map((name) {
+            final isSelected = selected == name;
+            return ChoiceChip(
+              label: Text(name),
+              selected: isSelected,
+              showCheckmark: false,
+              visualDensity: VisualDensity.compact,
+              selectedColor: AppColors.primaryContainer,
+              labelStyle: TextStyle(
+                fontSize: 12,
+                color: isSelected
+                    ? AppColors.onPrimaryContainer
+                    : AppColors.textPrimary,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+              onSelected: locked
+                  ? null
+                  : (v) {
+                      final next = v ? name : null;
+                      setState(() => _category = next);
+                      widget.onCategoryChanged(next);
+                    },
+            );
+          }).toList(),
+        ),
       ],
     );
   }

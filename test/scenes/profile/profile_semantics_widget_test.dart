@@ -117,9 +117,8 @@ void main() {
       expect(find.text('Chưa chọn chế độ ăn'), findsOneWidget);
       expect(find.text('Chưa có mục dị ứng được lưu'), findsOneWidget);
       await openEdit(tester);
-      await tester.tap(input('diet'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Không chọn chế độ ăn đặc biệt').last);
+      await tester.ensureVisible(input('diet-NONE'));
+      await tester.tap(input('diet-NONE'));
       await tester.pumpAndSettle();
       await save(tester);
       expect(api.profileWrites.single['dietType'], 'NONE');
@@ -201,9 +200,8 @@ void main() {
       api.writeError = NetworkException();
       await pumpScreen(tester, const HealthProfileScreen());
       await openEdit(tester);
-      await tester.tap(input('diet'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Chưa chọn chế độ ăn').last);
+      await tester.ensureVisible(input('diet-unset'));
+      await tester.tap(input('diet-unset'));
       await tester.pumpAndSettle();
       await save(tester);
       expect(api.profileWrites.single, <String, dynamic>{
@@ -301,7 +299,7 @@ void main() {
           userId: 'member', allergens: [Allergen(id: 1, name: 'Gluten')]);
       await tester.tap(find.text('Thử lại'));
       await tester.pumpAndSettle();
-      expect(find.widgetWithText(Chip, 'Gluten'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Gluten (lúa mì)'), findsOneWidget);
       expect(api.summaryReads, 2);
       expect(api.profileWrites, isEmpty);
     });

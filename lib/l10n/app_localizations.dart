@@ -5065,7 +5065,7 @@ abstract class AppLocalizations {
   /// No description provided for @attendanceClosed.
   ///
   /// In en, this message translates to:
-  /// **'Attendance for this meal is read-only.'**
+  /// **'This meal has passed or you only have view access, so attendance can\'t be changed.'**
   String get attendanceClosed;
 
   /// No description provided for @attendanceLoadFailed.
@@ -6657,6 +6657,372 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only bought items can be put in the pantry.'**
   String get errShopItemNotBought;
+
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get homeGreetingMorning;
+
+  /// No description provided for @homeGreetingNoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello'**
+  String get homeGreetingNoon;
+
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get homeGreetingAfternoon;
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get homeGreetingEvening;
+
+  /// No description provided for @homeShoppingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your list of things to buy'**
+  String get homeShoppingSubtitle;
+
+  /// No description provided for @homeMealLogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track nutrition & calories'**
+  String get homeMealLogSubtitle;
+
+  /// No description provided for @familyMemberActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Member actions'**
+  String get familyMemberActions;
+
+  /// No description provided for @mealPlanDishSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you want to pick this dish?'**
+  String get mealPlanDishSourceTitle;
+
+  /// No description provided for @mealPlanDishSourceAi.
+  ///
+  /// In en, this message translates to:
+  /// **'AI suggestions'**
+  String get mealPlanDishSourceAi;
+
+  /// No description provided for @inventoryDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This item will be removed from the pantry.'**
+  String get inventoryDeleteConfirmMessage;
+
+  /// No description provided for @inventoryDeleteReasonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you removing this item?'**
+  String get inventoryDeleteReasonTitle;
+
+  /// No description provided for @allergenGluten.
+  ///
+  /// In en, this message translates to:
+  /// **'Gluten'**
+  String get allergenGluten;
+
+  /// No description provided for @allergenCrustaceans.
+  ///
+  /// In en, this message translates to:
+  /// **'Crustaceans'**
+  String get allergenCrustaceans;
+
+  /// No description provided for @allergenEggs.
+  ///
+  /// In en, this message translates to:
+  /// **'Eggs'**
+  String get allergenEggs;
+
+  /// No description provided for @allergenFish.
+  ///
+  /// In en, this message translates to:
+  /// **'Fish'**
+  String get allergenFish;
+
+  /// No description provided for @allergenPeanuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Peanuts'**
+  String get allergenPeanuts;
+
+  /// No description provided for @allergenSoybeans.
+  ///
+  /// In en, this message translates to:
+  /// **'Soybeans'**
+  String get allergenSoybeans;
+
+  /// No description provided for @allergenMilk.
+  ///
+  /// In en, this message translates to:
+  /// **'Milk'**
+  String get allergenMilk;
+
+  /// No description provided for @allergenTreeNuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Tree nuts'**
+  String get allergenTreeNuts;
+
+  /// No description provided for @allergenCelery.
+  ///
+  /// In en, this message translates to:
+  /// **'Celery'**
+  String get allergenCelery;
+
+  /// No description provided for @allergenMustard.
+  ///
+  /// In en, this message translates to:
+  /// **'Mustard'**
+  String get allergenMustard;
+
+  /// No description provided for @allergenSesame.
+  ///
+  /// In en, this message translates to:
+  /// **'Sesame'**
+  String get allergenSesame;
+
+  /// No description provided for @allergenSulphurDioxide.
+  ///
+  /// In en, this message translates to:
+  /// **'Sulphur dioxide'**
+  String get allergenSulphurDioxide;
+
+  /// No description provided for @allergenLupin.
+  ///
+  /// In en, this message translates to:
+  /// **'Lupin'**
+  String get allergenLupin;
+
+  /// No description provided for @allergenMolluscs.
+  ///
+  /// In en, this message translates to:
+  /// **'Molluscs'**
+  String get allergenMolluscs;
+
+  /// No description provided for @dietTypeUnsetShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get dietTypeUnsetShort;
+
+  /// No description provided for @dietTypeNoneShort.
+  ///
+  /// In en, this message translates to:
+  /// **'No restriction'**
+  String get dietTypeNoneShort;
+
+  /// No description provided for @dietTypeUnsetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No diet chosen — meal plans apply no diet constraint.'**
+  String get dietTypeUnsetDescription;
+
+  /// No description provided for @dietTypeNoneDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular eating, no food groups excluded.'**
+  String get dietTypeNoneDescription;
+
+  /// No description provided for @dietTypeKetoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Very low carb, high fat — limits rice, bread and sweets.'**
+  String get dietTypeKetoDescription;
+
+  /// No description provided for @dietTypeVegetarianDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No meat or fish; eggs and dairy are fine.'**
+  String get dietTypeVegetarianDescription;
+
+  /// No description provided for @dietTypeVeganDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant-based only: no meat, fish, eggs, dairy or other animal products.'**
+  String get dietTypeVeganDescription;
+
+  /// No description provided for @dietTypePescatarianDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No meat, but fish and seafood are fine.'**
+  String get dietTypePescatarianDescription;
+
+  /// No description provided for @dietTypeGlutenFreeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoids wheat, barley and other gluten-containing foods.'**
+  String get dietTypeGlutenFreeDescription;
+
+  /// No description provided for @dietTypeDiabeticDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits sugar and fast-absorbing carbs, favours low-sugar dishes.'**
+  String get dietTypeDiabeticDescription;
+
+  /// No description provided for @inventoryCategoryOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Category (optional)'**
+  String get inventoryCategoryOptional;
+
+  /// No description provided for @inventoryZeroQuantityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Used up this item?'**
+  String get inventoryZeroQuantityTitle;
+
+  /// No description provided for @inventoryZeroQuantityConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get inventoryZeroQuantityConfirm;
+
+  /// No description provided for @attendanceUnsure.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure'**
+  String get attendanceUnsure;
+
+  /// No description provided for @attendanceYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You: {status}'**
+  String attendanceYou(String status);
+
+  /// No description provided for @planningGuestSlotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Guests for this meal'**
+  String get planningGuestSlotTitle;
+
+  /// No description provided for @planningGuestSlotScopeBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary guests — only for this meal, not saved to the family profile. For people who eat with you regularly (young children, live-in grandparents) use Dependents in the family profile.'**
+  String get planningGuestSlotScopeBanner;
+
+  /// No description provided for @planningGuestSlotEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No guests for this meal yet.'**
+  String get planningGuestSlotEmpty;
+
+  /// No description provided for @planningGuestSlotDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this guest from this meal?'**
+  String get planningGuestSlotDeleteConfirm;
+
+  /// No description provided for @planningGuestSlotUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated. AI suggestions for this meal may have changed.'**
+  String get planningGuestSlotUpdated;
+
+  /// No description provided for @planningGuestSlotCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No guests yet} =1{1 guest} other{{count} guests}}'**
+  String planningGuestSlotCount(int count);
+
+  /// No description provided for @healthProfileGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get healthProfileGender;
+
+  /// No description provided for @healthProfileGenderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get healthProfileGenderMale;
+
+  /// No description provided for @healthProfileGenderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get healthProfileGenderFemale;
+
+  /// No description provided for @healthProfileBirthDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get healthProfileBirthDate;
+
+  /// No description provided for @healthProfileBirthDateChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose date of birth…'**
+  String get healthProfileBirthDateChoose;
+
+  /// No description provided for @healthProfileBirthDateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth must be in the past'**
+  String get healthProfileBirthDateInvalid;
+
+  /// No description provided for @healthProfileActivityLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity level'**
+  String get healthProfileActivityLevel;
+
+  /// No description provided for @activityLevelSedentary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sedentary'**
+  String get activityLevelSedentary;
+
+  /// No description provided for @activityLevelLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light (1–3 days/week)'**
+  String get activityLevelLight;
+
+  /// No description provided for @activityLevelModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate (3–5 days/week)'**
+  String get activityLevelModerate;
+
+  /// No description provided for @activityLevelActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active (6–7 days/week)'**
+  String get activityLevelActive;
+
+  /// No description provided for @activityLevelVeryActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Very active (physical work)'**
+  String get activityLevelVeryActive;
+
+  /// No description provided for @healthProfileCalorieSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested: {value} kcal'**
+  String healthProfileCalorieSuggestion(int value);
+
+  /// No description provided for @healthProfileCalorieApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get healthProfileCalorieApply;
+
+  /// No description provided for @healthProfileCalorieSuggestionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter height, weight, sex, date of birth and activity level to get a suggestion'**
+  String get healthProfileCalorieSuggestionHint;
 }
 
 class _AppLocalizationsDelegate

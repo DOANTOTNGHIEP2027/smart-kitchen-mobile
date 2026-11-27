@@ -40,6 +40,9 @@ class MemberRow extends StatelessWidget {
     final l10n = context.l10n;
     final name =
         member.fullName.isEmpty ? l10n.familyRoleMember : member.fullName;
+    final canChangeRole = isOwner && onChangeRole != null;
+    final canRemove = isOwner && onRemove != null;
+    final hasActions = canChangeRole || canRemove;
     final joined = DateFormat.yMd(Localizations.localeOf(context).toString())
         .format(member.joinedAt.toLocal());
     return Padding(
@@ -56,57 +59,85 @@ class MemberRow extends StatelessWidget {
             shape: AppCachedImageShape.circle,
             placeholderIcon: Icons.person,
           ),
-          title: Wrap(
-            spacing: AppDimens.xs,
-            runSpacing: AppDimens.xs,
-            crossAxisAlignment: WrapCrossAlignment.center,
+          title: Row(
             children: <Widget>[
-              Text(isMe ? l10n.familyMemberYou(name) : name,
-                  style: AppTextStyles.bodyMedium),
-              if (member.provider == 'GUEST')
+              Flexible(
+                child: Text(
+                  isMe ? l10n.familyMemberYou(name) : name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodyMedium,
+                ),
+              ),
+              if (member.provider == 'GUEST') ...<Widget>[
+                const SizedBox(width: AppDimens.xs),
                 _Badge(
                   key: ValueKey<String>('member-guest-${member.userId}'),
                   label: l10n.familyGuestBadge,
                   filled: false,
                 ),
-            ],
-          ),
-          subtitle:
-              Text(l10n.familyJoinedAt(joined), style: AppTextStyles.label),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              if (member.role == 'OWNER')
-                _Badge(label: context.l10n.householdOwner, filled: true)
-              else if (member.role == 'MEMBER')
-                _Badge(label: context.l10n.familyRoleMember, filled: false)
-              else if (member.isRemoteViewer)
-                _Badge(label: context.l10n.tierRoleViewOnly, filled: false),
-              if (isOwner && onChangeRole != null) ...<Widget>[
-                const SizedBox(width: AppDimens.xs),
-                IconButton(
-                  key: ValueKey<String>('member-change-role-${member.userId}'),
-                  tooltip: context.l10n.tierChangeRoleAction,
-                  icon: const Icon(Icons.manage_accounts_outlined, size: 20),
-                  onPressed: onChangeRole,
-                ),
-              ],
-              if (isOwner && onRemove != null) ...<Widget>[
-                const SizedBox(width: AppDimens.sm),
-                IconButton(
-                  key: ValueKey<String>('member-remove-${member.userId}'),
-                  tooltip: context.l10n.familyRemove,
-                  icon: const Icon(Icons.person_remove_outlined, size: 20),
-                  onPressed: onRemove,
-                ),
               ],
             ],
           ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: AppDimens.xs),
+            child: Wrap(
+              spacing: AppDimens.xs,
+              runSpacing: AppDimens.xs,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: <Widget>[
+                if (member.role == 'OWNER')
+                  _Badge(label: l10n.householdOwner, filled: true)
+                else if (member.role == 'MEMBER')
+                  _Badge(label: l10n.familyRoleMember, filled: false)
+                else if (member.isRemoteViewer)
+                  _Badge(label: l10n.tierRoleViewOnly, filled: false),
+                Text(l10n.familyJoinedAt(joined), style: AppTextStyles.label),
+              ],
+            ),
+          ),
+          trailing: hasActions
+              ? PopupMenuButton<_MemberAction>(
+                  key: ValueKey<String>('member-actions-${member.userId}'),
+                  tooltip: l10n.familyMemberActions,
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (action) => switch (action) {
+                    _MemberAction.changeRole => onChangeRole?.call(),
+                    _MemberAction.remove => onRemove?.call(),
+                  },
+                  itemBuilder: (_) => <PopupMenuEntry<_MemberAction>>[
+                    if (canChangeRole)
+                      PopupMenuItem<_MemberAction>(
+                        key: ValueKey<String>(
+                            'member-change-role-${member.userId}'),
+                        value: _MemberAction.changeRole,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.manage_accounts_outlined),
+                          title: Text(l10n.tierChangeRoleAction),
+                        ),
+                      ),
+                    if (canRemove)
+                      PopupMenuItem<_MemberAction>(
+                        key: ValueKey<String>('member-remove-${member.userId}'),
+                        value: _MemberAction.remove,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.person_remove_outlined,
+                              color: AppColors.error),
+                          title: Text(l10n.familyRemove),
+                        ),
+                      ),
+                  ],
+                )
+              : null,
         ),
       ),
     );
   }
 }
+
+enum _MemberAction { changeRole, remove }
 
 class _Badge extends StatelessWidget {
   const _Badge({super.key, required this.label, required this.filled});

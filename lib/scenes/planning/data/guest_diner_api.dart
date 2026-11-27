@@ -7,7 +7,11 @@ import '../../../utils/dio_exception_x.dart';
 import '../domain/guest_diner.dart';
 
 /// CRUD `/api/v1/meal-plans/{mealPlanId}/guest-diners` (#101,
-/// `GuestDinerController`). `mealPlanId` = id kế hoạch tuần (OD-06).
+/// `GuestDinerController`). `mealPlanId` = id kế hoạch tuần.
+///
+/// #201: truyền `slotId` → dùng `/slots/{slotId}/guest-diners` (khách riêng
+/// của bữa đó; GET chỉ trả khách của bữa, không gồm khách cả tuần). Không có
+/// `slotId` → endpoint theo tuần, GET chỉ trả khách cả tuần (`slotId = null`).
 class GuestDinerApi {
   GuestDinerApi(this._client);
 
@@ -15,9 +19,14 @@ class GuestDinerApi {
 
   Dio get _dio => _client.dio;
 
-  Future<List<GuestDiner>> list(String mealPlanId) => _unwrap(() async {
-        final res = await _dio.get<Map<String, dynamic>>(
-            '/api/v1/meal-plans/$mealPlanId/guest-diners');
+  String _base(String mealPlanId, String? slotId) => slotId == null
+      ? '/api/v1/meal-plans/$mealPlanId/guest-diners'
+      : '/api/v1/meal-plans/$mealPlanId/slots/$slotId/guest-diners';
+
+  Future<List<GuestDiner>> list(String mealPlanId, {String? slotId}) =>
+      _unwrap(() async {
+        final res = await _dio
+            .get<Map<String, dynamic>>(_base(mealPlanId, slotId));
         final envelope = ApiResponse<List<dynamic>>.fromJson(
           res.data ?? const <String, dynamic>{},
           (Object? v) => List<dynamic>.from(v! as List),
@@ -33,12 +42,13 @@ class GuestDinerApi {
 
   Future<GuestDiner> add(
     String mealPlanId, {
+    String? slotId,
     String? displayName,
     required List<int> allergenIds,
   }) =>
       _unwrap(() async {
         final res = await _dio.post<Map<String, dynamic>>(
-          '/api/v1/meal-plans/$mealPlanId/guest-diners',
+          _base(mealPlanId, slotId),
           data: <String, dynamic>{
             'displayName': displayName,
             'allergenIds': allergenIds,
@@ -47,7 +57,8 @@ class GuestDinerApi {
         return GuestDiner.fromJson(_data(res.data));
       });
 
-  /// Full-replace — luôn gửi TOÀN BỘ `allergenIds` hiện tại.
+  /// Full-replace — luôn gửi TOÀN BỘ `allergenIds` hiện tại. Dùng chung cho
+  /// khách cả tuần lẫn khách của bữa (BE tra theo `mealPlanId`).
   Future<GuestDiner> updateAllergens(
     String mealPlanId,
     String guestDinerId,
@@ -62,10 +73,10 @@ class GuestDinerApi {
       });
 
   /// BE trả `204 No Content` — không parse body.
-  Future<void> remove(String mealPlanId, String guestDinerId) =>
+  Future<void> remove(String mealPlanId, String guestDinerId,
+          {String? slotId}) =>
       _unwrap(() async {
-        await _dio.delete<void>(
-            '/api/v1/meal-plans/$mealPlanId/guest-diners/$guestDinerId');
+        await _dio.delete<void>('${_base(mealPlanId, slotId)}/$guestDinerId');
       });
 
   Map<String, dynamic> _data(Map<String, dynamic>? raw) {

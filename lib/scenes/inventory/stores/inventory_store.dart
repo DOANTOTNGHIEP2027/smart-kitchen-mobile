@@ -5,6 +5,7 @@ import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
 import '../../../data/realtime/ws_event_envelope.dart';
+import '../../../domain/shared/food_category.dart';
 import '../../../stores/household_scoped.dart';
 import '../../../stores/session_store.dart';
 import '../../../services/connectivity_service.dart';
@@ -79,30 +80,36 @@ class InventoryStore with HouseholdScoped {
   // #93 F7 (app-performance-audit §7.5): Computed — khi đang có Observer quan
   // sát thì cache tới khi input đổi, không copy/lọc/sort lại mỗi lần đọc.
   // Không bật keepAlive: không có observer thì tính lại như getter cũ.
+  // #201: item số lượng 0 (đã dùng hết — BE xoá mềm) không hiện ở đâu cả,
+  // kể cả row cũ còn sót trong SQLite hoặc optimistic chưa đồng bộ.
   late final Computed<List<InventoryItemModel>> _itemsView =
-      Computed<List<InventoryItemModel>>(
-          () => List<InventoryItemModel>.unmodifiable(_items));
+      Computed<List<InventoryItemModel>>(() =>
+          List<InventoryItemModel>.unmodifiable(
+              _items.where((i) => i.isInStock)));
 
   late final Computed<List<InventoryItemModel>> _filtered =
       Computed<List<InventoryItemModel>>(() {
     final q = _searchQuery.value.toLowerCase();
     final cat = _selectedCategory.value;
-    return _items.where((i) {
+    return _itemsView.value.where((i) {
       final matchesSearch = q.isEmpty || i.name.toLowerCase().contains(q);
       final matchesCategory = cat == null || i.category == cat;
       return matchesSearch && matchesCategory;
     }).toList(growable: false);
   });
 
+  // #201: tên chuẩn theo thứ tự chuẩn trước, tên tự do sau.
   late final Computed<List<String>> _categories = Computed<List<String>>(
-      () => _items.map((i) => i.category).whereType<String>().toSet().toList()
-        ..sort());
+      () => FoodCategory.sortNames(
+          _itemsView.value.map((i) => i.category).whereType<String>()));
 
   late final Computed<int> _expiringCount =
-      Computed<int>(() => _items.where((i) => i.isExpiringSoon).length);
+      Computed<int>(
+          () => _itemsView.value.where((i) => i.isExpiringSoon).length);
 
   late final Computed<int> _lowStockCount =
-      Computed<int>(() => _items.where((i) => i.isLowStock).length);
+      Computed<int>(
+          () => _itemsView.value.where((i) => i.showsLowStock).length);
 
   String? get householdId => _session.householdId;
 
@@ -281,7 +288,12 @@ class InventoryStore with HouseholdScoped {
                 version: operation.baseVersion,
                 payload: payload,
               );
-              await _dao.markSynced(local.id, serverItem);
+              // #201: PUT về 0 = BE xoá mềm, trả state đã xoá → xoá local.
+              if (serverItem.isInStock) {
+                await _dao.markSynced(local.id, serverItem);
+              } else {
+                await _dao.deleteItem(local.id);
+              }
               break;
             case 'DELETE':
               await deleteInventoryWithWasteFallback(
@@ -411,6 +423,11 @@ class InventoryStore with HouseholdScoped {
     final isOwnEcho = actorId == _session.currentUser?.id;
     if (local != null && local.syncStatus != SyncStatus.synced && !isOwnEcho) {
       return; // guard D12 — không ghi đè optimistic row đang pending
+    }
+    // #201: về 0 = đã xoá mềm ở BE — xử lý như event xoá.
+    if (!remote.isInStock) {
+      await _dao.deleteItem(remote.id);
+      return;
     }
     await _dao.upsertItem(remote.copyWith(syncStatus: SyncStatus.synced));
   }

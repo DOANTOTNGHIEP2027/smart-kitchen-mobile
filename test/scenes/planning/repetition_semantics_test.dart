@@ -130,9 +130,13 @@ void main() {
           binding: RepetitionSummaryBinding())
     ]);
     await tester.pumpAndSettle();
+    // Lối vào nằm trong menu ⋮ của app bar.
+    await tester.tap(find.byKey(const ValueKey<String>('meal-plan-more')));
+    await tester.pumpAndSettle();
     final action = find.byKey(const ValueKey<String>('meal-plan-repetition'));
-    expect(tester.widget<IconButton>(action).tooltip,
-        'Xem món lặp trong kế hoạch');
+    expect(find.descendant(
+            of: action, matching: find.text('Xem món lặp trong kế hoạch')),
+        findsOneWidget);
     await tester.tap(action);
     await tester.pumpAndSettle();
     expect(find.text('Món lặp trong kế hoạch'), findsOneWidget);

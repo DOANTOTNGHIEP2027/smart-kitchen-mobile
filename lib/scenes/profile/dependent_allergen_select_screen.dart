@@ -20,6 +20,7 @@ import 'domain/dependent_health_profile.dart';
 import 'domain/dependent_summary.dart';
 import 'stores/dependent_store.dart';
 import 'stores/form_status.dart';
+import 'widgets/allergen_label.dart';
 import 'widgets/dependent_state_views.dart';
 
 /// Picker dị ứng của một dependent (§9.6, §16.10) — tinh thần
@@ -227,7 +228,7 @@ class _DependentAllergenSelectScreenState
                                 selected.remove(a.id);
                               }
                             }),
-                    title: Text(a.name),
+                    title: Text(a.label(context.l10n)),
                   ),
                 ),
               );

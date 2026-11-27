@@ -127,8 +127,38 @@ void main() {
         .pumpAppWidget(const MealAttendancePanel(planId: 'p', slotId: 's'));
     await tester.pumpAndSettle();
     expect(find.text('Chưa phản hồi'), findsOneWidget);
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Có ăn'));
+    // #201: SegmentedButton 3 trạng thái + dòng "Bạn: …".
+    expect(find.text('Bạn: Chưa phản hồi'), findsOneWidget);
+    await tester.tap(find.descendant(
+        of: find.byKey(const ValueKey<String>('attendance-segments')),
+        matching: find.text('Có ăn')));
     await tester.pumpAndSettle();
     expect(find.textContaining('1 thành viên có ăn'), findsOneWidget);
+    expect(find.text('Bạn: Có ăn'), findsOneWidget);
+  });
+  test('#201: update is not swallowed while a resume-triggered load is in flight',
+      () async {
+    final gate = Completer<MealAttendance>();
+    var gets = 0;
+    final api = FakeAttendanceApi()
+      ..onGet = () {
+        gets++;
+        return gets == 1
+            ? Future.value(MealAttendance.fromJson(attendanceJson()))
+            : gate.future;
+      }
+      ..onUpdate = (s) async =>
+          MealAttendance.fromJson(attendanceJson(status: 'NOT_ATTENDING'));
+    final store = MealAttendanceStore(api, 'p', 's');
+    await store.load();
+    final staleLoad = store.load();
+    expect(store.loading, true);
+    await store.update(AttendanceStatus.notAttending);
+    expect(store.value?.myStatus, AttendanceStatus.notAttending);
+    expect(store.loading, false);
+    // Bản tải cũ về sau KHÔNG được ghi đè kết quả vừa lưu.
+    gate.complete(MealAttendance.fromJson(attendanceJson()));
+    await staleLoad;
+    expect(store.value?.myStatus, AttendanceStatus.notAttending);
   });
 }

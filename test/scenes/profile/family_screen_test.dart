@@ -131,17 +131,21 @@ void main() {
       (tester) async {
     await pumpFamily(tester, r: roster(members: mixed));
     expect(inviteButton(tester).onPressed, isNotNull);
-    expect(key('member-remove-a'), findsOneWidget);
-    expect(key('member-remove-v'), findsOneWidget);
-    expect(key('member-remove-me'), findsNothing);
-    expect(key('member-remove-o2'), findsNothing);
+    // Đổi vai trò / Xóa gom vào menu ⋮ — dòng mình/OWNER khác không có menu.
+    expect(key('member-actions-a'), findsOneWidget);
+    expect(key('member-actions-v'), findsOneWidget);
+    expect(key('member-actions-me'), findsNothing);
+    expect(key('member-actions-o2'), findsNothing);
     // "(bạn)" ở dòng của mình; GUEST → badge "Khách" (không phải chữ GUEST).
     expect(find.text('Người me (bạn)'), findsOneWidget);
     expect(key('member-guest-a'), findsOneWidget);
     expect(find.text('Khách'), findsOneWidget);
     expect(find.text('GUEST'), findsNothing);
-    // ChangeRoleSheet (#96) vẫn còn nguyên.
+    // ChangeRoleSheet (#96) vẫn còn nguyên — nằm trong menu ⋮.
+    await tester.tap(key('member-actions-a'));
+    await tester.pumpAndSettle();
     expect(key('member-change-role-a'), findsOneWidget);
+    expect(key('member-remove-a'), findsOneWidget);
   });
 
   testWidgets('MEMBER: chỉ đọc — không Mời, không Xóa', (tester) async {
@@ -154,6 +158,8 @@ void main() {
       'Xóa: dialog nêu tên → xác nhận → dòng biến mất, không nháy Loading',
       (tester) async {
     final (st, api) = await pumpFamily(tester, r: roster(members: mixed));
+    await tester.tap(key('member-actions-a'));
+    await tester.pumpAndSettle();
     await tester.tap(key('member-remove-a'));
     await tester.pumpAndSettle();
     expect(find.text('Xóa Người a khỏi gia đình?'), findsOneWidget);
@@ -185,6 +191,8 @@ void main() {
       'M3 — Xóa: nút khoá suốt lúc nạp lại roster, bấm lần 2 không xoá lại, '
       'không toast lỗi', (tester) async {
     final (_, api) = await pumpFamily(tester, r: roster(members: mixed));
+    await tester.tap(key('member-actions-a'));
+    await tester.pumpAndSettle();
     await tester.tap(key('member-remove-a'));
     await tester.pumpAndSettle();
 
@@ -213,6 +221,8 @@ void main() {
 
   testWidgets('Xóa: Huỷ → không gọi API', (tester) async {
     final (_, api) = await pumpFamily(tester, r: roster(members: mixed));
+    await tester.tap(key('member-actions-a'));
+    await tester.pumpAndSettle();
     await tester.tap(key('member-remove-a'));
     await tester.pumpAndSettle();
     await tester.tap(key('family-remove-cancel'));
@@ -229,6 +239,8 @@ void main() {
           BusinessException('ERR_HH_007', 'Transfer ownership before leaving');
     });
     final before = api.rosterCalls;
+    await tester.tap(key('member-actions-a'));
+    await tester.pumpAndSettle();
     await tester.tap(key('member-remove-a'));
     await tester.pumpAndSettle();
     await tester.tap(key('family-remove-confirm'));

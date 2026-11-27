@@ -547,6 +547,25 @@ void main() {
       expect(store.lowStockCount, 2);
     });
 
+    test('#201 item số lượng 0 bị ẩn và không tính "sắp hết"', () async {
+      final dispose = autorun((_) {
+        store.items;
+        store.filteredItems;
+        store.lowStockCount;
+      });
+      addTearDown(dispose.call);
+      await seedAndInit();
+
+      await dao.upsertItem(serverItem(id: 'z', name: 'Hết').copyWith(
+        quantity: 0,
+        isLowStock: true,
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      expect(store.items.map((i) => i.id), isNot(contains('z')));
+      expect(store.filteredItems.map((i) => i.id), isNot(contains('z')));
+      expect(store.lowStockCount, 1);
+    });
+
     test('T7.4 đổi household → computed trả rỗng (không lộ Nhà cũ)',
         () async {
       final dispose = autorun((_) {

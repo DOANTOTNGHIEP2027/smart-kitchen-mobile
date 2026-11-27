@@ -139,6 +139,28 @@ void main() {
       expect(adapter.requests.single.path, '/api/v1/meal-plans/plan-1/guest-diners/g1');
     });
 
+    test('#201 có slotId → list/add/remove theo endpoint của bữa, parse slotId', () async {
+      final adapter = use((options) async {
+        if (options.method == 'DELETE') return ResponseBody.fromString('', 204);
+        final json = guestJson()..['slotId'] = 's1';
+        return options.method == 'GET'
+            ? jsonResponse(200, successEnvelope(<dynamic>[json]))
+            : jsonResponse(201, successEnvelope(json));
+      });
+      final api = GuestDinerApi(dioClient());
+
+      final diners = await api.list('plan-1', slotId: 's1');
+      await api.add('plan-1', slotId: 's1', allergenIds: <int>[3]);
+      await api.remove('plan-1', 'g1', slotId: 's1');
+
+      expect(diners.single.slotId, 's1');
+      expect(adapter.requests.map((r) => r.path), <String>[
+        '/api/v1/meal-plans/plan-1/slots/s1/guest-diners',
+        '/api/v1/meal-plans/plan-1/slots/s1/guest-diners',
+        '/api/v1/meal-plans/plan-1/slots/s1/guest-diners/g1',
+      ]);
+    });
+
     test('404 ERR_MEAL_GUEST_DINER_NOT_FOUND → ApiException đúng code', () async {
       use((_) async => jsonResponse(404, errorEnvelope('ERR_MEAL_GUEST_DINER_NOT_FOUND', 'not found')));
 

@@ -10,6 +10,7 @@ import '../domain/allergen.dart';
 import '../domain/dependent_age.dart';
 import '../domain/dependent_summary.dart';
 import '../domain/diet_type.dart';
+import 'allergen_label.dart';
 import 'diet_type_label.dart';
 
 /// Dòng ngày sinh (§16.11 MEDIUM-4): tuổi tính được → `dependentAgeAndBirth`;
@@ -170,7 +171,7 @@ List<Widget> dependentAllergenChips(
   return <Widget>[
     for (final a in shown)
       DependentChip(
-        label: l10n.dependentAllergenChip(a.name),
+        label: l10n.dependentAllergenChip(a.label(l10n)),
         icon: Icons.warning_amber_rounded,
         warning: true,
       ),

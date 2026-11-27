@@ -57,6 +57,13 @@ class InventoryItemModel {
       syncStatus == SyncStatus.pendingUpdate;
   bool get hasConflict => syncStatus == SyncStatus.conflict;
 
+  /// #201: số lượng 0 = đã dùng hết — BE xoá mềm, FE ẩn khỏi danh sách.
+  bool get isInStock => quantity > 0;
+
+  /// #201: "Sắp hết" chỉ khi còn hàng — 0 không phải sắp hết (dữ liệu cũ /
+  /// optimistic có thể còn cờ `isLowStock` từ trước).
+  bool get showsLowStock => isLowStock && isInStock;
+
   InventoryItemModel copyWith({
     String? id,
     String? name,
@@ -75,12 +82,14 @@ class InventoryItemModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     SyncStatus? syncStatus,
+    // #201: bỏ chọn phân loại khi sửa — `category: null` không xoá được.
+    bool clearCategory = false,
   }) {
     return InventoryItemModel(
       id: id ?? this.id,
       householdId: householdId,
       name: name ?? this.name,
-      category: category ?? this.category,
+      category: clearCategory ? null : (category ?? this.category),
       quantity: quantity ?? this.quantity,
       unit: unit ?? this.unit,
       displayQuantity: displayQuantity ?? this.displayQuantity,
