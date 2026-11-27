@@ -8,9 +8,13 @@ import '../../constants/app_dimens.dart';
 import '../../demo/fixtures/demo_fixtures.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
+import '../../utils/recipe_images.dart';
 import '../../stores/session_store.dart';
+import '../../widgets/app_cached_image.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/states/app_state_view.dart';
+import '../../widgets/states/view_state.dart';
 import '../cooking/scenes/cooking_routes.dart';
 import '../inventory/scenes/inventory_list_binding.dart';
 import '../inventory/scenes/inventory_list_scene.dart';
@@ -19,6 +23,9 @@ import '../mealplan/scenes/weekly_meal_plan_scene.dart';
 import '../mealplan/widgets/recipe_cover_image.dart';
 import '../profile/profile_family_bindings.dart';
 import '../profile/profile_screen.dart';
+import '../recipe/data/recipe_catalog_api.dart';
+import '../recipe/domain/recipe.dart';
+import '../recipe/stores/recipe_store.dart';
 import '../shopping/scenes/shopping_list_binding.dart';
 import '../shopping/scenes/shopping_list_scene.dart';
 import '../shopping/stores/shopping_store.dart';
@@ -106,7 +113,8 @@ class AppShellScene extends StatelessWidget {
                         label: tabs[i].label,
                         badgeCount: i == _shoppingTabIndex ? assigned : 0,
                         semanticsLabel: i == _shoppingTabIndex
-                            ? context.l10n.navShoppingAssignedSemantics(assigned)
+                            ? context.l10n
+                                .navShoppingAssignedSemantics(assigned)
                             : null,
                       ),
                   ],
@@ -154,7 +162,7 @@ int shoppingAssignedBadgeCount() => Get.isRegistered<ShoppingStore>()
 ///
 /// Áp dụng màu Cam tươi mới (#FF7A45), 100% Solid Color (không dùng gradient),
 /// bo góc tròn mềm mại 18dp, bóng ambient đổ nhẹ tự nhiên.
-/// Danh sách gợi ý món ăn hiển thị trong chế độ Demo Mode (theo kế hoạch backend).
+/// Demo dùng fixture; backend thật tải công thức từ catalog, không gọi AI.
 class _HomeTab extends StatelessWidget {
   const _HomeTab();
 
@@ -268,6 +276,9 @@ class _HomeTab extends StatelessWidget {
                   ),
                 ),
               ),
+            ] else ...<Widget>[
+              const SizedBox(height: AppDimens.xl),
+              const HomeRecipeCatalog(),
             ],
           ],
         ),
@@ -276,6 +287,100 @@ class _HomeTab extends StatelessWidget {
   }
 
   void _openMealPlan() => Get.find<AppShellStore>().selectTab(2);
+}
+
+/// Catalog trên Home có store riêng để bộ lọc/tab của màn Công thức không
+/// làm thay đổi danh sách này. Mọi dữ liệu lấy qua API thật đã đăng ký ở DI.
+class HomeRecipeCatalog extends StatefulWidget {
+  const HomeRecipeCatalog({super.key});
+
+  @override
+  State<HomeRecipeCatalog> createState() => _HomeRecipeCatalogState();
+}
+
+class _HomeRecipeCatalogState extends State<HomeRecipeCatalog> {
+  late final RecipeStore _store;
+
+  @override
+  void initState() {
+    super.initState();
+    _store = RecipeStore(Get.find<RecipeCatalogApi>());
+    _store.init();
+  }
+
+  @override
+  void dispose() {
+    _store.dispose();
+    super.dispose();
+  }
+
+  ViewState<List<Recipe>> get _state {
+    if (_store.status == RecipeListStatus.loading) {
+      return const LoadingState();
+    }
+    final error = _store.error;
+    if (error != null) return ErrorState(error);
+    if (_store.recipes.isEmpty) return const EmptyState();
+    return SuccessState(_store.recipes.take(6).toList(growable: false));
+  }
+
+  @override
+  Widget build(BuildContext context) => Observer(
+        builder: (_) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    context.l10n.recipesTitle,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
+                        ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: context.l10n.refresh,
+                  onPressed: _store.status == RecipeListStatus.loading
+                      ? null
+                      : _store.refresh,
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppDimens.sm),
+            AppStateView<List<Recipe>>(
+              state: _state,
+              onRetry: _store.refresh,
+              emptyMessage: context.l10n.recipesNoResults,
+              emptyIcon: Icons.menu_book_outlined,
+              successBuilder: (context, recipes) => Column(
+                children: <Widget>[
+                  for (final recipe in recipes)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppDimens.md),
+                      child: _HomeRecipeCard(
+                        recipeId: recipe.id,
+                        recipeName: recipe.name,
+                        prepTimeMinutes: recipe.prepTimeMinutes,
+                        thumbnailUrl: recipe.thumbnailUrl,
+                        actionLabel: context.l10n.homeRecipeAction,
+                        onTap: () => Get.toNamed<void>(AppRoutes.recipeDetail
+                            .replaceFirst(':id', recipe.id)),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () => Get.toNamed<void>(AppRoutes.recipes),
+              child: Text(context.l10n.recipesTitle),
+            ),
+          ],
+        ),
+      );
 }
 
 class _HomeHeader extends StatelessWidget {
@@ -499,9 +604,7 @@ class _HomeActionCard extends StatelessWidget {
                 child: Icon(
                   icon,
                   size: primary ? 24 : 20,
-                  color: primary
-                      ? AppColors.textOnPrimary
-                      : AppColors.primary,
+                  color: primary ? AppColors.textOnPrimary : AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -527,7 +630,8 @@ class _HomeActionCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: primary
-                                ? AppColors.textOnPrimary.withValues(alpha: 0.88)
+                                ? AppColors.textOnPrimary
+                                    .withValues(alpha: 0.88)
                                 : AppColors.textSecondary,
                             height: 1.25,
                             fontSize: 12,
@@ -568,17 +672,24 @@ class _HomeRecipeCard extends StatelessWidget {
     required this.recipeName,
     required this.actionLabel,
     required this.onTap,
+    this.prepTimeMinutes,
+    this.thumbnailUrl,
   });
 
   final String recipeId;
   final String recipeName;
   final String actionLabel;
   final VoidCallback onTap;
+  final int? prepTimeMinutes;
+  final String? thumbnailUrl;
 
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(AppDimens.radiusCard);
-    final prepTime = RecipeCoverImage.demoPrepTimeMinutes(recipeId);
+    final prepTime = prepTimeMinutes ??
+        (EnvConfig.isDemoMode
+            ? RecipeCoverImage.demoPrepTimeMinutes(recipeId)
+            : null);
 
     return Material(
       color: AppColors.surface,
@@ -605,12 +716,23 @@ class _HomeRecipeCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimens.radiusCard)),
-                child: RecipeCoverImage(
-                  recipeId: recipeId,
-                  recipeName: recipeName,
-                  height: 180,
-                ),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppDimens.radiusCard)),
+                child: EnvConfig.isDemoMode
+                    ? RecipeCoverImage(
+                        recipeId: recipeId,
+                        recipeName: recipeName,
+                        height: 180,
+                      )
+                    : AppCachedImage(
+                        url: recipeImageUrl(
+                            recipeId: recipeId,
+                            recipeName: recipeName,
+                            thumbnailUrl: thumbnailUrl),
+                        width: double.infinity,
+                        height: 180,
+                        placeholderIcon: Icons.restaurant_menu_outlined,
+                      ),
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -624,7 +746,10 @@ class _HomeRecipeCard extends StatelessWidget {
                             recipeName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
                                   color: AppColors.textPrimary,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
@@ -633,10 +758,12 @@ class _HomeRecipeCard extends StatelessWidget {
                         ),
                         if (prepTime != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: AppColors.primaryContainer,
-                              borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                              borderRadius:
+                                  BorderRadius.circular(AppDimens.radiusPill),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -648,7 +775,7 @@ class _HomeRecipeCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '$prepTime phút',
+                                  context.l10n.homeRecipeMinutes(prepTime),
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -665,14 +792,18 @@ class _HomeRecipeCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: AppColors.surfaceSubtle,
-                            borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                            borderRadius:
+                                BorderRadius.circular(AppDimens.radiusPill),
                           ),
-                          child: const Text(
-                            'Gợi ý cho gia đình',
-                            style: TextStyle(
+                          child: Text(
+                            EnvConfig.isDemoMode
+                                ? context.l10n.homeRecommendedMeals
+                                : context.l10n.recipesTitle,
+                            style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textSecondary,
@@ -680,10 +811,12 @@ class _HomeRecipeCard extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
                             color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                            borderRadius:
+                                BorderRadius.circular(AppDimens.radiusPill),
                             boxShadow: const <BoxShadow>[
                               BoxShadow(
                                 color: AppColors.primaryShadow,

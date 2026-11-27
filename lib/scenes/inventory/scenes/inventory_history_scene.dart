@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/inventory_notes.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
@@ -278,10 +279,11 @@ class _TransactionTile extends StatelessWidget {
                           ),
                     ),
                   ],
-                  if (transaction.note?.trim().isNotEmpty == true) ...<Widget>[
+                  if (visibleInventoryNote(transaction.note)
+                      .isNotEmpty) ...<Widget>[
                     const SizedBox(height: 2),
                     Text(
-                      transaction.note!.trim(),
+                      visibleInventoryNote(transaction.note),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary,
                             fontStyle: FontStyle.italic,
@@ -308,7 +310,9 @@ class _TransactionTile extends StatelessWidget {
                   child: Text(
                     deltaText,
                     style: TextStyle(
-                      color: isPositive ? AppColors.onPrimaryContainer : AppColors.error,
+                      color: isPositive
+                          ? AppColors.onPrimaryContainer
+                          : AppColors.error,
                       fontWeight: FontWeight.w800,
                       fontSize: 13,
                     ),

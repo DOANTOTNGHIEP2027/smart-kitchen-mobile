@@ -24,6 +24,7 @@ import 'package:smart_kitchen_mobile/services/connectivity_service.dart';
 import 'package:smart_kitchen_mobile/stores/realtime_store.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
 import 'package:smart_kitchen_mobile/scenes/recipe/data/recipe_catalog_api.dart';
+import 'package:smart_kitchen_mobile/scenes/recipe/domain/recipe.dart';
 
 /// Stub cho toàn bộ dependency `AppShellScene._ensureBindings()` cần, để
 /// shell render được trong widget test mà không phải wire backend thật.
@@ -132,7 +133,24 @@ class _MockMealAttendanceApi extends Mock implements MealAttendanceApi {
 
 class _MockHealthApi extends Mock implements HealthApi {}
 
-class _MockRecipeCatalogApi extends Mock implements RecipeCatalogApi {}
+class _MockRecipeCatalogApi extends Mock implements RecipeCatalogApi {
+  @override
+  Future<RecipePage> list({
+    required int page,
+    required int size,
+    String? search,
+    String? dietType,
+    String? difficulty,
+    int? maxPrepTime,
+  }) async =>
+      const RecipePage(
+        items: <Recipe>[],
+        page: 0,
+        size: 20,
+        totalElements: 0,
+        totalPages: 0,
+      );
+}
 
 class _MockProfileApi extends Mock implements ProfileApi {}
 

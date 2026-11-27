@@ -7,10 +7,12 @@ import '../../../constants/app_dimens.dart';
 import '../../../routing/app_routes.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/money_format.dart';
 import '../../../utils/quantity_format.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../inventory/domain/unit_option.dart';
 import '../../profile/domain/household_roster.dart';
@@ -162,6 +164,14 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
         builder: (_) {
           if (store.isLoading) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          final loadError = store.loadError;
+          if (loadError != null && store.items.isEmpty) {
+            return AppErrorView(
+              message: apiErrorMessage(context.l10n, loadError),
+              onRetry: store.retryLoad,
+            );
           }
 
           final me = Get.find<SessionStore>().currentUser?.id;

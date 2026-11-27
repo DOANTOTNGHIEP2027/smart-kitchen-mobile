@@ -1,4 +1,7 @@
 import 'dart:typed_data';
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -14,6 +17,9 @@ import 'package:smart_kitchen_mobile/scenes/inventory/ocr/stores/ocr_store.dart'
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/scenes/camera_scan_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/scenes/ocr_result_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/stores/inventory_form_store.dart';
+import 'package:smart_kitchen_mobile/l10n/app_localizations.dart';
+import 'package:smart_kitchen_mobile/scenes/inventory/inventory_routes.dart';
+import 'package:smart_kitchen_mobile/scenes/shell/app_shell_store.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -198,6 +204,60 @@ void main() {
     expect(find.text('Chụp ảnh'), findsOneWidget);
     expect(find.text('Chọn từ thư viện'), findsOneWidget);
   });
+
+  for (final standalone in [false, true]) {
+    testWidgets('confirm all giữ màn gốc (standalone=$standalone)',
+        (tester) async {
+      api.outcomes
+          .add(const OcrScanResult(scanId: 'scan-1', items: [_validItem]));
+      when(() => formStore.save(
+          name: any(named: 'name'),
+          category: any(named: 'category'),
+          quantity: any(named: 'quantity'),
+          unit: any(named: 'unit'),
+          lowStockThreshold: any(named: 'lowStockThreshold'),
+          expiryDate: any(named: 'expiryDate'),
+          note: any(named: 'note'))).thenAnswer((_) async => true);
+      await store.pickAndScan(OcrImageSource.gallery);
+      Get.put<OcrStore>(store, permanent: true);
+      final shell = Get.put<AppShellStore>(AppShellStore());
+      await tester.pumpWidget(GetMaterialApp(
+        locale: const Locale('vi'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        initialRoute: '/',
+        getPages: [
+          GetPage<void>(
+              name: '/', page: () => const Scaffold(body: Text('ROOT-SHELL'))),
+          GetPage<void>(
+              name: InventoryRoutes.list,
+              page: () => const Scaffold(body: Text('INVENTORY'))),
+          GetPage<void>(
+              name: InventoryRoutes.scan,
+              page: () => const Scaffold(body: Text('SCAN'))),
+          GetPage<void>(
+              name: InventoryRoutes.scanReview,
+              page: () => const OcrResultScene()),
+        ],
+      ));
+      await tester.pumpAndSettle();
+      if (standalone) {
+        unawaited(Get.toNamed<void>(InventoryRoutes.list));
+        await tester.pumpAndSettle();
+      }
+      unawaited(Get.toNamed<void>(InventoryRoutes.scan));
+      await tester.pumpAndSettle();
+      unawaited(Get.toNamed<void>(InventoryRoutes.scanReview));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Xác nhận tất cả'));
+      await tester.pumpAndSettle();
+      expect(
+          find.text(standalone ? 'INVENTORY' : 'ROOT-SHELL'), findsOneWidget);
+      expect(shell.selectedIndex, 1);
+      expect(store.status, OcrStatus.idle);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('review state shows manual-review and duplicate badges',
       (tester) async {

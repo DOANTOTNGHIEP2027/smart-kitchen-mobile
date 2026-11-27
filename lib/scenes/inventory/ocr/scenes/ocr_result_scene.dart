@@ -4,10 +4,12 @@ import 'package:get/get.dart';
 
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_dimens.dart';
+import '../../../../routing/app_routes.dart';
 import '../../../../utils/l10n_x.dart';
 import '../../../../widgets/app_scaffold.dart';
 import '../../../../widgets/buttons/app_button.dart';
 import '../../inventory_routes.dart';
+import '../../../shell/app_shell_store.dart';
 import '../stores/ocr_store.dart';
 import '../widgets/ocr_item_card.dart';
 
@@ -28,7 +30,7 @@ class OcrResultScene extends StatelessWidget {
                   TextButton(
                     onPressed: confirming || !store.canConfirmAll
                         ? null
-                        : () => _confirmAll(store),
+                        : () => _confirmAll(context, store),
                     child: Text(context.l10n.inventoryOcrConfirmAll),
                   ),
                 ],
@@ -37,7 +39,7 @@ class OcrResultScene extends StatelessWidget {
               : _ResultList(
                   store: store,
                   confirming: confirming,
-                  onSave: (id) => _confirmOne(store, id),
+                  onSave: (id) => _confirmOne(context, store, id),
                   onRemove: (id) {
                     store.removeItem(id);
                     _finishIfDone(store);
@@ -48,19 +50,28 @@ class OcrResultScene extends StatelessWidget {
     );
   }
 
-  Future<void> _confirmAll(OcrStore store) async {
+  Future<void> _confirmAll(BuildContext context, OcrStore store) async {
     await store.confirmAll();
-    _finishIfDone(store);
+    if (context.mounted) _finishIfDone(store);
   }
 
-  Future<void> _confirmOne(OcrStore store, String id) async {
+  Future<void> _confirmOne(
+      BuildContext context, OcrStore store, String id) async {
     await store.confirmItem(id);
-    _finishIfDone(store);
+    if (context.mounted) _finishIfDone(store);
   }
 
   void _finishIfDone(OcrStore store) {
     if (store.status != OcrStatus.done) return;
-    Get.until((route) => route.settings.name == InventoryRoutes.list);
+    // Kho có thể là tab của shell, không có /inventory trong route stack.
+    // Luôn giữ route gốc để popUntil không làm app rơi khỏi màn chính.
+    Get.until((route) =>
+        route.isFirst ||
+        route.settings.name == InventoryRoutes.list ||
+        route.settings.name == AppRoutes.shellRoot);
+    if (Get.isRegistered<AppShellStore>()) {
+      Get.find<AppShellStore>().selectTab(1);
+    }
     store.reset();
   }
 

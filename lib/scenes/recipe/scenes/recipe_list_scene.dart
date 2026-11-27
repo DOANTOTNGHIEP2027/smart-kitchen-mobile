@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../routing/app_routes.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/recipe_images.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_cached_image.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -508,7 +509,10 @@ class _RecipeArtwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = recipe.thumbnailUrl;
+    final imageUrl = recipeImageUrl(
+        recipeId: recipe.id,
+        recipeName: recipe.name,
+        thumbnailUrl: recipe.thumbnailUrl);
     if (imageUrl == null || imageUrl.isEmpty) {
       return const _RecipeArtworkFallback();
     }

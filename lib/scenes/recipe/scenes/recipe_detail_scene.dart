@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/recipe_images.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_cached_image.dart';
 import '../../../widgets/app_scaffold.dart';
@@ -143,9 +144,13 @@ class _Header extends StatelessWidget {
             runSpacing: AppDimens.xs,
             children: <Widget>[
               if (recipe.prepTimeMinutes != null)
-                _InfoChip(label: context.l10n.recipePrepTime(recipe.prepTimeMinutes!)),
+                _InfoChip(
+                    label:
+                        context.l10n.recipePrepTime(recipe.prepTimeMinutes!)),
               if (recipe.cookTimeMinutes != null)
-                _InfoChip(label: context.l10n.recipeCookTime(recipe.cookTimeMinutes!)),
+                _InfoChip(
+                    label:
+                        context.l10n.recipeCookTime(recipe.cookTimeMinutes!)),
               if (recipe.serves != null)
                 _InfoChip(label: context.l10n.recipeServes(recipe.serves!)),
               if (recipe.difficulty != null)
@@ -154,16 +159,19 @@ class _Header extends StatelessWidget {
           ),
           if (recipe.cuisine != null && recipe.cuisine!.isNotEmpty) ...<Widget>[
             const SizedBox(height: AppDimens.sm),
-            Text(recipe.cuisine!, style: Theme.of(context).textTheme.bodyMedium),
+            Text(recipe.cuisine!,
+                style: Theme.of(context).textTheme.bodyMedium),
           ],
-          if (recipe.favorite.favoriteCount > 0 || recipe.favorite.avgRating != null) ...<Widget>[
+          if (recipe.favorite.favoriteCount > 0 ||
+              recipe.favorite.avgRating != null) ...<Widget>[
             const SizedBox(height: AppDimens.sm),
             Wrap(
               spacing: AppDimens.sm,
               children: <Widget>[
                 if (recipe.favorite.favoriteCount > 0)
                   Text(
-                    context.l10n.recipeHouseholdFavorites(recipe.favorite.favoriteCount),
+                    context.l10n.recipeHouseholdFavorites(
+                        recipe.favorite.favoriteCount),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 if (recipe.favorite.avgRating != null)
@@ -198,7 +206,10 @@ class _DetailArtwork extends StatelessWidget {
         ),
       ),
     );
-    final imageUrl = recipe.thumbnailUrl;
+    final imageUrl = recipeImageUrl(
+        recipeId: recipe.id,
+        recipeName: recipe.name,
+        thumbnailUrl: recipe.thumbnailUrl);
     return SizedBox(
       height: 220,
       width: double.infinity,
@@ -257,10 +268,14 @@ class _NutritionCard extends StatelessWidget {
             spacing: AppDimens.lg,
             runSpacing: AppDimens.sm,
             children: <Widget>[
-              if (nutrition.calories != null) Text('${nutrition.calories!.round()} kcal'),
-              if (nutrition.proteinG != null) Text('P ${nutrition.proteinG!.toStringAsFixed(1)}g'),
-              if (nutrition.fatG != null) Text('F ${nutrition.fatG!.toStringAsFixed(1)}g'),
-              if (nutrition.carbsG != null) Text('C ${nutrition.carbsG!.toStringAsFixed(1)}g'),
+              if (nutrition.calories != null)
+                Text('${nutrition.calories!.round()} kcal'),
+              if (nutrition.proteinG != null)
+                Text('P ${nutrition.proteinG!.toStringAsFixed(1)}g'),
+              if (nutrition.fatG != null)
+                Text('F ${nutrition.fatG!.toStringAsFixed(1)}g'),
+              if (nutrition.carbsG != null)
+                Text('C ${nutrition.carbsG!.toStringAsFixed(1)}g'),
             ],
           ),
         ),
@@ -454,7 +469,9 @@ class _RatingCard extends StatelessWidget {
               ),
               if (recipe.favorite.myRating != null)
                 TextButton(
-                  onPressed: store.isMutatingRating ? null : () => store.setRating(null),
+                  onPressed: store.isMutatingRating
+                      ? null
+                      : () => store.setRating(null),
                   child: Text(context.l10n.recipeClearRating),
                 ),
             ],
@@ -477,7 +494,8 @@ class _NoStepsNotice extends StatelessWidget {
         ),
         child: Row(
           children: <Widget>[
-            const Icon(Icons.info_outline_rounded, color: AppColors.primaryDark),
+            const Icon(Icons.info_outline_rounded,
+                color: AppColors.primaryDark),
             const SizedBox(width: AppDimens.sm),
             Expanded(child: Text(message)),
           ],

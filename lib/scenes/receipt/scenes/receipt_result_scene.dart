@@ -6,6 +6,8 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../routing/app_routes.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../routing/app_routes.dart';
+import '../../shell/app_shell_store.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/feature_banner.dart';
@@ -222,7 +224,13 @@ class _ReceiptResultSceneState extends State<ReceiptResultScene> {
     final message = context.l10n.receiptDoneToast(count);
     // Pop ĐÚNG 2 màn (result + scan). KHÔNG Get.until theo tên: Mua sắm là tab
     // trong IndexedStack của shell, không có route '/shopping' (Guard 13).
-    Get.close(2);
+    Navigator.of(context).popUntil((route) =>
+        route.isFirst ||
+        route.settings.name == AppRoutes.shellRoot ||
+        route.settings.name == AppRoutes.shopping);
+    if (Get.isRegistered<AppShellStore>()) {
+      Get.find<AppShellStore>().selectTab(3);
+    }
     store.reset();
     if (count > 0) {
       Get.snackbar(title, message);

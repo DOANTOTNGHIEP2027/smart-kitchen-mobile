@@ -57,6 +57,7 @@ class OcrStore {
 
   Uint8List? _compressedBytes;
   String? _idempotencyKey;
+  bool _confirmingAll = false;
 
   OcrStatus get status => _status.value;
   OcrScanMode get mode => _mode.value;
@@ -211,6 +212,10 @@ class OcrStore {
     var index = items.indexWhere((item) => item.itemId == itemId);
     if (index < 0) return;
     final item = items[index];
+    if (item.confirmStatus == OcrConfirmStatus.confirmed ||
+        item.confirmStatus == OcrConfirmStatus.confirming) {
+      return;
+    }
     if (!item.isValidForConfirm) {
       runInAction(() {
         items[index] = item.copyWith(confirmError: 'INVALID_OCR_ITEM');
@@ -225,15 +230,21 @@ class OcrStore {
       );
     });
     final formStore = _formStoreFactory();
-    final saved = await formStore.save(
-      name: item.name,
-      category: item.category,
-      quantity: item.quantity!,
-      unit: item.unit!,
-      lowStockThreshold: null,
-      expiryDate: item.expiryEstimate,
-      note: null,
-    );
+    var saved = false;
+    try {
+      saved = await formStore.save(
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity!,
+        unit: item.unit!,
+        lowStockThreshold: null,
+        expiryDate: item.expiryEstimate,
+        note: null,
+      );
+    } catch (_) {
+      // Lỗi lưu bất ngờ vẫn giữ người dùng ở màn xác nhận để thử lại.
+      saved = false;
+    }
 
     index = items.indexWhere((current) => current.itemId == itemId);
     if (index < 0) return;
@@ -255,21 +266,30 @@ class OcrStore {
   }
 
   Future<void> confirmAll() async {
-    if (items.isEmpty) return;
-    if (_batchApi != null) return _confirmAllBatch(_batchApi);
-    runInAction(() => _status.value = OcrStatus.confirming);
-    final ids = items
-        .where((item) => item.confirmStatus != OcrConfirmStatus.confirmed)
-        .map((item) => item.itemId)
-        .toList(growable: false);
-    for (final id in ids) {
-      await confirmItem(id);
+    if (items.isEmpty || _confirmingAll) return;
+    _confirmingAll = true;
+    try {
+      final batchApi = _batchApi;
+      if (batchApi != null) {
+        await _confirmAllBatch(batchApi);
+        return;
+      }
+      runInAction(() => _status.value = OcrStatus.confirming);
+      final ids = items
+          .where((item) => item.confirmStatus != OcrConfirmStatus.confirmed)
+          .map((item) => item.itemId)
+          .toList(growable: false);
+      for (final id in ids) {
+        await confirmItem(id);
+      }
+      if (items.isEmpty) return;
+      runInAction(() {
+        _status.value =
+            items.every(_isConfirmed) ? OcrStatus.done : OcrStatus.reviewing;
+      });
+    } finally {
+      _confirmingAll = false;
     }
-    if (items.isEmpty) return;
-    runInAction(() {
-      _status.value =
-          items.every(_isConfirmed) ? OcrStatus.done : OcrStatus.reviewing;
-    });
   }
 
   Future<void> _confirmAllBatch(InventoryBatchApi batchApi) async {
@@ -296,7 +316,8 @@ class OcrStore {
       return;
     }
     final payload = <Map<String, dynamic>>[
-      for (final id in ids) _batchPayload(items.firstWhere((i) => i.itemId == id)),
+      for (final id in ids)
+        _batchPayload(items.firstWhere((i) => i.itemId == id)),
     ];
     String? failure;
     Set<int> failedRows = const <int>{};
@@ -320,11 +341,14 @@ class OcrStore {
         if (index < 0) continue;
         final current = items[index];
         items[index] = failure == null
-            ? current.copyWith(confirmStatus: OcrConfirmStatus.confirmed, confirmError: null)
+            ? current.copyWith(
+                confirmStatus: OcrConfirmStatus.confirmed, confirmError: null)
             // All-or-nothing: cả lô thất bại; dòng BE chỉ đích danh mang lỗi.
             : current.copyWith(
                 confirmStatus: OcrConfirmStatus.failed,
-                confirmError: failedRows.isEmpty || failedRows.contains(k) ? failure : null,
+                confirmError: failedRows.isEmpty || failedRows.contains(k)
+                    ? failure
+                    : null,
               );
       }
       _status.value = items.isNotEmpty && items.every(_isConfirmed)
@@ -338,7 +362,8 @@ class OcrStore {
         if (item.category != null) 'category': item.category,
         'quantity': item.quantity,
         'unit': item.unit,
-        if (item.expiryEstimate != null) 'expiryDate': toApiDate(item.expiryEstimate!),
+        if (item.expiryEstimate != null)
+          'expiryDate': toApiDate(item.expiryEstimate!),
       };
 
   void reset() {

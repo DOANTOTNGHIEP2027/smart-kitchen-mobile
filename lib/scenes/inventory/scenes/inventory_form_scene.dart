@@ -8,6 +8,7 @@ import 'package:mobx/mobx.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../data/network/api_exception.dart';
 import '../../../utils/l10n_x.dart';
+import '../../../utils/inventory_notes.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
@@ -59,11 +60,18 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
             : (item.displayQuantity ?? item.quantity).toString());
     _lowStockCtrl =
         TextEditingController(text: item?.lowStockThreshold?.toString() ?? '');
-    _noteCtrl = TextEditingController(text: item?.note ?? '');
+    _noteCtrl = TextEditingController(text: visibleInventoryNote(item?.note));
     if (item?.displayUnit != null) {
       _unit = unitOptions.firstWhere(
         (u) => u.value == item!.displayUnit,
-        orElse: () => unitOptions.first,
+        // Giữ đơn vị backend (hộp, con, chai...) khi kiểm tra đồ vừa nhập kho;
+        // không đổi âm thầm về g rồi lưu sai số lượng.
+        orElse: () => UnitOption(
+          value: item!.displayUnit!,
+          label: item.displayUnit!,
+          canonical: item.unit,
+          isWholeNumber: item.unit == 'PIECE' || item.unit == 'UNIT',
+        ),
       );
     }
     _expiryDate = item?.expiryDate;
@@ -299,7 +307,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       unit: _unit!.value,
       lowStockThreshold: lowStock,
       expiryDate: _expiryDate,
-      note: _noteCtrl.text,
+      note: preserveShoppingMarker(_initialItem?.note, _noteCtrl.text),
       reason: wasteChoice.reason,
       wasteCause: wasteChoice.wasteCause,
     );
@@ -308,8 +316,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       Get.back();
     } else if (store.saveError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(apiErrorMessage(context.l10n, store.saveError))),
+        SnackBar(content: Text(apiErrorMessage(context.l10n, store.saveError))),
       );
     }
     // Nếu conflict đã mở → dialog tự bật qua _onConflictChanged; không SnackBar.
@@ -336,8 +343,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       Get.back();
     } else if (store.saveError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(apiErrorMessage(context.l10n, store.saveError))),
+        SnackBar(content: Text(apiErrorMessage(context.l10n, store.saveError))),
       );
     }
   }
