@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -117,7 +118,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-      int startDay, int startMonth, int endDay, int endMonth) {
+    int startDay,
+    int startMonth,
+    int endDay,
+    int endMonth,
+  ) {
     return 'Tuần $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -600,7 +605,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-      String required, String available, String shortfall, String unit) {
+    String required,
+    String available,
+    String shortfall,
+    String unit,
+  ) {
     return 'Cần $required · Có $available · Thiếu $shortfall $unit';
   }
 
@@ -692,9 +701,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get cookingAssistUnverified => 'Gợi ý chưa kiểm chứng dị ứng';
 
   @override
-  String get cookingAssistGuestsUnknown => 'Chưa tính dị ứng của khách ăn cùng';
-
-  @override
   String get cookingAssistBlocked => 'Không gợi ý vì dị ứng';
 
   @override
@@ -707,6 +713,24 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String cookingAssistStepChip(int step) {
     return 'Bước $step';
+  }
+
+  @override
+  String get cookingAssistProgressAllergen => 'đang kiểm dị ứng…';
+
+  @override
+  String get cookingAssistProgressSubstitute =>
+      'đang tìm nguyên liệu thay thế…';
+
+  @override
+  String get cookingAssistProgressScale => 'đang tính khẩu phần…';
+
+  @override
+  String get cookingAssistProgressStep => 'đang đọc công thức…';
+
+  @override
+  String cookingAssistSuspected(String dish, String allergen) {
+    return 'Đã tạm loại $dish vì nghi có $allergen';
   }
 
   @override

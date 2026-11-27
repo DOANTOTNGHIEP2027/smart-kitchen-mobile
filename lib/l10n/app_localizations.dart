@@ -63,7 +63,7 @@ import 'app_localizations_vi.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('vi')
+    Locale('vi'),
   ];
 
   /// Application name shown in the OS task switcher
@@ -307,7 +307,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Week {startDay}/{startMonth} – {endDay}/{endMonth}'**
   String mealPlanWeekRange(
-      int startDay, int startMonth, int endDay, int endMonth);
+    int startDay,
+    int startMonth,
+    int endDay,
+    int endMonth,
+  );
 
   /// No description provided for @mealPlanDaySchedule.
   ///
@@ -1214,7 +1218,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Need {required} · Have {available} · Short {shortfall} {unit}'**
   String cookingShortfallLine(
-      String required, String available, String shortfall, String unit);
+    String required,
+    String available,
+    String shortfall,
+    String unit,
+  );
 
   /// No description provided for @cookingShortfallNoDetail.
   ///
@@ -1372,12 +1380,6 @@ abstract class AppLocalizations {
   /// **'Suggestion not checked for allergens'**
   String get cookingAssistUnverified;
 
-  /// No description provided for @cookingAssistGuestsUnknown.
-  ///
-  /// In en, this message translates to:
-  /// **'Guests\' allergies are not taken into account'**
-  String get cookingAssistGuestsUnknown;
-
   /// No description provided for @cookingAssistBlocked.
   ///
   /// In en, this message translates to:
@@ -1401,6 +1403,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Step {step}'**
   String cookingAssistStepChip(int step);
+
+  /// No description provided for @cookingAssistProgressAllergen.
+  ///
+  /// In en, this message translates to:
+  /// **'checking allergens…'**
+  String get cookingAssistProgressAllergen;
+
+  /// No description provided for @cookingAssistProgressSubstitute.
+  ///
+  /// In en, this message translates to:
+  /// **'looking for substitutes…'**
+  String get cookingAssistProgressSubstitute;
+
+  /// No description provided for @cookingAssistProgressScale.
+  ///
+  /// In en, this message translates to:
+  /// **'working out the servings…'**
+  String get cookingAssistProgressScale;
+
+  /// No description provided for @cookingAssistProgressStep.
+  ///
+  /// In en, this message translates to:
+  /// **'reading the recipe…'**
+  String get cookingAssistProgressStep;
+
+  /// No description provided for @cookingAssistSuspected.
+  ///
+  /// In en, this message translates to:
+  /// **'Left out {dish} — may contain {allergen}'**
+  String cookingAssistSuspected(String dish, String allergen);
 
   /// No description provided for @allergensTitle.
   ///
@@ -6464,8 +6496,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

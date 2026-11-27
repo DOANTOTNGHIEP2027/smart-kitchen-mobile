@@ -7,11 +7,12 @@ import '../../../routing/route_guards.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
 import '../../profile/api/health_api.dart';
-import '../data/cooking_assist_api.dart';
+import '../../assistant/data/assistant_api.dart';
+import '../../assistant/domain/assistant_models.dart';
+import '../../assistant/stores/assistant_store.dart';
 import '../data/cooking_session_api.dart';
 import '../data/meal_log_api.dart';
 import '../data/recipe_api.dart';
-import '../stores/cooking_assist_store.dart';
 import '../stores/cooking_session_store.dart';
 import '../stores/meal_log_store.dart';
 import 'cooking_session_scene.dart';
@@ -105,10 +106,11 @@ class CookingSessionBinding extends Bindings {
         };
       },
     );
-    // Trợ lý (#157): sống/chết cùng màn nấu, scene gọi dispose().
-    Get.lazyPut<CookingAssistStore>(() {
-      if (!Get.isRegistered<CookingAssistApi>()) {
-        Get.put<CookingAssistApi>(CookingAssistApiImpl(Get.find<DioClient>()),
+    // Trợ lý bếp ngữ cảnh COOKING (#204, thay #157): sống/chết cùng màn nấu,
+    // scene gọi dispose().
+    Get.lazyPut<AssistantStore>(() {
+      if (!Get.isRegistered<AssistantApi>()) {
+        Get.put<AssistantApi>(AssistantApiImpl(Get.find<DioClient>()),
             permanent: true);
       }
       final cooking = Get.find<CookingSessionStore>();
@@ -116,10 +118,11 @@ class CookingSessionBinding extends Bindings {
       final connectivity = Get.isRegistered<ConnectivityService>()
           ? Get.find<ConnectivityService>()
           : null;
-      return CookingAssistStore(
-        api: Get.find<CookingAssistApi>(),
-        sessionId: () => cooking.session?.id,
-        viewedStepNumber: () => cooking.viewedStepDef?.stepNumber,
+      return AssistantStore(
+        api: Get.find<AssistantApi>(),
+        contextType: AssistantContextType.cooking,
+        contextKey: () => cooking.session?.id,
+        currentStep: () => cooking.viewedStepDef?.stepNumber,
         isOnline: () => connectivity?.isOnlineNow ?? true,
         accountScope: () => '${session.currentUser?.id}|${session.householdId}',
       );

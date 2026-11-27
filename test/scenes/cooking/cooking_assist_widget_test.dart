@@ -6,25 +6,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/data/cooking_progress_store.dart';
-import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_assist.dart';
+import 'package:smart_kitchen_mobile/scenes/assistant/domain/assistant_models.dart';
+import 'package:smart_kitchen_mobile/scenes/assistant/stores/assistant_store.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session_result.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/cooking_session_step.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/domain/ingredient_deduction.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/scenes/cooking_session_scene.dart';
-import 'package:smart_kitchen_mobile/scenes/cooking/stores/cooking_assist_store.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/stores/cooking_session_store.dart';
 
 import '../../helpers/pump_app.dart';
 import 'cooking_session_store_test.dart' show MemoryProgressStore;
+import '../assistant/fake_assistant_api.dart';
 import 'fake_cooking_api.dart';
 
-/// FE design §14.5/§14.8 — widget test FAB + sheet trợ lý.
+/// Widget test FAB + sheet trợ lý màn nấu, nguồn [AssistantStore] COOKING
+/// (#204, thay #157).
 void main() {
   late FakeCookingApi cookingApi;
-  late FakeCookingAssistApi assistApi;
+  late FakeAssistantApi assistApi;
   late CookingSessionStore cooking;
-  late CookingAssistStore assist;
+  late AssistantStore assist;
   var online = true;
 
   CookingSession session({
@@ -57,7 +59,7 @@ void main() {
     }
     online = true;
     cookingApi = FakeCookingApi()..onStart = (_) async => session();
-    assistApi = FakeCookingAssistApi();
+    assistApi = FakeAssistantApi();
     cooking = CookingSessionStore(
       cookingApi: cookingApi,
       recipeApi: FakeRecipeApi(),
@@ -66,14 +68,15 @@ void main() {
       entryMode: CookingEntryMode.start,
       recipeId: 'r1',
     );
-    assist = CookingAssistStore(
+    assist = AssistantStore(
       api: assistApi,
-      sessionId: () => cooking.session?.id,
-      viewedStepNumber: () => cooking.viewedStepDef?.stepNumber,
+      contextType: AssistantContextType.cooking,
+      contextKey: () => cooking.session?.id,
+      currentStep: () => cooking.viewedStepDef?.stepNumber,
       isOnline: () => online,
     );
     Get.put<CookingSessionStore>(cooking);
-    Get.put<CookingAssistStore>(assist);
+    Get.put<AssistantStore>(assist);
   });
   tearDown(Get.reset);
 
@@ -115,27 +118,40 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets(
-      'gợi ý LLM → nhãn chưa kiểm chứng + cảnh báo khách + nhãn rút gọn',
+  /// Lượt trả lời ngay (clientTurnId đã ANSWERED) — không cần timer poll.
+  void replyWith(AssistantReply reply) =>
+      assistApi.onSend = (call) async => answered(reply.turnId, reply: reply);
+
+  testWidgets('gợi ý LLM → nhãn chưa kiểm chứng + câu dị ứng + nhãn rút gọn',
       (tester) async {
-    assistApi.onAsk = (_) async => assistData(
-          intent: AssistIntent.substitute,
-          answer: 'Thay bằng me chua',
-          fallback: true,
-          substitutes: const <SubstituteOption>[
-            SubstituteOption(
-              original: 'me',
-              substitute: 'Me chua',
-              ratio: '50 g',
-              inStock: true,
-              source: AssistSource.llm,
-              allergenChecked: false,
-            ),
-          ],
-          blocked: const <BlockedSubstitute>[
-            BlockedSubstitute(substitute: 'me Thái', reason: 'sulphite'),
-          ],
-        );
+    replyWith(assistantReply(
+      answer: 'Thay bằng me chua',
+      fallback: true,
+      allergenNote: 'Đã loại gợi ý có cá.',
+      suspected: const <SuspectedDish>[
+        SuspectedDish(
+            name: 'Canh me Thái',
+            allergen: 'Fish',
+            ingredient: 'nước mắm',
+            reason: 'nghi có cá'),
+      ],
+      cooking: const CookingAnswer(
+        substitutes: <SubstituteOption>[
+          SubstituteOption(
+            original: 'me',
+            substitute: 'Me chua',
+            ratio: '50 g',
+            inStock: true,
+            source: AssistSource.llm,
+            allergenChecked: false,
+          ),
+        ],
+        blockedSubstitutes: <BlockedSubstitute>[
+          BlockedSubstitute(substitute: 'me Thái', reason: 'sulphite'),
+        ],
+        scaledIngredients: <ScaledIngredient>[],
+      ),
+    ));
     await pumpActive(tester);
     await openSheet(tester);
     expect(find.text('Mình có thể giúp gì cho bước này?'), findsOneWidget);
@@ -145,17 +161,29 @@ void main() {
     expect(find.text('Thay bằng me chua'), findsOneWidget);
     expect(find.text('Gợi ý chưa kiểm chứng dị ứng'), findsOneWidget);
     expect(find.text('Có trong kho'), findsOneWidget);
-    expect(find.text('⚠ Chưa tính dị ứng của khách ăn cùng'), findsOneWidget);
+    expect(find.text('⚠ Đã loại gợi ý có cá.'), findsOneWidget);
+    expect(
+        find.text('Đã tạm loại Canh me Thái vì nghi có Fish'), findsOneWidget);
     expect(find.text('Không gợi ý vì dị ứng'), findsOneWidget);
     expect(find.text('Trả lời rút gọn — trợ lý đang hạn chế'), findsOneWidget);
     expect(find.text('Hãy tự kiểm tra độ chín và an toàn thực phẩm.'),
         findsNothing);
+    expect(assistApi.createdFor, <String>['s1']);
+    expect(assistApi.sends.single.currentStep, 1);
     await unmount(tester);
   });
 
-  testWidgets('STEP_QA → disclaimer; chip stepRef=4 nhảy tới vị trí 3',
+  testWidgets('câu hỏi bước → lưu ý an toàn; chip stepRef=4 nhảy tới vị trí 3',
       (tester) async {
-    assistApi.onAsk = (_) async => assistData(answer: 'Nêm vừa', stepRef: 4);
+    replyWith(assistantReply(
+      answer: 'Nêm vừa',
+      cooking: const CookingAnswer(
+        substitutes: <SubstituteOption>[],
+        blockedSubstitutes: <BlockedSubstitute>[],
+        scaledIngredients: <ScaledIngredient>[],
+        stepRef: 4,
+      ),
+    ));
     await pumpActive(tester);
     await openSheet(tester);
 
@@ -171,21 +199,34 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('stepRef không có trong steps → ẩn chip', (tester) async {
-    assistApi.onAsk = (_) async => assistData(answer: 'Ừ', stepRef: 3);
+  testWidgets('NEEDS_INPUT → nút trả lời nhanh gửi đúng chữ của lựa chọn',
+      (tester) async {
+    replyWith(assistantReply(
+      turnId: 't-q',
+      answer: 'Mình cần hỏi thêm',
+      question: const AssistantQuestion(
+          text: 'Dị ứng hay không thích?',
+          options: <String>['Dị ứng', 'Không thích']),
+    ));
     await pumpActive(tester);
     await openSheet(tester);
 
-    await ask(tester, 'Hỏi');
+    await ask(tester, 'Không ăn được tôm');
+    expect(find.text('Dị ứng hay không thích?'), findsOneWidget);
 
-    expect(find.text('Bước 3'), findsNothing);
+    replyWith(assistantReply(turnId: 't-a', answer: 'Đã ghi nhận'));
+    await tester.tap(find.text('Dị ứng'));
+    await tester.pumpAndSettle();
+
+    expect(assistApi.sends.last.text, 'Dị ứng');
+    expect(find.text('Đã ghi nhận'), findsOneWidget);
     await unmount(tester);
   });
 
-  testWidgets('đang gửi → bubble chờ, sau 5 s thêm dòng chậm; vẫn nấu được',
+  testWidgets('đang chờ → nhãn tiến trình theo tool, sau 5 s thêm dòng chậm',
       (tester) async {
-    final pending = Completer<CookingAssistData>();
-    assistApi.onAsk = (_) => pending.future;
+    final events = StreamController<AssistantTurnEvent>();
+    assistApi.onEvents = (_) => events.stream;
     await pumpActive(tester);
     await openSheet(tester);
 
@@ -194,42 +235,46 @@ void main() {
     await tester.tap(find.byIcon(Icons.send));
     await tester.pump();
     expect(find.text('đang trả lời…'), findsOneWidget);
-    expect(find.text('Câu hỏi này cần thêm chút thời gian'), findsNothing);
+
+    events.add(const TurnProgress('assess_allergen_risk'));
+    await tester.pump();
+    expect(find.text('đang kiểm dị ứng…'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 6));
     expect(find.text('Câu hỏi này cần thêm chút thời gian'), findsOneWidget);
     expect(cooking.phase, CookingScreenPhase.active);
 
-    pending.complete(assistData(answer: 'Xong'));
+    events.add(TurnFinished(
+        answered('t-1', reply: assistantReply(turnId: 't-1', answer: 'Xong'))));
     await tester.pumpAndSettle();
     expect(find.text('Xong'), findsOneWidget);
+    // Store đã huỷ subscription; đợi close() trong fake-async sẽ treo test.
+    unawaited(events.close());
     await unmount(tester);
   });
 
-  testWidgets('503 → banner bận + Thử lại gửi lại đúng câu', (tester) async {
-    assistApi.onAsk =
-        (_) async => throw ServerException('ERR_AI_SERVICE_DOWN', 'down');
+  testWidgets('lượt FAILED → banner bận + Thử lại gửi lại cùng clientTurnId',
+      (tester) async {
+    assistApi.onSend = (call) async => failed('t-1', 'ERR_AI_SERVICE_DOWN');
     await pumpActive(tester);
     await openSheet(tester);
 
     await ask(tester, 'Hỏi lại được không?');
 
     expect(find.text('Trợ lý đang bận, thử lại sau'), findsOneWidget);
-    assistApi.onAsk = (_) async => assistData(answer: 'Được');
+    replyWith(assistantReply(turnId: 't-1', answer: 'Được'));
     await tester.tap(find.text('Thử lại'));
     await tester.pumpAndSettle();
 
     expect(find.text('Được'), findsOneWidget);
     expect(find.text('Hỏi lại được không?'), findsOneWidget);
-    expect(assistApi.calls.map((c) => c.message),
-        <String>['Hỏi lại được không?', 'Hỏi lại được không?']);
+    expect(assistApi.sends.map((c) => c.clientTurnId).toSet(), hasLength(1));
     await unmount(tester);
   });
 
-  testWidgets('422 → "Không trả lời được câu này." và KHÔNG có Thử lại',
+  testWidgets('ERR_AI_CONTENT_FILTERED → thông báo, không có Thử lại',
       (tester) async {
-    assistApi.onAsk =
-        (_) async => throw BusinessException('ERR_AI_CONTENT_FILTERED', 'x');
+    assistApi.onSend = (call) async => failed('t-1', 'ERR_AI_CONTENT_FILTERED');
     await pumpActive(tester);
     await openSheet(tester);
 
@@ -240,10 +285,10 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('409 context unavailable → thông báo + FAB ẩn hết phiên',
+  testWidgets('ERR_ASSISTANT_CONTEXT_INVALID → thông báo + FAB ẩn hết phiên',
       (tester) async {
-    assistApi.onAsk = (_) async =>
-        throw BusinessException('ERR_ASSIST_CONTEXT_UNAVAILABLE', 'x');
+    assistApi.onSend = (_) async =>
+        throw BusinessException('ERR_ASSISTANT_CONTEXT_INVALID', 'x');
     await pumpActive(tester);
     await openSheet(tester);
 
@@ -259,9 +304,9 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('409 ALREADY_ENDED → tự đóng sheet + ẩn FAB', (tester) async {
-    assistApi.onAsk =
-        (_) async => throw BusinessException('ERR_SESSION_ALREADY_ENDED', 'x');
+  testWidgets('phiên trợ lý mất (404) → tự đóng sheet + ẩn FAB', (tester) async {
+    assistApi.onSend = (_) async =>
+        throw BusinessException('ERR_ASSISTANT_SESSION_NOT_FOUND', 'x');
     await pumpActive(tester);
     await openSheet(tester);
 
@@ -283,7 +328,7 @@ void main() {
     final send =
         tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.send));
     expect(send.onPressed, isNull);
-    expect(assistApi.calls, isEmpty);
+    expect(assistApi.sends, isEmpty);
     await unmount(tester);
   });
 

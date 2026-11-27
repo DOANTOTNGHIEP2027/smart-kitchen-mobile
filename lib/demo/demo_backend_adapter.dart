@@ -90,6 +90,14 @@ class DemoBackendAdapter implements HttpClientAdapter {
   final Map<String, Map<String, dynamic>> _menuRequests = {};
   final Map<String, Map<String, dynamic>> _cookingSessions =
       <String, Map<String, dynamic>>{};
+
+  /// Trợ lý bếp (#204): phiên → `cookingSessionId`; lượt → trạng thái đã trả
+  /// lời; `sessionId|clientTurnId` → `turnId` (gửi lại không tạo lượt mới).
+  final Map<String, Map<String, dynamic>> _assistantSessions =
+      <String, Map<String, dynamic>>{};
+  final Map<String, Map<String, dynamic>> _assistantTurns =
+      <String, Map<String, dynamic>>{};
+  final Map<String, String> _assistantClientTurns = <String, String>{};
   final Map<String, bool> _recipeFavorites = <String, bool>{};
   final Map<String, int?> _recipeRatings = <String, int?>{};
   final Map<String, DateTime> _recipeFavoritedAt = <String, DateTime>{};
@@ -568,10 +576,28 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (cookingAbandon != null && method == 'POST') {
       return _abandonCooking(cookingAbandon.group(1)!);
     }
-    final cookingAssist =
-        RegExp(r'^/api/v1/cooking/sessions/([^/]+)/assist$').firstMatch(path);
-    if (cookingAssist != null && method == 'POST') {
-      return _assistCooking(cookingAssist.group(1)!, body);
+    if (path == '/api/v1/assistant/sessions' && method == 'POST') {
+      return _createAssistantSession(body);
+    }
+    final assistantMessage = RegExp(r'^/api/v1/assistant/sessions/([^/]+)/messages$')
+        .firstMatch(path);
+    if (assistantMessage != null && method == 'POST') {
+      return _sendAssistantMessage(assistantMessage.group(1)!, body);
+    }
+    final assistantEvents =
+        RegExp(r'^/api/v1/assistant/sessions/([^/]+)/turns/([^/]+)/events$')
+            .firstMatch(path);
+    if (assistantEvents != null && method == 'GET') {
+      // Demo không stream: FE quay về poll như khi SSE lỗi.
+      return _error(404, 'ERR_ASSISTANT_SESSION_NOT_FOUND', 'Demo không có SSE.');
+    }
+    final assistantTurn =
+        RegExp(r'^/api/v1/assistant/sessions/([^/]+)/turns/([^/]+)$').firstMatch(path);
+    if (assistantTurn != null && method == 'GET') {
+      final turn = _assistantTurns[assistantTurn.group(2)!];
+      return turn == null
+          ? _error(404, 'ERR_ASSISTANT_SESSION_NOT_FOUND', 'Không tìm thấy lượt.')
+          : _ok(200, turn);
     }
     final cookingSession =
         RegExp(r'^/api/v1/cooking/sessions/([^/]+)$').firstMatch(path);
@@ -1667,16 +1693,61 @@ class DemoBackendAdapter implements HttpClientAdapter {
 
   /// Trợ lý nấu ăn (#157) — demo chỉ trả lời STEP_QA dạng rút gọn theo bước
   /// đang xem, đủ để đi hết luồng FAB → sheet → bubble.
-  ResponseBody _assistCooking(String sessionId, Map<String, dynamic> body) {
-    final session = _cookingSessions[sessionId];
-    if (session == null) {
+  ResponseBody _createAssistantSession(Map<String, dynamic> body) {
+    final cookingSessionId = body['cookingSessionId'] as String?;
+    if (body['contextType'] == 'COOKING') {
+      final session = _cookingSessions[cookingSessionId];
+      if (session == null || session['status'] != 'IN_PROGRESS') {
+        return _error(422, 'ERR_ASSISTANT_CONTEXT_INVALID',
+            'Buổi nấu không còn diễn ra.');
+      }
+    }
+    final id = 'demo-assistant-${_cookingSequence++}';
+    _assistantSessions[id] = <String, dynamic>{
+      'id': id,
+      'contextType': body['contextType'],
+      'cookingSessionId': cookingSessionId,
+    };
+    return _ok(201, _assistantSessions[id]);
+  }
+
+  /// Trả 202 như BE thật; lượt "xong" ngay, FE đọc qua GET turns.
+  ResponseBody _sendAssistantMessage(
+      String assistantSessionId, Map<String, dynamic> body) {
+    final assistant = _assistantSessions[assistantSessionId];
+    if (assistant == null) {
+      return _error(404, 'ERR_ASSISTANT_SESSION_NOT_FOUND',
+          'Không tìm thấy phiên trợ lý.');
+    }
+    final clientKey = '$assistantSessionId|${body['clientTurnId']}';
+    final existing = _assistantClientTurns[clientKey];
+    if (existing != null) return _ok(200, _assistantTurns[existing]);
+    final session = _cookingSessions[assistant['cookingSessionId']];
+    if (session == null ||
+        session['status'] == 'COMPLETED' ||
+        session['status'] == 'ABANDONED') {
       return _error(
-          404, 'ERR_SESSION_NOT_FOUND', 'Không tìm thấy phiên nấu ăn.');
+          422, 'ERR_ASSISTANT_CONTEXT_INVALID', 'Phiên nấu đã kết thúc.');
     }
-    if (session['status'] == 'COMPLETED' || session['status'] == 'ABANDONED') {
-      return _error(409, 'ERR_SESSION_ALREADY_ENDED', 'Phiên nấu đã kết thúc.');
-    }
-    final viewedStep = body['viewedStep'] as int? ?? 1;
+    final turnId = 'demo-turn-${_cookingSequence++}';
+    _assistantClientTurns[clientKey] = turnId;
+    _assistantTurns[turnId] = <String, dynamic>{
+      'turnId': turnId,
+      'status': 'ANSWERED',
+      'errorCode': null,
+      'result': _assistCookingResult(turnId, session, body),
+    };
+    return _ok(202, <String, dynamic>{
+      'turnId': turnId,
+      'status': 'PENDING',
+      'errorCode': null,
+      'result': null,
+    });
+  }
+
+  Map<String, dynamic> _assistCookingResult(String turnId,
+      Map<String, dynamic> session, Map<String, dynamic> body) {
+    final viewedStep = body['currentStep'] as int? ?? 1;
     final steps = DemoFixtures.recipe(
             _baseRecipeId(session['recipeId'] as String))['steps']
         as List<dynamic>;
@@ -1684,22 +1755,25 @@ class DemoBackendAdapter implements HttpClientAdapter {
           (s) => s['step_number'] == viewedStep,
           orElse: () => steps.first as Map<String, dynamic>,
         );
-    return _ok(200, <String, dynamic>{
-      'requestId': 'demo-assist-${_cookingSequence++}',
-      'intent': 'STEP_QA',
+    return <String, dynamic>{
+      'turnId': turnId,
       'answer': 'Bước ${step['step_number']}: ${step['instruction']}',
-      'stepRef': step['step_number'],
-      'substitutes': <Object>[],
-      'blockedSubstitutes': <Object>[],
-      'scaledIngredients': <Object>[],
-      'fallback': true,
-      'contextSource': 'LIVE_RECIPE',
-      'allergenScope': <String, dynamic>{
-        'householdMembers': true,
-        'dependents': false,
-        'guestsUnknown': true,
+      'agent': 'cooking',
+      'allergenNote': null,
+      'recipeCards': <Object>[],
+      'mealPlan': <Object>[],
+      'cooking': <String, dynamic>{
+        'substitutes': <Object>[],
+        'blockedSubstitutes': <Object>[],
+        'scaledIngredients': <Object>[],
+        'stepRef': step['step_number'],
       },
-    });
+      'suspectedDishes': <Object>[],
+      'question': null,
+      'needsInput': false,
+      'actions': <Object>[],
+      'fallback': true,
+    };
   }
 
   ResponseBody _getCookingSession(String sessionId) {

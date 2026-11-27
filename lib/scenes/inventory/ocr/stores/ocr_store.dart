@@ -1,9 +1,9 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:mobx/mobx.dart';
 
 import '../../../../data/network/api_exception.dart';
+import '../../../../utils/uuid.dart';
 import '../../stores/inventory_form_store.dart';
 import '../data/ocr_api.dart';
 import '../data/ocr_image_service.dart';
@@ -25,7 +25,7 @@ class OcrStore {
         _imagePicker = imagePicker,
         _imageCompressor = imageCompressor,
         _formStoreFactory = formStoreFactory,
-        _idempotencyKeyGenerator = idempotencyKeyGenerator ?? _createUuidV4;
+        _idempotencyKeyGenerator = idempotencyKeyGenerator ?? createUuidV4;
 
   final OcrApi _api;
   final OcrImagePicker _imagePicker;
@@ -272,15 +272,3 @@ class OcrStore {
 }
 
 const Object _notProvided = Object();
-
-String _createUuidV4() {
-  final random = Random.secure();
-  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  String pair(int value) => value.toRadixString(16).padLeft(2, '0');
-  final hex = bytes.map(pair).join();
-  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
-      '${hex.substring(12, 16)}-${hex.substring(16, 20)}-'
-      '${hex.substring(20)}';
-}

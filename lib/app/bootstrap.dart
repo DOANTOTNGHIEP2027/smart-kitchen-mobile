@@ -30,7 +30,7 @@ import '../scenes/inventory/data/inventory_api.dart';
 import '../scenes/inventory/data/inventory_dao.dart';
 import '../scenes/inventory/inventory_catch_up.dart';
 import '../scenes/inventory/stores/inventory_store.dart';
-import '../scenes/cooking/data/cooking_assist_api.dart';
+import '../scenes/assistant/data/assistant_api.dart';
 import '../scenes/cooking/data/cooking_session_api.dart';
 import '../scenes/cooking/data/recipe_api.dart';
 import '../scenes/recipe/data/recipe_catalog_api.dart';
@@ -141,7 +141,7 @@ Future<void> bootstrap() async {
   // FE-6: CookingApi + RecipeApi — cả CookingSessionStore đều dùng.
   Get.put<CookingSessionApi>(CookingSessionApiImpl(dioClient), permanent: true);
   Get.put<RecipeApi>(RecipeApiImpl(dioClient), permanent: true);
-  Get.put<CookingAssistApi>(CookingAssistApiImpl(dioClient), permanent: true);
+  Get.put<AssistantApi>(AssistantApiImpl(dioClient), permanent: true);
   Get.put<RecipeCatalogApi>(RecipeCatalogApiImpl(dioClient), permanent: true);
 
   // FE-7: MealPlanApi + VoteApi — MealPlanStore/VoteSessionStore dùng.

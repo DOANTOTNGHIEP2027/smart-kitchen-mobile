@@ -1,10 +1,10 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart' show CancelToken;
 import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
+import '../../../utils/uuid.dart';
 import '../../inventory/ocr/data/ocr_image_service.dart';
 import '../../inventory/ocr/domain/ocr_scan_result.dart' show OcrImageSource;
 import '../../inventory/ocr/stores/ocr_store.dart'
@@ -54,7 +54,7 @@ class ReceiptScanStore {
         _imageCompressor = imageCompressor,
         _shoppingStore = shoppingStore,
         _formStoreFactory = formStoreFactory,
-        _idempotencyKeyGenerator = idempotencyKeyGenerator ?? _createUuidV4;
+        _idempotencyKeyGenerator = idempotencyKeyGenerator ?? createUuidV4;
 
   final ReceiptApi _api;
   final OcrImagePicker _imagePicker;
@@ -435,17 +435,3 @@ class ReceiptScanStore {
 }
 
 const Object _notProvided = Object();
-
-/// Bản sao `_createUuidV4` của ocr_store.dart (private ở đó; `uuid` chỉ là
-/// dependency bắc cầu). Gom vào lib/utils khi có nơi dùng thứ ba.
-String _createUuidV4() {
-  final random = Random.secure();
-  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  String pair(int value) => value.toRadixString(16).padLeft(2, '0');
-  final hex = bytes.map(pair).join();
-  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
-      '${hex.substring(12, 16)}-${hex.substring(16, 20)}-'
-      '${hex.substring(20)}';
-}
