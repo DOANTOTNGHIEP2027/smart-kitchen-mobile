@@ -4028,4 +4028,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String recipesFilterMaxMinutes(int minutes) {
     return '≤ $minutes min';
   }
+
+  @override
+  String get healthProfileCalorieSuggestionAdultOnly =>
+      'The suggestion formula applies to people aged 18 and over';
+
+  @override
+  String get healthProfileChoiceInvalid =>
+      'Invalid choice, please choose again';
 }

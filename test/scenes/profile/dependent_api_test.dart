@@ -144,19 +144,22 @@ void main() {
     );
   });
 
-  test('updateHealthProfile: PUT đủ 4 key kể cả null', () async {
+  test('updateHealthProfile: PUT đủ 6 key kể cả null', () async {
     final api = build((_) async => jsonResponse(200, successEnvelope(health('d1'))));
     await api.updateHealthProfile('d1', <String, dynamic>{
       'targetDailyCalories': null,
       'dietType': 'KETO',
       'heightCm': null,
       'weightKg': 20.5,
+      'gender': null,
+      'activityLevel': 'LIGHT',
     });
     expect(last().method, 'PUT');
     expect(last().path, '/api/v1/dependents/d1/health-profile');
     final b = body();
-    expect(b.keys, unorderedEquals(<String>['targetDailyCalories', 'dietType', 'heightCm', 'weightKg']));
+    expect(b.keys, unorderedEquals(<String>['targetDailyCalories', 'dietType', 'heightCm', 'weightKg', 'gender', 'activityLevel']));
     expect(b['targetDailyCalories'], isNull);
+    expect(b['gender'], isNull);
   });
 
   test('updateHealthProfile 400 fieldErrors → ValidationException', () async {

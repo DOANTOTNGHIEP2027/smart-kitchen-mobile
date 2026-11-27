@@ -1,4 +1,6 @@
+import '../../../utils/date_format.dart';
 import 'allergen.dart';
+import 'calorie_suggestion.dart';
 import 'dependent_summary.dart';
 import 'diet_type.dart';
 
@@ -13,6 +15,9 @@ class DependentHealthProfile {
     this.dietTypeRaw,
     this.heightCm,
     this.weightKg,
+    this.gender,
+    this.activityLevel,
+    this.dateOfBirth,
     this.updatedAt,
     required this.allergens,
   });
@@ -27,6 +32,14 @@ class DependentHealthProfile {
   final String? dietTypeRaw;
   final double? heightCm;
   final double? weightKg;
+
+  /// #201 — `null` = chưa set (hoặc giá trị BE mới FE chưa biết).
+  final Gender? gender;
+  final ActivityLevel? activityLevel;
+
+  /// #201 — CHỈ ĐỌC, lấy từ `dependent_profiles.date_of_birth`; sửa qua
+  /// `PATCH /dependents/{id}`, KHÔNG gửi trong PUT health.
+  final DateTime? dateOfBirth;
 
   /// `null` = chưa từng PUT — tín hiệu "empty", không phải HTTP status.
   final DateTime? updatedAt;
@@ -45,6 +58,9 @@ class DependentHealthProfile {
       dietTypeRaw: dietRaw,
       heightCm: (json['heightCm'] as num?)?.toDouble(),
       weightKg: (json['weightKg'] as num?)?.toDouble(),
+      gender: genderFromWire(json['gender'] as String?),
+      activityLevel: activityLevelFromWire(json['activityLevel'] as String?),
+      dateOfBirth: parseApiDate(json['dateOfBirth']),
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
@@ -63,6 +79,9 @@ class DependentHealthProfile {
         dietTypeRaw: dietTypeRaw,
         heightCm: heightCm,
         weightKg: weightKg,
+        gender: gender,
+        activityLevel: activityLevel,
+        dateOfBirth: dateOfBirth,
         updatedAt: updatedAt,
         allergens: allergens ?? this.allergens,
       );

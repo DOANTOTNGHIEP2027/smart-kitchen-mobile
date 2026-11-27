@@ -1210,5 +1210,7 @@
   "recipesFilterApply": "Áp dụng",
   "recipesFilterReset": "Đặt lại",
   "recipesFilterMaxMinutes": "≤ {minutes} phút",
-  "@recipesFilterMaxMinutes": {"placeholders": {"minutes": {"type": "int"}}}
+  "@recipesFilterMaxMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "healthProfileCalorieSuggestionAdultOnly": "Công thức gợi ý áp dụng cho người từ 18 tuổi",
+  "healthProfileChoiceInvalid": "Lựa chọn không hợp lệ, hãy chọn lại"
 }

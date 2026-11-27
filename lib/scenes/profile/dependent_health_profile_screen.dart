@@ -11,12 +11,14 @@ import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
+import '../../widgets/inputs/chip_choice_group.dart';
 import '../../widgets/states/app_error_view.dart';
 import '../../widgets/states/app_loading_view.dart';
 import '../../widgets/states/view_state.dart';
 import 'dependent_detail_screen.dart';
 import 'dependent_error_l10n.dart';
 import 'dependent_list_screen.dart';
+import 'domain/calorie_suggestion.dart';
 import 'domain/calorie_target.dart';
 import 'domain/dependent_health_profile.dart';
 import 'domain/dependent_summary.dart';
@@ -25,10 +27,10 @@ import 'domain/health_measurement.dart';
 import 'stores/dependent_store.dart';
 import 'stores/form_status.dart';
 import 'widgets/calorie_target_field.dart';
-import 'widgets/dependent_row.dart';
 import 'widgets/dependent_state_views.dart';
 import 'widgets/diet_type_label.dart';
 import 'widgets/diet_type_selector.dart';
+import 'widgets/health_profile_parts.dart';
 
 /// Hồ sơ sức khoẻ của một dependent (§9.5, §16.10, §16.12) — tinh thần
 /// `HealthProfileScreen` (S10.x) nhưng bind `DependentStore`.
@@ -55,6 +57,9 @@ class _DependentHealthProfileScreenState
 
   bool _isEditing = false;
   DietType? _diet;
+  // #201: đầu vào gợi ý calo (ngày sinh chỉ đọc, lấy từ hồ sơ phụ thuộc).
+  Gender? _gender;
+  ActivityLevel? _activity;
   // State cục bộ của CalorieTargetField (Guard 14 của #29).
   int? _storedCalories;
   bool _caloriesTouched = false;
@@ -90,6 +95,8 @@ class _DependentHealthProfileScreenState
     setState(() {
       _isEditing = true;
       _diet = p.dietType;
+      _gender = p.gender;
+      _activity = p.activityLevel;
       heightCtl.text = formatHealthNumber(p.heightCm);
       weightCtl.text = formatHealthNumber(p.weightKg);
       _storedCalories = p.targetDailyCalories;
@@ -110,6 +117,24 @@ class _DependentHealthProfileScreenState
     }
   }
 
+  /// Ngày sinh: ưu tiên response health, fallback `DependentSummary`.
+  DateTime? _birthDateOf(DependentHealthProfile? p) =>
+      p?.dateOfBirth ?? store.detailFor(id)?.dateOfBirth;
+
+  /// #201: Mifflin-St Jeor chỉ đúng cho người lớn → dưới 18 tuổi không gợi ý.
+  bool _isMinor(DateTime? birthDate) =>
+      birthDate != null && ageInYears(birthDate, DateTime.now()) < 18;
+
+  int? _calorieSuggestion(DateTime? birthDate) => _isMinor(birthDate)
+      ? null
+      : suggestDailyCalories(
+          weightKg: HealthMeasurement.parse(weightCtl.text),
+          heightCm: HealthMeasurement.parse(heightCtl.text),
+          gender: _gender,
+          birthDate: birthDate,
+          activityLevel: _activity,
+        );
+
   Future<void> _save() async {
     if (_formKey.currentState?.validate() != true) return;
     final ok = await store.saveHealthProfile(
@@ -123,6 +148,10 @@ class _DependentHealthProfileScreenState
       dietTypeWire: _diet == null ? null : dietTypeToWire(_diet!),
       heightCm: HealthMeasurement.parse(heightCtl.text),
       weightKg: HealthMeasurement.parse(weightCtl.text),
+      // #201: PUT thay toàn bộ — luôn gửi, `null` khi chưa chọn.
+      genderWire: _gender == null ? null : genderToWire(_gender!),
+      activityLevelWire:
+          _activity == null ? null : activityLevelToWire(_activity!),
     );
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
@@ -196,11 +225,12 @@ class _DependentHealthProfileScreenState
       SuccessState<DependentHealthProfile>(:final data)
           when data.dependentId == id =>
         _isEditing && canSave
-            ? _buildForm(isSaving: isSaving, error: saveError)
+            ? _buildForm(data, isSaving: isSaving, error: saveError)
             : RefreshIndicator(
                 onRefresh: () => store.loadHealthProfile(id),
                 child: _ViewMode(
                   profile: data,
+                  birthDate: _birthDateOf(data),
                   onEdit: canSave ? () => _startEditing(data) : null,
                   onEditAllergens: () => Get.toNamed<void>(AppRoutes
                       .dependentAllergens
@@ -211,8 +241,14 @@ class _DependentHealthProfileScreenState
     };
   }
 
-  Widget _buildForm({required bool isSaving, required ApiException? error}) {
+  Widget _buildForm(
+    DependentHealthProfile p, {
+    required bool isSaving,
+    required ApiException? error,
+  }) {
     final l = context.l10n;
+    final birthDate = _birthDateOf(p);
+    final suggestion = _calorieSuggestion(birthDate);
     final fieldErrors = error?.fieldErrors ?? const <String, String>{};
     final enabled = !isSaving;
     // Field BE không map được vào ô nào → liệt kê trong khối lỗi chung.
@@ -252,6 +288,20 @@ class _DependentHealthProfileScreenState
               errorText: fieldErrors.containsKey('targetDailyCalories')
                   ? l.healthProfileCaloriesServerInvalid
                   : null,
+              suggestion: suggestion,
+              suggestionHint: _isMinor(birthDate)
+                  ? l.healthProfileCalorieSuggestionAdultOnly
+                  : null,
+              onApplySuggestion: () {
+                final value = _calorieSuggestion(birthDate);
+                if (value == null) return;
+                _onFieldEdited();
+                setState(() {
+                  _caloriesTouched = true;
+                  _caloriesNotSet = false;
+                  _sliderValue = value;
+                });
+              },
               onSliderChanged: (int v) {
                 _onFieldEdited();
                 setState(() {
@@ -271,6 +321,7 @@ class _DependentHealthProfileScreenState
             DietTypeSelector(
               value: _diet,
               enabled: enabled,
+              helpText: l.healthProfileDietHelp,
               onChanged: (DietType? v) {
                 _onFieldEdited();
                 setState(() => _diet = v);
@@ -281,7 +332,10 @@ class _DependentHealthProfileScreenState
               key: const ValueKey<String>('health-height'),
               controller: heightCtl,
               enabled: enabled,
-              onChanged: (_) => _onFieldEdited(),
+              onChanged: (_) {
+                _onFieldEdited();
+                setState(() {}); // tính lại gợi ý calo
+              },
               validator: (value) => HealthMeasurement.isValidHeight(value ?? '')
                   ? null
                   : l.healthProfileHeightInvalid,
@@ -300,7 +354,10 @@ class _DependentHealthProfileScreenState
               key: const ValueKey<String>('health-weight'),
               controller: weightCtl,
               enabled: enabled,
-              onChanged: (_) => _onFieldEdited(),
+              onChanged: (_) {
+                _onFieldEdited();
+                setState(() {}); // tính lại gợi ý calo
+              },
               validator: (value) => HealthMeasurement.isValidWeight(value ?? '')
                   ? null
                   : l.healthProfileWeightInvalid,
@@ -314,6 +371,63 @@ class _DependentHealthProfileScreenState
                     : null,
               ),
             ),
+            const SizedBox(height: AppDimens.md),
+            ChipChoiceGroup<Gender>(
+              groupKey: 'health-gender',
+              icon: Icons.wc_outlined,
+              title: l.healthProfileGender,
+              value: _gender,
+              enabled: enabled,
+              options: <ChipChoiceOption<Gender>>[
+                for (final g in Gender.values)
+                  ChipChoiceOption<Gender>(
+                      g, genderLabel(l, g), genderToWire(g)),
+              ],
+              onChanged: (Gender? v) {
+                _onFieldEdited();
+                setState(() => _gender = v);
+              },
+            ),
+            if (fieldErrors.containsKey('gender'))
+              _FieldError(
+                key: const ValueKey<String>('health-gender-error'),
+                text: l.healthProfileChoiceInvalid,
+              ),
+            const SizedBox(height: AppDimens.md),
+            // Ngày sinh CHỈ ĐỌC — sửa ở hồ sơ người phụ thuộc (PATCH).
+            InputDecorator(
+              key: const ValueKey<String>('health-birth-date'),
+              decoration: InputDecoration(
+                enabled: false,
+                labelText: l.healthProfileBirthDate,
+                prefixIcon: const Icon(Icons.cake_outlined),
+              ),
+              child: Text(birthDate == null
+                  ? l.healthProfileNotSetUp
+                  : formatDisplayDate(birthDate)),
+            ),
+            const SizedBox(height: AppDimens.md),
+            ChipChoiceGroup<ActivityLevel>(
+              groupKey: 'health-activity',
+              icon: Icons.directions_run_outlined,
+              title: l.healthProfileActivityLevel,
+              value: _activity,
+              enabled: enabled,
+              options: <ChipChoiceOption<ActivityLevel>>[
+                for (final a in ActivityLevel.values)
+                  ChipChoiceOption<ActivityLevel>(
+                      a, activityLevelLabel(l, a), activityLevelToWire(a)),
+              ],
+              onChanged: (ActivityLevel? v) {
+                _onFieldEdited();
+                setState(() => _activity = v);
+              },
+            ),
+            if (fieldErrors.containsKey('activityLevel'))
+              _FieldError(
+                key: const ValueKey<String>('health-activity-error'),
+                text: l.healthProfileChoiceInvalid,
+              ),
             const SizedBox(height: AppDimens.lg),
             AppButton(
               key: const ValueKey<String>('health-save'),
@@ -338,6 +452,8 @@ const Set<String> _mappedFields = <String>{
   'targetDailyCalories',
   'heightCm',
   'weightKg',
+  'gender',
+  'activityLevel',
 };
 
 /// S-D2 (empty) / S-D3 (có dữ liệu). [onEdit] `null` = không được lưu (dietType
@@ -345,11 +461,13 @@ const Set<String> _mappedFields = <String>{
 class _ViewMode extends StatelessWidget {
   const _ViewMode({
     required this.profile,
+    required this.birthDate,
     required this.onEdit,
     required this.onEditAllergens,
   });
 
   final DependentHealthProfile profile;
+  final DateTime? birthDate;
   final VoidCallback? onEdit;
   final VoidCallback onEditAllergens;
 
@@ -403,33 +521,38 @@ class _ViewMode extends StatelessWidget {
                     ? l.healthProfileNotSetUp
                     : formatHealthNumber(p.weightKg),
               ),
+              DependentInfoRow(
+                key: const ValueKey<String>('dependent-health-view-gender'),
+                label: l.healthProfileGender,
+                value: p.gender == null
+                    ? l.healthProfileNotSetUp
+                    : genderLabel(l, p.gender!),
+              ),
+              DependentInfoRow(
+                key: const ValueKey<String>('dependent-health-view-birth'),
+                label: l.healthProfileBirthDate,
+                value: birthDate == null
+                    ? l.healthProfileNotSetUp
+                    : formatDisplayDate(birthDate!),
+              ),
+              DependentInfoRow(
+                key: const ValueKey<String>('dependent-health-view-activity'),
+                label: l.healthProfileActivityLevel,
+                value: p.activityLevel == null
+                    ? l.healthProfileNotSetUp
+                    : activityLevelLabel(l, p.activityLevel!),
+              ),
             ],
           ),
         ),
         const SizedBox(height: AppDimens.md),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Text(l.healthProfileAllergensSection,
-                  style: theme.textTheme.titleSmall),
-              const SizedBox(height: AppDimens.sm),
-              Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: dependentAllergenChips(l, p.allergens),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  key: const ValueKey<String>('dependent-health-allergens-edit'),
-                  onPressed: onEditAllergens,
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: Text(l.healthProfileAllergensEdit),
-                ),
-              ),
-            ],
-          ),
+        // [] = "chưa ghi nhận", KHÔNG phải "không dị ứng" (§16.10 MEDIUM-1).
+        AllergensSummaryCard(
+          allergens: p.allergens,
+          onEdit: onEditAllergens,
+          emptyText: l.dependentNoAllergens,
+          emptyKey: 'dependent-no-allergens',
+          editKey: 'dependent-health-allergens-edit',
         ),
         const SizedBox(height: AppDimens.lg),
         if (edit != null)
@@ -449,6 +572,25 @@ class _ViewMode extends StatelessWidget {
                 ?.copyWith(color: AppColors.textSecondary),
           ),
       ],
+    );
+  }
+}
+
+class _FieldError extends StatelessWidget {
+  const _FieldError({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: AppDimens.xs),
+      child: Text(
+        text,
+        style: theme.textTheme.bodySmall
+            ?.copyWith(color: theme.colorScheme.error),
+      ),
     );
   }
 }
@@ -495,5 +637,7 @@ String? _fieldLabel(AppLocalizations l, String field) => switch (field) {
       'heightCm' => l.healthProfileHeight,
       'weightKg' => l.healthProfileWeight,
       'dietType' => l.healthProfileDietType,
+      'gender' => l.healthProfileGender,
+      'activityLevel' => l.healthProfileActivityLevel,
       _ => null,
     };

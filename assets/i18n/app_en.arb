@@ -1368,5 +1368,7 @@
   "recipesFilterApply": "Apply",
   "recipesFilterReset": "Reset",
   "recipesFilterMaxMinutes": "≤ {minutes} min",
-  "@recipesFilterMaxMinutes": {"placeholders": {"minutes": {"type": "int"}}}
+  "@recipesFilterMaxMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "healthProfileCalorieSuggestionAdultOnly": "The suggestion formula applies to people aged 18 and over",
+  "healthProfileChoiceInvalid": "Invalid choice, please choose again"
 }

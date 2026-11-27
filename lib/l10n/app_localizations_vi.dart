@@ -3954,4 +3954,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String recipesFilterMaxMinutes(int minutes) {
     return '≤ $minutes phút';
   }
+
+  @override
+  String get healthProfileCalorieSuggestionAdultOnly =>
+      'Công thức gợi ý áp dụng cho người từ 18 tuổi';
+
+  @override
+  String get healthProfileChoiceInvalid =>
+      'Lựa chọn không hợp lệ, hãy chọn lại';
 }

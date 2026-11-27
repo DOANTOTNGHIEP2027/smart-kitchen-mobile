@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/domain/calorie_suggestion.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/dependent_health_profile.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/dependent_summary.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/diet_type.dart';
@@ -101,6 +102,39 @@ void main() {
     expect(unknown.dietTypeRaw, 'PALEO');
     expect(unknown.hasUnknownDiet, isTrue);
     expect(unknown.heightCm, 110.0);
+    expect(unknown.gender, isNull);
+    expect(unknown.dateOfBirth, isNull);
+  });
+
+  test('DependentHealthProfile #201: gender/activityLevel/dateOfBirth; wire lạ → null', () {
+    final p = DependentHealthProfile.fromJson(<String, dynamic>{
+      'dependentId': 'd1',
+      'targetDailyCalories': null,
+      'dietType': null,
+      'heightCm': null,
+      'weightKg': null,
+      'gender': 'FEMALE',
+      'activityLevel': 'VERY_ACTIVE',
+      'dateOfBirth': '2010-03-04',
+      'updatedAt': null,
+      'allergens': <dynamic>[],
+    });
+    expect(p.gender, Gender.female);
+    expect(p.activityLevel, ActivityLevel.veryActive);
+    expect(p.dateOfBirth, DateTime(2010, 3, 4));
+    final odd = DependentHealthProfile.fromJson(<String, dynamic>{
+      'dependentId': 'd1',
+      'targetDailyCalories': null,
+      'dietType': null,
+      'heightCm': null,
+      'weightKg': null,
+      'gender': 'OTHER',
+      'activityLevel': 'EXTREME',
+      'updatedAt': null,
+      'allergens': <dynamic>[],
+    });
+    expect(odd.gender, isNull);
+    expect(odd.activityLevel, isNull);
   });
 
   test('shortId không RangeError với id ngắn (L5)', () {

@@ -7041,6 +7041,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'≤ {minutes} min'**
   String recipesFilterMaxMinutes(int minutes);
+
+  /// No description provided for @healthProfileCalorieSuggestionAdultOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'The suggestion formula applies to people aged 18 and over'**
+  String get healthProfileCalorieSuggestionAdultOnly;
+
+  /// No description provided for @healthProfileChoiceInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid choice, please choose again'**
+  String get healthProfileChoiceInvalid;
 }
 
 class _AppLocalizationsDelegate

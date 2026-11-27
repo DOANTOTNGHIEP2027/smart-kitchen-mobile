@@ -52,6 +52,9 @@ DependentHealthProfile depHealth(
   String? dietRaw = 'VEGETARIAN',
   double? height = 110,
   double? weight = 19.5,
+  String? gender,
+  String? activity,
+  String? dob,
   List<Allergen> allergens = const <Allergen>[],
   bool empty = false,
 }) =>
@@ -61,6 +64,9 @@ DependentHealthProfile depHealth(
       'dietType': empty ? null : dietRaw,
       'heightCm': empty ? null : height,
       'weightKg': empty ? null : weight,
+      'gender': empty ? null : gender,
+      'activityLevel': empty ? null : activity,
+      'dateOfBirth': dob,
       'updatedAt': empty ? null : '2026-11-20T10:00:00Z',
       'allergens': allergens.map((a) => a.toJson()).toList(),
     });
@@ -183,6 +189,10 @@ class FakeDependentApi implements DependentApi {
     final updated = DependentHealthProfile.fromJson(<String, dynamic>{
       ...payload,
       'dependentId': id,
+      // dateOfBirth chỉ đọc — BE trả từ hồ sơ phụ thuộc.
+      'dateOfBirth': current?.dateOfBirth == null
+          ? null
+          : formatDateOnly(current!.dateOfBirth!),
       'updatedAt': '2026-11-25T10:00:00Z',
       'allergens': (current?.allergens ?? const <Allergen>[])
           .map((a) => a.toJson())

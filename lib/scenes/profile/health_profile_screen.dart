@@ -13,7 +13,6 @@ import '../../widgets/buttons/app_button.dart';
 import '../../widgets/cards/app_card.dart';
 import '../../widgets/inputs/chip_choice_group.dart';
 import '../../widgets/states/app_state_view.dart';
-import 'domain/allergen.dart';
 import 'domain/calorie_suggestion.dart';
 import 'domain/calorie_target.dart';
 import 'domain/diet_type.dart';
@@ -21,10 +20,10 @@ import 'domain/health_measurement.dart';
 import 'domain/health_profile.dart';
 import 'stores/form_status.dart';
 import 'stores/profile_store.dart';
-import 'widgets/allergen_label.dart';
 import 'widgets/calorie_target_field.dart';
 import 'widgets/diet_type_label.dart';
 import 'widgets/diet_type_selector.dart';
+import 'widgets/health_profile_parts.dart';
 import 'widgets/stale_data_banner.dart';
 
 /// Hồ sơ sức khỏe — chế độ xem (S10.2 empty / S10.3 view / S10.3c cache) +
@@ -336,7 +335,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
               options: <ChipChoiceOption<Gender>>[
                 for (final g in Gender.values)
                   ChipChoiceOption<Gender>(
-                      g, _genderLabel(l, g), genderToWire(g)),
+                      g, genderLabel(l, g), genderToWire(g)),
               ],
               onChanged: (Gender? v) {
                 _onFieldEdited();
@@ -358,7 +357,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                 ),
                 child: Text(_birthDate == null
                     ? l.healthProfileBirthDateChoose
-                    : _formatDate(_birthDate!)),
+                    : formatDisplayDate(_birthDate!)),
               ),
             ),
             const SizedBox(height: AppDimens.md),
@@ -371,7 +370,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
               options: <ChipChoiceOption<ActivityLevel>>[
                 for (final a in ActivityLevel.values)
                   ChipChoiceOption<ActivityLevel>(
-                      a, _activityLabel(l, a), activityLevelToWire(a)),
+                      a, activityLevelLabel(l, a), activityLevelToWire(a)),
               ],
               onChanged: (ActivityLevel? v) {
                 _onFieldEdited();
@@ -404,24 +403,6 @@ const Set<String> _mappedFields = <String>{
   'weightKg',
   'birthDate',
 };
-
-String _formatDate(DateTime d) {
-  String two(int v) => v.toString().padLeft(2, '0');
-  return '${two(d.day)}/${two(d.month)}/${d.year}';
-}
-
-String _genderLabel(AppLocalizations l, Gender g) => switch (g) {
-      Gender.male => l.healthProfileGenderMale,
-      Gender.female => l.healthProfileGenderFemale,
-    };
-
-String _activityLabel(AppLocalizations l, ActivityLevel a) => switch (a) {
-      ActivityLevel.sedentary => l.activityLevelSedentary,
-      ActivityLevel.light => l.activityLevelLight,
-      ActivityLevel.moderate => l.activityLevelModerate,
-      ActivityLevel.active => l.activityLevelActive,
-      ActivityLevel.veryActive => l.activityLevelVeryActive,
-    };
 
 String _formatNumber(double? v) {
   if (v == null) return '';
@@ -538,25 +519,30 @@ class _ProfileDetailsView extends StatelessWidget {
                 label: l.healthProfileGender,
                 value: p.gender == null
                     ? l.healthProfileNotSetUp
-                    : _genderLabel(l, p.gender!),
+                    : genderLabel(l, p.gender!),
               ),
               _InfoRow(
                 label: l.healthProfileBirthDate,
                 value: p.birthDate == null
                     ? l.healthProfileNotSetUp
-                    : _formatDate(p.birthDate!),
+                    : formatDisplayDate(p.birthDate!),
               ),
               _InfoRow(
                 label: l.healthProfileActivityLevel,
                 value: p.activityLevel == null
                     ? l.healthProfileNotSetUp
-                    : _activityLabel(l, p.activityLevel!),
+                    : activityLevelLabel(l, p.activityLevel!),
               ),
             ],
           ),
         ),
         const SizedBox(height: AppDimens.md),
-        _AllergensSummary(allergens: p.allergens, onEdit: onEditAllergens),
+        AllergensSummaryCard(
+          allergens: p.allergens,
+          onEdit: onEditAllergens,
+          emptyText: l.healthProfileAllergensEmpty,
+          editKey: 'health-allergens-edit',
+        ),
         const SizedBox(height: AppDimens.lg),
         AppButton(
           key: const ValueKey<String>('health-edit'),
@@ -613,52 +599,6 @@ class _NeedsNetworkHint extends StatelessWidget {
         text,
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.bodySmall,
-      ),
-    );
-  }
-}
-
-class _AllergensSummary extends StatelessWidget {
-  const _AllergensSummary({required this.allergens, required this.onEdit});
-
-  final List<Allergen> allergens;
-  final VoidCallback? onEdit;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              const Icon(Icons.health_and_safety_outlined),
-              const SizedBox(width: AppDimens.sm),
-              Text(context.l10n.healthProfileAllergensSection,
-                  style: Theme.of(context).textTheme.titleSmall),
-            ],
-          ),
-          const SizedBox(height: AppDimens.sm),
-          if (allergens.isEmpty)
-            Text(context.l10n.healthProfileAllergensEmpty)
-          else
-            Wrap(
-              spacing: AppDimens.sm,
-              runSpacing: AppDimens.xs,
-              children: <Widget>[
-                for (final a in allergens) Chip(label: Text(a.label(context.l10n))),
-              ],
-            ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              key: const ValueKey<String>('health-allergens-edit'),
-              onPressed: onEdit,
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              label: Text(context.l10n.healthProfileAllergensEdit),
-            ),
-          ),
-        ],
       ),
     );
   }
