@@ -13,6 +13,7 @@ import '../data/inventory_dao.dart';
 import '../domain/inventory_item.dart';
 import '../domain/inventory_mapper.dart';
 import '../domain/sync_status.dart';
+import '../../../utils/date_format.dart';
 
 /// Trạng thái danh sách inventory — chỉ loading|ready (FE-5 §9.1, Decision D13).
 ///
@@ -352,7 +353,7 @@ class InventoryStore with HouseholdScoped {
       'quantity': item.quantity,
       'unit': item.unit,
       'lowStockThreshold': item.lowStockThreshold,
-      'expiryDate': item.expiryDate?.toUtc().toIso8601String().split('T').first,
+      'expiryDate': item.expiryDate == null ? null : toApiDate(item.expiryDate!),
       'note': item.note,
     };
   }

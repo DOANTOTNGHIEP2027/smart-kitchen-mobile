@@ -3,6 +3,7 @@ import 'package:drift/drift.dart' show Value;
 import '../../../data/db/app_database.dart';
 import 'inventory_item.dart';
 import 'sync_status.dart';
+import '../../../utils/date_format.dart';
 
 /// Parse một object JSON từ BE (camelCase — OAS v1.2.0) sang [InventoryItemModel].
 ///
@@ -44,7 +45,7 @@ Map<String, dynamic> inventoryItemToPayload(InventoryItemModel item) {
     'quantity': item.quantity,
     'unit': item.unit,
     'lowStockThreshold': item.lowStockThreshold,
-    'expiryDate': item.expiryDate?.toUtc().toIso8601String().split('T').first,
+    'expiryDate': item.expiryDate == null ? null : toApiDate(item.expiryDate!),
     'note': item.note,
   };
 }
@@ -92,7 +93,7 @@ InventoryItemsCompanion inventoryItemToRow(InventoryItemModel item) {
     displayQuantity: Value<double?>(item.displayQuantity),
     displayUnit: Value<String?>(item.displayUnit),
     lowStockThreshold: Value<double?>(item.lowStockThreshold),
-    expiryDate: Value<String?>(item.expiryDate?.toUtc().toIso8601String().split('T').first),
+    expiryDate: Value<String?>(item.expiryDate == null ? null : toApiDate(item.expiryDate!)),
     note: Value<String?>(item.note),
     version: item.version,
     isLowStock: Value<bool>(item.isLowStock),

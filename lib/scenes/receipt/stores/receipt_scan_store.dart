@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart' show CancelToken;
@@ -14,6 +13,7 @@ import '../data/receipt_api.dart';
 import '../domain/receipt_matched_item.dart';
 import '../domain/receipt_scan_result.dart';
 import '../domain/receipt_unmatched_item.dart';
+import '../../../utils/uuid.dart';
 
 enum ReceiptScanStatus { idle, scanning, reviewing, committing }
 
@@ -54,7 +54,7 @@ class ReceiptScanStore {
         _imageCompressor = imageCompressor,
         _shoppingStore = shoppingStore,
         _formStoreFactory = formStoreFactory,
-        _idempotencyKeyGenerator = idempotencyKeyGenerator ?? _createUuidV4;
+        _idempotencyKeyGenerator = idempotencyKeyGenerator ?? createUuidV4;
 
   final ReceiptApi _api;
   final OcrImagePicker _imagePicker;
@@ -267,6 +267,7 @@ class ReceiptScanStore {
     Object? category = _notProvided,
     Object? quantity = _notProvided,
     Object? unit = _notProvided,
+    Object? expiryDate = _notProvided,
   }) {
     final index = unmatchedItems.indexWhere((item) => item.itemId == itemId);
     if (index < 0) return;
@@ -278,6 +279,7 @@ class ReceiptScanStore {
         category: identical(category, _notProvided) ? item.category : category,
         quantity: identical(quantity, _notProvided) ? item.quantity : quantity,
         unit: identical(unit, _notProvided) ? item.unit : unit,
+        expiryDate: identical(expiryDate, _notProvided) ? item.expiryDate : expiryDate,
         confirmStatus: ReceiptConfirmStatus.pending,
         confirmError: null,
       );
@@ -319,7 +321,8 @@ class ReceiptScanStore {
         quantity: item.quantity!,
         unit: item.unit!,
         lowStockThreshold: null,
-        expiryDate: null,
+        // #239: hạn gợi ý của BE (hoặc người dùng đã sửa).
+        expiryDate: item.expiryDate,
         note: null,
       );
     } catch (_) {
@@ -435,17 +438,3 @@ class ReceiptScanStore {
 }
 
 const Object _notProvided = Object();
-
-/// Bản sao `_createUuidV4` của ocr_store.dart (private ở đó; `uuid` chỉ là
-/// dependency bắc cầu). Gom vào lib/utils khi có nơi dùng thứ ba.
-String _createUuidV4() {
-  final random = Random.secure();
-  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  String pair(int value) => value.toRadixString(16).padLeft(2, '0');
-  final hex = bytes.map(pair).join();
-  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
-      '${hex.substring(12, 16)}-${hex.substring(16, 20)}-'
-      '${hex.substring(20)}';
-}

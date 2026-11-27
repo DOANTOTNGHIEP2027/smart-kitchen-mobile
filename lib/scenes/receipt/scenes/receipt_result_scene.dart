@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../routing/app_routes.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
@@ -190,6 +191,8 @@ class _ReceiptResultSceneState extends State<ReceiptResultScene> {
               store.editUnmatchedItem(item.itemId, unit: value),
           onCategoryChanged: (value) =>
               store.editUnmatchedItem(item.itemId, category: value),
+          onExpiryChanged: (value) =>
+              store.editUnmatchedItem(item.itemId, expiryDate: value),
           onConfirm: () => store.confirmUnmatchedItem(item.itemId),
         ),
     ];
@@ -221,7 +224,11 @@ class _ReceiptResultSceneState extends State<ReceiptResultScene> {
     // trong IndexedStack của shell, không có route '/shopping' (Guard 13).
     Get.close(2);
     store.reset();
-    if (count > 0) Get.snackbar(title, message);
+    if (count > 0) {
+      Get.snackbar(title, message);
+      // #239: món vừa đánh dấu đã mua → xem lại hạn & cất vào kho.
+      Get.toNamed<void>(AppRoutes.shoppingCheckout);
+    }
   }
 }
 

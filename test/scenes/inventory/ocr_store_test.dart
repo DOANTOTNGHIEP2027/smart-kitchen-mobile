@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
+import 'package:smart_kitchen_mobile/scenes/inventory/data/inventory_batch_api.dart';
+import 'package:smart_kitchen_mobile/scenes/inventory/domain/inventory_item.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/data/ocr_api.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/data/ocr_image_service.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/domain/ocr_item.dart';
@@ -44,6 +46,21 @@ class _FakeCompressor implements OcrImageCompressor {
 }
 
 class _MockInventoryFormStore extends Mock implements InventoryFormStore {}
+
+class _FakeBatchApi implements InventoryBatchApi {
+  final List<List<Map<String, dynamic>>> payloads = <List<Map<String, dynamic>>>[];
+  Object? failure;
+
+  @override
+  Future<List<InventoryItemModel>> batchCreate(
+    List<Map<String, dynamic>> items, {
+    required String idempotencyKey,
+  }) async {
+    payloads.add(items);
+    if (failure != null) throw failure!;
+    return const <InventoryItemModel>[];
+  }
+}
 
 const _validItem = OcrItem(
   itemId: 'item-1',
@@ -215,5 +232,66 @@ void main() {
     expect(find.text('Cần kiểm tra'), findsOneWidget);
     expect(find.text('Đã có trong tồn kho'), findsOneWidget);
     expect(find.text('Xác nhận tất cả'), findsOneWidget);
+  });
+
+  group('#239 confirmAll qua batch', () {
+    late _FakeBatchApi batch;
+    late int committed;
+
+    setUp(() {
+      batch = _FakeBatchApi();
+      committed = 0;
+      store = OcrStore(
+        api: api,
+        imagePicker: picker,
+        imageCompressor: _FakeCompressor(),
+        formStoreFactory: () => formStore,
+        idempotencyKeyGenerator: () => 'fixed-key',
+        batchApi: batch,
+        onBatchCommitted: () async => committed++,
+      );
+    });
+
+    test('ghi một lần batch, không gọi InventoryFormStore, gửi hạn theo ngày local',
+        () async {
+      api.outcomes.add(
+        const OcrScanResult(scanId: 'scan-1', items: <OcrItem>[_validItem]),
+      );
+      await store.pickAndScan(OcrImageSource.gallery);
+      store.editItem('item-1', expiryEstimate: DateTime(2026, 12, 1));
+
+      await store.confirmAll();
+
+      expect(batch.payloads.single.single['expiryDate'], '2026-12-01');
+      expect(batch.payloads.single.single['unit'], 'quả');
+      expect(store.items.single.confirmStatus, OcrConfirmStatus.confirmed);
+      expect(store.status, OcrStatus.done);
+      expect(committed, 1);
+      verifyNever(
+        () => formStore.save(
+          name: any(named: 'name'),
+          category: any(named: 'category'),
+          quantity: any(named: 'quantity'),
+          unit: any(named: 'unit'),
+          lowStockThreshold: any(named: 'lowStockThreshold'),
+          expiryDate: any(named: 'expiryDate'),
+          note: any(named: 'note'),
+        ),
+      );
+    });
+
+    test('batch lỗi → mọi món failed, quay lại reviewing', () async {
+      api.outcomes.add(
+        const OcrScanResult(scanId: 'scan-1', items: <OcrItem>[_validItem]),
+      );
+      await store.pickAndScan(OcrImageSource.gallery);
+      batch.failure = NetworkException();
+
+      await store.confirmAll();
+
+      expect(store.items.single.confirmStatus, OcrConfirmStatus.failed);
+      expect(store.status, OcrStatus.reviewing);
+      expect(committed, 0);
+    });
   });
 }

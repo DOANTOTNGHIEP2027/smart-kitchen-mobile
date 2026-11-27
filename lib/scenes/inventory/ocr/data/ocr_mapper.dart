@@ -1,3 +1,4 @@
+import '../../domain/expiry_source.dart';
 import '../domain/ocr_item.dart';
 import '../domain/ocr_scan_result.dart';
 
@@ -13,6 +14,9 @@ abstract final class OcrMapper {
   }
 
   static OcrItem itemFromJson(Map<String, dynamic> json) {
+    final expiry = json['expiryDate'] == null
+        ? null
+        : DateTime.parse(json['expiryDate'] as String);
     return OcrItem(
       itemId: json['itemId'] as String,
       name: json['name'] as String,
@@ -22,9 +26,12 @@ abstract final class OcrMapper {
       needsManualReview: json['needsManualReview'] as bool? ?? false,
       rawQuantity: (json['rawQuantity'] as num?)?.toDouble(),
       rawUnit: json['rawUnit'] as String?,
-      expiryEstimate: json['expiryDate'] == null
-          ? null
-          : DateTime.parse(json['expiryDate'] as String),
+      expiryEstimate: expiry,
+      // #239 additive — BE cũ không gửi: có ngày thì là AI ước lượng như trước.
+      expirySource: json.containsKey('expirySource')
+          ? ExpirySource.fromJson(json['expirySource'])
+          : (expiry == null ? ExpirySource.none : ExpirySource.ai),
+      suggestedExpiry: expiry,
       duplicate: json['duplicate'] as bool? ?? false,
       existingItemId: json['existingItemId'] as String?,
     );

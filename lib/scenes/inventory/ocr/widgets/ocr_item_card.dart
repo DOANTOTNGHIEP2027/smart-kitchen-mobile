@@ -4,6 +4,8 @@ import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_dimens.dart';
 import '../../../../utils/l10n_x.dart';
 import '../../../../widgets/buttons/app_button.dart';
+import '../../../../widgets/inputs/expiry_date_chip.dart';
+import '../../domain/expiry_source.dart';
 import '../../domain/unit_option.dart';
 import '../../widgets/unit_picker.dart';
 import '../domain/ocr_item.dart';
@@ -162,18 +164,16 @@ class _OcrItemCardState extends State<OcrItemCard> {
                       background: const Color(0xFFF3E8FF),
                       foreground: const Color(0xFF7C3AED),
                     ),
-                  if (item.expiryEstimate != null)
-                    ActionChip(
-                      visualDensity: VisualDensity.compact,
-                      avatar: const Icon(Icons.event_outlined, size: 14),
-                      label: Text(
-                        context.l10n.inventoryOcrExpiryEstimate(
-                          MaterialLocalizations.of(context)
-                              .formatCompactDate(item.expiryEstimate!),
-                        ),
-                      ),
-                      onPressed: disabled ? null : () => _pickExpiry(context),
-                    ),
+                  // #239: luôn hiện — chưa có hạn thì người dùng tự thêm.
+                  ExpiryDateChip(
+                    date: item.expiryEstimate,
+                    suggested: item.isExpirySuggested,
+                    enabled: !disabled,
+                    suggestedLabel: item.expirySource == ExpirySource.ai
+                        ? context.l10n.inventoryOcrExpiryEstimate
+                        : null,
+                    onChanged: (date) => widget.onChanged(expiryEstimate: date),
+                  ),
                 ],
               ),
               if (item.rawUnit != null && item.unit == null)
@@ -284,17 +284,6 @@ class _OcrItemCardState extends State<OcrItemCard> {
             .firstOrNull;
     final unit = await showUnitPicker(context, selected: selected);
     if (unit != null) widget.onChanged(unit: unit.value);
-  }
-
-  Future<void> _pickExpiry(BuildContext context) async {
-    final now = DateTime.now();
-    final selected = await showDatePicker(
-      context: context,
-      initialDate: widget.item.expiryEstimate ?? now,
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 10),
-    );
-    if (selected != null) widget.onChanged(expiryEstimate: selected);
   }
 
   static String _formatQuantity(double? value) {

@@ -10,6 +10,7 @@ import '../data/inventory_dao.dart';
 import '../domain/inventory_item.dart';
 import '../domain/sync_status.dart';
 import '../../../services/connectivity_service.dart';
+import '../../../utils/date_format.dart';
 
 /// Sinh id cục bộ duy nhất cho optimistic CREATE. Không thêm dependency `uuid`
 /// (ngoài danh sách §6.1 D-05). Identifiier chỉ cần duy nhất trong phạm vi
@@ -154,7 +155,9 @@ class InventoryFormStore {
       'quantity': quantity,
       'unit': unit,
       'lowStockThreshold': lowStockThreshold,
-      'expiryDate': expiryDate?.toUtc().toIso8601String().split('T').first,
+      // Ngày lịch theo field của chính DateTime: `toUtc()` lùi một ngày với
+      // nửa đêm local từ showDatePicker ở UTC+7.
+      'expiryDate': expiryDate == null ? null : toApiDate(expiryDate),
       'note': note?.trim().isEmpty == true ? null : note?.trim(),
       if (mode == InventoryFormMode.edit && reason != null) 'reason': reason,
       if (mode == InventoryFormMode.edit && wasteCause != null)

@@ -22,6 +22,7 @@ class ShoppingItem {
     this.syncStatus = ShoppingSyncStatus.synced,
     this.price,
     this.assignedTo,
+    this.inInventory = false,
   });
 
   final String id;
@@ -48,12 +49,18 @@ class ShoppingItem {
   /// UUID người được giao mua (#134). KHÔNG BAO GIỜ hiển thị thô (Guard #15).
   final String? assignedTo;
 
+  /// #239: đã cất vào kho — status vẫn completed nhưng không toggle được nữa.
+  final bool inInventory;
+
   bool get isPendingSync => syncStatus != ShoppingSyncStatus.synced;
 
   /// Đang giao cho [userId] — 1 định nghĩa dùng chung cho badge và filter
   /// "Của tôi".
   bool isAssignedTo(String? userId) => userId != null && assignedTo == userId;
-  bool get canToggle => syncStatus != ShoppingSyncStatus.pendingCreate;
+  bool get canToggle => syncStatus != ShoppingSyncStatus.pendingCreate && !inInventory;
+
+  /// #239: đã mua, chưa vào kho — đếm cho nút "Cất vào kho (n)".
+  bool get awaitsInventory => status == ShoppingItemStatus.completed && !inInventory;
 
   ShoppingItem copyWith({
     String? id,
@@ -73,6 +80,7 @@ class ShoppingItem {
     ShoppingSyncStatus? syncStatus,
     double? price,
     String? assignedTo,
+    bool? inInventory,
   }) => ShoppingItem(
     id: id ?? this.id,
     householdId: householdId,
@@ -92,5 +100,6 @@ class ShoppingItem {
     syncStatus: syncStatus ?? this.syncStatus,
     price: price ?? this.price,
     assignedTo: assignedTo ?? this.assignedTo,
+    inInventory: inInventory ?? this.inInventory,
   );
 }

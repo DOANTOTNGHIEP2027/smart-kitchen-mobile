@@ -6435,6 +6435,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 unread} other{{count} unread}}'**
   String notificationsUnreadBadge(int count);
+
+  /// No description provided for @shoppingCheckoutCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Put away ({count})'**
+  String shoppingCheckoutCta(int count);
+
+  /// No description provided for @shoppingCheckoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Put away in pantry'**
+  String get shoppingCheckoutTitle;
+
+  /// No description provided for @shoppingCheckoutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the expiry dates, then confirm to add these items to the pantry.'**
+  String get shoppingCheckoutHint;
+
+  /// No description provided for @shoppingCheckoutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {count} to pantry'**
+  String shoppingCheckoutConfirm(int count);
+
+  /// No description provided for @shoppingCheckoutDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {count} items to the pantry'**
+  String shoppingCheckoutDone(int count);
+
+  /// No description provided for @shoppingCheckoutEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No bought items waiting to be put away.'**
+  String get shoppingCheckoutEmpty;
+
+  /// No description provided for @shoppingCheckoutOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You need a connection to put items away.'**
+  String get shoppingCheckoutOffline;
+
+  /// No description provided for @shoppingCheckoutReloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'The list changed and was reloaded. Please check and confirm again.'**
+  String get shoppingCheckoutReloaded;
+
+  /// No description provided for @shoppingCheckoutDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in pantry · new batch'**
+  String get shoppingCheckoutDuplicate;
+
+  /// No description provided for @shoppingCheckoutInvalidRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the quantity / unit'**
+  String get shoppingCheckoutInvalidRow;
+
+  /// No description provided for @shoppingInInventoryBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'In pantry'**
+  String get shoppingInInventoryBadge;
+
+  /// No description provided for @shoppingInInventoryToggleBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is already in the pantry and can\'t be unchecked.'**
+  String get shoppingInInventoryToggleBlocked;
+
+  /// No description provided for @expiryChipAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add expiry date'**
+  String get expiryChipAdd;
+
+  /// No description provided for @expiryChipSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Exp. {date} · suggested'**
+  String expiryChipSuggested(Object date);
+
+  /// No description provided for @expiryChipSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Exp. {date}'**
+  String expiryChipSet(Object date);
+
+  /// No description provided for @errShopItemAlreadyInInventory.
+  ///
+  /// In en, this message translates to:
+  /// **'This item has already been put in the pantry.'**
+  String get errShopItemAlreadyInInventory;
+
+  /// No description provided for @errShopItemNotBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Only bought items can be put in the pantry.'**
+  String get errShopItemNotBought;
 }
 
 class _AppLocalizationsDelegate

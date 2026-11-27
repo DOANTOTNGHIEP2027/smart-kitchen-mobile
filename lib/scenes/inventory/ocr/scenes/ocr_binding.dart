@@ -5,8 +5,10 @@ import '../../../../data/network/dio_client.dart';
 import '../../../../services/connectivity_service.dart';
 import '../../../../stores/session_store.dart';
 import '../../data/inventory_api.dart';
+import '../../data/inventory_batch_api.dart';
 import '../../data/inventory_dao.dart';
 import '../../stores/inventory_form_store.dart';
+import '../../stores/inventory_store.dart';
 import '../data/ocr_api.dart';
 import '../data/ocr_image_service.dart';
 import '../stores/ocr_store.dart';
@@ -29,6 +31,12 @@ class OcrBinding extends Bindings {
         fenix: true,
       );
     }
+    if (!Get.isRegistered<InventoryBatchApi>()) {
+      Get.put<InventoryBatchApi>(
+        InventoryBatchApiImpl(Get.find<DioClient>()),
+        permanent: true,
+      );
+    }
     if (!Get.isRegistered<OcrStore>()) {
       Get.lazyPut<OcrStore>(
         () => OcrStore(
@@ -44,6 +52,13 @@ class OcrBinding extends Bindings {
             connectivity: Get.find<ConnectivityService>(),
             sessionStore: Get.find<SessionStore>(),
           ),
+          // #239: "Xác nhận tất cả" ghi một lần batch.
+          batchApi: Get.find<InventoryBatchApi>(),
+          onBatchCommitted: () async {
+            if (Get.isRegistered<InventoryStore>()) {
+              await Get.find<InventoryStore>().syncFromServer();
+            }
+          },
         ),
         fenix: true,
       );
