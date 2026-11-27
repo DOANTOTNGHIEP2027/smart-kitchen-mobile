@@ -14,6 +14,7 @@ import '../data/receipt_api.dart';
 import '../domain/receipt_matched_item.dart';
 import '../domain/receipt_scan_result.dart';
 import '../domain/receipt_unmatched_item.dart';
+import '../../../utils/uuid.dart';
 
 enum ReceiptScanStatus { idle, scanning, reviewing, committing }
 
@@ -267,6 +268,7 @@ class ReceiptScanStore {
     Object? category = _notProvided,
     Object? quantity = _notProvided,
     Object? unit = _notProvided,
+    Object? expiryDate = _notProvided,
   }) {
     final index = unmatchedItems.indexWhere((item) => item.itemId == itemId);
     if (index < 0) return;
@@ -278,6 +280,7 @@ class ReceiptScanStore {
         category: identical(category, _notProvided) ? item.category : category,
         quantity: identical(quantity, _notProvided) ? item.quantity : quantity,
         unit: identical(unit, _notProvided) ? item.unit : unit,
+        expiryDate: identical(expiryDate, _notProvided) ? item.expiryDate : expiryDate,
         confirmStatus: ReceiptConfirmStatus.pending,
         confirmError: null,
       );
@@ -319,7 +322,8 @@ class ReceiptScanStore {
         quantity: item.quantity!,
         unit: item.unit!,
         lowStockThreshold: null,
-        expiryDate: null,
+        // #239: hạn gợi ý của BE (hoặc người dùng đã sửa).
+        expiryDate: item.expiryDate,
         note: null,
       );
     } catch (_) {

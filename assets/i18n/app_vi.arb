@@ -1103,5 +1103,22 @@
   "notificationMinutesAgo": "{count} phút trước",
   "notificationHoursAgo": "{count} giờ trước",
   "notificationUntitled": "Thông báo mới",
-  "notificationsUnreadBadge": "{count} chưa đọc"
+  "notificationsUnreadBadge": "{count} chưa đọc",
+  "shoppingCheckoutCta": "Cất vào kho ({count})",
+  "shoppingCheckoutTitle": "Cất vào kho",
+  "shoppingCheckoutHint": "Kiểm tra hạn dùng rồi xác nhận để thêm các món này vào kho.",
+  "shoppingCheckoutConfirm": "Cất {count} món vào kho",
+  "shoppingCheckoutDone": "Đã cất {count} món vào kho",
+  "shoppingCheckoutEmpty": "Không có món đã mua nào chờ cất vào kho.",
+  "shoppingCheckoutOffline": "Cần có mạng để cất đồ vào kho.",
+  "shoppingCheckoutReloaded": "Danh sách đã thay đổi và được tải lại. Hãy kiểm tra rồi xác nhận lại.",
+  "shoppingCheckoutDuplicate": "Đã có trong kho · tạo lô mới",
+  "shoppingCheckoutInvalidRow": "Kiểm tra lại số lượng / đơn vị",
+  "shoppingInInventoryBadge": "Đã vào kho",
+  "shoppingInInventoryToggleBlocked": "Món này đã cất vào kho, không bỏ đánh dấu được nữa.",
+  "expiryChipAdd": "Thêm hạn dùng",
+  "expiryChipSuggested": "HSD {date} · gợi ý",
+  "expiryChipSet": "HSD {date}",
+  "errShopItemAlreadyInInventory": "Món này đã được cất vào kho.",
+  "errShopItemNotBought": "Chỉ món đã mua mới cất vào kho được."
 }

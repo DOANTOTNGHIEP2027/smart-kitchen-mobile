@@ -246,7 +246,8 @@ void main() {
       expect(_key('receipt-done'), findsOneWidget);
     });
 
-    testWidgets('thành công, không còn thẻ mở → pop ĐÚNG 2 màn + snackbar',
+    testWidgets(
+        'thành công, không còn thẻ mở → pop ĐÚNG 2 màn + snackbar + mở cất vào kho',
         (tester) async {
       await harness.pumpResult(
         tester,
@@ -256,12 +257,16 @@ void main() {
       await tester.tap(_key('receipt-commit'));
       await tester.pumpAndSettle();
 
-      expect(find.text(kHomeText), findsOneWidget);
+      // #239: pop result + scan rồi mở màn cất vào kho ngay trên shell.
+      expect(find.text(kCheckoutText), findsOneWidget);
+      expect(Get.currentRoute, AppRoutes.shoppingCheckout);
       expect(find.text(viL10n.receiptResultTitle), findsNothing);
       expect(find.text(viL10n.receiptScanTitle), findsNothing);
       expect(find.text(viL10n.receiptDoneToast(4)), findsOneWidget);
       expect(harness.store.status, ReceiptScanStatus.idle);
       await settleSnackbars(tester);
+      Get.back<void>();
+      await tester.pumpAndSettle();
       expect(find.text(kHomeText), findsOneWidget);
     });
 
@@ -286,8 +291,10 @@ void main() {
       gate.complete(<String>[]);
       await tester.pumpAndSettle();
 
-      expect(find.text(kHomeText), findsOneWidget);
+      expect(find.text(kCheckoutText), findsOneWidget);
       await settleSnackbars(tester);
+      Get.back<void>();
+      await tester.pumpAndSettle();
       expect(find.text(kHomeText), findsOneWidget);
     });
 

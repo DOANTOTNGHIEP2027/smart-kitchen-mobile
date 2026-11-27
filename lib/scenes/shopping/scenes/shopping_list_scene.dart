@@ -256,6 +256,20 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 store.pending.length,
                 store.completed.length,
               ),
+              // #239: món đã mua chưa vào kho → mở màn xem lại & cất vào kho.
+              if (store.completed.any((i) => i.awaitsInventory)) ...<Widget>[
+                const SizedBox(height: AppDimens.sm),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    key: const ValueKey<String>('shopping-checkout-cta'),
+                    onPressed: () => Get.toNamed<void>(AppRoutes.shoppingCheckout),
+                    icon: const Icon(Icons.kitchen_outlined),
+                    label: Text(context.l10n.shoppingCheckoutCta(
+                        store.completed.where((i) => i.awaitsInventory).length)),
+                  ),
+                ),
+              ],
               const SizedBox(height: AppDimens.md),
 
               // Filter pills
@@ -640,9 +654,13 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
         child: InkWell(
           // Đang PATCH gán thì không cho tick — 2 thao tác cùng version, bên
           // về sau sẽ ghi đè/ăn 409 làm mất lần tick (Guard #18).
-          onTap: item.canToggle && !store.isAssigning(item.id)
-              ? () => toggleShoppingItemWithPrice(context, store, item)
-              : null,
+          onTap: item.inInventory
+              // #239: kho đã có lô tương ứng — chỉ giải thích, không toggle.
+              ? () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(context.l10n.shoppingInInventoryToggleBlocked)))
+              : item.canToggle && !store.isAssigning(item.id)
+                  ? () => toggleShoppingItemWithPrice(context, store, item)
+                  : null,
           borderRadius: BorderRadius.circular(AppDimens.radiusCard),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -718,6 +736,26 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                 context.l10n.shoppingWeeklyMenuBadge,
                                 style: const TextStyle(
                                   color: AppColors.onPrimaryContainer,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          if (item.inInventory)
+                            Container(
+                              key: ValueKey<String>('shopping-in-inventory-${item.id}'),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceSubtle,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                context.l10n.shoppingInInventoryBadge,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                 ),

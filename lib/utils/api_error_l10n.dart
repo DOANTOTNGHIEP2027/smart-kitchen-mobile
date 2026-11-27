@@ -19,6 +19,9 @@ String apiErrorMessage(AppLocalizations l10n, ApiException? error,
     'ERR_UNKNOWN' || 'ERR_INTERNAL' => fallback ?? l10n.genericRetryError,
     // Message BE là tiếng Anh kỹ thuật (OD-36).
     'ERR_INSUFFICIENT_STOCK_FOR_RECIPE' => l10n.cookingShortfallTitle,
+    // #239 cất đồ đi chợ vào kho.
+    'ERR_SHOP_ITEM_ALREADY_IN_INVENTORY' => l10n.errShopItemAlreadyInInventory,
+    'ERR_SHOP_ITEM_NOT_BOUGHT' => l10n.errShopItemNotBought,
     _ => error.message,
   };
 }

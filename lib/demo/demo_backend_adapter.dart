@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
+import '../utils/date_format.dart';
 import 'demo_perf_seed.dart';
 import 'fixtures/demo_fixtures.dart';
 
@@ -254,6 +255,10 @@ class DemoBackendAdapter implements HttpClientAdapter {
             'Phương thức này chưa được hỗ trợ trong bản demo.',
           ),
       };
+    }
+    // #239 — phải đứng trước regex `/inventory-items/{id}`.
+    if (path == '/api/v1/inventory-items/batch' && method == 'POST') {
+      return _batchCreateInventory(body);
     }
     if (path == '/api/v1/receipts/scan' && method == 'POST') {
       return _scanReceipt(options);
@@ -611,6 +616,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
     }
     if (path == '/api/v1/shopping/items' && method == 'POST') {
       return _createShoppingItem(body);
+    }
+    if (path == '/api/v1/shopping/checkout/preview' && method == 'GET') {
+      return _checkoutPreview();
     }
     final shoppingCompleteMatch = RegExp(
       r'^/api/v1/shopping/items/([^/]+)/complete$',
@@ -1948,6 +1956,83 @@ class DemoBackendAdapter implements HttpClientAdapter {
     return _ok(201, item);
   }
 
+  /// #239 — cùng bảng số ngày tạm của BE (`app.inventory.expiry-defaults`).
+  static const Map<String, int> _demoExpiryDays = <String, int>{
+    'Rau củ': 5,
+    'Thịt cá': 2,
+    'Trứng sữa': 14,
+    'Ngũ cốc': 180,
+    'Gia vị': 365,
+  };
+
+  ResponseBody _checkoutPreview() {
+    const literals = <String>{'g', 'kg', 'ml', 'l', 'quả', 'cái'};
+    final today = DateTime.now();
+    final items = <Map<String, dynamic>>[
+      for (final item in _shoppingItems)
+        if (item['status'] == 'COMPLETED' && item['inInventory'] != true)
+          () {
+            final category = item['category'] as String?;
+            final days = category == null ? null : _demoExpiryDays[category];
+            final unit = (item['displayUnit'] as String? ?? '').toLowerCase();
+            return <String, dynamic>{
+              'shoppingItemId': item['id'],
+              'version': item['version'] ?? 1,
+              'name': item['name'],
+              'category': category,
+              'quantity': item['displayQuantity'] ?? item['quantity'],
+              'unit': literals.contains(unit) ? unit : 'cái',
+              'suggestedExpiryDate': days == null
+                  ? null
+                  : toApiDate(today.add(Duration(days: days))),
+              'expirySource': days == null ? 'NONE' : 'CATEGORY_DEFAULT',
+              'duplicate': false,
+              'existingItemId': null,
+            };
+          }(),
+    ];
+    return _ok(200, <String, dynamic>{
+      'weekStart': toApiDate(today),
+      'items': items,
+    });
+  }
+
+  ResponseBody _batchCreateInventory(Map<String, dynamic> body) {
+    final rows = (body['items'] as List<dynamic>? ?? const <dynamic>[])
+        .map((raw) => Map<String, dynamic>.from(raw as Map))
+        .toList();
+    // All-or-nothing như BE: kiểm nguồn đi chợ trước khi ghi lô nào.
+    for (var i = 0; i < rows.length; i++) {
+      final source = rows[i]['sourceShoppingItemId'];
+      if (source == null) continue;
+      final item = _shoppingItems.where((s) => s['id'] == source).firstOrNull;
+      if (item == null || item['inInventory'] == true) {
+        return _error(
+          409,
+          'ERR_SHOP_ITEM_ALREADY_IN_INVENTORY',
+          'Món này đã được cất vào kho.',
+          details: <String, dynamic>{'index': i},
+        );
+      }
+    }
+    final created = <Map<String, dynamic>>[];
+    for (final row in rows) {
+      _createInventory(row);
+      created.add(_inventory.last);
+      final source = row['sourceShoppingItemId'];
+      if (source == null) continue;
+      final index = _shoppingItems.indexWhere((s) => s['id'] == source);
+      final item = _shoppingItems[index];
+      _shoppingItems[index] = <String, dynamic>{
+        ...item,
+        'inInventory': true,
+        'version': (item['version'] as int? ?? 1) + 1,
+        'updatedAt': DateTime.now().toUtc().toIso8601String(),
+      };
+    }
+    return _ok(201, <String, dynamic>{'items': created});
+  }
+
   ResponseBody _completeShoppingItem(String id, Map<String, dynamic> body) {
     final index = _shoppingItems.indexWhere((item) => item['id'] == id);
     if (index < 0) {
@@ -1958,6 +2043,13 @@ class DemoBackendAdapter implements HttpClientAdapter {
       );
     }
     final item = _shoppingItems[index];
+    if (item['inInventory'] == true) {
+      return _error(
+        409,
+        'ERR_SHOP_ITEM_ALREADY_IN_INVENTORY',
+        'Món này đã được cất vào kho.',
+      );
+    }
     final currentStatus = item['status'] as String? ?? 'PENDING';
     final newStatus = currentStatus == 'COMPLETED' ? 'PENDING' : 'COMPLETED';
     final updated = <String, dynamic>{

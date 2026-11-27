@@ -1598,6 +1598,16 @@ class $ShoppingListItemsTable extends ShoppingListItems
   late final GeneratedColumn<String> assignedTo = GeneratedColumn<String>(
       'assigned_to', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _inInventoryMeta =
+      const VerificationMeta('inInventory');
+  @override
+  late final GeneratedColumn<bool> inInventory = GeneratedColumn<bool>(
+      'in_inventory', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("in_inventory" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1617,7 +1627,8 @@ class $ShoppingListItemsTable extends ShoppingListItems
         updatedAt,
         syncStatus,
         price,
-        assignedTo
+        assignedTo,
+        inInventory
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1736,6 +1747,12 @@ class $ShoppingListItemsTable extends ShoppingListItems
           assignedTo.isAcceptableOrUnknown(
               data['assigned_to']!, _assignedToMeta));
     }
+    if (data.containsKey('in_inventory')) {
+      context.handle(
+          _inInventoryMeta,
+          inInventory.isAcceptableOrUnknown(
+              data['in_inventory']!, _inInventoryMeta));
+    }
     return context;
   }
 
@@ -1781,6 +1798,8 @@ class $ShoppingListItemsTable extends ShoppingListItems
           .read(DriftSqlType.double, data['${effectivePrefix}price']),
       assignedTo: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}assigned_to']),
+      inInventory: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}in_inventory'])!,
     );
   }
 
@@ -1814,6 +1833,9 @@ class ShoppingListItem extends DataClass
 
   /// UUID thành viên được giao mua (#134) — `null` = chưa giao.
   final String? assignedTo;
+
+  /// #239: món đã được cất vào kho (BE `inInventory`).
+  final bool inInventory;
   const ShoppingListItem(
       {required this.id,
       required this.householdId,
@@ -1832,7 +1854,8 @@ class ShoppingListItem extends DataClass
       required this.updatedAt,
       required this.syncStatus,
       this.price,
-      this.assignedTo});
+      this.assignedTo,
+      required this.inInventory});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1864,6 +1887,7 @@ class ShoppingListItem extends DataClass
     if (!nullToAbsent || assignedTo != null) {
       map['assigned_to'] = Variable<String>(assignedTo);
     }
+    map['in_inventory'] = Variable<bool>(inInventory);
     return map;
   }
 
@@ -1896,6 +1920,7 @@ class ShoppingListItem extends DataClass
       assignedTo: assignedTo == null && nullToAbsent
           ? const Value.absent()
           : Value(assignedTo),
+      inInventory: Value(inInventory),
     );
   }
 
@@ -1921,6 +1946,7 @@ class ShoppingListItem extends DataClass
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
       price: serializer.fromJson<double?>(json['price']),
       assignedTo: serializer.fromJson<String?>(json['assignedTo']),
+      inInventory: serializer.fromJson<bool>(json['inInventory']),
     );
   }
   @override
@@ -1945,6 +1971,7 @@ class ShoppingListItem extends DataClass
       'syncStatus': serializer.toJson<String>(syncStatus),
       'price': serializer.toJson<double?>(price),
       'assignedTo': serializer.toJson<String?>(assignedTo),
+      'inInventory': serializer.toJson<bool>(inInventory),
     };
   }
 
@@ -1966,7 +1993,8 @@ class ShoppingListItem extends DataClass
           String? updatedAt,
           String? syncStatus,
           Value<double?> price = const Value.absent(),
-          Value<String?> assignedTo = const Value.absent()}) =>
+          Value<String?> assignedTo = const Value.absent(),
+          bool? inInventory}) =>
       ShoppingListItem(
         id: id ?? this.id,
         householdId: householdId ?? this.householdId,
@@ -1987,6 +2015,7 @@ class ShoppingListItem extends DataClass
         syncStatus: syncStatus ?? this.syncStatus,
         price: price.present ? price.value : this.price,
         assignedTo: assignedTo.present ? assignedTo.value : this.assignedTo,
+        inInventory: inInventory ?? this.inInventory,
       );
   ShoppingListItem copyWithCompanion(ShoppingListItemsCompanion data) {
     return ShoppingListItem(
@@ -2016,6 +2045,8 @@ class ShoppingListItem extends DataClass
       price: data.price.present ? data.price.value : this.price,
       assignedTo:
           data.assignedTo.present ? data.assignedTo.value : this.assignedTo,
+      inInventory:
+          data.inInventory.present ? data.inInventory.value : this.inInventory,
     );
   }
 
@@ -2039,7 +2070,8 @@ class ShoppingListItem extends DataClass
           ..write('updatedAt: $updatedAt, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('price: $price, ')
-          ..write('assignedTo: $assignedTo')
+          ..write('assignedTo: $assignedTo, ')
+          ..write('inInventory: $inInventory')
           ..write(')'))
         .toString();
   }
@@ -2063,7 +2095,8 @@ class ShoppingListItem extends DataClass
       updatedAt,
       syncStatus,
       price,
-      assignedTo);
+      assignedTo,
+      inInventory);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2085,7 +2118,8 @@ class ShoppingListItem extends DataClass
           other.updatedAt == this.updatedAt &&
           other.syncStatus == this.syncStatus &&
           other.price == this.price &&
-          other.assignedTo == this.assignedTo);
+          other.assignedTo == this.assignedTo &&
+          other.inInventory == this.inInventory);
 }
 
 class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
@@ -2107,6 +2141,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
   final Value<String> syncStatus;
   final Value<double?> price;
   final Value<String?> assignedTo;
+  final Value<bool> inInventory;
   final Value<int> rowid;
   const ShoppingListItemsCompanion({
     this.id = const Value.absent(),
@@ -2127,6 +2162,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     this.syncStatus = const Value.absent(),
     this.price = const Value.absent(),
     this.assignedTo = const Value.absent(),
+    this.inInventory = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShoppingListItemsCompanion.insert({
@@ -2148,6 +2184,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     this.syncStatus = const Value.absent(),
     this.price = const Value.absent(),
     this.assignedTo = const Value.absent(),
+    this.inInventory = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         householdId = Value(householdId),
@@ -2180,6 +2217,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     Expression<String>? syncStatus,
     Expression<double>? price,
     Expression<String>? assignedTo,
+    Expression<bool>? inInventory,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2201,6 +2239,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
       if (syncStatus != null) 'sync_status': syncStatus,
       if (price != null) 'price': price,
       if (assignedTo != null) 'assigned_to': assignedTo,
+      if (inInventory != null) 'in_inventory': inInventory,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2224,6 +2263,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
       Value<String>? syncStatus,
       Value<double?>? price,
       Value<String?>? assignedTo,
+      Value<bool>? inInventory,
       Value<int>? rowid}) {
     return ShoppingListItemsCompanion(
       id: id ?? this.id,
@@ -2244,6 +2284,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
       syncStatus: syncStatus ?? this.syncStatus,
       price: price ?? this.price,
       assignedTo: assignedTo ?? this.assignedTo,
+      inInventory: inInventory ?? this.inInventory,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2305,6 +2346,9 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
     if (assignedTo.present) {
       map['assigned_to'] = Variable<String>(assignedTo.value);
     }
+    if (inInventory.present) {
+      map['in_inventory'] = Variable<bool>(inInventory.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2332,6 +2376,7 @@ class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
           ..write('syncStatus: $syncStatus, ')
           ..write('price: $price, ')
           ..write('assignedTo: $assignedTo, ')
+          ..write('inInventory: $inInventory, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3226,7 +3271,11 @@ class $$ReadCacheEntriesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ReadCacheEntriesTable, ReadCacheEntry>(table),
+                    BaseReferences<_$AppDatabase, $ReadCacheEntriesTable,
+                        ReadCacheEntry>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -3601,7 +3650,11 @@ class $$InventoryItemsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$InventoryItemsTable, InventoryItem>(table),
+                    BaseReferences<_$AppDatabase, $InventoryItemsTable,
+                        InventoryItem>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -3802,7 +3855,12 @@ class $$InventorySyncQueueTableTableManager extends RootTableManager<
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$InventorySyncQueueTable,
+                        InventorySyncQueueData>(table),
+                    BaseReferences<_$AppDatabase, $InventorySyncQueueTable,
+                        InventorySyncQueueData>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -3844,6 +3902,7 @@ typedef $$ShoppingListItemsTableCreateCompanionBuilder
   Value<String> syncStatus,
   Value<double?> price,
   Value<String?> assignedTo,
+  Value<bool> inInventory,
   Value<int> rowid,
 });
 typedef $$ShoppingListItemsTableUpdateCompanionBuilder
@@ -3866,6 +3925,7 @@ typedef $$ShoppingListItemsTableUpdateCompanionBuilder
   Value<String> syncStatus,
   Value<double?> price,
   Value<String?> assignedTo,
+  Value<bool> inInventory,
   Value<int> rowid,
 });
 
@@ -3933,6 +3993,9 @@ class $$ShoppingListItemsTableFilterComposer
 
   ColumnFilters<String> get assignedTo => $composableBuilder(
       column: $table.assignedTo, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get inInventory => $composableBuilder(
+      column: $table.inInventory, builder: (column) => ColumnFilters(column));
 }
 
 class $$ShoppingListItemsTableOrderingComposer
@@ -3999,6 +4062,9 @@ class $$ShoppingListItemsTableOrderingComposer
 
   ColumnOrderings<String> get assignedTo => $composableBuilder(
       column: $table.assignedTo, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get inInventory => $composableBuilder(
+      column: $table.inInventory, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ShoppingListItemsTableAnnotationComposer
@@ -4063,6 +4129,9 @@ class $$ShoppingListItemsTableAnnotationComposer
 
   GeneratedColumn<String> get assignedTo => $composableBuilder(
       column: $table.assignedTo, builder: (column) => column);
+
+  GeneratedColumn<bool> get inInventory => $composableBuilder(
+      column: $table.inInventory, builder: (column) => column);
 }
 
 class $$ShoppingListItemsTableTableManager extends RootTableManager<
@@ -4111,6 +4180,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             Value<String> syncStatus = const Value.absent(),
             Value<double?> price = const Value.absent(),
             Value<String?> assignedTo = const Value.absent(),
+            Value<bool> inInventory = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ShoppingListItemsCompanion(
@@ -4132,6 +4202,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             syncStatus: syncStatus,
             price: price,
             assignedTo: assignedTo,
+            inInventory: inInventory,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -4153,6 +4224,7 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             Value<String> syncStatus = const Value.absent(),
             Value<double?> price = const Value.absent(),
             Value<String?> assignedTo = const Value.absent(),
+            Value<bool> inInventory = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ShoppingListItemsCompanion.insert(
@@ -4174,10 +4246,16 @@ class $$ShoppingListItemsTableTableManager extends RootTableManager<
             syncStatus: syncStatus,
             price: price,
             assignedTo: assignedTo,
+            inInventory: inInventory,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ShoppingListItemsTable, ShoppingListItem>(
+                        table),
+                    BaseReferences<_$AppDatabase, $ShoppingListItemsTable,
+                        ShoppingListItem>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -4379,7 +4457,14 @@ class $$ShoppingSyncQueueEntriesTableTableManager extends RootTableManager<
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ShoppingSyncQueueEntriesTable,
+                        ShoppingSyncQueueEntry>(table),
+                    BaseReferences<
+                        _$AppDatabase,
+                        $ShoppingSyncQueueEntriesTable,
+                        ShoppingSyncQueueEntry>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -4572,7 +4657,12 @@ class $$ShoppingCategoriesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ShoppingCategoriesTable, ShoppingCategoryRow>(
+                        table),
+                    BaseReferences<_$AppDatabase, $ShoppingCategoriesTable,
+                        ShoppingCategoryRow>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));

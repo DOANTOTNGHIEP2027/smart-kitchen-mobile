@@ -39,6 +39,8 @@ abstract class AppRoutes {
   // Shopping (P1)
   static const String shopping = '/shopping';
   static const String shoppingCategories = '/shopping/categories';
+  // #239 — xem lại & cất đồ đã mua vào kho.
+  static const String shoppingCheckout = '/shopping/checkout';
 
   // Receipt scan (#68) — CHỈ push từ ShoppingListScene.
   static const String receiptScan = '/shopping/receipt-scan';

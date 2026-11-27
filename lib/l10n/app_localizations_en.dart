@@ -3689,4 +3689,71 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String shoppingCheckoutCta(int count) {
+    return 'Put away ($count)';
+  }
+
+  @override
+  String get shoppingCheckoutTitle => 'Put away in pantry';
+
+  @override
+  String get shoppingCheckoutHint =>
+      'Check the expiry dates, then confirm to add these items to the pantry.';
+
+  @override
+  String shoppingCheckoutConfirm(int count) {
+    return 'Add $count to pantry';
+  }
+
+  @override
+  String shoppingCheckoutDone(int count) {
+    return 'Added $count items to the pantry';
+  }
+
+  @override
+  String get shoppingCheckoutEmpty => 'No bought items waiting to be put away.';
+
+  @override
+  String get shoppingCheckoutOffline =>
+      'You need a connection to put items away.';
+
+  @override
+  String get shoppingCheckoutReloaded =>
+      'The list changed and was reloaded. Please check and confirm again.';
+
+  @override
+  String get shoppingCheckoutDuplicate => 'Already in pantry · new batch';
+
+  @override
+  String get shoppingCheckoutInvalidRow => 'Check the quantity / unit';
+
+  @override
+  String get shoppingInInventoryBadge => 'In pantry';
+
+  @override
+  String get shoppingInInventoryToggleBlocked =>
+      'This item is already in the pantry and can\'t be unchecked.';
+
+  @override
+  String get expiryChipAdd => 'Add expiry date';
+
+  @override
+  String expiryChipSuggested(Object date) {
+    return 'Exp. $date · suggested';
+  }
+
+  @override
+  String expiryChipSet(Object date) {
+    return 'Exp. $date';
+  }
+
+  @override
+  String get errShopItemAlreadyInInventory =>
+      'This item has already been put in the pantry.';
+
+  @override
+  String get errShopItemNotBought =>
+      'Only bought items can be put in the pantry.';
 }

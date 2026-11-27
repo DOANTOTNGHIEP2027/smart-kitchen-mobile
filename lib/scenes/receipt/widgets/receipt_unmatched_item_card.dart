@@ -6,6 +6,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/quantity_format.dart';
 import '../../../widgets/buttons/app_button.dart';
+import '../../../widgets/inputs/expiry_date_chip.dart';
 import '../../inventory/domain/unit_option.dart';
 import '../../inventory/widgets/unit_picker.dart';
 import '../domain/receipt_unmatched_item.dart';
@@ -32,6 +33,7 @@ class ReceiptUnmatchedItemCard extends StatefulWidget {
     required this.onNameChanged,
     required this.onQuantityChanged,
     required this.onUnitChanged,
+    required this.onExpiryChanged,
     required this.onCategoryChanged,
     required this.onConfirm,
   });
@@ -41,6 +43,7 @@ class ReceiptUnmatchedItemCard extends StatefulWidget {
   final ValueChanged<String> onNameChanged;
   final ValueChanged<double?> onQuantityChanged;
   final ValueChanged<String> onUnitChanged;
+  final ValueChanged<DateTime> onExpiryChanged;
   final ValueChanged<String?> onCategoryChanged;
   final VoidCallback onConfirm;
 
@@ -129,6 +132,17 @@ class _ReceiptUnmatchedItemCardState extends State<ReceiptUnmatchedItemCard> {
             ),
             onChanged: (value) => widget.onCategoryChanged(
               value.trim().isEmpty ? null : value,
+            ),
+          ),
+          const SizedBox(height: AppDimens.sm),
+          // #239: hạn gợi ý của BE, luôn hiện để người dùng tự thêm/sửa.
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ExpiryDateChip(
+              date: item.expiryDate,
+              suggested: item.isExpirySuggested,
+              enabled: !locked,
+              onChanged: widget.onExpiryChanged,
             ),
           ),
           if (item.confirmError != null)

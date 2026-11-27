@@ -3622,4 +3622,69 @@ class AppLocalizationsVi extends AppLocalizations {
   String notificationsUnreadBadge(int count) {
     return '$count chưa đọc';
   }
+
+  @override
+  String shoppingCheckoutCta(int count) {
+    return 'Cất vào kho ($count)';
+  }
+
+  @override
+  String get shoppingCheckoutTitle => 'Cất vào kho';
+
+  @override
+  String get shoppingCheckoutHint =>
+      'Kiểm tra hạn dùng rồi xác nhận để thêm các món này vào kho.';
+
+  @override
+  String shoppingCheckoutConfirm(int count) {
+    return 'Cất $count món vào kho';
+  }
+
+  @override
+  String shoppingCheckoutDone(int count) {
+    return 'Đã cất $count món vào kho';
+  }
+
+  @override
+  String get shoppingCheckoutEmpty =>
+      'Không có món đã mua nào chờ cất vào kho.';
+
+  @override
+  String get shoppingCheckoutOffline => 'Cần có mạng để cất đồ vào kho.';
+
+  @override
+  String get shoppingCheckoutReloaded =>
+      'Danh sách đã thay đổi và được tải lại. Hãy kiểm tra rồi xác nhận lại.';
+
+  @override
+  String get shoppingCheckoutDuplicate => 'Đã có trong kho · tạo lô mới';
+
+  @override
+  String get shoppingCheckoutInvalidRow => 'Kiểm tra lại số lượng / đơn vị';
+
+  @override
+  String get shoppingInInventoryBadge => 'Đã vào kho';
+
+  @override
+  String get shoppingInInventoryToggleBlocked =>
+      'Món này đã cất vào kho, không bỏ đánh dấu được nữa.';
+
+  @override
+  String get expiryChipAdd => 'Thêm hạn dùng';
+
+  @override
+  String expiryChipSuggested(Object date) {
+    return 'HSD $date · gợi ý';
+  }
+
+  @override
+  String expiryChipSet(Object date) {
+    return 'HSD $date';
+  }
+
+  @override
+  String get errShopItemAlreadyInInventory => 'Món này đã được cất vào kho.';
+
+  @override
+  String get errShopItemNotBought => 'Chỉ món đã mua mới cất vào kho được.';
 }

@@ -1,3 +1,4 @@
+import '../../inventory/domain/expiry_source.dart';
 import '../../inventory/domain/unit_option.dart';
 
 enum ReceiptConfirmStatus { pending, confirming, confirmed, failed }
@@ -17,6 +18,9 @@ class ReceiptUnmatchedItem {
     this.unitPrice,
     this.totalPrice,
     this.matchConfidence,
+    this.expiryDate,
+    this.suggestedExpiry,
+    this.expirySource = ExpirySource.none,
     this.confirmStatus = ReceiptConfirmStatus.pending,
     this.confirmError,
   });
@@ -43,6 +47,11 @@ class ReceiptUnmatchedItem {
 
   /// Điểm catalog AI — chỉ nhãn xám tham khảo, không phải badge cảnh báo.
   final double? matchConfidence;
+
+  /// #239: hạn gửi khi lưu — mặc định là [suggestedExpiry] BE gợi ý, sửa được.
+  final DateTime? expiryDate;
+  final DateTime? suggestedExpiry;
+  final ExpirySource expirySource;
   final ReceiptConfirmStatus confirmStatus;
 
   /// MÃ lỗi, không phải câu chữ: 'INVALID_RECEIPT_ITEM', 'SAVE_FAILED' hoặc
@@ -58,6 +67,10 @@ class ReceiptUnmatchedItem {
     return !matches.first.isWholeNumber || quantity! % 1 == 0;
   }
 
+  /// Ngày đang hiện vẫn là ngày BE gợi ý (người dùng chưa đổi).
+  bool get isExpirySuggested =>
+      expirySource.isSuggested && expiryDate != null && expiryDate == suggestedExpiry;
+
   /// Đang ghi hoặc đã ghi — khoá mọi field và nút.
   bool get isLocked =>
       confirmStatus == ReceiptConfirmStatus.confirming ||
@@ -69,6 +82,7 @@ class ReceiptUnmatchedItem {
     Object? category = _unset,
     Object? quantity = _unset,
     Object? unit = _unset,
+    Object? expiryDate = _unset,
     ReceiptConfirmStatus? confirmStatus,
     Object? confirmError = _unset,
   }) {
@@ -87,6 +101,11 @@ class ReceiptUnmatchedItem {
       unitPrice: unitPrice,
       totalPrice: totalPrice,
       matchConfidence: matchConfidence,
+      expiryDate: identical(expiryDate, _unset)
+          ? this.expiryDate
+          : expiryDate as DateTime?,
+      suggestedExpiry: suggestedExpiry,
+      expirySource: expirySource,
       confirmStatus: confirmStatus ?? this.confirmStatus,
       confirmError: identical(confirmError, _unset)
           ? this.confirmError
