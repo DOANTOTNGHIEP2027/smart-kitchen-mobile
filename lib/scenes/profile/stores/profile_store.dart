@@ -148,14 +148,17 @@ class ProfileStore {
     }
   }
 
-  /// Luôn gửi đủ 4 field, kể cả `null` tường minh (Guard 9 — `PUT {}` = reset
-  /// toàn bộ). `targetDailyCalories` do UI tính bằng
+  /// Luôn gửi đủ 7 field, kể cả `null` tường minh (Guard 9 — `PUT {}` = reset
+  /// toàn bộ; #201: thiếu gender/birthDate/activityLevel là bị xoá). `targetDailyCalories` do UI tính bằng
   /// `CalorieTarget.resolveForSave` (Guard 14) — Store không tự kẹp giá trị.
   Future<bool> saveHealthProfile({
     int? targetDailyCalories,
     String? dietTypeWire,
     double? heightCm,
     double? weightKg,
+    String? genderWire,
+    String? birthDate,
+    String? activityLevelWire,
   }) async {
     // Guard 13 — không ghi đè server bằng dữ liệu cache/chưa biết.
     if (!canEditHealth) return false;
@@ -170,6 +173,9 @@ class ProfileStore {
         'dietType': dietTypeWire,
         'heightCm': heightCm,
         'weightKg': weightKg,
+        'gender': genderWire,
+        'birthDate': birthDate,
+        'activityLevel': activityLevelWire,
       });
       runInAction(() {
         _healthProfileState.value = SuccessState<HealthProfile>(updated);

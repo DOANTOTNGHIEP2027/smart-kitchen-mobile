@@ -3865,4 +3865,80 @@ class AppLocalizationsVi extends AppLocalizations {
   String attendanceYou(String status) {
     return 'Bạn: $status';
   }
+
+  @override
+  String get planningGuestSlotTitle => 'Khách ăn cùng bữa này';
+
+  @override
+  String get planningGuestSlotScopeBanner =>
+      'Khách ăn tạm thời — chỉ áp dụng cho bữa này, không lưu vào hồ sơ gia đình. Người ăn thường xuyên (con nhỏ, ông bà sống cùng) thì dùng mục Thành viên phụ thuộc trong hồ sơ gia đình.';
+
+  @override
+  String get planningGuestSlotEmpty => 'Bữa này chưa có khách nào.';
+
+  @override
+  String get planningGuestSlotDeleteConfirm => 'Xoá khách này khỏi bữa này?';
+
+  @override
+  String get planningGuestSlotUpdated =>
+      'Đã cập nhật. Gợi ý AI của bữa này có thể đã thay đổi.';
+
+  @override
+  String planningGuestSlotCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count khách',
+      zero: 'Chưa có khách',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthProfileGender => 'Giới tính';
+
+  @override
+  String get healthProfileGenderMale => 'Nam';
+
+  @override
+  String get healthProfileGenderFemale => 'Nữ';
+
+  @override
+  String get healthProfileBirthDate => 'Ngày sinh';
+
+  @override
+  String get healthProfileBirthDateChoose => 'Chọn ngày sinh…';
+
+  @override
+  String get healthProfileBirthDateInvalid => 'Ngày sinh phải ở quá khứ';
+
+  @override
+  String get healthProfileActivityLevel => 'Mức vận động';
+
+  @override
+  String get activityLevelSedentary => 'Ít vận động';
+
+  @override
+  String get activityLevelLight => 'Nhẹ (1–3 buổi/tuần)';
+
+  @override
+  String get activityLevelModerate => 'Vừa (3–5 buổi/tuần)';
+
+  @override
+  String get activityLevelActive => 'Nhiều (6–7 buổi/tuần)';
+
+  @override
+  String get activityLevelVeryActive => 'Rất nhiều (lao động nặng)';
+
+  @override
+  String healthProfileCalorieSuggestion(int value) {
+    return 'Gợi ý: $value kcal';
+  }
+
+  @override
+  String get healthProfileCalorieApply => 'Áp dụng';
+
+  @override
+  String get healthProfileCalorieSuggestionHint =>
+      'Nhập chiều cao, cân nặng, giới tính, ngày sinh, mức vận động để được gợi ý';
 }

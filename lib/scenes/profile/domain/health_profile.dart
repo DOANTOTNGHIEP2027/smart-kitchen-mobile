@@ -1,4 +1,6 @@
+import '../../../utils/date_format.dart';
 import 'allergen.dart';
+import 'calorie_suggestion.dart';
 import 'diet_type.dart';
 
 /// Health profile của chính caller (GET/PUT `/users/me/health-profile`).
@@ -14,6 +16,9 @@ class HealthProfile {
     this.dietType,
     this.heightCm,
     this.weightKg,
+    this.gender,
+    this.birthDate,
+    this.activityLevel,
     this.updatedAt,
     required this.allergens,
   });
@@ -23,6 +28,13 @@ class HealthProfile {
   final DietType? dietType;
   final double? heightCm;
   final double? weightKg;
+
+  /// #201 — đầu vào gợi ý calo; `null` = chưa set (OAS: optional, nullable).
+  final Gender? gender;
+
+  /// #201 — ngày lịch (nửa đêm local), wire `yyyy-MM-dd`.
+  final DateTime? birthDate;
+  final ActivityLevel? activityLevel;
   final DateTime? updatedAt;
   final List<Allergen> allergens;
 
@@ -34,6 +46,9 @@ class HealthProfile {
         dietType: dietType,
         heightCm: heightCm,
         weightKg: weightKg,
+        gender: gender,
+        birthDate: birthDate,
+        activityLevel: activityLevel,
         updatedAt: updatedAt,
         allergens: allergens ?? this.allergens,
       );
@@ -44,6 +59,10 @@ class HealthProfile {
         'dietType': dietType == null ? null : dietTypeToWire(dietType!),
         'heightCm': heightCm,
         'weightKg': weightKg,
+        'gender': gender == null ? null : genderToWire(gender!),
+        'birthDate': birthDate == null ? null : toApiDate(birthDate!),
+        'activityLevel':
+            activityLevel == null ? null : activityLevelToWire(activityLevel!),
         'updatedAt': updatedAt?.toUtc().toIso8601String(),
         'allergens': allergens
             .map((Allergen a) => a.toJson())
@@ -58,6 +77,9 @@ class HealthProfile {
       dietType: dietRaw == null ? null : dietTypeFromWire(dietRaw),
       heightCm: (json['heightCm'] as num?)?.toDouble(),
       weightKg: (json['weightKg'] as num?)?.toDouble(),
+      gender: genderFromWire(json['gender'] as String?),
+      birthDate: parseApiDate(json['birthDate']),
+      activityLevel: activityLevelFromWire(json['activityLevel'] as String?),
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),

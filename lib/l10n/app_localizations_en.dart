@@ -3936,4 +3936,83 @@ class AppLocalizationsEn extends AppLocalizations {
   String attendanceYou(String status) {
     return 'You: $status';
   }
+
+  @override
+  String get planningGuestSlotTitle => 'Guests for this meal';
+
+  @override
+  String get planningGuestSlotScopeBanner =>
+      'Temporary guests — only for this meal, not saved to the family profile. For people who eat with you regularly (young children, live-in grandparents) use Dependents in the family profile.';
+
+  @override
+  String get planningGuestSlotEmpty => 'No guests for this meal yet.';
+
+  @override
+  String get planningGuestSlotDeleteConfirm =>
+      'Remove this guest from this meal?';
+
+  @override
+  String get planningGuestSlotUpdated =>
+      'Updated. AI suggestions for this meal may have changed.';
+
+  @override
+  String planningGuestSlotCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count guests',
+      one: '1 guest',
+      zero: 'No guests yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthProfileGender => 'Sex';
+
+  @override
+  String get healthProfileGenderMale => 'Male';
+
+  @override
+  String get healthProfileGenderFemale => 'Female';
+
+  @override
+  String get healthProfileBirthDate => 'Date of birth';
+
+  @override
+  String get healthProfileBirthDateChoose => 'Choose date of birth…';
+
+  @override
+  String get healthProfileBirthDateInvalid =>
+      'Date of birth must be in the past';
+
+  @override
+  String get healthProfileActivityLevel => 'Activity level';
+
+  @override
+  String get activityLevelSedentary => 'Sedentary';
+
+  @override
+  String get activityLevelLight => 'Light (1–3 days/week)';
+
+  @override
+  String get activityLevelModerate => 'Moderate (3–5 days/week)';
+
+  @override
+  String get activityLevelActive => 'Active (6–7 days/week)';
+
+  @override
+  String get activityLevelVeryActive => 'Very active (physical work)';
+
+  @override
+  String healthProfileCalorieSuggestion(int value) {
+    return 'Suggested: $value kcal';
+  }
+
+  @override
+  String get healthProfileCalorieApply => 'Apply';
+
+  @override
+  String get healthProfileCalorieSuggestionHint =>
+      'Enter height, weight, sex, date of birth and activity level to get a suggestion';
 }

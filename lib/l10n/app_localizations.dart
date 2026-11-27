@@ -6897,6 +6897,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You: {status}'**
   String attendanceYou(String status);
+
+  /// No description provided for @planningGuestSlotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Guests for this meal'**
+  String get planningGuestSlotTitle;
+
+  /// No description provided for @planningGuestSlotScopeBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary guests — only for this meal, not saved to the family profile. For people who eat with you regularly (young children, live-in grandparents) use Dependents in the family profile.'**
+  String get planningGuestSlotScopeBanner;
+
+  /// No description provided for @planningGuestSlotEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No guests for this meal yet.'**
+  String get planningGuestSlotEmpty;
+
+  /// No description provided for @planningGuestSlotDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this guest from this meal?'**
+  String get planningGuestSlotDeleteConfirm;
+
+  /// No description provided for @planningGuestSlotUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated. AI suggestions for this meal may have changed.'**
+  String get planningGuestSlotUpdated;
+
+  /// No description provided for @planningGuestSlotCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No guests yet} =1{1 guest} other{{count} guests}}'**
+  String planningGuestSlotCount(int count);
+
+  /// No description provided for @healthProfileGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get healthProfileGender;
+
+  /// No description provided for @healthProfileGenderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get healthProfileGenderMale;
+
+  /// No description provided for @healthProfileGenderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get healthProfileGenderFemale;
+
+  /// No description provided for @healthProfileBirthDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get healthProfileBirthDate;
+
+  /// No description provided for @healthProfileBirthDateChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose date of birth…'**
+  String get healthProfileBirthDateChoose;
+
+  /// No description provided for @healthProfileBirthDateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth must be in the past'**
+  String get healthProfileBirthDateInvalid;
+
+  /// No description provided for @healthProfileActivityLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity level'**
+  String get healthProfileActivityLevel;
+
+  /// No description provided for @activityLevelSedentary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sedentary'**
+  String get activityLevelSedentary;
+
+  /// No description provided for @activityLevelLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light (1–3 days/week)'**
+  String get activityLevelLight;
+
+  /// No description provided for @activityLevelModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate (3–5 days/week)'**
+  String get activityLevelModerate;
+
+  /// No description provided for @activityLevelActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active (6–7 days/week)'**
+  String get activityLevelActive;
+
+  /// No description provided for @activityLevelVeryActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Very active (physical work)'**
+  String get activityLevelVeryActive;
+
+  /// No description provided for @healthProfileCalorieSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested: {value} kcal'**
+  String healthProfileCalorieSuggestion(int value);
+
+  /// No description provided for @healthProfileCalorieApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get healthProfileCalorieApply;
+
+  /// No description provided for @healthProfileCalorieSuggestionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter height, weight, sex, date of birth and activity level to get a suggestion'**
+  String get healthProfileCalorieSuggestionHint;
 }
 
 class _AppLocalizationsDelegate

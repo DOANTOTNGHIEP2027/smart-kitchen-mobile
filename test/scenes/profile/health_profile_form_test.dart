@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/allergen.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/domain/calorie_suggestion.dart';
+import 'package:smart_kitchen_mobile/scenes/profile/domain/health_profile.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/diet_type.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/health_profile_screen.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/stores/profile_store.dart';
@@ -55,6 +57,10 @@ void main() {
       'dietType': 'KETO',
       'heightCm': 170.0,
       'weightKg': 65.0,
+      // #201: PUT thay toàn bộ — luôn gửi kể cả null.
+      'gender': null,
+      'birthDate': null,
+      'activityLevel': null,
     });
     // Quay về chế độ xem, phản ánh ngay giá trị mới (không cần load lại).
     expect(byKey('health-edit'), findsOneWidget);
@@ -64,6 +70,46 @@ void main() {
             matching: find.text('1800 kcal')),
         findsOneWidget);
     expect(api.profileReads, 1);
+  });
+
+  testWidgets('#201 thiếu giới tính/ngày sinh/mức vận động → chỉ hiện hint',
+      (tester) async {
+    api.profile = healthProfile(goal: 1500);
+    await pumpHealthScreen(tester, const HealthProfileScreen());
+    await tapKey(tester, 'health-edit');
+    expect(byKey('health-calorie-suggestion-hint'), findsOneWidget);
+    expect(byKey('health-calorie-apply'), findsNothing);
+  });
+
+  testWidgets('#201 đủ dữ liệu → Gợi ý + Áp dụng gửi giá trị gợi ý và 3 field mới',
+      (tester) async {
+    api.profile = HealthProfile(
+      userId: 'me',
+      targetDailyCalories: 1500,
+      heightCm: 175,
+      weightKg: 70,
+      gender: Gender.male,
+      birthDate: DateTime(1996, 1, 1),
+      activityLevel: ActivityLevel.moderate,
+      updatedAt: DateTime.utc(2026, 11, 15),
+      allergens: const <Allergen>[],
+    );
+    await pumpHealthScreen(tester, const HealthProfileScreen());
+    await tapKey(tester, 'health-edit');
+    final expected = suggestDailyCalories(
+        weightKg: 70,
+        heightCm: 175,
+        gender: Gender.male,
+        birthDate: DateTime(1996, 1, 1),
+        activityLevel: ActivityLevel.moderate)!;
+    expect(find.text('Gợi ý: $expected kcal'), findsOneWidget);
+    await tapKey(tester, 'health-calorie-apply');
+    expect(calorieLabel(tester), '$expected kcal');
+    await save(tester);
+    expect(api.profileWrites.single['targetDailyCalories'], expected);
+    expect(api.profileWrites.single['gender'], 'MALE');
+    expect(api.profileWrites.single['birthDate'], '1996-01-01');
+    expect(api.profileWrites.single['activityLevel'], 'MODERATE');
   });
 
   testWidgets('kéo slider bằng cử chỉ thật: nhãn và payload khớp nhau',

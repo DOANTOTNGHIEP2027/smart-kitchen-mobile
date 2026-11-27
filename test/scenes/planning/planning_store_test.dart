@@ -25,12 +25,12 @@ class _GatedListGuestApi extends FakeGuestDinerApi {
   int _listCalls = 0;
 
   @override
-  Future<List<GuestDiner>> list(String mealPlanId) async {
+  Future<List<GuestDiner>> list(String mealPlanId, {String? slotId}) async {
     if (_listCalls++ == 0) {
       await firstGate.future;
       return const <GuestDiner>[];
     }
-    return super.list(mealPlanId);
+    return super.list(mealPlanId, slotId: slotId);
   }
 }
 
@@ -38,9 +38,9 @@ class _GatedRemoveGuestApi extends FakeGuestDinerApi {
   final Completer<void> gate = Completer<void>();
 
   @override
-  Future<void> remove(String mealPlanId, String guestDinerId) async {
+  Future<void> remove(String mealPlanId, String guestDinerId, {String? slotId}) async {
     await gate.future;
-    return super.remove(mealPlanId, guestDinerId);
+    return super.remove(mealPlanId, guestDinerId, slotId: slotId);
   }
 }
 
@@ -171,6 +171,33 @@ void main() {
       api = FakeGuestDinerApi();
       health = FakeHealthApi();
       store = GuestDinerStore(api, health, 'plan-1');
+    });
+
+    test('#201 store theo bữa: list/add/remove đi kèm slotId', () async {
+      final s = GuestDinerStore(api, health, 'plan-1', slotId: 's1');
+      api.diners = <GuestDiner>[guest('g1')];
+      await s.loadAll();
+      await s.add(displayName: 'Bác', allergenIds: <int>{3});
+      await s.remove(guest('g1'));
+
+      expect(s.isSlotScoped, isTrue);
+      expect(api.calls, <String>[
+        'list:plan-1@s1',
+        'add:plan-1@s1:Bác:[3]',
+        'remove:g1@s1',
+      ]);
+    });
+
+    test('#201 SlotGuestCountStore đếm khách của bữa; không có api → null', () async {
+      api.diners = <GuestDiner>[guest('g1'), guest('g2')];
+      final counter = SlotGuestCountStore(api, 'plan-1', 's1');
+      await counter.load();
+      expect(counter.count, 2);
+      expect(api.calls.last, 'list:plan-1@s1');
+
+      final none = SlotGuestCountStore(null, 'plan-1', 's1');
+      await none.load();
+      expect(none.count, isNull);
     });
 
     test('list rỗng → EmptyState; gọi đúng mealPlanId tuần', () async {

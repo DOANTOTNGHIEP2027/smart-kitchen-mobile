@@ -7,6 +7,7 @@ import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../planning/scenes/planning_routes.dart';
+import '../../planning/widgets/slot_guest_diner_entry.dart';
 import '../domain/meal_plan_slot.dart';
 import '../../recipe/domain/recipe.dart';
 import '../../recipe/scenes/recipe_list_scene.dart';
@@ -172,11 +173,17 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
           return ListView(
             padding: const EdgeInsets.all(AppDimens.lg),
             children: <Widget>[
-              if (store.currentPlanId != null)
+              if (store.currentPlanId != null) ...<Widget>[
                 MealAttendancePanel(
                   planId: store.currentPlanId!,
                   slotId: widget.slotId,
                 ),
+                // #201: khách ăn cùng theo TỪNG BỮA, ngay dưới điểm danh.
+                SlotGuestDinerEntry(
+                  planId: store.currentPlanId!,
+                  slotId: widget.slotId,
+                ),
+              ],
               Text(
                 widget.mealLabel,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(

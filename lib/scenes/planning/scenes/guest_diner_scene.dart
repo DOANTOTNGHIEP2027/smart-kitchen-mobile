@@ -49,7 +49,11 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
       isScrollControlled: true,
       builder: (_) => _GuestDinerForm(store: _store, editing: editing),
     );
-    if (ok == true && mounted) _toast(context.l10n.planningGuestUpdated);
+    if (ok == true && mounted) {
+      _toast(_store.isSlotScoped
+          ? context.l10n.planningGuestSlotUpdated
+          : context.l10n.planningGuestUpdated);
+    }
   }
 
   Future<void> _confirmRemove(GuestDiner diner) async {
@@ -67,7 +71,9 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
             child: AlertDialog(
               title: Text(l10n.planningGuestDelete),
               content: Text(_store.mutationError == null
-                  ? l10n.planningGuestDeleteConfirm
+                  ? (_store.isSlotScoped
+                      ? l10n.planningGuestSlotDeleteConfirm
+                      : l10n.planningGuestDeleteConfirm)
                   : apiErrorMessage(l10n, _store.mutationError)),
               actions: <Widget>[
                 TextButton(
@@ -98,8 +104,9 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final slotScoped = _store.isSlotScoped;
     return AppScaffold(
-      title: l10n.planningGuestTitle,
+      title: slotScoped ? l10n.planningGuestSlotTitle : l10n.planningGuestTitle,
       floatingActionButton: FloatingActionButton.extended(
         key: const ValueKey<String>('guest-add'),
         heroTag: 'guest-diner-fab',
@@ -120,7 +127,9 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
                 AppDimens.md, AppDimens.md, AppDimens.md, 0),
             child: FeatureBanner(
               key: const ValueKey<String>('guest-scope-banner'),
-              message: l10n.planningGuestScopeBanner,
+              message: slotScoped
+                  ? l10n.planningGuestSlotScopeBanner
+                  : l10n.planningGuestScopeBanner,
               isError: false,
               margin: const EdgeInsets.only(bottom: AppDimens.sm),
             ),
@@ -154,7 +163,9 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
               builder: (_) => AppStateView<List<GuestDiner>>(
                 state: _store.dinersState,
                 onRetry: _store.loadAll,
-                emptyMessage: l10n.planningGuestEmpty,
+                emptyMessage: slotScoped
+                    ? l10n.planningGuestSlotEmpty
+                    : l10n.planningGuestEmpty,
                 emptyIcon: Icons.group_outlined,
                 successBuilder: (_, data) => ListView.builder(
                   padding: const EdgeInsets.only(bottom: AppDimens.xxl * 2),

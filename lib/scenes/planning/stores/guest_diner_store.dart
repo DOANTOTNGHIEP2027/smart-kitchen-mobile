@@ -14,13 +14,18 @@ import '../domain/guest_diner.dart';
 /// State cho `GuestDinerScene` (flexible-meal-planning-screens.md §7.2) —
 /// MobX thủ công. Không optimistic write: list chỉ đổi SAU khi BE trả OK.
 class GuestDinerStore {
-  GuestDinerStore(this._api, this._healthApi, this.mealPlanId);
+  GuestDinerStore(this._api, this._healthApi, this.mealPlanId, {this.slotId});
 
   final GuestDinerApi _api;
   final HealthApi _healthApi;
 
-  /// Id kế hoạch tuần (OD-06).
+  /// Id kế hoạch tuần.
   final String mealPlanId;
+
+  /// #201: có → quản lý khách riêng của bữa này; `null` → khách cả tuần.
+  final String? slotId;
+
+  bool get isSlotScoped => slotId != null;
 
   final Observable<ViewState<List<GuestDiner>>> _dinersState =
       Observable<ViewState<List<GuestDiner>>>(
@@ -60,7 +65,7 @@ class GuestDinerStore {
     // áp kết quả của lần gọi MỚI NHẤT, tránh list cũ ghi đè list mới.
     final seq = ++_dinersLoadSeq;
     try {
-      final diners = await _api.list(mealPlanId);
+      final diners = await _api.list(mealPlanId, slotId: slotId);
       if (seq != _dinersLoadSeq) return;
       runInAction(() => _setDiners(diners));
     } catch (e) {
@@ -91,6 +96,7 @@ class GuestDinerStore {
     return _mutate(() async {
       final created = await _api.add(
         mealPlanId,
+        slotId: slotId,
         displayName: name == null || name.isEmpty ? null : name,
         allergenIds: allergenIds.toList()..sort(),
       );
@@ -114,7 +120,7 @@ class GuestDinerStore {
       });
 
   Future<bool> remove(GuestDiner diner) => _mutate(() async {
-        await _api.remove(mealPlanId, diner.id);
+        await _api.remove(mealPlanId, diner.id, slotId: slotId);
         runInAction(() {
           _setDiners(_currentDiners.where((d) => d.id != diner.id).toList());
           _lastRemoved.value = diner;
@@ -175,4 +181,33 @@ class GuestDinerStore {
       return false;
     }
   }
+}
+
+/// #201: số khách riêng của một bữa — cho mục "Khách ăn cùng bữa này" trong
+/// màn sửa bữa. `null` = chưa biết (đang tải / lỗi) → UI không khẳng định số.
+class SlotGuestCountStore {
+  SlotGuestCountStore(this._api, this.mealPlanId, this.slotId);
+
+  final GuestDinerApi? _api;
+  final String mealPlanId;
+  final String slotId;
+
+  final Observable<int?> _count = Observable<int?>(null);
+  int _seq = 0;
+
+  int? get count => _count.value;
+
+  Future<void> load() async {
+    final api = _api;
+    if (api == null) return;
+    final seq = ++_seq;
+    try {
+      final diners = await api.list(mealPlanId, slotId: slotId);
+      if (seq == _seq) runInAction(() => _count.value = diners.length);
+    } catch (_) {
+      if (seq == _seq) runInAction(() => _count.value = null);
+    }
+  }
+
+  void dispose() => _seq++;
 }

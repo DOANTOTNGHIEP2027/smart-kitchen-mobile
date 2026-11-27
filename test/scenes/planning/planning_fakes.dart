@@ -67,15 +67,17 @@ class FakeGuestDinerApi implements GuestDinerApi {
   final List<String> calls = <String>[];
 
   @override
-  Future<List<GuestDiner>> list(String mealPlanId) async {
-    calls.add('list:$mealPlanId');
+  Future<List<GuestDiner>> list(String mealPlanId, {String? slotId}) async {
+    calls.add(slotId == null ? 'list:$mealPlanId' : 'list:$mealPlanId@$slotId');
     if (listError != null) throw listError!;
     return diners;
   }
 
   @override
-  Future<GuestDiner> add(String mealPlanId, {String? displayName, required List<int> allergenIds}) async {
-    calls.add('add:$mealPlanId:$displayName:$allergenIds');
+  Future<GuestDiner> add(String mealPlanId, {String? slotId, String? displayName, required List<int> allergenIds}) async {
+    calls.add(slotId == null
+        ? 'add:$mealPlanId:$displayName:$allergenIds'
+        : 'add:$mealPlanId@$slotId:$displayName:$allergenIds');
     if (mutationError != null) throw mutationError!;
     return guest('new', name: displayName, allergens: <Allergen>[for (final id in allergenIds) Allergen(id: id, name: 'A$id')]);
   }
@@ -88,8 +90,8 @@ class FakeGuestDinerApi implements GuestDinerApi {
   }
 
   @override
-  Future<void> remove(String mealPlanId, String guestDinerId) async {
-    calls.add('remove:$guestDinerId');
+  Future<void> remove(String mealPlanId, String guestDinerId, {String? slotId}) async {
+    calls.add(slotId == null ? 'remove:$guestDinerId' : 'remove:$guestDinerId@$slotId');
     if (mutationError != null) throw mutationError!;
   }
 }
