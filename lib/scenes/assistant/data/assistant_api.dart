@@ -20,7 +20,14 @@ abstract interface class AssistantApi {
     String? cookingSessionId,
     String? mealPlanId,
     String? slotId,
+    int? horizonDays,
   });
+
+  /// Phiên gần đây của người gọi, mới nhất trước.
+  Future<List<AssistantSessionSummary>> listSessions({int limit = 20});
+
+  /// Lịch sử phiên, cũ trước mới sau (BE trả mới nhất trước — đảo ở đây).
+  Future<List<AssistMessage>> listMessages(String sessionId, {int limit = 30});
 
   /// Gửi một lượt. Lượt mới ⇒ `PENDING` (202); `clientTurnId` đã trả lời ⇒
   /// `ANSWERED` kèm kết quả cũ (200).
@@ -55,6 +62,7 @@ class AssistantApiImpl implements AssistantApi {
     String? cookingSessionId,
     String? mealPlanId,
     String? slotId,
+    int? horizonDays,
   }) {
     return _unwrap(() async {
       final res = await _client.dio.post<Map<String, dynamic>>(
@@ -64,10 +72,42 @@ class AssistantApiImpl implements AssistantApi {
           if (cookingSessionId != null) 'cookingSessionId': cookingSessionId,
           if (mealPlanId != null) 'mealPlanId': mealPlanId,
           if (slotId != null) 'slotId': slotId,
+          if (horizonDays != null) 'horizonDays': horizonDays,
         },
         options: Options(sendTimeout: timeout, receiveTimeout: timeout),
       );
       return _data(res.data)['id'] as String;
+    });
+  }
+
+  @override
+  Future<List<AssistantSessionSummary>> listSessions({int limit = 20}) {
+    return _unwrap(() async {
+      final res = await _client.dio.get<Map<String, dynamic>>(
+        _base,
+        queryParameters: <String, dynamic>{'limit': limit},
+        options: Options(receiveTimeout: timeout),
+      );
+      return _dataList(res.data)
+          .map(mapSessionSummary)
+          .toList(growable: false);
+    });
+  }
+
+  @override
+  Future<List<AssistMessage>> listMessages(String sessionId,
+      {int limit = 30}) {
+    return _unwrap(() async {
+      final res = await _client.dio.get<Map<String, dynamic>>(
+        '$_base/$sessionId/messages',
+        queryParameters: <String, dynamic>{'limit': limit},
+        options: Options(receiveTimeout: timeout),
+      );
+      return _dataList(res.data)
+          .map(mapHistoryMessage)
+          .toList()
+          .reversed
+          .toList(growable: false);
     });
   }
 
@@ -149,6 +189,16 @@ class AssistantApiImpl implements AssistantApi {
       throw e.error as ApiException? ??
           ServerException('ERR_UNKNOWN', 'Unexpected response');
     }
+  }
+
+  List<Map<String, dynamic>> _dataList(Map<String, dynamic>? raw) {
+    final data = raw?['data'];
+    if (raw?['success'] != true || data is! List) {
+      throw ServerException('ERR_UNKNOWN', 'Invalid success envelope');
+    }
+    return data
+        .map((Object? e) => Map<String, dynamic>.from(e! as Map))
+        .toList(growable: false);
   }
 
   Map<String, dynamic> _data(Map<String, dynamic>? raw) {

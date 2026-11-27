@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
+import '../../assistant/scenes/assistant_routes.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../routing/app_routes.dart';
@@ -437,6 +438,40 @@ class _MealPeriod {
       };
 }
 
+/// Chọn số ngày cần lên thực đơn rồi mở trợ lý PLANNING cho ô bữa này.
+Future<void> _askAssistant(
+  BuildContext context, {
+  required String planId,
+  required String slotId,
+  required String slotLabel,
+}) async {
+  final days = await showModalBottomSheet<int>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheet) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ListTile(title: Text(sheet.l10n.assistantHorizonTitle)),
+          for (final n in const <int>[1, 2, 3])
+            ListTile(
+              key: ValueKey<String>('assistant-horizon-$n'),
+              title: Text(sheet.l10n.assistantHorizonOption(n)),
+              onTap: () => Navigator.of(sheet).pop(n),
+            ),
+        ],
+      ),
+    ),
+  );
+  if (days == null) return;
+  await AssistantRoutes.openPlanning(
+    mealPlanId: planId,
+    slotId: slotId,
+    slotLabel: slotLabel,
+    horizonDays: days,
+  );
+}
+
 class _MealScheduleCard extends StatelessWidget {
   const _MealScheduleCard({
     required this.store,
@@ -515,6 +550,24 @@ class _MealScheduleCard extends StatelessWidget {
                           ),
                     ),
                     const Spacer(),
+                    // Trợ lý bếp ngữ cảnh PLANNING (#204): nút riêng, không kích
+                    // InkWell của thẻ.
+                    if (canEdit &&
+                        store.status == MealPlanLoadStatus.ready &&
+                        store.currentPlanId != null)
+                      IconButton(
+                        key: ValueKey<String>('assistant-slot-$slotId'),
+                        icon: const Icon(Icons.assistant_outlined, size: 20),
+                        tooltip: context.l10n.assistantAskSlot,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _askAssistant(
+                          context,
+                          planId: store.currentPlanId!,
+                          slotId: slotId!,
+                          slotLabel:
+                              '${context.l10n.mealPlanDateShort(date.day, date.month)} · $periodLabel',
+                        ),
+                      ),
                     Icon(
                       Icons.chevron_right_rounded,
                       color: canEdit

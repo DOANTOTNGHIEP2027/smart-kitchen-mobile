@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -120,11 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-    int startDay,
-    int startMonth,
-    int endDay,
-    int endMonth,
-  ) {
+      int startDay, int startMonth, int endDay, int endMonth) {
     return 'Week $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -611,11 +606,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-    String required,
-    String available,
-    String shortfall,
-    String unit,
-  ) {
+      String required, String available, String shortfall, String unit) {
     return 'Need $required · Have $available · Short $shortfall $unit';
   }
 
@@ -737,6 +728,63 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String cookingAssistSuspected(String dish, String allergen) {
     return 'Left out $dish — may contain $allergen';
+  }
+
+  @override
+  String get assistantTitle => 'Kitchen assistant';
+
+  @override
+  String get assistantGreeting =>
+      'Hi! Ask me what to cook, what to use up, or how to plan meals.';
+
+  @override
+  String get assistantPlanningGreeting => 'Let us plan this meal together.';
+
+  @override
+  String get assistantSuggestTonight => 'What should we cook tonight?';
+
+  @override
+  String get assistantSuggestExpiring =>
+      'What can I cook with food about to expire?';
+
+  @override
+  String get assistantSuggestFamily => 'A dish the whole family can eat?';
+
+  @override
+  String get assistantSuggestQuick => 'A quick breakfast idea?';
+
+  @override
+  String get assistantSuggestPlanMeal => 'Suggest dishes for this meal';
+
+  @override
+  String get assistantRateLimited =>
+      'You are asking a bit fast — try again in a minute.';
+
+  @override
+  String get assistantProgressSearch => 'looking for dishes…';
+
+  @override
+  String assistantMissingIngredients(String items) {
+    return 'Missing: $items';
+  }
+
+  @override
+  String assistantPlanDay(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String get assistantFabTooltip => 'Ask the kitchen assistant';
+
+  @override
+  String get assistantAskSlot => 'Ask the assistant';
+
+  @override
+  String get assistantHorizonTitle => 'Plan for how many days?';
+
+  @override
+  String assistantHorizonOption(int days) {
+    return '$days day(s)';
   }
 
   @override

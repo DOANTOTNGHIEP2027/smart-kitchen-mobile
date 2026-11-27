@@ -14,7 +14,6 @@ import '../data/receipt_api.dart';
 import '../domain/receipt_matched_item.dart';
 import '../domain/receipt_scan_result.dart';
 import '../domain/receipt_unmatched_item.dart';
-import '../../../utils/uuid.dart';
 
 enum ReceiptScanStatus { idle, scanning, reviewing, committing }
 

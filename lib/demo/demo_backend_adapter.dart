@@ -99,6 +99,10 @@ class DemoBackendAdapter implements HttpClientAdapter {
   final Map<String, Map<String, dynamic>> _assistantTurns =
       <String, Map<String, dynamic>>{};
   final Map<String, String> _assistantClientTurns = <String, String>{};
+
+  /// Lịch sử mỗi phiên, cũ trước mới sau (BE trả mới nhất trước).
+  final Map<String, List<Map<String, dynamic>>> _assistantHistory =
+      <String, List<Map<String, dynamic>>>{};
   final Map<String, bool> _recipeFavorites = <String, bool>{};
   final Map<String, int?> _recipeRatings = <String, int?>{};
   final Map<String, DateTime> _recipeFavoritedAt = <String, DateTime>{};
@@ -583,6 +587,17 @@ class DemoBackendAdapter implements HttpClientAdapter {
     }
     if (path == '/api/v1/assistant/sessions' && method == 'POST') {
       return _createAssistantSession(body);
+    }
+    if (path == '/api/v1/assistant/sessions' && method == 'GET') {
+      final sessions = _assistantSessions.values.toList().reversed.toList();
+      return _ok(200, sessions);
+    }
+    final assistantHistory =
+        RegExp(r'^/api/v1/assistant/sessions/([^/]+)/messages$')
+            .firstMatch(path);
+    if (assistantHistory != null && method == 'GET') {
+      return _ok(200,
+          _assistantHistory[assistantHistory.group(1)!]?.reversed.toList() ?? <Object>[]);
     }
     final assistantMessage = RegExp(r'^/api/v1/assistant/sessions/([^/]+)/messages$')
         .firstMatch(path);
@@ -1715,6 +1730,12 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'id': id,
       'contextType': body['contextType'],
       'cookingSessionId': cookingSessionId,
+      'mealPlanId': body['mealPlanId'],
+      'slotId': body['slotId'],
+      'horizonDays': body['contextType'] == 'PLANNING'
+          ? (body['horizonDays'] as int? ?? 1)
+          : null,
+      'updatedAt': DateTime.now().toUtc().toIso8601String(),
     };
     return _ok(201, _assistantSessions[id]);
   }
@@ -1730,27 +1751,92 @@ class DemoBackendAdapter implements HttpClientAdapter {
     final clientKey = '$assistantSessionId|${body['clientTurnId']}';
     final existing = _assistantClientTurns[clientKey];
     if (existing != null) return _ok(200, _assistantTurns[existing]);
+    final cooking = assistant['contextType'] == 'COOKING';
     final session = _cookingSessions[assistant['cookingSessionId']];
-    if (session == null ||
-        session['status'] == 'COMPLETED' ||
-        session['status'] == 'ABANDONED') {
+    if (cooking &&
+        (session == null ||
+            session['status'] == 'COMPLETED' ||
+            session['status'] == 'ABANDONED')) {
       return _error(
           422, 'ERR_ASSISTANT_CONTEXT_INVALID', 'Phiên nấu đã kết thúc.');
     }
     final turnId = 'demo-turn-${_cookingSequence++}';
     _assistantClientTurns[clientKey] = turnId;
+    final result = cooking
+        ? _assistCookingResult(turnId, session!, body)
+        : _assistMealResult(turnId, assistant);
     _assistantTurns[turnId] = <String, dynamic>{
       'turnId': turnId,
       'status': 'ANSWERED',
       'errorCode': null,
-      'result': _assistCookingResult(turnId, session, body),
+      'result': result,
     };
+    assistant['updatedAt'] = DateTime.now().toUtc().toIso8601String();
+    _assistantHistory.putIfAbsent(assistantSessionId, () => <Map<String, dynamic>>[])
+      ..add(<String, dynamic>{
+        'id': '$turnId-u',
+        'role': 'USER',
+        'text': body['text'],
+        'clientTurnId': body['clientTurnId'],
+        'replyStatus': 'ANSWERED',
+        'turn': null,
+      })
+      ..add(<String, dynamic>{
+        'id': '$turnId-a',
+        'role': 'AI',
+        'text': result['answer'],
+        'turn': result,
+      });
     return _ok(202, <String, dynamic>{
       'turnId': turnId,
       'status': 'PENDING',
       'errorCode': null,
       'result': null,
     });
+  }
+
+  /// Trả lời GLOBAL/PLANNING của demo: 2 thẻ món mẫu; PLANNING thêm thực đơn
+  /// theo số ngày của phiên.
+  Map<String, dynamic> _assistMealResult(
+      String turnId, Map<String, dynamic> assistant) {
+    const cards = <Map<String, dynamic>>[
+      <String, dynamic>{
+        'kbRecipeId': 'demo-kb-1',
+        'name': 'Canh chua cá lóc',
+        'reason': 'Dùng cà chua sắp hết hạn',
+        'missingIngredients': <String>['me chua'],
+        'allergenTags': <String>['fish'],
+      },
+      <String, dynamic>{
+        'kbRecipeId': 'demo-kb-2',
+        'name': 'Rau muống xào tỏi',
+        'reason': 'Nhanh, hợp cả nhà',
+        'missingIngredients': <String>[],
+        'allergenTags': <String>[],
+      },
+    ];
+    final days = assistant['horizonDays'] as int? ?? 0;
+    return <String, dynamic>{
+      'turnId': turnId,
+      'answer': 'Gợi ý vài món cho bạn (demo).',
+      'agent': 'meal',
+      'allergenNote': null,
+      'recipeCards': cards,
+      'mealPlan': <Map<String, dynamic>>[
+        for (var d = 1; d <= days; d++)
+          <String, dynamic>{
+            'day': d,
+            'mealType': 'DINNER',
+            'dishes': <Map<String, dynamic>>[cards[(d - 1) % cards.length]],
+          },
+      ],
+      'cooking': null,
+      'suspectedDishes': <Object>[],
+      'question': null,
+      'needsInput': false,
+      'actions': <Object>[],
+      'fallback': true,
+    };
   }
 
   Map<String, dynamic> _assistCookingResult(String turnId,

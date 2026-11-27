@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -118,11 +117,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-    int startDay,
-    int startMonth,
-    int endDay,
-    int endMonth,
-  ) {
+      int startDay, int startMonth, int endDay, int endMonth) {
     return 'Tuần $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -605,11 +600,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-    String required,
-    String available,
-    String shortfall,
-    String unit,
-  ) {
+      String required, String available, String shortfall, String unit) {
     return 'Cần $required · Có $available · Thiếu $shortfall $unit';
   }
 
@@ -731,6 +722,62 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String cookingAssistSuspected(String dish, String allergen) {
     return 'Đã tạm loại $dish vì nghi có $allergen';
+  }
+
+  @override
+  String get assistantTitle => 'Trợ lý bếp';
+
+  @override
+  String get assistantGreeting =>
+      'Chào bạn! Hỏi mình nấu gì, dùng đồ gì cho hết, hay lên thực đơn nhé.';
+
+  @override
+  String get assistantPlanningGreeting => 'Cùng lên món cho bữa này nhé.';
+
+  @override
+  String get assistantSuggestTonight => 'Tối nay nấu gì?';
+
+  @override
+  String get assistantSuggestExpiring => 'Đồ sắp hết hạn nấu được gì?';
+
+  @override
+  String get assistantSuggestFamily => 'Món nào hợp cả nhà?';
+
+  @override
+  String get assistantSuggestQuick => 'Gợi ý bữa sáng nhanh?';
+
+  @override
+  String get assistantSuggestPlanMeal => 'Gợi ý món cho bữa này';
+
+  @override
+  String get assistantRateLimited =>
+      'Bạn hỏi hơi nhanh, thử lại sau ít phút nhé.';
+
+  @override
+  String get assistantProgressSearch => 'đang tìm món…';
+
+  @override
+  String assistantMissingIngredients(String items) {
+    return 'Còn thiếu: $items';
+  }
+
+  @override
+  String assistantPlanDay(int day) {
+    return 'Ngày $day';
+  }
+
+  @override
+  String get assistantFabTooltip => 'Hỏi trợ lý bếp';
+
+  @override
+  String get assistantAskSlot => 'Hỏi trợ lý';
+
+  @override
+  String get assistantHorizonTitle => 'Lên thực đơn cho mấy ngày?';
+
+  @override
+  String assistantHorizonOption(int days) {
+    return '$days ngày';
   }
 
   @override

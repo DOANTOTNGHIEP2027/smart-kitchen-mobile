@@ -44,6 +44,48 @@ AssistantReply mapAssistantReply(Map<String, dynamic> json) {
           ),
     needsInput: json['needsInput'] as bool? ?? false,
     fallback: json['fallback'] as bool? ?? false,
+    recipeCards: _list(json['recipeCards'], _recipeCard),
+    mealPlan: _list(json['mealPlan'], _planSlot),
+  );
+}
+
+RecipeCard _recipeCard(Map<String, dynamic> json) => RecipeCard(
+      kbRecipeId: json['kbRecipeId'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      reason: json['reason'] as String?,
+      missingIngredients: _strings(json['missingIngredients']),
+      allergenTags: _strings(json['allergenTags']),
+    );
+
+PlanSlot _planSlot(Map<String, dynamic> json) => PlanSlot(
+      day: json['day'] as int? ?? 1,
+      mealType: json['mealType'] as String? ?? '',
+      dishes: _list(json['dishes'], _recipeCard),
+    );
+
+List<String> _strings(Object? raw) =>
+    (raw as List<dynamic>?)
+        ?.map((Object? e) => e.toString())
+        .toList(growable: false) ??
+    const <String>[];
+
+/// Một phiên của `GET /assistant/sessions`.
+AssistantSessionSummary mapSessionSummary(Map<String, dynamic> json) =>
+    AssistantSessionSummary(
+      id: json['id'] as String,
+      contextType: json['contextType'] as String? ?? 'GLOBAL',
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+    );
+
+/// Một message của `GET /assistant/sessions/{id}/messages`. Message USER chưa
+/// được trả lời vẫn hiện như câu đã gửi; message AI mang `turn` như lượt live.
+AssistMessage mapHistoryMessage(Map<String, dynamic> json) {
+  final turn = json['turn'] as Map<String, dynamic>?;
+  final isAi = json['role'] == 'AI';
+  return AssistMessage(
+    role: isAi ? AssistRole.assistant : AssistRole.user,
+    text: json['text'] as String? ?? '',
+    reply: isAi && turn != null ? mapAssistantReply(turn) : null,
   );
 }
 
