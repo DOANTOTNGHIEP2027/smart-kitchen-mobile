@@ -1136,6 +1136,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealplanCloseVoting => 'Close voting';
 
   @override
+  String get cookingPendingShoppingTitle =>
+      'Some ingredients are not bought yet';
+
+  @override
+  String cookingPendingShoppingMessage(int count) {
+    return 'This dish still needs $count item(s) from the shopping list:';
+  }
+
+  @override
+  String get cookingPendingShoppingUnassigned => 'Unassigned';
+
+  @override
+  String get cookingPendingShoppingGoShopping => 'Go shopping & assign';
+
+  @override
+  String get cookingPendingShoppingCookAnyway => 'Cook anyway';
+
+  @override
   String get recipesTitle => 'Recipes';
 
   @override

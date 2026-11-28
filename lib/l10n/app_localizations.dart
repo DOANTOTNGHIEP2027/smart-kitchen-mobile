@@ -2182,6 +2182,36 @@ abstract class AppLocalizations {
   /// **'Close voting'**
   String get mealplanCloseVoting;
 
+  /// No description provided for @cookingPendingShoppingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some ingredients are not bought yet'**
+  String get cookingPendingShoppingTitle;
+
+  /// No description provided for @cookingPendingShoppingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This dish still needs {count} item(s) from the shopping list:'**
+  String cookingPendingShoppingMessage(int count);
+
+  /// No description provided for @cookingPendingShoppingUnassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get cookingPendingShoppingUnassigned;
+
+  /// No description provided for @cookingPendingShoppingGoShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Go shopping & assign'**
+  String get cookingPendingShoppingGoShopping;
+
+  /// No description provided for @cookingPendingShoppingCookAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Cook anyway'**
+  String get cookingPendingShoppingCookAnyway;
+
   /// No description provided for @recipesTitle.
   ///
   /// In en, this message translates to:
