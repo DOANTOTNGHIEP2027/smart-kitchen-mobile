@@ -17,6 +17,7 @@ abstract class NotificationsRoutes {
         NotificationTarget.inventory => InventoryRoutes.list,
         NotificationTarget.mealPlan => MealPlanRoutes.weekly,
         NotificationTarget.shopping => AppRoutes.shopping,
+        NotificationTarget.household => AppRoutes.family,
         NotificationTarget.notifications => list,
       };
 }

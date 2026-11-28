@@ -3788,11 +3788,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsTitle => 'Notifications';
 
   @override
-  String get notificationsEmpty =>
-      'No notifications in this session yet. Notifications received in the background only appear here after you open them.';
+  String get notificationsEmpty => 'No notifications yet.';
 
   @override
   String get notificationsMarkAllRead => 'Mark all as read';
+
+  @override
+  String get notificationsLoadFailed =>
+      'Couldn\'t load the latest notifications — pull down to retry';
+
+  @override
+  String get notificationsLoadMoreFailed => 'Couldn\'t load more notifications';
+
+  @override
+  String get notificationsMarkReadFailed =>
+      'Couldn\'t update read status, please try again';
 
   @override
   String get notificationsNavTitle => 'Notifications';

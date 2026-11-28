@@ -646,6 +646,23 @@ class DemoBackendAdapter implements HttpClientAdapter {
       return _getCookingSession(cookingSession.group(1)!);
     }
 
+    // ── Hộp thư thông báo (#201) — demo không có push nên hộp thư trống.
+    if (path == '/api/v1/notifications' && method == 'GET') {
+      return _ok(200, <String, dynamic>{
+        'items': <dynamic>[],
+        'page': 0,
+        'size': 20,
+        'totalElements': 0,
+        'totalPages': 0,
+      });
+    }
+    if (path == '/api/v1/notifications/unread-count' && method == 'GET') {
+      return _ok(200, <String, dynamic>{'count': 0});
+    }
+    if (path == '/api/v1/notifications/read-all' && method == 'POST') {
+      return _ok(200, <String, dynamic>{'updated': 0});
+    }
+
     // ── Shopping (Demo Mode) ─────────────────────────────────────────
     if (path == '/api/v1/shopping' && method == 'GET') {
       return _listShopping();

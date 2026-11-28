@@ -4,12 +4,23 @@ import 'dart:developer' as developer;
 ///
 /// Allow-list compile-time: KHÔNG bao giờ `Get.toNamed` chuỗi lấy từ payload
 /// (inventory-management.md §20.3(d), Guard 2).
-enum NotificationTarget { inventory, mealPlan, shopping, notifications }
+enum NotificationTarget {
+  inventory,
+  mealPlan,
+  shopping,
+  household,
+  notifications,
+}
 
 const Set<String> _shoppingTypes = <String>{
   'SHOPPING_REMINDER',
   'SHOPPING_ASSIGNED_REMINDER',
+  'SHOPPING_ASSIGNED',
 };
+
+/// Nhắc điểm danh bữa (#201) — mở kế hoạch bữa; route `/meal-plan` chưa nhận
+/// planId/slotId nên chỉ mở tab tuần.
+const Set<String> _mealPlanTypes = <String>{'MEAL_ATTENDANCE_REMINDER'};
 
 /// Map `data` FCM → [NotificationTarget]. Thứ tự: `deepLink` → `type` →
 /// fallback `/notifications` (log WARN).
@@ -19,6 +30,9 @@ NotificationTarget resolveNotificationTarget(Map<String, dynamic> data) {
   final type = data['type']?.toString() ?? '';
   if (type.startsWith('INVENTORY_')) return NotificationTarget.inventory;
   if (_shoppingTypes.contains(type)) return NotificationTarget.shopping;
+  if (_mealPlanTypes.contains(type)) return NotificationTarget.mealPlan;
+  // JOINED / LEFT / REMOVED / ROLE_CHANGED → màn thành viên gia đình.
+  if (type.startsWith('HOUSEHOLD_MEMBER_')) return NotificationTarget.household;
   developer.log('Unknown notification type: "$type"', name: 'FCM');
   return NotificationTarget.notifications;
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
@@ -13,16 +15,37 @@ import '../../utils/l10n_x.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/cards/app_card.dart';
 import '../../widgets/feature_banner.dart';
-import '../../widgets/states/app_empty_view.dart';
+import '../../widgets/states/app_state_view.dart';
+import '../../widgets/states/view_state.dart';
 import 'notifications_routes.dart';
 
-/// Màn thông báo trong phiên — tối giản (fcm-notification-flow.md §8, N4).
-class NotificationsScene extends StatelessWidget {
+/// Hộp thư thông báo (fcm-notification-flow.md §8, N4; #201 đọc từ server).
+class NotificationsScene extends StatefulWidget {
   const NotificationsScene({super.key});
 
   @override
+  State<NotificationsScene> createState() => _NotificationsSceneState();
+}
+
+class _NotificationsSceneState extends State<NotificationsScene> {
+  late final NotificationStore _store = Get.find<NotificationStore>();
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_store.refresh());
+  }
+
+  void _open(AppNotification notification) {
+    unawaited(_store.markRead(notification.id));
+    if (notification.target != NotificationTarget.notifications) {
+      Get.toNamed<void>(NotificationsRoutes.routeFor(notification.target));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final store = Get.find<NotificationStore>();
+    final store = _store;
     final l10n = context.l10n;
     return AppScaffold(
       title: l10n.notificationsTitle,
@@ -30,13 +53,15 @@ class NotificationsScene extends StatelessWidget {
         Observer(
           builder: (_) => TextButton(
             key: const ValueKey<String>('notifications-mark-all-read'),
-            onPressed: store.unreadCount == 0 ? null : store.markAllRead,
+            onPressed: store.unreadCount == 0
+                ? null
+                : () => unawaited(store.markAllRead()),
             child: Text(l10n.notificationsMarkAllRead),
           ),
         ),
       ],
       body: Observer(builder: (_) {
-        final items = store.notifications.toList();
+        final state = store.listState;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
@@ -49,35 +74,86 @@ class NotificationsScene extends StatelessWidget {
                 margin: const EdgeInsets.fromLTRB(
                     AppDimens.md, AppDimens.sm, AppDimens.md, 0),
               ),
+            // Có dữ liệu cũ/lạc quan mà tải lại lỗi → banner, không thay list.
+            if (state is SuccessState<List<AppNotification>> &&
+                store.inboxError != null)
+              FeatureBanner(
+                key: const ValueKey<String>('notifications-load-error'),
+                message: l10n.notificationsLoadFailed,
+                margin: const EdgeInsets.fromLTRB(
+                    AppDimens.md, AppDimens.sm, AppDimens.md, 0),
+              ),
+            if (store.actionError != null)
+              FeatureBanner(
+                key: const ValueKey<String>('notifications-action-error'),
+                message: l10n.notificationsMarkReadFailed,
+                margin: const EdgeInsets.fromLTRB(
+                    AppDimens.md, AppDimens.sm, AppDimens.md, 0),
+              ),
             Expanded(
-              child: items.isEmpty
-                  ? AppEmptyView(
-                      icon: Icons.notifications_none_rounded,
-                      message: l10n.notificationsEmpty,
-                    )
-                  : ListView.separated(
+              child: AppStateView<List<AppNotification>>(
+                state: state,
+                onRetry: () => unawaited(store.refresh()),
+                emptyIcon: Icons.notifications_none_rounded,
+                emptyMessage: l10n.notificationsEmpty,
+                successBuilder: (_, items) => RefreshIndicator(
+                  onRefresh: store.refresh,
+                  child: ListView.separated(
+                      key: const ValueKey<String>('notifications-list'),
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(AppDimens.md),
-                      itemCount: items.length,
+                      itemCount: items.length + (store.hasMore ? 1 : 0),
                       separatorBuilder: (_, __) =>
                           const SizedBox(height: AppDimens.sm),
-                      itemBuilder: (_, i) => _NotificationTile(
-                        notification: items[i],
-                        onTap: () {
-                          store.markRead(items[i].id);
-                          if (items[i].target !=
-                              NotificationTarget.notifications) {
-                            Get.toNamed<void>(
-                                NotificationsRoutes.routeFor(items[i].target));
-                          }
-                        },
-                      ),
-                    ),
+                      itemBuilder: (_, i) => i == items.length
+                          ? _LoadMoreFooter(store: store)
+                          : _NotificationTile(
+                              notification: items[i],
+                              onTap: () => _open(items[i]),
+                            ),
+                  ),
+                ),
+              ),
             ),
           ],
         );
       }),
     );
   }
+}
+
+/// Cuối danh sách: đang tải trang kế / lỗi + thử lại.
+class _LoadMoreFooter extends StatelessWidget {
+  const _LoadMoreFooter({required this.store});
+
+  final NotificationStore store;
+
+  @override
+  Widget build(BuildContext context) => Observer(builder: (_) {
+        if (store.loadMoreError == null) {
+          // Footer chỉ được dựng khi cuộn gần cuối (ListView lười) → tải trang
+          // kế ngay khi nó xuất hiện.
+          if (!store.isLoadingMore) {
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => unawaited(store.loadMore()));
+          }
+          return const Padding(
+            padding: EdgeInsets.all(AppDimens.md),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return Column(
+          key: const ValueKey<String>('notifications-load-more-error'),
+          children: <Widget>[
+            Text(context.l10n.notificationsLoadMoreFailed,
+                textAlign: TextAlign.center),
+            TextButton(
+              onPressed: () => unawaited(store.loadMore()),
+              child: Text(context.l10n.commonRetry),
+            ),
+          ],
+        );
+      });
 }
 
 /// Banner trạng thái quyền (§7.2).
@@ -172,6 +248,7 @@ class _NotificationTile extends StatelessWidget {
         NotificationTarget.inventory => Icons.kitchen_outlined,
         NotificationTarget.mealPlan => Icons.restaurant_menu_rounded,
         NotificationTarget.shopping => Icons.shopping_cart_outlined,
+        NotificationTarget.household => Icons.group_outlined,
         NotificationTarget.notifications => Icons.notifications_none_rounded,
       };
 
@@ -186,7 +263,10 @@ class _NotificationTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(_icon, color: Theme.of(context).colorScheme.primary),
+          Icon(_icon,
+              color: unread
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: AppDimens.sm),
           Expanded(
             child: Column(
@@ -207,6 +287,18 @@ class _NotificationTile extends StatelessWidget {
               ],
             ),
           ),
+          // Chấm chưa đọc — kèm chữ đậm + thẻ nổi để không chỉ dựa vào màu.
+          if (unread)
+            Container(
+              key: ValueKey<String>('notification-unread-${notification.id}'),
+              width: AppDimens.sm,
+              height: AppDimens.sm,
+              margin: const EdgeInsets.only(left: AppDimens.sm, top: AppDimens.xs),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+            ),
         ],
       ),
     );
