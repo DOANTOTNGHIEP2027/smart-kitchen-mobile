@@ -5,7 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:smart_kitchen_mobile/constants/app_theme.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/l10n/app_localizations.dart';
-import 'package:smart_kitchen_mobile/scenes/cooking/scenes/cooking_routes.dart';
+import 'package:smart_kitchen_mobile/routing/app_routes.dart';
 import 'package:smart_kitchen_mobile/scenes/home/stores/home_store.dart';
 import 'package:smart_kitchen_mobile/scenes/home/widgets/upcoming_meal_section.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_plan_api.dart';
@@ -49,8 +49,10 @@ void main() {
       supportedLocales: AppLocalizations.supportedLocales,
       getPages: <GetPage<dynamic>>[
         GetPage<void>(
-          name: CookingRoutes.session,
-          page: () => const Scaffold(body: Text('cooking-page')),
+          name: AppRoutes.recipeDetail,
+          page: () => Scaffold(
+            body: Text('detail-${Get.parameters['id']}-${Get.parameters['mode']}'),
+          ),
         ),
       ],
       home: const Scaffold(
@@ -68,14 +70,14 @@ void main() {
     expect(find.text('Món r1'), findsOneWidget);
   });
 
-  testWidgets('bấm món → qua guard rồi mở màn nấu', (tester) async {
-    // Không có SessionStore/nhà → guard không kiểm được, vào nấu luôn.
+  testWidgets('bấm món → mở chi tiết món (chế độ thường, có nút nấu)', (tester) async {
     await pump(tester);
 
     await tester.tap(find.byKey(const Key('home-upcoming-dish-d1')));
     await tester.pumpAndSettle();
 
-    expect(find.text('cooking-page'), findsOneWidget);
+    // Không có `mode=view` ⇒ màn chi tiết hiện nút "Bắt đầu nấu".
+    expect(find.text('detail-r1-null'), findsOneWidget);
   });
 
   testWidgets('không có bữa → empty + nút lên thực đơn', (tester) async {

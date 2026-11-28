@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:smart_kitchen_mobile/constants/app_theme.dart';
 import 'package:smart_kitchen_mobile/l10n/app_localizations.dart';
 import 'package:smart_kitchen_mobile/l10n/app_localizations_vi.dart';
+import 'package:smart_kitchen_mobile/routing/app_routes.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/scenes/cooking_routes.dart';
 import 'package:smart_kitchen_mobile/scenes/home/domain/upcoming_meal.dart';
 import 'package:smart_kitchen_mobile/scenes/home/stores/home_store.dart';
@@ -104,6 +105,13 @@ void main() {
             name: CookingRoutes.session,
             page: () => const Scaffold(body: Text('cooking-page')),
           ),
+          GetPage<void>(
+            name: AppRoutes.recipeDetail,
+            page: () => Scaffold(
+              body: Text(
+                  'detail-${Get.parameters['id']}-${Get.parameters['dishId']}'),
+            ),
+          ),
         ],
         home: const Scaffold(
           body: SingleChildScrollView(child: UpcomingMealSection()),
@@ -132,7 +140,8 @@ void main() {
       expect(find.text('cooking-page'), findsNothing);
     });
 
-    testWidgets('món chưa nấu: không có nhãn, bấm mở màn nấu', (tester) async {
+    testWidgets('món chưa nấu: không có nhãn, bấm mở chi tiết món (gắn món thực đơn)',
+        (tester) async {
       when(() => api.getCurrent()).thenAnswer((_) async => plan([
             _timed('dinner', date, 'DINNER', [dish('d1', recipeId: 'r1')],
                 time: '18:00', allCooked: false),
@@ -143,7 +152,9 @@ void main() {
           findsNothing);
       await tester.tap(find.byKey(const Key('home-upcoming-dish-d1')));
       await tester.pumpAndSettle();
-      expect(find.text('cooking-page'), findsOneWidget);
+      // Nút "Bắt đầu nấu" ở chi tiết mới vào màn nấu, kèm id món thực đơn.
+      expect(find.text('detail-r1-d1'), findsOneWidget);
+      expect(find.text('cooking-page'), findsNothing);
     });
   });
 }

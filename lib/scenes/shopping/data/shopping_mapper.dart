@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' show Value;
 
 import '../../../data/db/app_database.dart';
@@ -28,7 +30,14 @@ ShoppingItem shoppingItemFromJson(Map<String, dynamic> json, String householdId)
       assignedTo: json['assignedTo'] as String?,
       // #239 additive — BE cũ không gửi thì coi như chưa vào kho.
       inInventory: json['inInventory'] as bool? ?? false,
+      // BE đặt tên field là `sources` (cột `source_refs`, #201).
+      sourceRefs: _sourceRefs(json['sources']),
     );
+
+/// Additive — BE cũ không gửi / phần tử hỏng thì bỏ qua (không ném).
+List<ShoppingSourceRef> _sourceRefs(Object? raw) => raw is List
+    ? raw.map(ShoppingSourceRef.fromJson).whereType<ShoppingSourceRef>().toList()
+    : const <ShoppingSourceRef>[];
 
 ShoppingItem shoppingItemFromRow(ShoppingListItem row) => ShoppingItem(
       id: row.id,
@@ -56,6 +65,7 @@ ShoppingItem shoppingItemFromRow(ShoppingListItem row) => ShoppingItem(
       price: row.price,
       assignedTo: row.assignedTo,
       inInventory: row.inInventory,
+      sourceRefs: row.sourceRefs == null ? const <ShoppingSourceRef>[] : _sourceRefs(jsonDecode(row.sourceRefs!)),
     );
 
 ShoppingListItemsCompanion shoppingItemToRow(ShoppingItem item) =>
@@ -83,6 +93,9 @@ ShoppingListItemsCompanion shoppingItemToRow(ShoppingItem item) =>
       price: Value(item.price),
       assignedTo: Value(item.assignedTo),
       inInventory: Value(item.inInventory),
+      sourceRefs: Value(item.sourceRefs.isEmpty
+          ? null
+          : jsonEncode(item.sourceRefs.map((r) => r.toJson()).toList())),
     );
 
 Map<String, dynamic> shoppingCreatePayload(ShoppingItem item) => <String, dynamic>{
@@ -90,4 +103,6 @@ Map<String, dynamic> shoppingCreatePayload(ShoppingItem item) => <String, dynami
   'quantity': item.quantity,
   'unit': item.unit,
   'category': item.category,
+  // Gắn món thực đơn → BE ghi `sourceRefs`; xoá món rồi "Hoàn thành" thì dọn được.
+  if (item.sourceRefs.isNotEmpty) 'sourceDishId': item.sourceRefs.first.dishId,
 };

@@ -39,6 +39,10 @@ ShoppingItem _item(
     );
 
 class _FakeApi implements ShoppingApi {
+  @override
+  Future<ShoppingItem> update(String id, int version, String householdId, {required String name, required double quantity, required String unit}) => throw UnimplementedError();
+  @override
+  Future<void> delete(String id, int version) => throw UnimplementedError();
   final List<(String, int, double?)> toggles = <(String, int, double?)>[];
   bool offline = false;
   final Map<String, ApiException> rejectById = <String, ApiException>{};

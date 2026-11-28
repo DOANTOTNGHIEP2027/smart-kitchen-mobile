@@ -2460,6 +2460,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingWeeklyMenuBadge => 'Weekly menu';
 
   @override
+  String get shoppingItemActions => 'Item options';
+
+  @override
+  String get shoppingEditItem => 'Edit item';
+
+  @override
+  String get shoppingDeleteItem => 'Delete item';
+
+  @override
+  String get shoppingEditSheetTitle => 'Edit item to buy';
+
+  @override
+  String get shoppingDeleteConfirmTitle => 'Remove item from the list?';
+
+  @override
+  String shoppingDeleteConfirmMessage(String name) {
+    return '\"$name\" will be removed from the household shopping list.';
+  }
+
+  @override
+  String shoppingItemDeleted(String name) {
+    return 'Removed \"$name\"';
+  }
+
+  @override
+  String get shoppingItemUpdated => 'Item updated';
+
+  @override
+  String get shoppingItemActionOffline =>
+      'You need to be online and synced to edit or delete this item';
+
+  @override
+  String get shoppingDeleteForbidden =>
+      'Only the owner or the meal plan creator can delete auto-generated items';
+
+  @override
+  String get shoppingItemChangedElsewhere =>
+      'This item was changed on another device — the list was reloaded, please try again';
+
+  @override
+  String get mealPlanFinishAdding => 'Done adding dishes';
+
+  @override
+  String get mealPlanFinishTitle => 'Update shopping list';
+
+  @override
+  String get mealPlanFinishAddHeader => 'Will add (missing):';
+
+  @override
+  String get mealPlanFinishRemoveHeader =>
+      'Will remove (dish removed, not bought yet):';
+
+  @override
+  String get mealPlanFinishConfirm => 'Update shopping';
+
+  @override
+  String get mealPlanFinishInSync => 'Shopping list already matches this meal';
+
+  @override
+  String mealPlanFinishDone(int added, int removed) {
+    return 'Shopping: $added added, $removed removed';
+  }
+
+  @override
+  String get mealPlanFinishLoadFailed =>
+      'Could not load the shopping list — check your connection and try again';
+
+  @override
   String get shoppingAddSheetTitle => 'Add item to buy';
 
   @override

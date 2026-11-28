@@ -23,6 +23,8 @@ class ShoppingListItems extends Table {
   TextColumn get assignedTo => text().nullable()();
   /// #239: món đã được cất vào kho (BE `inInventory`).
   BoolColumn get inInventory => boolean().withDefault(const Constant(false))();
+  /// JSON `[{dishId, slotDate, mealTime}]` (BE `sources`) — `null` = không gắn món.
+  TextColumn get sourceRefs => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};

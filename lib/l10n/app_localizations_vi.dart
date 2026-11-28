@@ -2439,6 +2439,74 @@ class AppLocalizationsVi extends AppLocalizations {
   String get shoppingWeeklyMenuBadge => 'Thực đơn tuần';
 
   @override
+  String get shoppingItemActions => 'Tuỳ chọn món';
+
+  @override
+  String get shoppingEditItem => 'Sửa món';
+
+  @override
+  String get shoppingDeleteItem => 'Xoá món';
+
+  @override
+  String get shoppingEditSheetTitle => 'Sửa món cần mua';
+
+  @override
+  String get shoppingDeleteConfirmTitle => 'Xoá món khỏi danh sách?';
+
+  @override
+  String shoppingDeleteConfirmMessage(String name) {
+    return '\"$name\" sẽ bị xoá khỏi danh sách đi chợ của cả nhà.';
+  }
+
+  @override
+  String shoppingItemDeleted(String name) {
+    return 'Đã xoá \"$name\"';
+  }
+
+  @override
+  String get shoppingItemUpdated => 'Đã cập nhật món';
+
+  @override
+  String get shoppingItemActionOffline =>
+      'Cần có mạng và đồng bộ xong mới sửa/xoá được món này';
+
+  @override
+  String get shoppingDeleteForbidden =>
+      'Chỉ chủ nhà hoặc người lập thực đơn mới xoá được món tự sinh';
+
+  @override
+  String get shoppingItemChangedElsewhere =>
+      'Món vừa được thay đổi ở máy khác — danh sách đã tải lại, thử lại nhé';
+
+  @override
+  String get mealPlanFinishAdding => 'Hoàn thành thêm món';
+
+  @override
+  String get mealPlanFinishTitle => 'Cập nhật danh sách đi chợ';
+
+  @override
+  String get mealPlanFinishAddHeader => 'Sẽ thêm (còn thiếu):';
+
+  @override
+  String get mealPlanFinishRemoveHeader =>
+      'Sẽ xoá (món đã bỏ khỏi bữa, chưa mua):';
+
+  @override
+  String get mealPlanFinishConfirm => 'Cập nhật đi chợ';
+
+  @override
+  String get mealPlanFinishInSync => 'Đi chợ đã khớp với bữa này';
+
+  @override
+  String mealPlanFinishDone(int added, int removed) {
+    return 'Đi chợ: thêm $added, xoá $removed món';
+  }
+
+  @override
+  String get mealPlanFinishLoadFailed =>
+      'Không tải được danh sách đi chợ — kiểm tra mạng rồi thử lại';
+
+  @override
   String get shoppingAddSheetTitle => 'Thêm món cần mua';
 
   @override

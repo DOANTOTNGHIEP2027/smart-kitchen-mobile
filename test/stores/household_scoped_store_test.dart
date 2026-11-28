@@ -192,6 +192,10 @@ void main() {
 }
 
 class _MirrorShoppingApi implements ShoppingApi {
+  @override
+  Future<ShoppingItem> update(String id, int version, String householdId, {required String name, required double quantity, required String unit}) => throw UnimplementedError();
+  @override
+  Future<void> delete(String id, int version) => throw UnimplementedError();
   _MirrorShoppingApi(this.dao);
   final ShoppingDao dao;
   int listCalls = 0;

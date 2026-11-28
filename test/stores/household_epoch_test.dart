@@ -210,6 +210,10 @@ InventoryListPage pageOf(List<InventoryItemModel> items) =>
 class _Scope with HouseholdScoped {}
 
 class _Api implements ShoppingApi {
+  @override
+  Future<ShoppingItem> update(String id, int version, String householdId, {required String name, required double quantity, required String unit}) => throw UnimplementedError();
+  @override
+  Future<void> delete(String id, int version) => throw UnimplementedError();
   _Api(this.dao);
   final ShoppingDao dao;
   final List<String> created = <String>[];
