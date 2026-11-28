@@ -3,8 +3,12 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:smart_kitchen_mobile/data/auth/token_storage.dart';
+import 'package:smart_kitchen_mobile/data/notification/app_notification.dart';
 import 'package:smart_kitchen_mobile/data/notification/device_api.dart';
+import 'package:smart_kitchen_mobile/data/notification/notification_api.dart';
+import 'package:smart_kitchen_mobile/data/notification/notification_mapper.dart';
 import 'package:smart_kitchen_mobile/data/notification/notification_prefs.dart';
+import 'package:smart_kitchen_mobile/data/notification/notification_routing.dart';
 import 'package:smart_kitchen_mobile/data/notification/push_gateway.dart';
 import 'package:smart_kitchen_mobile/domain/auth/auth_refresh_usecase.dart';
 import 'package:smart_kitchen_mobile/domain/auth/user_summary.dart';
@@ -128,3 +132,79 @@ Future<void> signIn(SessionStore session) => session.setSession(
       refreshToken: 'r',
       user: const UserSummary(id: 'u1', fullName: 'An'),
     );
+
+/// Bản ghi server giả (`fromServer: true`) cho test hộp thư (#201).
+AppNotification serverNotification(String id,
+        {bool read = false, String type = 'INVENTORY_EXPIRY_ALERT', DateTime? at}) =>
+    AppNotification(
+      id: id,
+      type: type,
+      target: resolveNotificationTarget(<String, dynamic>{'type': type}),
+      receivedAt: at ?? DateTime(2026, 11, 20),
+      title: 'T-$id',
+      read: read,
+      fromServer: true,
+    );
+
+/// API hộp thư giả: dữ liệu theo trang trong bộ nhớ, lỗi/treo bơm được.
+class FakeNotificationApi implements NotificationApi {
+  FakeNotificationApi({List<AppNotification>? items, this.size = 2})
+      : items = items ?? <AppNotification>[];
+
+  List<AppNotification> items;
+  final int size;
+  int? unread;
+  Object? listError;
+  Object? markReadError;
+  Object? markAllError;
+  Completer<void>? holdList;
+  final List<int> listedPages = <int>[];
+  final List<String> markedRead = <String>[];
+  int markAllCalls = 0;
+  int unreadCalls = 0;
+
+  int get _unread => unread ?? items.where((n) => !n.read).length;
+
+  @override
+  Future<NotificationPage> list({int page = 0, int size = 20}) async {
+    listedPages.add(page);
+    final hold = holdList;
+    if (hold != null) await hold.future;
+    if (listError != null) throw listError!;
+    final from = page * this.size;
+    final pageItems = items.skip(from).take(this.size).toList();
+    return NotificationPage(
+      items: pageItems,
+      page: page,
+      size: this.size,
+      totalElements: items.length,
+      totalPages: (items.length + this.size - 1) ~/ this.size,
+    );
+  }
+
+  @override
+  Future<int> unreadCount() async {
+    unreadCalls++;
+    if (listError != null) throw listError!;
+    return _unread;
+  }
+
+  @override
+  Future<AppNotification> markRead(String id) async {
+    markedRead.add(id);
+    if (markReadError != null) throw markReadError!;
+    final i = items.indexWhere((n) => n.id == id);
+    final updated = items[i].copyWith(read: true, readAt: DateTime(2026, 11, 21));
+    items[i] = updated;
+    return updated;
+  }
+
+  @override
+  Future<int> markAllRead() async {
+    markAllCalls++;
+    if (markAllError != null) throw markAllError!;
+    final count = items.where((n) => !n.read).length;
+    items = items.map((n) => n.copyWith(read: true)).toList();
+    return count;
+  }
+}

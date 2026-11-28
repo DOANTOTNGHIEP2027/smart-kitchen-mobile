@@ -3737,11 +3737,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String get notificationsTitle => 'Thông báo';
 
   @override
-  String get notificationsEmpty =>
-      'Chưa có thông báo nào trong phiên này. Thông báo nhận khi app chạy nền chỉ hiện ở đây sau khi bạn mở nó.';
+  String get notificationsEmpty => 'Chưa có thông báo nào.';
 
   @override
-  String get notificationsMarkAllRead => 'Đánh dấu đã đọc';
+  String get notificationsMarkAllRead => 'Đánh dấu đã đọc tất cả';
+
+  @override
+  String get notificationsLoadFailed =>
+      'Không tải được thông báo mới nhất — kéo xuống để thử lại';
+
+  @override
+  String get notificationsLoadMoreFailed => 'Không tải thêm được thông báo';
+
+  @override
+  String get notificationsMarkReadFailed =>
+      'Không cập nhật được trạng thái đã đọc, hãy thử lại';
 
   @override
   String get notificationsNavTitle => 'Thông báo';

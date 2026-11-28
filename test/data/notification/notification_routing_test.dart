@@ -33,6 +33,27 @@ void main() {
           NotificationTarget.shopping);
     });
 
+    test('#201: SHOPPING_ASSIGNED → shopping; HOUSEHOLD_MEMBER_* → household; '
+        'MEAL_ATTENDANCE_REMINDER → mealPlan', () {
+      expect(resolveNotificationTarget(<String, dynamic>{'type': 'SHOPPING_ASSIGNED', 'itemId': 'i1'}),
+          NotificationTarget.shopping);
+      for (final type in <String>[
+        'HOUSEHOLD_MEMBER_JOINED',
+        'HOUSEHOLD_MEMBER_LEFT',
+        'HOUSEHOLD_MEMBER_REMOVED',
+        'HOUSEHOLD_MEMBER_ROLE_CHANGED',
+      ]) {
+        expect(resolveNotificationTarget(<String, dynamic>{'type': type}), NotificationTarget.household,
+            reason: type);
+      }
+      expect(
+          resolveNotificationTarget(
+              <String, dynamic>{'type': 'MEAL_ATTENDANCE_REMINDER', 'planId': 'p1', 'slotId': 's1'}),
+          NotificationTarget.mealPlan);
+      expect(resolveNotificationTarget(<String, dynamic>{'type': 'INVENTORY_EXPIRY_ALERT'}),
+          NotificationTarget.inventory);
+    });
+
     test('type lạ / data rỗng / deepLink lạ → notifications (không dùng chuỗi payload)', () {
       expect(resolveNotificationTarget(const <String, dynamic>{}), NotificationTarget.notifications);
       expect(resolveNotificationTarget(<String, dynamic>{'type': 'WHATEVER', 'route': '/admin'}),

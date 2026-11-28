@@ -84,12 +84,15 @@ class _NotificationUiHostState extends State<_NotificationUiHost>
 
   /// Quay lại app → đọc lại quyền (người dùng có thể đổi trong Cài đặt) —
   /// fcm-notification-flow.md §14.4. #134 A8: catch-up kho nếu isolate nền
-  /// đã đặt cờ pending-sync.
+  /// đã đặt cờ pending-sync. #201: tải lại hộp thư (push lúc app nền/tắt chỉ
+  /// có ở server).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     if (Get.isRegistered<NotificationStore>()) {
-      unawaited(Get.find<NotificationStore>().refreshPermission());
+      final notifications = Get.find<NotificationStore>();
+      unawaited(notifications.refreshPermission());
+      unawaited(notifications.refresh());
     }
     if (Get.isRegistered<InventoryCatchUp>()) {
       unawaited(Get.find<InventoryCatchUp>().run());

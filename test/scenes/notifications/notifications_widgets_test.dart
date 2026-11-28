@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:smart_kitchen_mobile/constants/app_theme.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
+import 'package:smart_kitchen_mobile/widgets/states/app_error_view.dart';
 import 'package:smart_kitchen_mobile/data/notification/app_notification.dart';
 import 'package:smart_kitchen_mobile/data/notification/notification_routing.dart';
 import 'package:smart_kitchen_mobile/data/notification/push_gateway.dart';
@@ -53,6 +54,7 @@ void main() {
         GetPage<void>(name: NotificationsRoutes.list, page: () => const NotificationsScene()),
         GetPage<void>(name: InventoryRoutes.list, page: () => const Text('INVENTORY')),
         GetPage<void>(name: AppRoutes.shopping, page: () => const Text('SHOPPING')),
+        GetPage<void>(name: AppRoutes.family, page: () => const Text('FAMILY')),
       ],
     ));
     await tester.pumpAndSettle();
@@ -127,7 +129,7 @@ void main() {
     testWidgets('trống + banner chưa bật → bấm "Bật thông báo"', (tester) async {
       await store.init();
       await pumpApp(tester, initial: NotificationsRoutes.list);
-      expect(find.textContaining('Chưa có thông báo nào trong phiên này'), findsOneWidget);
+      expect(find.text('Chưa có thông báo nào.'), findsOneWidget);
       expect(find.byKey(const ValueKey('notifications-permission-notDetermined')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('notifications-permission-action')));
       await tester.pumpAndSettle();
@@ -243,6 +245,90 @@ void main() {
       expect(relativeTime(ctx, now.subtract(const Duration(seconds: 30)), now: now), 'Vừa xong');
       expect(relativeTime(ctx, now.subtract(const Duration(minutes: 5)), now: now), '5 phút trước');
       expect(relativeTime(ctx, now.subtract(const Duration(hours: 3)), now: now), '3 giờ trước');
+    });
+  });
+
+  group('NotificationsScene — hộp thư server (#201)', () {
+    late FakeNotificationApi api;
+
+    Future<void> useApi(List<AppNotification> items, {Object? listError}) async {
+      store.dispose();
+      Get.delete<NotificationStore>();
+      api = FakeNotificationApi(items: items, size: 20)..listError = listError;
+      store = NotificationStore(
+          gateway: gateway..current = NotificationPermissionStatus.granted,
+          deviceApi: deviceApi,
+          prefs: prefs,
+          session: session,
+          api: api);
+      Get.put<NotificationStore>(store);
+      await signIn(session);
+      await store.init();
+    }
+
+    testWidgets('mở màn → tải từ API; chưa đọc có chấm, đã đọc không', (tester) async {
+      await useApi(<AppNotification>[
+        serverNotification('s1', type: 'HOUSEHOLD_MEMBER_JOINED'),
+        serverNotification('s2', read: true),
+      ]);
+      await pumpApp(tester, initial: NotificationsRoutes.list);
+      expect(find.text('T-s1'), findsOneWidget);
+      expect(find.text('T-s2'), findsOneWidget);
+      expect(find.byKey(const ValueKey('notification-unread-s1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('notification-unread-s2')), findsNothing);
+      expect(api.listedPages, isNotEmpty);
+    });
+
+    testWidgets('tap HOUSEHOLD_MEMBER_* → màn thành viên + POST đã đọc', (tester) async {
+      await useApi(<AppNotification>[serverNotification('s1', type: 'HOUSEHOLD_MEMBER_JOINED')]);
+      await pumpApp(tester, initial: NotificationsRoutes.list);
+      await tester.tap(find.text('T-s1'));
+      await tester.pumpAndSettle();
+      expect(find.text('FAMILY'), findsOneWidget);
+      expect(api.markedRead, <String>['s1']);
+      expect(store.unreadCount, 0);
+    });
+
+    testWidgets('lỗi tải lần đầu → màn lỗi + Thử lại → danh sách', (tester) async {
+      await useApi(<AppNotification>[serverNotification('s1')], listError: NetworkException());
+      await pumpApp(tester, initial: NotificationsRoutes.list);
+      expect(find.byType(AppErrorView), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      api.listError = null;
+      await tester.tap(find.text('Thử lại'));
+      await tester.pumpAndSettle();
+      expect(find.text('T-s1'), findsOneWidget);
+    });
+
+    testWidgets('"Đánh dấu đã đọc tất cả" gọi API, tắt nút khi hết chưa đọc', (tester) async {
+      await useApi(<AppNotification>[serverNotification('s1'), serverNotification('s2')]);
+      await pumpApp(tester, initial: NotificationsRoutes.list);
+      expect(find.text('Đánh dấu đã đọc tất cả'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('notifications-mark-all-read')));
+      await tester.pumpAndSettle();
+      expect(api.markAllCalls, 1);
+      expect(find.byKey(const ValueKey('notification-unread-s1')), findsNothing);
+      final button = tester.widget<TextButton>(find.byKey(const ValueKey('notifications-mark-all-read')));
+      expect(button.onPressed, isNull);
+    });
+
+    testWidgets('cuộn tới cuối → tải trang kế (footer)', (tester) async {
+      await useApi(<AppNotification>[for (var i = 0; i < 25; i++) serverNotification('s$i')]);
+      await pumpApp(tester, initial: NotificationsRoutes.list);
+      expect(store.notifications, hasLength(20));
+      await tester.scrollUntilVisible(find.text('T-s24'), 300,
+          scrollable: find.descendant(
+              of: find.byKey(const ValueKey('notifications-list')), matching: find.byType(Scrollable)));
+      await tester.pumpAndSettle();
+      expect(store.notifications, hasLength(25));
+      expect(store.hasMore, isFalse);
+      expect(api.listedPages.where((p) => p == 1), hasLength(1));
+    });
+
+    testWidgets('trống từ API → empty view', (tester) async {
+      await useApi(<AppNotification>[]);
+      await pumpApp(tester, initial: NotificationsRoutes.list);
+      expect(find.text('Chưa có thông báo nào.'), findsOneWidget);
     });
   });
 }

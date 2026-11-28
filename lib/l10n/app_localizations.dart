@@ -6697,7 +6697,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationsEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No notifications in this session yet. Notifications received in the background only appear here after you open them.'**
+  /// **'No notifications yet.'**
   String get notificationsEmpty;
 
   /// No description provided for @notificationsMarkAllRead.
@@ -6705,6 +6705,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mark all as read'**
   String get notificationsMarkAllRead;
+
+  /// No description provided for @notificationsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the latest notifications — pull down to retry'**
+  String get notificationsLoadFailed;
+
+  /// No description provided for @notificationsLoadMoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load more notifications'**
+  String get notificationsLoadMoreFailed;
+
+  /// No description provided for @notificationsMarkReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update read status, please try again'**
+  String get notificationsMarkReadFailed;
 
   /// No description provided for @notificationsNavTitle.
   ///

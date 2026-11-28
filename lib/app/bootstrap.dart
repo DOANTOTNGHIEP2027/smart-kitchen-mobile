@@ -40,6 +40,7 @@ import '../scenes/mealplan/data/meal_attendance_api.dart';
 import '../data/notification/bg_files.dart';
 import '../data/notification/cross_isolate_lock.dart';
 import '../data/notification/device_api.dart';
+import '../data/notification/notification_api.dart';
 import '../data/notification/notification_service.dart';
 import '../data/notification/quick_action_api.dart';
 import '../data/realtime/realtime_service.dart';
@@ -187,6 +188,7 @@ Future<void> bootstrap() async {
 
   Get.put<DeviceApi>(DeviceApiImpl(dioClient), permanent: true);
   Get.put<QuickActionApi>(QuickActionApiImpl(dioClient), permanent: true);
+  Get.put<NotificationApi>(NotificationApiImpl(dioClient), permanent: true);
 
   // #48 — quyền + token + danh sách trong phiên do NotificationStore giữ
   // (fcm-notification-flow.md §6); service chỉ là adapter platform.
@@ -195,6 +197,7 @@ Future<void> bootstrap() async {
     deviceApi: Get.find<DeviceApi>(),
     prefs: SecureNotificationPrefs(),
     session: sessionStore,
+    api: Get.find<NotificationApi>(),
   );
   Get.put<NotificationStore>(notificationStore, permanent: true);
   final notificationService = NotificationService(

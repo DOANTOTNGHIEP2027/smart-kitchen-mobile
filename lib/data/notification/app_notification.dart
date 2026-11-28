@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'notification_routing.dart';
 
-/// 1 thông báo đã nhận trong phiên (fcm-notification-flow.md §4, §14.2).
+/// 1 thông báo trong hộp thư (fcm-notification-flow.md §4, §14.2).
+///
+/// Hai nguồn: push vừa nhận (`fromServer == false`, hiện lạc quan) và bản ghi
+/// từ `GET /api/v1/notifications` (`fromServer == true`, `id` = uuid server).
 class AppNotification {
   const AppNotification({
     required this.id,
@@ -12,6 +15,9 @@ class AppNotification {
     this.title,
     this.body,
     this.read = false,
+    this.readAt,
+    this.data = const <String, String>{},
+    this.fromServer = false,
   });
 
   /// Chuẩn hoá cho cả 4 đường vào danh sách (foreground, opened, cold start,
@@ -33,6 +39,7 @@ class AppNotification {
         title: title ?? _nonEmpty(data['title']),
         body: body ?? _nonEmpty(data['body']),
         read: read,
+        data: data.map((key, value) => MapEntry(key, value?.toString() ?? '')),
       );
 
   final String id;
@@ -42,8 +49,15 @@ class AppNotification {
   final String? title;
   final String? body;
   final bool read;
+  final DateTime? readAt;
 
-  AppNotification copyWith({bool? read}) => AppNotification(
+  /// `data` của push / của bản ghi server (householdId, itemId, planId…).
+  final Map<String, String> data;
+
+  /// `true` = bản ghi đã lưu ở server; `false` = push lạc quan chờ đồng bộ.
+  final bool fromServer;
+
+  AppNotification copyWith({bool? read, DateTime? readAt}) => AppNotification(
         id: id,
         type: type,
         target: target,
@@ -51,6 +65,9 @@ class AppNotification {
         title: title,
         body: body,
         read: read ?? this.read,
+        readAt: readAt ?? this.readAt,
+        data: data,
+        fromServer: fromServer,
       );
 }
 
