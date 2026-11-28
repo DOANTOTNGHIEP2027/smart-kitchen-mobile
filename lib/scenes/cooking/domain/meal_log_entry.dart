@@ -50,6 +50,11 @@ class MealLogEntry {
 
   MealType? get mealType => parseMealTypeFromDescription(description);
 
+  /// Bữa để xếp nhóm trên màn nhật ký: bữa đã chọn lúc ghi (tiền tố mô tả);
+  /// món cũ không có tiền tố thì suy theo giờ ghi (giờ máy).
+  MealType get mealGroup =>
+      mealType ?? mealTypeByHour(loggedAt.toLocal().hour);
+
   MealConfidenceBadge get confidenceBadge {
     if (caloriesKcal == null) return MealConfidenceBadge.noEstimate;
     return requiresConfirmation

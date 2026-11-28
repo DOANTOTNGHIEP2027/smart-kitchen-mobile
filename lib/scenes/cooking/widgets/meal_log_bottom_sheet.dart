@@ -40,16 +40,7 @@ class _MealLogBottomSheetState extends State<MealLogBottomSheet> {
   bool _photoTooLarge = false;
 
   void _defaultMealTypeByHour() {
-    final hour = DateTime.now().hour;
-    if (hour >= 6 && hour < 10) {
-      _mealType = MealType.breakfast;
-    } else if (hour >= 10 && hour < 14) {
-      _mealType = MealType.lunch;
-    } else if (hour >= 17 && hour < 21) {
-      _mealType = MealType.dinner;
-    } else {
-      _mealType = MealType.snack;
-    }
+    _mealType = mealTypeByHour(DateTime.now().hour);
   }
 
   @override

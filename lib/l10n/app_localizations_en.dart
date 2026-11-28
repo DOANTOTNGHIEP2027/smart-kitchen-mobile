@@ -1596,6 +1596,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String mealLogSectionSummary(int count, int kcal) {
+    return '$count items · $kcal kcal';
+  }
+
+  @override
   String get mealLogTitle => 'Meal Log';
 
   @override
