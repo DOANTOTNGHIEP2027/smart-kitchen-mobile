@@ -8,8 +8,10 @@ import 'meal_log_mapper.dart';
 
 /// 3 endpoint thật của meal-log #77 (`POST/GET /cooking/...`).
 ///
-/// `memberId`/`sessionId` KHÔNG BAO GIỜ được gửi từ feature này (Decision
-/// D6/D7) — luôn resolve về caller ở BE.
+/// `memberId`/`sessionId` KHÔNG BAO GIỜ được gửi khi GHI log (Decision
+/// D6/D7) — BE resolve về caller. Khi ĐỌC (`listLogs`) thì khác: thiếu
+/// `memberId` BE trả log của CẢ HỘ, nên caller phải truyền id của chính mình
+/// (meal-log-screen.md §7).
 abstract interface class MealLogApi {
   Future<MealLogEntry> logMeal({
     required String description,
@@ -17,9 +19,12 @@ abstract interface class MealLogApi {
   });
 
   /// `from`/`to` là date (bid ngày) — đúng convention GET /cooking/logs.
+  /// `memberId == null` → log của cả hộ.
   Future<List<MealLogEntry>> listLogs({
     required DateTime from,
     required DateTime to,
+    String? memberId,
+    int size = 50,
   });
 
   /// `caloriesKcal == null` => body rỗng (chấp nhận đúng như AI ước tính) —
@@ -56,20 +61,24 @@ class MealLogApiImpl implements MealLogApi {
   Future<List<MealLogEntry>> listLogs({
     required DateTime from,
     required DateTime to,
+    String? memberId,
+    int size = 50,
   }) {
     return _unwrap(() async {
       final res = await _client.dio.get<Map<String, dynamic>>(
         '/api/v1/cooking/logs',
         queryParameters: <String, dynamic>{
+          if (memberId != null && memberId.isNotEmpty) 'memberId': memberId,
           'from': _isoDate(from),
           'to': _isoDate(to),
-          'size': 50,
+          'size': size,
         },
       );
       final envelopeData = _data(res.data);
       final items = envelopeData['items'] as List? ?? const <Object?>[];
       // Chỉ đọc `items` — bỏ qua page/size/totalElements/totalPages (không có
-      // UI phân trang trong pass này; `size: 50` đủ cho quy mô 1 ngày).
+      // UI phân trang trong pass này; `size` mặc định 50 đủ cho 1 ngày, tuần
+      // dùng 100 = max của contract).
       return items
           .map((e) => MealLogMapper.fromJson(
                 e as Map<String, dynamic>,

@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -180,11 +179,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-    int startDay,
-    int startMonth,
-    int endDay,
-    int endMonth,
-  ) {
+      int startDay, int startMonth, int endDay, int endMonth) {
     return 'Week $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -689,11 +684,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-    String required,
-    String available,
-    String shortfall,
-    String unit,
-  ) {
+      String required, String available, String shortfall, String unit) {
     return 'Need $required · Have $available · Short $shortfall $unit';
   }
 
@@ -3579,7 +3570,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionTitle => 'Weekly nutrition';
 
   @override
-  String get nutritionWeekThisTitle => 'This week\'s nutrition';
+  String get nutritionWeekThisTitle => 'What you ate this week';
 
   @override
   String get nutritionComplianceExcellent => 'Excellent';
@@ -3602,7 +3593,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get nutritionScoreLabel => 'Plan compliance score';
+  String get nutritionScoreLabel => 'Calorie goal score';
 
   @override
   String get nutritionAllergenNotChecked =>
@@ -3640,8 +3631,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dishes have no nutrition data',
-      one: '1 dish has no nutrition data',
+      other: '$count meals have no calories or await confirmation',
+      one: '1 meal has no calories or awaits confirmation',
     );
     return '$_temp0';
   }
@@ -3657,7 +3648,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get nutritionNoMealsDay => 'No dishes';
+  String get nutritionNoMealsDay => 'No meals logged';
 
   @override
   String get nutritionProtein => 'Protein';
@@ -3686,13 +3677,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionDayOnTarget => 'On target';
 
   @override
-  String get nutritionEmpty => 'No dishes confirmed this week yet';
+  String get nutritionEmpty => 'You haven\'t logged any meals this week';
 
   @override
   String get nutritionLoadFailed => 'Couldn\'t load nutrition data';
 
   @override
-  String get nutritionViewMealPlan => 'View weekly plan';
+  String get nutritionOpenMealLog => 'Open meal log';
 
   @override
   String get nutritionDishNoData => 'no data';
@@ -4338,13 +4329,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insightsMacroTooltip(
-    int day,
-    int month,
-    String p,
-    String c,
-    String f,
-    String total,
-  ) {
+      int day, int month, String p, String c, String f, String total) {
     return 'Day $day/$month\n• Protein: $p g\n• Carbs: $c g\n• Fat: $f g\nTotal: $total g';
   }
 

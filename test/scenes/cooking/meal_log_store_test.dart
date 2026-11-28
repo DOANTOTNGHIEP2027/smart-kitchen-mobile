@@ -28,6 +28,7 @@ class FakeMealLogApi implements MealLogApi {
 
   Object? listLogsError;
   Object? logMealError;
+  String? lastListMemberId;
   Object? confirmError;
 
   @override
@@ -44,7 +45,10 @@ class FakeMealLogApi implements MealLogApi {
   Future<List<MealLogEntry>> listLogs({
     required DateTime from,
     required DateTime to,
+    String? memberId,
+    int size = 50,
   }) async {
+    lastListMemberId = memberId;
     if (listLogsError != null) throw listLogsError!;
     if (onListLogs != null) return onListLogs!();
     throw UnimplementedError();
@@ -142,6 +146,12 @@ void main() {
   }
 
   group('loadToday reconciliation', () {
+    test('chỉ tải log của chính mình — gửi memberId = currentUser.id', () async {
+      await seed(const <MealLogEntry>[]);
+      // Thiếu memberId thì BE trả log cả hộ → "Đã nạp" cộng cả nhà.
+      expect(api.lastListMemberId, 'self-actor');
+    });
+
     test('Fix HIGH-1: GET lỗi + previous Success → giữ TOÀN BỘ previous.data',
         () async {
       await seed([

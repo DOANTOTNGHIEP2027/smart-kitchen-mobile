@@ -22,6 +22,7 @@ abstract class AppRoutes {
   static const String profile = '/profile';
   static const String profileEdit = '/profile/edit';
   static const String profileHealth = '/profile/health';
+  static const String profileNutrition = '/profile/nutrition';
   static const String profileAllergens = '/profile/allergens';
   static const String family = '/family';
   static const String memberDetail = '/family/:userId';

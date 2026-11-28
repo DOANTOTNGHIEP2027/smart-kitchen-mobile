@@ -8,7 +8,7 @@ import '../../../utils/l10n_x.dart';
 import '../domain/nutrition_models.dart';
 import 'nutrition_format.dart';
 
-/// Doughnut tỷ lệ protein/carbs/fat cả tuần, theo gram (§9.4, D19, D22).
+/// Doughnut tỷ lệ năng lượng protein/carbs/fat cả tuần (§9.4, D22).
 /// Legend luôn có tên + % nên màu không phải tín hiệu duy nhất.
 class MacroDoughnutChart extends StatelessWidget {
   const MacroDoughnutChart({super.key, required this.summary});

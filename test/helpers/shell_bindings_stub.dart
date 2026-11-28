@@ -8,6 +8,8 @@ import 'package:smart_kitchen_mobile/data/db/app_database.dart';
 import 'package:smart_kitchen_mobile/data/db/read_cache_dao.dart';
 import 'package:smart_kitchen_mobile/data/realtime/realtime_service.dart';
 import 'package:smart_kitchen_mobile/domain/auth/auth_refresh_usecase.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/data/meal_log_api.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/domain/meal_log_entry.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/data/inventory_api.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/data/inventory_dao.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/domain/inventory_item.dart';
@@ -79,6 +81,9 @@ void registerShellStubBindings({
   if (!Get.isRegistered<HealthApi>()) {
     Get.put<HealthApi>(_MockHealthApi(), permanent: true);
   }
+  if (!Get.isRegistered<MealLogApi>()) {
+    Get.put<MealLogApi>(_MockMealLogApi(), permanent: true);
+  }
   if (!Get.isRegistered<ProfileApi>()) {
     Get.put<ProfileApi>(_MockProfileApi(), permanent: true);
   }
@@ -132,6 +137,17 @@ class _MockMealAttendanceApi extends Mock implements MealAttendanceApi {
 }
 
 class _MockHealthApi extends Mock implements HealthApi {}
+
+class _MockMealLogApi extends Mock implements MealLogApi {
+  @override
+  Future<List<MealLogEntry>> listLogs({
+    required DateTime from,
+    required DateTime to,
+    String? memberId,
+    int size = 50,
+  }) async =>
+      <MealLogEntry>[];
+}
 
 class _MockRecipeCatalogApi extends Mock implements RecipeCatalogApi {
   @override

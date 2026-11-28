@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -178,11 +177,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-    int startDay,
-    int startMonth,
-    int endDay,
-    int endMonth,
-  ) {
+      int startDay, int startMonth, int endDay, int endMonth) {
     return 'Tuần $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -683,11 +678,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-    String required,
-    String available,
-    String shortfall,
-    String unit,
-  ) {
+      String required, String available, String shortfall, String unit) {
     return 'Cần $required · Có $available · Thiếu $shortfall $unit';
   }
 
@@ -3535,7 +3526,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get nutritionTitle => 'Dinh dưỡng tuần';
 
   @override
-  String get nutritionWeekThisTitle => 'Dinh dưỡng tuần này';
+  String get nutritionWeekThisTitle => 'Bạn đã ăn tuần này';
 
   @override
   String get nutritionComplianceExcellent => 'Xuất sắc';
@@ -3558,7 +3549,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get nutritionScoreLabel => 'Điểm tuân thủ kế hoạch';
+  String get nutritionScoreLabel => 'Điểm bám mục tiêu calo';
 
   @override
   String get nutritionAllergenNotChecked =>
@@ -3593,7 +3584,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String nutritionMissingData(int count) {
-    return '$count món chưa có dữ liệu dinh dưỡng';
+    return '$count bữa chưa có calo hoặc chờ xác nhận';
   }
 
   @override
@@ -3607,7 +3598,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get nutritionNoMealsDay => 'Chưa có món nào';
+  String get nutritionNoMealsDay => 'Chưa ghi bữa nào';
 
   @override
   String get nutritionProtein => 'Chất đạm';
@@ -3636,13 +3627,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get nutritionDayOnTarget => 'Đạt';
 
   @override
-  String get nutritionEmpty => 'Chưa có món nào được xác nhận trong tuần này';
+  String get nutritionEmpty => 'Tuần này bạn chưa ghi bữa ăn nào';
 
   @override
   String get nutritionLoadFailed => 'Không tải được dữ liệu dinh dưỡng';
 
   @override
-  String get nutritionViewMealPlan => 'Xem kế hoạch tuần';
+  String get nutritionOpenMealLog => 'Mở nhật ký bữa ăn';
 
   @override
   String get nutritionDishNoData => 'chưa có dữ liệu';
@@ -4262,13 +4253,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String insightsMacroTooltip(
-    int day,
-    int month,
-    String p,
-    String c,
-    String f,
-    String total,
-  ) {
+      int day, int month, String p, String c, String f, String total) {
     return 'Ngày $day/$month\n• Đạm: $p g\n• Tinh bột: $c g\n• Béo: $f g\nTổng: $total g';
   }
 

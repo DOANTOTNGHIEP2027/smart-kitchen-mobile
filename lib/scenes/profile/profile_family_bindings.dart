@@ -12,9 +12,9 @@ import 'stores/family_store.dart';
 import 'stores/profile_store.dart';
 import 'domain/health_profile.dart';
 import '../../widgets/states/view_state.dart';
-import '../mealplan/data/meal_plan_api.dart';
+import '../../data/network/dio_client.dart';
+import '../cooking/data/meal_log_api.dart';
 import '../nutrition/stores/nutrition_store.dart';
-import '../recipe/data/recipe_catalog_api.dart';
 
 class ProfileBinding extends Bindings {
   @override
@@ -43,11 +43,19 @@ class ProfileBinding extends Bindings {
 void registerProfileNutrition() {
   if (!Get.isRegistered<NutritionStore>(tag: NutritionStore.profileTag)) {
     Get.lazyPut<NutritionStore>(
-      () => NutritionStore(
-        recipeApi: Get.find<RecipeCatalogApi>(),
-        healthApi: Get.find<HealthApi>(),
-        mealPlanApi: Get.find<MealPlanApi>(),
-      )..followTarget(profileTargetSource()),
+      () {
+        // MealLogApi thường chỉ đăng ký khi vào route nấu ăn — Profile cần sớm hơn.
+        if (!Get.isRegistered<MealLogApi>()) {
+          Get.put<MealLogApi>(MealLogApiImpl(Get.find<DioClient>()),
+              permanent: true);
+        }
+        final session = Get.find<SessionStore>();
+        return NutritionStore(
+          mealLogApi: Get.find<MealLogApi>(),
+          healthApi: Get.find<HealthApi>(),
+          selfId: () => session.currentUser?.id,
+        )..followTarget(profileTargetSource());
+      },
       tag: NutritionStore.profileTag,
       fenix: true,
     );

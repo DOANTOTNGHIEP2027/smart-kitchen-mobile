@@ -118,7 +118,7 @@ import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/nutrition_format.d
     as _i56;
 import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/nutrition_summary_widget.dart'
     as _i57;
-import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/profile_nutrition_section.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/nutrition_week_screen.dart'
     as _i58;
 import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/weekly_calorie_bar_chart.dart'
     as _i59;

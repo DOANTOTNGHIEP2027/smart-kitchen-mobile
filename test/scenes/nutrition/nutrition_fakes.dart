@@ -1,41 +1,84 @@
 import 'dart:async';
 
-import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
-import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_plan_slot.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/data/meal_log_api.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/domain/meal_log_entry.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/domain/meal_nutrition_macros.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/domain/meal_type.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/allergen.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/health_profile.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/domain/member_health_summary.dart';
-import 'package:smart_kitchen_mobile/scenes/recipe/domain/recipe.dart';
 
-import '../recipe/fake_recipe_catalog_api.dart';
+const String selfId = 'u1';
 
-/// Fake recipe API cho nutrition: map `recipeId → nutrition`, có thể treo
-/// (Completer) hoặc ném lỗi từng recipe.
-class NutritionRecipeApi extends FakeRecipeCatalogApi {
-  NutritionRecipeApi(this.nutrition) {
-    onGetById = (id) async {
-      final pending = hold[id];
-      if (pending != null) await pending.future;
-      final error = errors[id];
-      if (error != null) throw error;
-      return withNutrition(id, nutrition[id]);
-    };
+/// Fake nhật ký: trả [logs], ghi lại tham số của lần gọi cuối; có thể treo
+/// (Completer) hoặc ném lỗi.
+class NutritionMealLogApi implements MealLogApi {
+  NutritionMealLogApi([List<MealLogEntry>? logs]) : logs = logs ?? <MealLogEntry>[];
+
+  List<MealLogEntry> logs;
+  Object? error;
+  Completer<void>? hold;
+  int calls = 0;
+  DateTime? lastFrom;
+  DateTime? lastTo;
+  String? lastMemberId;
+  int? lastSize;
+
+  @override
+  Future<List<MealLogEntry>> listLogs({
+    required DateTime from,
+    required DateTime to,
+    String? memberId,
+    int size = 50,
+  }) async {
+    calls++;
+    lastFrom = from;
+    lastTo = to;
+    lastMemberId = memberId;
+    lastSize = size;
+    final pending = hold;
+    if (pending != null) await pending.future;
+    if (error != null) throw error!;
+    return List<MealLogEntry>.of(logs);
   }
 
-  final Map<String, RecipeNutrition?> nutrition;
-  final Map<String, Object> errors = <String, Object>{};
-  final Map<String, Completer<void>> hold = <String, Completer<void>>{};
+  @override
+  Future<MealLogEntry> logMeal({required String description, String? imageBase64}) =>
+      throw UnimplementedError();
+  @override
+  Future<MealLogEntry> confirm({required String id, double? caloriesKcal}) =>
+      throw UnimplementedError();
 }
 
-Recipe withNutrition(String id, RecipeNutrition? n) => Recipe(
-      id: id,
-      name: 'Món $id',
-      dietTypes: const <String>[],
-      source: 'MANUAL',
-      createdAt: fixedTime,
-      updatedAt: fixedTime,
-      nutrition: n,
+int _seq = 0;
+
+/// 1 log đã lưu ở BE. [at] là giờ máy; mặc định bữa trưa.
+MealLogEntry logAt(
+  DateTime at, {
+  double? kcal = 500,
+  double p = 20,
+  double c = 50,
+  double f = 10,
+  MealType meal = MealType.lunch,
+  String text = 'Phở',
+  String memberId = selfId,
+  bool requiresConfirmation = false,
+  bool confirmedByUser = false,
+  MealEntryStatus status = MealEntryStatus.saved,
+}) =>
+    MealLogEntry(
+      id: 'log-${_seq++}',
+      householdId: 'h1',
+      memberId: memberId,
+      loggedBy: memberId,
+      description: meal.composeDescription(text),
+      caloriesKcal: kcal,
+      nutrition: MealNutritionMacros(proteinG: p, carbsG: c, fatG: f),
+      requiresConfirmation: requiresConfirmation,
+      confirmedByUser: confirmedByUser,
+      loggedAt: at,
+      status: status,
     );
 
 class NutritionHealthApi implements HealthApi {
@@ -49,7 +92,7 @@ class NutritionHealthApi implements HealthApi {
   Future<HealthProfile> getMyHealthProfile() async {
     calls++;
     if (error != null) throw error!;
-    return HealthProfile(userId: 'u1', targetDailyCalories: target, allergens: const <Allergen>[]);
+    return HealthProfile(userId: selfId, targetDailyCalories: target, allergens: const <Allergen>[]);
   }
 
   @override
@@ -61,34 +104,3 @@ class NutritionHealthApi implements HealthApi {
   @override
   Future<MemberHealthSummary> getMemberHealthSummary(String userId) => throw UnimplementedError();
 }
-
-RecipeNutrition kcal(double calories, {double p = 20, double c = 50, double f = 10}) =>
-    RecipeNutrition(calories: calories, proteinG: p, carbsG: c, fatG: f);
-
-MealPlanSlot plannedSlot(DateTime weekStart, int day, String mealTime, List<String> recipeIds,
-        {DishUiStatus status = DishUiStatus.confirmed}) =>
-    MealPlanSlot(
-      id: 'slot-$day-$mealTime',
-      slotDate: weekStart.add(Duration(days: day)),
-      mealTime: mealTime,
-      dishes: <MealPlanDish>[
-        for (var i = 0; i < recipeIds.length; i++)
-          MealPlanDish(
-            id: 'dish-$day-$mealTime-$i',
-            slotId: 'slot-$day-$mealTime',
-            sortOrder: i,
-            status: status,
-            recipe: AssignedRecipeSummary(
-                recipeId: recipeIds[i], recipeName: 'Món ${recipeIds[i]}', source: 'MANUAL'),
-          ),
-      ],
-    );
-
-MealPlanDto planOf(DateTime weekStart, List<MealPlanSlot> slots) => MealPlanDto(
-      id: 'plan-1',
-      householdId: 'h1',
-      weekStart: weekStart,
-      slots: slots,
-    );
-
-BusinessException notFound() => BusinessException('ERR_RECIPE_NOT_FOUND', 'not found');
