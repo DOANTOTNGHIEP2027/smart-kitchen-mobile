@@ -231,12 +231,16 @@ class _WeekCalendar extends StatelessWidget {
                 itemBuilder: (_, index) {
                   final date =
                       store.currentWeekStart.add(Duration(days: index));
-                  return _CalendarDay(
-                    date: date,
-                    label: _weekdayLabels(context)[index],
-                    selected: _isSameDay(date, selectedDate),
-                    hasDishes: _hasDishes(store, date),
-                    onTap: () => onDateSelected(date),
+                  // itemBuilder chạy ngoài Observer cha → cần Observer riêng để
+                  // chấm "có món" cập nhật khi thêm/xoá món.
+                  return Observer(
+                    builder: (_) => _CalendarDay(
+                      date: date,
+                      label: _weekdayLabels(context)[index],
+                      selected: _isSameDay(date, selectedDate),
+                      hasDishes: _hasDishes(store, date),
+                      onTap: () => onDateSelected(date),
+                    ),
                   );
                 },
               ),
@@ -532,8 +536,12 @@ class _MealScheduleCard extends StatelessWidget {
   final DateTime date;
   final _MealPeriod period;
 
+  // Observer riêng: Observer của _WeekCalendar không theo dõi được các lần đọc
+  // store trong build() của widget con, nên trước đây xoá món không vẽ lại thẻ.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => Observer(builder: _buildCard);
+
+  Widget _buildCard(BuildContext context) {
     final slot = store.slots[_WeekCalendar._slotKey(date, period.wireValue)];
     final slotId = slot?.id;
     final canEdit = slotId?.isNotEmpty == true;
@@ -659,14 +667,7 @@ class _MealScheduleCard extends StatelessWidget {
                     ),
                   )
                 else
-                  ...slot.dishes.map(
-                    (dish) => _ScheduledDishCard(
-                      dish: dish,
-                      onDelete: store.isConfirmed
-                          ? null
-                          : () => store.removeDish(slotId!, dish.id),
-                    ),
-                  ),
+                  ...slot.dishes.map((dish) => _ScheduledDishCard(dish: dish)),
               ],
             ),
           ),
@@ -677,10 +678,9 @@ class _MealScheduleCard extends StatelessWidget {
 }
 
 class _ScheduledDishCard extends StatelessWidget {
-  const _ScheduledDishCard({required this.dish, required this.onDelete});
+  const _ScheduledDishCard({required this.dish});
 
   final MealPlanDish dish;
-  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -756,12 +756,6 @@ class _ScheduledDishCard extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          IconButton(
-            onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline_rounded, size: 20),
-            color: AppColors.error,
-            tooltip: context.l10n.mealplanDeleteDish,
           ),
         ],
       ),
