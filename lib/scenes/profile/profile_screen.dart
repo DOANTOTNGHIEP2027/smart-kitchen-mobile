@@ -21,7 +21,6 @@ import '../cooking/scenes/cooking_routes.dart';
 import '../insights/scenes/insights_routes.dart';
 import '../recap/scenes/recap_routes.dart';
 import '../shell/app_shell_store.dart';
-import '../nutrition/widgets/profile_nutrition_section.dart';
 import '../notifications/notifications_routes.dart';
 import '../../stores/notification_store.dart';
 import 'stores/profile_store.dart';
@@ -85,9 +84,6 @@ class ProfileScreen extends StatelessWidget {
                 onTap: () => Get.toNamed(AppRoutes.profileUpgrade),
               ),
             ],
-            // #64 — dinh dưỡng tuần hiện tại (nutrition-summary-widget.md §8.2).
-            const SizedBox(height: AppDimens.lg),
-            const ProfileNutritionSection(),
             const SizedBox(height: AppDimens.lg),
             // #48 — thông báo trong phiên + trạng thái quyền (fcm-notification-flow.md §8).
             if (Get.isRegistered<NotificationStore>()) ...<Widget>[
@@ -140,6 +136,17 @@ class ProfileScreen extends StatelessWidget {
               title: context.l10n.mealLogTitle,
               onPressed: () => Get.toNamed(CookingRoutes.mealLog),
             ),
+            // #64/#201 — dinh dưỡng tuần là 1 mục; bấm vào mới mở màn chi tiết.
+            if (session.householdId != null) ...<Widget>[
+              const SizedBox(height: AppDimens.sm),
+              _ProfileNavigationTile(
+                key: const ValueKey<String>('profile-nutrition'),
+                icon: Icons.restaurant_rounded,
+                iconColor: colors.success,
+                title: context.l10n.nutritionWeekThisTitle,
+                onPressed: () => Get.toNamed(AppRoutes.profileNutrition),
+              ),
+            ],
             const SizedBox(height: AppDimens.sm),
             _ProfileNavigationTile(
               icon: Icons.insights_rounded,

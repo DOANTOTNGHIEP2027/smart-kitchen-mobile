@@ -53,13 +53,13 @@ class MacroRatios {
     required this.fat,
   });
 
-  /// Phần trăm 0–100 theo GRAM (D19).
+  /// Phần trăm 0–100 theo NĂNG LƯỢNG (đạm/tinh bột 4 kcal/g, béo 9 kcal/g).
   final double protein;
   final double carbs;
   final double fat;
 }
 
-/// Tổng hợp dinh dưỡng 1 tuần kế hoạch (Thứ Hai → Chủ Nhật).
+/// Tổng hợp dinh dưỡng 1 tuần đã ăn của 1 người (Thứ Hai → Chủ Nhật).
 class NutritionWeekSummary {
   const NutritionWeekSummary({
     required this.weekStart,
@@ -102,14 +102,16 @@ class NutritionWeekSummary {
     return target * daysWithData;
   }
 
-  /// Tỷ lệ macro theo gram (D19); `null` khi tổng gram = 0.
+  /// Tỷ lệ năng lượng từ macro (thay D19 theo gram — gram làm béo trông nhỏ
+  /// dù 1 g béo gấp ~2,25 lần năng lượng); `null` khi chưa có macro.
   MacroRatios? get macroRatios {
-    final total = totalProtein + totalCarbs + totalFat;
+    final p = totalProtein * 4, c = totalCarbs * 4, f = totalFat * 9;
+    final total = p + c + f;
     if (total <= 0) return null;
     return MacroRatios(
-      protein: totalProtein / total * 100,
-      carbs: totalCarbs / total * 100,
-      fat: totalFat / total * 100,
+      protein: p / total * 100,
+      carbs: c / total * 100,
+      fat: f / total * 100,
     );
   }
 

@@ -57,6 +57,9 @@ void main() {
         GetPage<dynamic>(
             name: AppRoutes.login,
             page: () => const Scaffold(body: Text('login-page'))),
+        GetPage<dynamic>(
+            name: AppRoutes.profileNutrition,
+            page: () => const Scaffold(body: Text('nutrition-page'))),
       ],
     ));
     await tester.pumpAndSettle();
@@ -85,6 +88,30 @@ void main() {
     store.markAllRead();
     await tester.pump();
     expect(find.byKey(const ValueKey<String>('profile-tile-badge')), findsNothing);
+  });
+
+  testWidgets('#201 — dinh dưỡng tuần là 1 mục; bấm vào mới mở màn chi tiết',
+      (tester) async {
+    session.currentUser = const UserSummary(id: 'u1', fullName: 'Nguyen A');
+    session.applyHouseholdContext(householdId: 'h1', role: 'MEMBER');
+
+    await pumpScreen(tester);
+    final tile = find.byKey(const ValueKey<String>('profile-nutrition'));
+    expect(tile, findsOneWidget);
+    expect(find.text('Bạn đã ăn tuần này'), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('nutrition-summary')), findsNothing,
+        reason: 'nội dung chỉ hiện ở màn riêng');
+
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    expect(find.text('nutrition-page'), findsOneWidget);
+  });
+
+  testWidgets('#201 — chưa có household → không có mục dinh dưỡng tuần',
+      (tester) async {
+    session.currentUser = const UserSummary(id: 'u1', fullName: 'Nguyen A');
+    await pumpScreen(tester);
+    expect(find.byKey(const ValueKey<String>('profile-nutrition')), findsNothing);
   });
 
   testWidgets('P1 — hiện tên, email, nút Chỉnh sửa, lối vào l10n',

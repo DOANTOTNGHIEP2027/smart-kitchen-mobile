@@ -147,7 +147,10 @@ class MealLogStore {
     final today = now();
     final results = await Future.wait(<Future<Object?>>[
       _api
-          .listLogs(from: today, to: today)
+          .listLogs(
+              from: today,
+              to: today,
+              memberId: _sessionStore.currentUser?.id)
           .then<Object>((List<MealLogEntry> v) => v)
           .catchError((Object e) => e),
       _loadCalorieGoal(),

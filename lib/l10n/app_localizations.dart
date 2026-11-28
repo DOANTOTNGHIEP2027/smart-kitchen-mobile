@@ -63,7 +63,7 @@ import 'app_localizations_vi.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('vi'),
+    Locale('vi')
   ];
 
   /// Application name shown in the OS task switcher
@@ -427,11 +427,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Week {startDay}/{startMonth} – {endDay}/{endMonth}'**
   String mealPlanWeekRange(
-    int startDay,
-    int startMonth,
-    int endDay,
-    int endMonth,
-  );
+      int startDay, int startMonth, int endDay, int endMonth);
 
   /// No description provided for @mealPlanDaySchedule.
   ///
@@ -1368,11 +1364,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Need {required} · Have {available} · Short {shortfall} {unit}'**
   String cookingShortfallLine(
-    String required,
-    String available,
-    String shortfall,
-    String unit,
-  );
+      String required, String available, String shortfall, String unit);
 
   /// No description provided for @cookingShortfallNoDetail.
   ///
@@ -6345,7 +6337,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionWeekThisTitle.
   ///
   /// In en, this message translates to:
-  /// **'This week\'s nutrition'**
+  /// **'What you ate this week'**
   String get nutritionWeekThisTitle;
 
   /// No description provided for @nutritionComplianceExcellent.
@@ -6387,7 +6379,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionScoreLabel.
   ///
   /// In en, this message translates to:
-  /// **'Plan compliance score'**
+  /// **'Calorie goal score'**
   String get nutritionScoreLabel;
 
   /// No description provided for @nutritionAllergenNotChecked.
@@ -6441,7 +6433,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionMissingData.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 dish has no nutrition data} other{{count} dishes have no nutrition data}}'**
+  /// **'{count, plural, =1{1 meal has no calories or awaits confirmation} other{{count} meals have no calories or await confirmation}}'**
   String nutritionMissingData(int count);
 
   /// No description provided for @nutritionKcal.
@@ -6459,7 +6451,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionNoMealsDay.
   ///
   /// In en, this message translates to:
-  /// **'No dishes'**
+  /// **'No meals logged'**
   String get nutritionNoMealsDay;
 
   /// No description provided for @nutritionProtein.
@@ -6513,7 +6505,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No dishes confirmed this week yet'**
+  /// **'You haven\'t logged any meals this week'**
   String get nutritionEmpty;
 
   /// No description provided for @nutritionLoadFailed.
@@ -6522,11 +6514,11 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load nutrition data'**
   String get nutritionLoadFailed;
 
-  /// No description provided for @nutritionViewMealPlan.
+  /// No description provided for @nutritionOpenMealLog.
   ///
   /// In en, this message translates to:
-  /// **'View weekly plan'**
-  String get nutritionViewMealPlan;
+  /// **'Open meal log'**
+  String get nutritionOpenMealLog;
 
   /// No description provided for @nutritionDishNoData.
   ///
@@ -7577,13 +7569,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Day {day}/{month}\n• Protein: {p} g\n• Carbs: {c} g\n• Fat: {f} g\nTotal: {total} g'**
   String insightsMacroTooltip(
-    int day,
-    int month,
-    String p,
-    String c,
-    String f,
-    String total,
-  );
+      int day, int month, String p, String c, String f, String total);
 
   /// No description provided for @mealPlanNoSlotsForDay.
   ///
@@ -7889,9 +7875,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

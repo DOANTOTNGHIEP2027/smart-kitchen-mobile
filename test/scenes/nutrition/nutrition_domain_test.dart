@@ -1,35 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_plan_slot.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/domain/meal_log_entry.dart';
+import 'package:smart_kitchen_mobile/scenes/cooking/domain/meal_type.dart';
 import 'package:smart_kitchen_mobile/scenes/nutrition/domain/compliance.dart';
 import 'package:smart_kitchen_mobile/scenes/nutrition/domain/weekly_nutrition_calculator.dart';
-import 'package:smart_kitchen_mobile/scenes/recipe/domain/recipe.dart';
+
+import 'nutrition_fakes.dart';
 
 final DateTime monday = DateTime(2026, 11, 16);
 
-MealPlanSlot slot(
-  int dayOffset,
-  String mealTime,
-  List<(String recipeId, DishUiStatus status)> dishes,
-) =>
-    MealPlanSlot(
-      id: 's-$dayOffset-$mealTime',
-      slotDate: monday.add(Duration(days: dayOffset)),
-      mealTime: mealTime,
-      dishes: <MealPlanDish>[
-        for (var i = 0; i < dishes.length; i++)
-          MealPlanDish(
-            id: 'd-$dayOffset-$mealTime-$i',
-            slotId: 's-$dayOffset-$mealTime',
-            sortOrder: i,
-            status: dishes[i].$2,
-            recipe: AssignedRecipeSummary(
-              recipeId: dishes[i].$1,
-              recipeName: 'Món ${dishes[i].$1}',
-              source: 'MANUAL',
-            ),
-          ),
-      ],
-    );
+DateTime at(int day, {int hour = 12, int minute = 0}) =>
+    monday.add(Duration(days: day, hours: hour, minutes: minute));
 
 List<({bool hasData, double calories, bool hasMissingData})> days(List<double?> kcal,
         {bool missing = false}) =>
@@ -94,123 +74,127 @@ void main() {
     expect(levelForScore(null), ComplianceLevel.unknown);
   });
 
-  group('computeWeeklyNutrition', () {
-    const full = RecipeNutrition(calories: 500, proteinG: 30, carbsG: 60, fatG: 15);
-
-    test('luôn 7 ngày; chỉ tính món CONFIRMED; nhiều món/slot cộng dồn', () {
-      final summary = computeWeeklyNutrition(
+  group('computeWeeklyNutritionFromLogs', () {
+    test('luôn 7 ngày; cộng mọi log đã tính của mình trong ngày', () {
+      final summary = computeWeeklyNutritionFromLogs(
         weekStart: monday,
-        slots: <MealPlanSlot>[
-          slot(0, 'LUNCH', <(String, DishUiStatus)>[
-            ('r1', DishUiStatus.confirmed),
-            ('r2', DishUiStatus.confirmed),
-            ('r3', DishUiStatus.suggested),
-          ]),
+        logs: <MealLogEntry>[
+          logAt(at(0, hour: 7), kcal: 400, meal: MealType.breakfast),
+          logAt(at(0, hour: 12), kcal: 600),
+          logAt(at(0, hour: 15), kcal: 200, meal: MealType.snack),
         ],
-        nutritionByRecipe: <String, RecipeNutrition?>{'r1': full, 'r2': full, 'r3': full},
+        memberId: selfId,
         targetDailyCalories: 2000,
       );
       expect(summary.days, hasLength(7));
-      expect(summary.days.first.calories, 1000);
-      expect(summary.days.first.plannedDishCount, 2);
+      expect(summary.days.first.calories, 1200);
+      expect(summary.days.first.plannedDishCount, 3);
+      expect(summary.days.first.lines.map((l) => l.mealTime),
+          <String>['BREAKFAST', 'LUNCH', 'SNACK']);
+      expect(summary.days.first.lines.first.recipeName, 'Phở',
+          reason: 'bỏ tiền tố [Bữa sáng]');
       expect(summary.days[1].hasPlannedMeals, isFalse);
       expect(summary.totalProtein, 60);
     });
 
-    test('món thiếu dữ liệu không cộng, được đếm; chỉ có calories thì macro = 0', () {
-      final summary = computeWeeklyNutrition(
+    test('KHÔNG cộng log của thành viên khác (nguồn trả cả hộ)', () {
+      final summary = computeWeeklyNutritionFromLogs(
         weekStart: monday,
-        slots: <MealPlanSlot>[
-          slot(0, 'DINNER', <(String, DishUiStatus)>[('missing', DishUiStatus.confirmed), ('kcalOnly', DishUiStatus.confirmed)]),
-          slot(1, 'DINNER', <(String, DishUiStatus)>[('missing', DishUiStatus.confirmed)]),
+        logs: <MealLogEntry>[
+          logAt(at(0), kcal: 500),
+          logAt(at(0), kcal: 900, memberId: 'other'),
         ],
-        nutritionByRecipe: <String, RecipeNutrition?>{
-          'missing': null,
-          'kcalOnly': const RecipeNutrition(calories: 300),
-        },
+        memberId: selfId,
+        targetDailyCalories: 2000,
+      );
+      expect(summary.totalCalories, 500);
+      expect(summary.plannedDishCount, 1);
+    });
+
+    test('log chờ xác nhận / chưa có calo: không cộng, đếm là thiếu dữ liệu', () {
+      final summary = computeWeeklyNutritionFromLogs(
+        weekStart: monday,
+        logs: <MealLogEntry>[
+          logAt(at(0), kcal: 300),
+          logAt(at(0), kcal: 800, requiresConfirmation: true),
+          logAt(at(1), kcal: null),
+          logAt(at(2), kcal: 700, requiresConfirmation: true, confirmedByUser: true),
+        ],
+        memberId: selfId,
         targetDailyCalories: 2000,
       );
       expect(summary.days[0].calories, 300);
       expect(summary.days[0].missingNutritionCount, 1);
-      expect(summary.days[0].hasNutritionData, isTrue);
-      expect(summary.days[1].hasNutritionData, isFalse, reason: 'chỉ có món thiếu dữ liệu');
+      expect(summary.days[1].hasNutritionData, isFalse);
+      expect(summary.days[2].calories, 700, reason: 'đã xác nhận thì tính');
       expect(summary.missingNutritionCount, 2);
-      expect(summary.macroRatios, isNull);
-      expect(summary.daysWithData, 1);
-      expect(summary.avgDailyCalories, 300);
+      expect(summary.daysWithData, 2);
+      expect(summary.avgDailyCalories, 500);
     });
 
-    test('slot ngoài tuần bị bỏ; bữa không chuẩn vẫn được tính, xếp sau', () {
-      final summary = computeWeeklyNutrition(
+    test('log đang gửi/lỗi bị bỏ; log ngoài tuần bị bỏ; biên Thứ Hai 00:00 / CN 23:59', () {
+      final summary = computeWeeklyNutritionFromLogs(
         weekStart: monday,
-        slots: <MealPlanSlot>[
-          slot(-1, 'LUNCH', <(String, DishUiStatus)>[('r1', DishUiStatus.confirmed)]),
-          slot(7, 'LUNCH', <(String, DishUiStatus)>[('r1', DishUiStatus.confirmed)]),
-          slot(2, 'SNACK', <(String, DishUiStatus)>[('r1', DishUiStatus.confirmed)]),
-          slot(2, 'BREAKFAST', <(String, DishUiStatus)>[('r2', DishUiStatus.confirmed)]),
+        logs: <MealLogEntry>[
+          logAt(at(0, hour: 0), kcal: 100),
+          logAt(at(6, hour: 23, minute: 59), kcal: 200),
+          logAt(at(-1, hour: 23, minute: 59), kcal: 999),
+          logAt(at(7, hour: 0), kcal: 999),
+          logAt(at(3), kcal: 999, status: MealEntryStatus.pending),
+          logAt(at(3), kcal: 999, status: MealEntryStatus.failed),
         ],
-        nutritionByRecipe: <String, RecipeNutrition?>{'r1': full, 'r2': full},
+        memberId: selfId,
         targetDailyCalories: 2000,
       );
-      expect(summary.plannedDishCount, 2);
-      expect(summary.days[2].lines.map((l) => l.mealTime), <String>['BREAKFAST', 'SNACK']);
-      expect(confirmedRecipeIds(<MealPlanSlot>[
-        slot(-1, 'LUNCH', <(String, DishUiStatus)>[('outside', DishUiStatus.confirmed)]),
-        slot(0, 'LUNCH', <(String, DishUiStatus)>[('in', DishUiStatus.confirmed), ('sug', DishUiStatus.suggested)]),
-      ], monday), <String>{'in'});
+      expect(summary.days[0].calories, 100);
+      expect(summary.days[6].calories, 200);
+      expect(summary.totalCalories, 300);
     });
 
-    test('macroRatios theo gram — ví dụ AC 100/200/50 → 28.6% / 57.1%', () {
-      final summary = computeWeeklyNutrition(
+    test('loggedAt dạng UTC được đổi về giờ máy trước khi xếp ngày', () {
+      final local = at(2, hour: 12);
+      final summary = computeWeeklyNutritionFromLogs(
         weekStart: monday,
-        slots: <MealPlanSlot>[slot(0, 'LUNCH', <(String, DishUiStatus)>[('m', DishUiStatus.confirmed)])],
-        nutritionByRecipe: <String, RecipeNutrition?>{
-          'm': const RecipeNutrition(calories: 1650, proteinG: 100, carbsG: 200, fatG: 50),
-        },
+        logs: <MealLogEntry>[logAt(local.toUtc(), kcal: 400)],
+        memberId: selfId,
+        targetDailyCalories: 2000,
+      );
+      expect(summary.days[2].calories, 400);
+      expect(summary.targetForDaysWithData, 2000);
+    });
+
+    test('macroRatios theo năng lượng — 100/200/50 g → 400/800/450 kcal → 24.2% / 48.5% / 27.3%', () {
+      final summary = computeWeeklyNutritionFromLogs(
+        weekStart: monday,
+        logs: <MealLogEntry>[logAt(at(0), kcal: 1650, p: 100, c: 200, f: 50)],
+        memberId: selfId,
         targetDailyCalories: 2000,
       );
       final ratios = summary.macroRatios!;
-      expect(ratios.protein, closeTo(28.6, 0.05));
-      expect(ratios.carbs, closeTo(57.1, 0.05));
-      expect(ratios.fat, closeTo(14.3, 0.05));
+      expect(ratios.protein, closeTo(24.2, 0.05));
+      expect(ratios.carbs, closeTo(48.5, 0.05));
+      expect(ratios.fat, closeTo(27.3, 0.05));
     });
 
-    test('score + level gắn vào summary; tuần trống → unknown', () {
-      final empty = computeWeeklyNutrition(
+    test('tuần trống → score null, level unknown', () {
+      final empty = computeWeeklyNutritionFromLogs(
         weekStart: monday,
-        slots: const <MealPlanSlot>[],
-        nutritionByRecipe: const <String, RecipeNutrition?>{},
+        logs: const <MealLogEntry>[],
+        memberId: selfId,
         targetDailyCalories: 2000,
       );
       expect(empty.complianceScore, isNull);
       expect(empty.level, ComplianceLevel.unknown);
       expect(empty.avgDailyCalories, isNull);
       expect(empty.targetForDaysWithData, isNull);
+      expect(empty.macroRatios, isNull);
     });
   });
 
-  test('slotDate dạng UTC nửa đêm (như mapper) vẫn vào đúng ngày', () {
-    final utcMonday = DateTime.utc(2026, 11, 16);
-    final summary = computeWeeklyNutrition(
-      weekStart: utcMonday,
-      slots: <MealPlanSlot>[
-        MealPlanSlot(
-          id: 's',
-          slotDate: DateTime.utc(2026, 11, 22),
-          mealTime: 'DINNER',
-          dishes: const <MealPlanDish>[
-            MealPlanDish(
-              id: 'd', slotId: 's', sortOrder: 0, status: DishUiStatus.confirmed,
-              recipe: AssignedRecipeSummary(recipeId: 'r', recipeName: 'R', source: 'AI'),
-            ),
-          ],
-        ),
-      ],
-      nutritionByRecipe: const <String, RecipeNutrition?>{'r': RecipeNutrition(calories: 400)},
-      targetDailyCalories: 2000,
-    );
-    expect(summary.days[6].calories, 400, reason: 'Chủ Nhật');
-    expect(summary.targetForDaysWithData, 2000);
+  test('mondayOf: mọi ngày trong tuần về Thứ Hai 00:00', () {
+    expect(mondayOf(DateTime(2026, 11, 16, 8)), monday);
+    expect(mondayOf(DateTime(2026, 11, 22, 23, 59)), monday);
+    expect(mondayOf(DateTime(2026, 11, 23)), DateTime(2026, 11, 23));
   });
 
   test('dayTargetStatus', () {

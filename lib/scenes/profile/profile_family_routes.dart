@@ -10,6 +10,7 @@ import 'edit_profile_screen.dart';
 import 'family_screen.dart';
 import 'health_profile_screen.dart';
 import 'member_detail_screen.dart';
+import '../nutrition/nutrition_week_screen.dart';
 import 'profile_family_bindings.dart';
 import 'profile_screen.dart';
 import 'tier_upgrade_screen.dart';
@@ -18,6 +19,7 @@ abstract class ProfileFamilyRoutes {
   static const String profile = '/profile';
   static const String profileEdit = '/profile/edit';
   static const String profileHealth = '/profile/health';
+  static const String profileNutrition = '/profile/nutrition';
   static const String profileAllergens = '/profile/allergens';
   static const String family = '/family';
   /// Phải khai báo TRƯỚC `/family/:userId` để không bị khớp nhầm thành userId.
@@ -46,6 +48,12 @@ final List<GetPage<dynamic>> profileFamilyPages = <GetPage<dynamic>>[
   GetPage<void>(
     name: ProfileFamilyRoutes.profileHealth,
     page: () => const HealthProfileScreen(),
+    binding: ProfileBinding(),
+    middlewares: <GetMiddleware>[AuthGuard()],
+  ),
+  GetPage<void>(
+    name: ProfileFamilyRoutes.profileNutrition,
+    page: () => const NutritionWeekScreen(),
     binding: ProfileBinding(),
     middlewares: <GetMiddleware>[AuthGuard()],
   ),

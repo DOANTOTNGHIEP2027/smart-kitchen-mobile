@@ -19,22 +19,22 @@ import 'weekly_calorie_overview_card.dart';
 
 /// Widget tổng hợp dinh dưỡng tuần (nutrition-summary-widget.md §1, §10).
 ///
-/// [compact] (Profile) ẩn breakdown và hiện link [onViewMealPlan].
+/// [showTitle] = false khi màn chứa đã có tiêu đề trên AppBar.
 class NutritionSummaryWidget extends StatelessWidget {
   const NutritionSummaryWidget({
     super.key,
     required this.store,
-    this.compact = false,
+    this.showTitle = true,
     this.onSetTarget,
-    this.onViewMealPlan,
+    this.onOpenMealLog,
   });
 
   final NutritionStore store;
-  final bool compact;
+  final bool showTitle;
 
   /// Mở màn đặt mục tiêu; widget gọi `store.refreshTarget()` khi quay về.
   final Future<void> Function()? onSetTarget;
-  final VoidCallback? onViewMealPlan;
+  final VoidCallback? onOpenMealLog;
 
   @override
   Widget build(BuildContext context) {
@@ -43,14 +43,16 @@ class NutritionSummaryWidget extends StatelessWidget {
       key: const ValueKey<String>('nutrition-summary'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Text(
-          compact ? l10n.nutritionWeekThisTitle : l10n.nutritionTitle,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: AppDimens.sm),
+        if (showTitle) ...<Widget>[
+          Text(
+            l10n.nutritionWeekThisTitle,
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: AppDimens.sm),
+        ],
         Observer(
           builder: (_) => switch (store.state) {
             LoadingState<NutritionWeekSummary>() => const NutritionSkeleton(),
@@ -70,11 +72,11 @@ class NutritionSummaryWidget extends StatelessWidget {
               _content(context, data),
           },
         ),
-        if (compact && onViewMealPlan != null)
+        if (onOpenMealLog != null)
           TextButton(
-            key: const ValueKey<String>('nutrition-view-meal-plan'),
-            onPressed: onViewMealPlan,
-            child: Text(l10n.nutritionViewMealPlan),
+            key: const ValueKey<String>('nutrition-open-meal-log'),
+            onPressed: onOpenMealLog,
+            child: Text(l10n.nutritionOpenMealLog),
           ),
       ],
     );
@@ -106,10 +108,8 @@ class NutritionSummaryWidget extends StatelessWidget {
         AppCard(child: WeeklyCalorieBarChart(summary: data)),
         gap,
         AppCard(child: MacroDoughnutChart(summary: data)),
-        if (!compact) ...<Widget>[
-          gap,
-          AppCard(child: DailyBreakdownList(summary: data)),
-        ],
+        gap,
+        AppCard(child: DailyBreakdownList(summary: data)),
       ],
     );
   }
