@@ -4438,6 +4438,120 @@ abstract class AppLocalizations {
   /// **'Weekly menu'**
   String get shoppingWeeklyMenuBadge;
 
+  /// No description provided for @shoppingItemActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Item options'**
+  String get shoppingItemActions;
+
+  /// No description provided for @shoppingEditItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit item'**
+  String get shoppingEditItem;
+
+  /// No description provided for @shoppingDeleteItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete item'**
+  String get shoppingDeleteItem;
+
+  /// No description provided for @shoppingEditSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit item to buy'**
+  String get shoppingEditSheetTitle;
+
+  /// No description provided for @shoppingDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove item from the list?'**
+  String get shoppingDeleteConfirmTitle;
+
+  /// No description provided for @shoppingDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" will be removed from the household shopping list.'**
+  String shoppingDeleteConfirmMessage(String name);
+
+  /// No description provided for @shoppingItemDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed \"{name}\"'**
+  String shoppingItemDeleted(String name);
+
+  /// No description provided for @shoppingItemUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Item updated'**
+  String get shoppingItemUpdated;
+
+  /// No description provided for @shoppingItemActionOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to be online and synced to edit or delete this item'**
+  String get shoppingItemActionOffline;
+
+  /// No description provided for @shoppingDeleteForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the owner or the meal plan creator can delete auto-generated items'**
+  String get shoppingDeleteForbidden;
+
+  /// No description provided for @shoppingItemChangedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'This item was changed on another device — the list was reloaded, please try again'**
+  String get shoppingItemChangedElsewhere;
+
+  /// No description provided for @mealPlanFinishAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'Done adding dishes'**
+  String get mealPlanFinishAdding;
+
+  /// No description provided for @mealPlanFinishTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update shopping list'**
+  String get mealPlanFinishTitle;
+
+  /// No description provided for @mealPlanFinishAddHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Will add (missing):'**
+  String get mealPlanFinishAddHeader;
+
+  /// No description provided for @mealPlanFinishRemoveHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Will remove (dish removed, not bought yet):'**
+  String get mealPlanFinishRemoveHeader;
+
+  /// No description provided for @mealPlanFinishConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Update shopping'**
+  String get mealPlanFinishConfirm;
+
+  /// No description provided for @mealPlanFinishInSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping list already matches this meal'**
+  String get mealPlanFinishInSync;
+
+  /// No description provided for @mealPlanFinishDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping: {added} added, {removed} removed'**
+  String mealPlanFinishDone(int added, int removed);
+
+  /// No description provided for @mealPlanFinishLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the shopping list — check your connection and try again'**
+  String get mealPlanFinishLoadFailed;
+
   /// No description provided for @shoppingAddSheetTitle.
   ///
   /// In en, this message translates to:

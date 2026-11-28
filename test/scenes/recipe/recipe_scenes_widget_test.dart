@@ -210,10 +210,11 @@ void main() {
   group('RecipeDetailScene', () {
     late RecipeDetailStore store;
 
-    Future<void> pumpDetail(WidgetTester tester) async {
+    Future<void> pumpDetail(WidgetTester tester, {bool viewOnly = false}) async {
       store = RecipeDetailStore('r1', api);
       Get.put<RecipeDetailStore>(store, tag: 'r1');
-      await tester.pumpAppWidget(const RecipeDetailScene(recipeId: 'r1'),
+      await tester.pumpAppWidget(
+          RecipeDetailScene(recipeId: 'r1', viewOnly: viewOnly),
           wrapInScaffold: false);
     }
 
@@ -277,6 +278,21 @@ void main() {
       await tester.scrollUntilVisible(find.text('Sơ chế cá'), 200);
       await tester.scrollUntilVisible(find.text(l10n.recipeStartCooking), 200);
       expect(find.text(l10n.recipeNoSteps), findsNothing);
+    });
+
+    testWidgets('chỉ xem (từ thực đơn buổi): có nội dung, KHÔNG nút nấu/yêu thích/chấm sao',
+        (tester) async {
+      api.onGetById = (_) async => fullRecipe;
+      await pumpDetail(tester, viewOnly: true);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Canh chua cá'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Sơ chế cá'), 200);
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.recipeStartCooking), findsNothing);
+      expect(find.text(l10n.recipeYourRating), findsNothing);
+      expect(find.byIcon(Icons.favorite_border_rounded), findsNothing);
+      expect(find.byIcon(Icons.favorite_rounded), findsNothing);
     });
 
     testWidgets('success không có bước → thông báo recipeNoSteps, không có nút nấu',

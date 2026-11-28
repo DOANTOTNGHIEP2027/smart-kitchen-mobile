@@ -271,7 +271,7 @@ void main() {
       await _settle(tester, frames: 3);
     }
 
-    testWidgets('thứ tự: dị ứng → thiếu nguyên liệu → xác nhận mới tạo + gán',
+    testWidgets('thứ tự: dị ứng → xác nhận mới tạo + gán, KHÔNG hỏi đồ thiếu',
         (tester) async {
       final store = await pumpEditor(tester);
       api.onRecipeCheck = (_, __, ___) async => check();
@@ -287,16 +287,10 @@ void main() {
 
       await tester.tap(
           find.byKey(const ValueKey<String>('allergen-conflict-continue')));
-      await _settle(tester, frames: 2);
-      // Bước 2: hỏi nguyên liệu thiếu, vẫn chưa tạo món.
-      expect(find.byKey(const ValueKey<String>('missing-choice-dialog')),
-          findsOneWidget);
-      expect(find.text(_l10n.mealPlanMissingAddWithShopping), findsOneWidget);
-      expect(api.calls, <String>['recipeCheck:s:r9']);
-
-      await tester
-          .tap(find.byKey(const ValueKey<String>('missing-choice-add-only')));
       await _settle(tester, frames: 3);
+      // Đồ thiếu gom lại khi bấm "Hoàn thành thêm món" — không hỏi ở đây.
+      expect(find.byKey(const ValueKey<String>('missing-choice-dialog')),
+          findsNothing);
       expect(api.calls, <String>[
         'recipeCheck:s:r9',
         'addDish:s',
@@ -305,29 +299,19 @@ void main() {
       expect(store.slots['s']!.dishes.single.recipe?.recipeId, 'r9');
     });
 
-    for (final step in <String>['allergy', 'missing']) {
-      testWidgets('huỷ ở bước $step ⇒ không tạo/gán/xoá món nào',
-          (tester) async {
-        final store = await pumpEditor(tester);
-        api.onRecipeCheck = (_, __, ___) async => check();
+    testWidgets('huỷ ở bước dị ứng ⇒ không tạo/gán/xoá món nào',
+        (tester) async {
+      final store = await pumpEditor(tester);
+      api.onRecipeCheck = (_, __, ___) async => check();
 
-        await pickRecipeForNewDish(tester);
-        if (step == 'missing') {
-          await tester.tap(
-              find.byKey(const ValueKey<String>('allergen-conflict-continue')));
-          await _settle(tester, frames: 2);
-          await tester
-              .tap(find.byKey(const ValueKey<String>('missing-choice-cancel')));
-        } else {
-          await tester.tap(
-              find.byKey(const ValueKey<String>('allergen-conflict-cancel')));
-        }
-        await _settle(tester, frames: 2);
+      await pickRecipeForNewDish(tester);
+      await tester
+          .tap(find.byKey(const ValueKey<String>('allergen-conflict-cancel')));
+      await _settle(tester, frames: 2);
 
-        expect(api.calls, <String>['recipeCheck:s:r9']);
-        expect(store.slots['s']!.dishes, isEmpty);
-      });
-    }
+      expect(api.calls, <String>['recipeCheck:s:r9']);
+      expect(store.slots['s']!.dishes, isEmpty);
+    });
 
     testWidgets('đóng sheet chọn cách thêm ⇒ không tạo món rỗng',
         (tester) async {
@@ -339,7 +323,7 @@ void main() {
       expect(api.calls, isEmpty);
     });
 
-    testWidgets('đổi công thức món đang có, huỷ ⇒ giữ công thức cũ',
+    testWidgets('đổi công thức món đang có, huỷ ở bước dị ứng ⇒ giữ công thức cũ',
         (tester) async {
       final store = await pumpEditor(tester, dishes: const <MealPlanDish>[
         MealPlanDish(
@@ -349,18 +333,15 @@ void main() {
             status: DishUiStatus.confirmed,
             recipe: _oldRecipe),
       ]);
-      api.onRecipeCheck = (_, __, ___) async => check(allergy: false);
+      api.onRecipeCheck = (_, __, ___) async => check();
 
       await tester.tap(find.text(_l10n.mealPlanChooseRecipe));
       await _settle(tester, frames: 3);
       await tester
           .tap(find.byKey(const ValueKey<String>('${kRecipeCardKeyPrefix}r9')));
       await _settle(tester, frames: 3);
-      // Không có dị ứng ⇒ vào thẳng bước nguyên liệu thiếu.
-      expect(find.byKey(const ValueKey<String>('allergen-conflict-dialog')),
-          findsNothing);
       await tester
-          .tap(find.byKey(const ValueKey<String>('missing-choice-cancel')));
+          .tap(find.byKey(const ValueKey<String>('allergen-conflict-cancel')));
       await _settle(tester, frames: 2);
 
       expect(api.calls, <String>['recipeCheck:s:r9']);

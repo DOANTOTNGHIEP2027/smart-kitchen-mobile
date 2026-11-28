@@ -50,6 +50,10 @@ class _Dao extends ShoppingDao {
 }
 
 class _Api implements ShoppingApi {
+  @override
+  Future<ShoppingItem> update(String id, int version, String householdId, {required String name, required double quantity, required String unit}) => throw UnimplementedError();
+  @override
+  Future<void> delete(String id, int version) => throw UnimplementedError();
   List<ShoppingItem> serverItems = [];
   @override
   Future<List<ShoppingItem>> list(String householdId) async => serverItems;

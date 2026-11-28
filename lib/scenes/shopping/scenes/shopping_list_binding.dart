@@ -5,6 +5,7 @@ import '../../../data/db/read_cache_dao.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
 import '../../../stores/realtime_store.dart';
+import '../../mealplan/domain/meal_shopping_sync.dart';
 import '../../mealplan/domain/shopping_list_sink.dart';
 import '../../profile/api/family_api.dart';
 import '../../profile/api/health_api.dart';
@@ -49,6 +50,12 @@ class ShoppingListBinding extends Bindings {
     if (!Get.isRegistered<ShoppingListSink>()) {
       Get.put<ShoppingListSink>(
         ShoppingListSinkImpl(Get.find<ShoppingStore>()),
+        permanent: true,
+      );
+    }
+    if (!Get.isRegistered<MealShoppingSync>()) {
+      Get.put<MealShoppingSync>(
+        MealShoppingSyncImpl(Get.find<ShoppingStore>()),
         permanent: true,
       );
     }

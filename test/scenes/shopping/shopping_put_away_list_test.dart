@@ -47,6 +47,10 @@ ShoppingItem _item(String id, String name,
     );
 
 class _ShoppingApi implements ShoppingApi {
+  @override
+  Future<ShoppingItem> update(String id, int version, String householdId, {required String name, required double quantity, required String unit}) => throw UnimplementedError();
+  @override
+  Future<void> delete(String id, int version) => throw UnimplementedError();
   List<ShoppingItem> rows = [];
   bool offline = false;
 

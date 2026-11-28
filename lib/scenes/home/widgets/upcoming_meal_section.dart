@@ -10,17 +10,17 @@ import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_state_view.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../cooking/widgets/dish_cooked_dialog.dart';
-import '../../cooking/widgets/start_cooking_guard.dart';
 import '../../mealplan/domain/meal_plan_slot.dart';
 import '../../mealplan/widgets/dish_cooked_badge.dart';
+import '../../recipe/scenes/recipe_routes.dart';
 import '../../shell/app_shell_store.dart';
 import '../domain/upcoming_meal.dart';
 import '../stores/home_store.dart';
 
 /// Khung "Bữa sắp tới" ở Trang chủ: slot gần nhất + danh sách món.
 ///
-/// Bấm món → còn nguyên liệu chưa mua thì popup dẫn sang Đi chợ, không thì
-/// vào màn nấu từng bước. Hoàn thành nấu thì BE trừ kho
+/// Bấm món → chi tiết món; nút "Bắt đầu nấu" ở đó mới vào màn nấu từng bước
+/// (còn nguyên liệu chưa mua thì popup dẫn sang Đi chợ). Hoàn thành nấu thì BE trừ kho
 /// (`POST /cooking/sessions/{id}/complete`).
 class UpcomingMealSection extends StatefulWidget {
   const UpcomingMealSection({super.key});
@@ -85,8 +85,8 @@ class _UpcomingMealSectionState extends State<UpcomingMealSection> {
         ],
       );
 
-  /// Popup món chưa mua (dẫn sang Đi chợ) hoặc vào màn nấu — dùng chung
-  /// guard với thẻ món trong thực đơn. Hoàn thành nấu thì BE trừ kho.
+  /// Mở chi tiết món; nút "Bắt đầu nấu" ở đó mới vào màn nấu (qua guard
+  /// món chưa mua, gắn phiên với món thực đơn). Hoàn thành nấu thì BE trừ kho.
   Future<void> _onDishTap(UpcomingMeal meal, MealPlanDish dish) async {
     final recipeId = dish.recipe?.recipeId;
     if (recipeId == null || _opening) return;
@@ -97,11 +97,11 @@ class _UpcomingMealSectionState extends State<UpcomingMealSection> {
         await showDishCookedDialog();
         return;
       }
-      await startCookingWithShoppingCheck(
+      await Get.toNamed<void>(recipeDetailPath(
         recipeId,
         mealPlanDishId: dish.id,
         cookedAt: dish.cookedAt,
-      );
+      ));
     } finally {
       _opening = false;
     }

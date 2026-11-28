@@ -16,6 +16,7 @@ import '../domain/meal_plan_slot.dart';
 import '../domain/recipe_check.dart';
 import '../../recipe/domain/recipe.dart';
 import '../../recipe/scenes/recipe_list_scene.dart';
+import '../../recipe/scenes/recipe_routes.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/meal_composition_store.dart';
 import '../widgets/allergen_conflict_dialog.dart';
@@ -46,6 +47,7 @@ class MealSlotEditorScene extends StatefulWidget {
 
 class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
   bool _isAdding = false;
+  bool _isFinishing = false;
   ReactionDisposer? _lockedReaction;
 
   @override
@@ -180,8 +182,8 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
   /// công thức của món đang có.
   ///
   /// Thứ tự (#201 R3): chọn công thức → kiểm tra (chỉ đọc) → cảnh báo dị ứng
-  /// → hỏi nguyên liệu thiếu → CHỈ KHI xác nhận mới tạo/gán món. Huỷ/back ở
-  /// bất kỳ bước nào: không tạo món mới, món đang có giữ công thức cũ.
+  /// → tạo/gán món. Huỷ/back ở bất kỳ bước nào: không tạo món mới, món đang có
+  /// giữ công thức cũ. Đồ thiếu chỉ đẩy khi bấm "Hoàn thành thêm món".
   Future<void> _chooseManual(String? dishId) async {
     final recipe = await Get.to<Recipe>(
       () =>
@@ -216,14 +218,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
       if (!proceed || !mounted) return;
     }
 
-    // 3. Thiếu nguyên liệu → "Thêm món + đi chợ" / "Chỉ thêm món" / "Huỷ".
-    final missing =
-        check?.missingIngredients ?? await missingForRecipe(recipe.id);
-    if (!mounted) return;
-    final choice = await askMissingIngredientsChoice(context, missing: missing);
-    if (choice == MissingIngredientsChoice.cancel || !mounted) return;
-
-    // 4. Đã xác nhận — giờ mới tạo món (nếu thêm mới) rồi gán công thức.
+    // 3. Tạo món (nếu thêm mới) rồi gán công thức.
     var targetId = dishId;
     MealPlanDish? created;
     if (targetId == null) {
@@ -247,10 +242,22 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
             discardCreated: true);
       }
       _showActionError(l10n.mealplanUnableToChoose);
-      return;
     }
-    if (choice == MissingIngredientsChoice.addWithShopping) {
-      await addMissingToShopping(l10n, missing);
+  }
+
+  Future<void> _finish(MealPlanSlot slot) async {
+    if (_isFinishing) return;
+    setState(() => _isFinishing = true);
+    try {
+      final done = await finishSlotShopping(
+        context,
+        slotDate: slot.slotDate,
+        mealTime: slot.mealTime,
+        dishes: slot.dishes,
+      );
+      if (done && mounted) Get.back<void>();
+    } finally {
+      if (mounted) setState(() => _isFinishing = false);
     }
   }
 
@@ -337,6 +344,14 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                           onInsights: store.isSlotLocked(widget.slotId)
                               ? null
                               : () => _openCandidates(dish),
+                          onOpen: dish.recipe == null
+                              ? null
+                              : () => Get.toNamed<void>(
+                                    recipeDetailPath(
+                                      dish.recipe!.recipeId,
+                                      viewOnly: true,
+                                    ),
+                                  ),
                           onChoose: readOnly
                               ? null
                               : () => _openSuggestions(dish.id),
@@ -387,6 +402,35 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                 ),
                 onPressed: _isAdding || readOnly ? null : _addDish,
               ),
+              if (!readOnly && slot != null) ...<Widget>[
+                const SizedBox(height: AppDimens.sm),
+                OutlinedButton.icon(
+                  key: const ValueKey<String>('slot-finish-adding'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryDark,
+                    side: const BorderSide(color: AppColors.primary),
+                    padding: const EdgeInsets.symmetric(vertical: AppDimens.md),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppDimens.radiusCard),
+                    ),
+                  ),
+                  icon: _isFinishing
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.check_circle_outline_rounded),
+                  label: Text(
+                    context.l10n.mealPlanFinishAdding,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                  onPressed: _isFinishing ? null : () => _finish(slot),
+                ),
+              ],
             ],
           );
         },
@@ -424,6 +468,7 @@ class _EditableDishCard extends StatelessWidget {
     required this.onDelete,
     required this.onInsights,
     this.onChoose,
+    this.onOpen,
     this.composed,
   });
 
@@ -434,6 +479,9 @@ class _EditableDishCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onInsights;
   final VoidCallback? onChoose;
+
+  /// Bấm thân thẻ → chi tiết món (chỉ xem).
+  final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -461,85 +509,90 @@ class _EditableDishCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: <Widget>[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppDimens.radiusSm),
-            child: RecipeCoverImage(
-              recipeId: recipe.recipeId,
-              recipeName: recipe.recipeName,
-              width: 64,
-              height: 64,
+      child: InkWell(
+        key: ValueKey<String>('slot-dish-open-${dish.id}'),
+        onTap: onOpen,
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        child: Row(
+          children: <Widget>[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+              child: RecipeCoverImage(
+                recipeId: recipe.recipeId,
+                recipeName: recipe.recipeName,
+                width: 64,
+                height: 64,
+              ),
             ),
-          ),
-          const SizedBox(width: AppDimens.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  recipe.recipeName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                if (info != null) ...<Widget>[
-                  const SizedBox(height: AppDimens.xs),
+            const SizedBox(width: AppDimens.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
                   Text(
-                    <String>[
-                      if (roleText != null) roleText,
-                      context.l10n.mealComposeServingsShort(
-                        _formatServings(info.servings),
-                      ),
-                    ].join(' · '),
-                    key: ValueKey<String>('slot-dish-role-${dish.id}'),
-                    maxLines: 1,
+                    recipe.recipeName,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  if (info != null) ...<Widget>[
+                    const SizedBox(height: AppDimens.xs),
+                    Text(
+                      <String>[
+                        if (roleText != null) roleText,
+                        context.l10n.mealComposeServingsShort(
+                          _formatServings(info.servings),
+                        ),
+                      ].join(' · '),
+                      key: ValueKey<String>('slot-dish-role-${dish.id}'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.primaryDark,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                  if (minutes != null) ...<Widget>[
+                    const SizedBox(height: AppDimens.xs),
+                    Row(
+                      children: <Widget>[
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 14,
                           color: AppColors.primaryDark,
-                          fontWeight: FontWeight.w600,
                         ),
-                  ),
-                ],
-                if (minutes != null) ...<Widget>[
-                  const SizedBox(height: AppDimens.xs),
-                  Row(
-                    children: <Widget>[
-                      const Icon(
-                        Icons.access_time_rounded,
-                        size: 14,
-                        color: AppColors.primaryDark,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          context.l10n.homeRecipeMinutes(minutes),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: AppColors.textSecondary),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            context.l10n.homeRecipeMinutes(minutes),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: AppColors.textSecondary),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          _InsightsButton(onPressed: onInsights),
-          IconButton(
-            onPressed: onDelete,
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.delete_outline_rounded),
-            color: AppColors.error,
-            tooltip: context.l10n.mealplanDeleteDish,
-          ),
-        ],
+            _InsightsButton(onPressed: onInsights),
+            IconButton(
+              onPressed: onDelete,
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.delete_outline_rounded),
+              color: AppColors.error,
+              tooltip: context.l10n.mealplanDeleteDish,
+            ),
+          ],
+        ),
       ),
     );
   }

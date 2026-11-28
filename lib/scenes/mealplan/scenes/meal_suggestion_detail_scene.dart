@@ -9,7 +9,6 @@ import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
-import '../domain/meal_suggestion.dart';
 import '../domain/shopping_list_sink.dart';
 import '../../recipe/domain/recipe.dart';
 import '../../recipe/scenes/recipe_list_scene.dart';
@@ -18,7 +17,6 @@ import '../../shell/app_shell_store.dart';
 import '../../../routing/app_routes.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/suggestion_store.dart';
-import '../widgets/missing_ingredients_prompt.dart';
 import '../widgets/suggestion_card.dart';
 import '../../../widgets/feedback/app_toast.dart';
 
@@ -187,12 +185,10 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
                           SuggestionActionStatus.accepting,
                       onPressed: _store.canWrite && !suggestion.isBlocked
                           ? () async {
-                              final missing = suggestion.missingIngredients;
+                              // Đồ thiếu đẩy khi "Hoàn thành thêm món" của bữa.
                               final ok = await _store.acceptSuggestion();
                               if (!ok || !context.mounted) return;
-                              await confirmAddMissingToShopping(context,
-                                  missing: missing, sink: _shoppingSink());
-                              if (mounted) Get.back<void>();
+                              Get.back<void>();
                             }
                           : null,
                     )),
@@ -279,23 +275,15 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
       }
       return;
     }
-    List<IngredientItem>? serverMissing;
     final ok = await mealPlan.assignManual(
       _store.slotId,
       _store.dishId,
       recipe.id,
       recipe.name,
-      onAssigned: (dish) => serverMissing = dish.missingIngredients,
     );
     if (!mounted) return;
     if (ok) {
-      final missing =
-          await missingForRecipe(recipe.id, fromServer: serverMissing);
-      if (context.mounted) {
-        await confirmAddMissingToShopping(context,
-            missing: missing, sink: _shoppingSink());
-      }
-      if (mounted) Get.back<void>();
+      Get.back<void>();
     } else if (context.mounted) {
       AppToast.show(context.l10n.mealplanUnableToChoose,
           type: AppToastType.error);

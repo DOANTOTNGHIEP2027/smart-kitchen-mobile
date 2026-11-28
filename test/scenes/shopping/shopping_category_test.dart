@@ -113,6 +113,10 @@ class _MemDao extends ShoppingCategoryDao {
 }
 
 class _NoApi implements ShoppingApi {
+  @override
+  Future<ShoppingItem> update(String id, int version, String householdId, {required String name, required double quantity, required String unit}) => throw UnimplementedError();
+  @override
+  Future<void> delete(String id, int version) => throw UnimplementedError();
   _NoApi([this.mirror]);
   /// sync() vẫn gọi list() — trả đúng dữ liệu trên máy để reconcile không xoá.
   final ShoppingDao? mirror;

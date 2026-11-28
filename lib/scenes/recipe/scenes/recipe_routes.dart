@@ -8,6 +8,24 @@ import '../stores/recipe_store.dart';
 import 'recipe_detail_scene.dart';
 import 'recipe_list_scene.dart';
 
+/// Đường dẫn chi tiết món. [viewOnly] → `?mode=view`: chỉ xem, không nấu.
+/// Mở từ 1 món thực đơn: [mealPlanDishId]/[cookedAt] đi tiếp vào guard nấu
+/// (gắn phiên với món, món đã nấu thì chỉ báo).
+String recipeDetailPath(
+  String recipeId, {
+  bool viewOnly = false,
+  String? mealPlanDishId,
+  DateTime? cookedAt,
+}) {
+  final path = AppRoutes.recipeDetail.replaceFirst(':id', recipeId);
+  final query = <String, String>{
+    if (viewOnly) 'mode': 'view',
+    if (mealPlanDishId != null) 'dishId': mealPlanDishId,
+    if (cookedAt != null) 'cookedAt': cookedAt.toUtc().toIso8601String(),
+  };
+  return query.isEmpty ? path : Uri(path: path, queryParameters: query).toString();
+}
+
 class RecipeListBinding extends Bindings {
   @override
   void dependencies() {
@@ -38,7 +56,12 @@ final List<GetPage<dynamic>> recipePages = <GetPage<dynamic>>[
   ),
   GetPage<void>(
     name: AppRoutes.recipeDetail,
-    page: () => RecipeDetailScene(recipeId: Get.parameters['id']!),
+    page: () => RecipeDetailScene(
+      recipeId: Get.parameters['id']!,
+      viewOnly: Get.parameters['mode'] == 'view',
+      mealPlanDishId: Get.parameters['dishId'],
+      cookedAt: DateTime.tryParse(Get.parameters['cookedAt'] ?? ''),
+    ),
     binding: RecipeDetailBinding(),
     middlewares: <GetMiddleware>[AuthGuard()],
   ),

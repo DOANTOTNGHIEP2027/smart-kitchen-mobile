@@ -136,12 +136,14 @@ class ShoppingStore with HouseholdScoped {
     });
   }
 
-  Future<bool> add(String name, double quantity, String unit, {String? category}) async {
+  /// [sourceDishId]: món thực đơn sinh ra dòng này — BE ghi `sourceRefs` để
+  /// "Hoàn thành thêm món" dọn được khi món bị xoá.
+  Future<bool> add(String name, double quantity, String unit, {String? category, String? sourceDishId}) async {
     final householdId = _session.householdId; if (householdId == null || name.trim().isEmpty || quantity <= 0) return false;
     final epoch = householdEpoch;
     runInAction(() => _rejectedCreateName.value = null);
     final now = DateTime.now();
-    final local = ShoppingItem(id: 'local-${now.microsecondsSinceEpoch}-${Random().nextInt(1 << 20)}', householdId: householdId, name: name.trim(), quantity: quantity, unit: unit, displayQuantity: quantity, displayUnit: unit, category: category?.trim().isEmpty == true ? null : category?.trim(), status: ShoppingItemStatus.pending, source: ShoppingItemSource.manual, version: 0, createdBy: _session.currentUser?.id, createdAt: now, updatedAt: now, syncStatus: ShoppingSyncStatus.pendingCreate);
+    final local = ShoppingItem(id: 'local-${now.microsecondsSinceEpoch}-${Random().nextInt(1 << 20)}', householdId: householdId, name: name.trim(), quantity: quantity, unit: unit, displayQuantity: quantity, displayUnit: unit, category: category?.trim().isEmpty == true ? null : category?.trim(), status: ShoppingItemStatus.pending, source: ShoppingItemSource.manual, version: 0, createdBy: _session.currentUser?.id, createdAt: now, updatedAt: now, syncStatus: ShoppingSyncStatus.pendingCreate, sourceRefs: sourceDishId == null ? const <ShoppingSourceRef>[] : <ShoppingSourceRef>[ShoppingSourceRef(dishId: sourceDishId)]);
     await _dao.upsert(local);
     if (!await _online()) { await _dao.enqueueCreate(local); return true; }
     // #55: id tạm là idempotency key — lần phát lại từ queue dùng đúng id này.
@@ -256,14 +258,66 @@ class ShoppingStore with HouseholdScoped {
 
   void clearAssignError() => runInAction(() => _assignError.value = null);
 
-  Future<void> sync() async {
-    final householdId = _session.householdId; if (householdId == null) return;
+  /// Sửa tên/số lượng/đơn vị — ONLINE-ONLY, KHÔNG optimistic, chỉ trên row đã
+  /// SYNCED (như [assign]). Trả `null` khi thành công, ngược lại lỗi để UI báo
+  /// (offline / row chưa đồng bộ → [NetworkException]).
+  Future<ApiException?> edit(ShoppingItem item, {required String name, required double quantity, required String unit}) async {
+    if (name.trim().isEmpty || quantity <= 0 || unit.trim().isEmpty) return null;
+    final epoch = householdEpoch;
+    final current = await _dao.getById(item.id);
+    if (current == null || current.syncStatus != ShoppingSyncStatus.synced || !await _online()) return NetworkException();
+    try {
+      final server = await _api.update(current.id, current.version, current.householdId, name: name.trim(), quantity: quantity, unit: unit.trim());
+      if (isStaleEpoch(epoch)) return null;
+      await _dao.upsert(server.copyWith(syncStatus: ShoppingSyncStatus.synced));
+      return null;
+    } on ApiException catch (e) {
+      if (isStaleEpoch(epoch)) return null;
+      if (_isGone(e)) { await _dao.delete(current.id); return e; }
+      if (e.code == 'ERR_SHOP_ITEM_VERSION_CONFLICT') await sync();
+      return e;
+    }
+  }
+
+  /// Xoá món — ONLINE-ONLY, chỉ trên row đã SYNCED. Món đã không còn ở server
+  /// (404) coi như đã xoá. Trả `null` khi thành công.
+  Future<ApiException?> remove(ShoppingItem item) async {
+    final epoch = householdEpoch;
+    final current = await _dao.getById(item.id);
+    if (current == null) return null;
+    if (current.syncStatus != ShoppingSyncStatus.synced || !await _online()) return NetworkException();
+    try {
+      await _api.delete(current.id, current.version);
+      if (!isStaleEpoch(epoch)) await _dao.delete(current.id);
+      return null;
+    } on ApiException catch (e) {
+      if (isStaleEpoch(epoch)) return null;
+      if (e.code == 'ERR_SHOP_ITEM_NOT_FOUND') { await _dao.delete(current.id); return null; }
+      if (e.code == 'ERR_SHOP_ITEM_VERSION_CONFLICT') await sync();
+      return e;
+    }
+  }
+
+  /// Đọc thẳng Drift — [items] đi qua stream nên có thể trễ ngay sau [sync].
+  Future<List<ShoppingItem>> snapshot() async {
+    final householdId = _session.householdId;
+    return householdId == null ? const <ShoppingItem>[] : _dao.getAll(householdId);
+  }
+
+  Future<void> sync() async { await _sync(); }
+
+  /// Như [sync] nhưng báo được thành/bại — luồng cần bản server mới nhất (vd.
+  /// "Hoàn thành thêm món" dọn dòng của món đã xoá) không được làm trên cache cũ.
+  Future<bool> refreshFromServer() async => await _online() && await _sync();
+
+  Future<bool> _sync() async {
+    final householdId = _session.householdId; if (householdId == null) return false;
     final epoch = householdEpoch;
     _syncsRunning++;
     try {
       await _drain(householdId);
       // Household đổi trong lúc drain → init() của household mới đã tự sync.
-      if (isStaleEpoch(epoch)) return;
+      if (isStaleEpoch(epoch)) return false;
       // Chụp row SYNCED TRƯỚC khi gửi list(): chỉ những row này mới được xoá
       // khi server không trả. Row thành SYNCED trong lúc list() bay (remap của
       // add() online / drain của sync khác) không có trong bản chụp server.
@@ -277,10 +331,11 @@ class ShoppingStore with HouseholdScoped {
       for (final local in await _dao.getAll(householdId)) {
         if (!local.isPendingSync && syncedBefore.contains(local.id) && !seen.contains(local.id)) await _dao.delete(local.id);
       }
+      return true;
     }
     // Household đổi trong lúc sync bay → lỗi của household cũ không được hiện ở household mới.
-    on ApiException catch (e) { _setError(e, epoch); }
-    catch (error) { _setLoadError(error, epoch); }
+    on ApiException catch (e) { _setError(e, epoch); return false; }
+    catch (error) { _setLoadError(error, epoch); return false; }
     finally { if (--_syncsRunning == 0) _assignedDuringSync.clear(); }
   }
   Future<void> _drain(String householdId) async {

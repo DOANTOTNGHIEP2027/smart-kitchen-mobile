@@ -27,6 +27,8 @@ part 'app_database.g.dart';
 ///   tạo bảng mới đã có cột này nên chỉ ALTER khi đi từ v4..v7.
 /// - 9: sửa DB v8 của bản local từng dùng cùng version nhưng thiếu
 ///   `in_inventory`; giữ nguyên dữ liệu và hàng đợi offline.
+/// - 10: thêm cột `source_refs` (món thực đơn sinh ra dòng đi chợ). DB đi từ
+///   <4 tạo bảng mới đã có cột này nên chỉ ALTER khi đi từ v4..v9.
 @DriftDatabase(tables: <Type>[
   ReadCacheEntries,
   InventoryItems,
@@ -42,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -84,6 +86,9 @@ class AppDatabase extends _$AppDatabase {
               await m.addColumn(
                   shoppingListItems, shoppingListItems.inInventory);
             }
+          }
+          if (from >= 4 && from < 10) {
+            await m.addColumn(shoppingListItems, shoppingListItems.sourceRefs);
           }
         },
       );

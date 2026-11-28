@@ -2,6 +2,45 @@ enum ShoppingItemStatus { pending, completed }
 enum ShoppingItemSource { manual, auto }
 enum ShoppingSyncStatus { synced, pendingCreate, pendingToggle }
 
+/// Món trong thực đơn đã sinh ra dòng đi chợ này (BE `sources`). Dòng tạo
+/// cục bộ chưa lên server chỉ biết [dishId].
+class ShoppingSourceRef {
+  const ShoppingSourceRef({
+    required this.dishId,
+    this.slotDate,
+    this.mealTime,
+    this.recipeName,
+  });
+
+  final String dishId;
+
+  /// `yyyy-MM-dd` như BE trả.
+  final String? slotDate;
+  final String? mealTime;
+
+  /// Công thức của món LÚC tạo dòng — món đổi công thức thì dòng cũ hết đúng.
+  final String? recipeName;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'dishId': dishId,
+        if (slotDate != null) 'slotDate': slotDate,
+        if (mealTime != null) 'mealTime': mealTime,
+        if (recipeName != null) 'recipeName': recipeName,
+      };
+
+  static ShoppingSourceRef? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final dishId = raw['dishId'];
+    if (dishId is! String || dishId.isEmpty) return null;
+    return ShoppingSourceRef(
+      dishId: dishId,
+      slotDate: raw['slotDate'] as String?,
+      mealTime: raw['mealTime'] as String?,
+      recipeName: raw['recipeName'] as String?,
+    );
+  }
+}
+
 class ShoppingItem {
   const ShoppingItem({
     required this.id,
@@ -23,6 +62,7 @@ class ShoppingItem {
     this.price,
     this.assignedTo,
     this.inInventory = false,
+    this.sourceRefs = const <ShoppingSourceRef>[],
   });
 
   final String id;
@@ -51,6 +91,9 @@ class ShoppingItem {
 
   /// #239: đã cất vào kho — status vẫn completed nhưng không toggle được nữa.
   final bool inInventory;
+
+  /// Món thực đơn sinh ra dòng này — rỗng = thêm tay / BE cũ.
+  final List<ShoppingSourceRef> sourceRefs;
 
   bool get isPendingSync => syncStatus != ShoppingSyncStatus.synced;
 
@@ -81,6 +124,7 @@ class ShoppingItem {
     double? price,
     String? assignedTo,
     bool? inInventory,
+    List<ShoppingSourceRef>? sourceRefs,
   }) => ShoppingItem(
     id: id ?? this.id,
     householdId: householdId,
@@ -101,5 +145,6 @@ class ShoppingItem {
     price: price ?? this.price,
     assignedTo: assignedTo ?? this.assignedTo,
     inInventory: inInventory ?? this.inInventory,
+    sourceRefs: sourceRefs ?? this.sourceRefs,
   );
 }

@@ -44,10 +44,14 @@ class RecipeDetailStore {
     }
   }
 
-  void startCooking() {
+  void startCooking({String? mealPlanDishId, DateTime? cookedAt}) {
     final current = recipe;
     if (current == null || !current.hasSteps) return;
-    startCookingWithShoppingCheck(current.id);
+    startCookingWithShoppingCheck(
+      current.id,
+      mealPlanDishId: mealPlanDishId,
+      cookedAt: cookedAt,
+    );
   }
 
   Future<void> toggleFavorite() async {

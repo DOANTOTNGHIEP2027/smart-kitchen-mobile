@@ -19,6 +19,12 @@ abstract interface class ShoppingApi {
   /// null` = BỎ GIAO: key `assignedTo` VẪN PHẢI có mặt với `null` — BE đọc
   /// JsonNode, vắng key = giữ nguyên (Guard #14).
   Future<ShoppingItem> assign(String id, int version, String householdId, {required String? assigneeId});
+
+  /// `PATCH /items/{id}` — sửa tên/số lượng/đơn vị; `quantity` + `unit` luôn đi cặp (OAS).
+  Future<ShoppingItem> update(String id, int version, String householdId, {required String name, required double quantity, required String unit});
+
+  /// `DELETE /items/{id}` — body `{version}` bắt buộc (OAS v2.0.0).
+  Future<void> delete(String id, int version);
 }
 
 class ShoppingApiImpl implements ShoppingApi {
@@ -58,6 +64,22 @@ class ShoppingApiImpl implements ShoppingApi {
       'assignedTo': assigneeId,
     });
     return shoppingItemFromJson(_data(response.data), householdId);
+  });
+
+  @override
+  Future<ShoppingItem> update(String id, int version, String householdId, {required String name, required double quantity, required String unit}) => _unwrap(() async {
+    final response = await _client.dio.patch<Map<String, dynamic>>('/api/v1/shopping/items/$id', data: <String, dynamic>{
+      'version': version,
+      'name': name,
+      'quantity': quantity,
+      'unit': unit,
+    });
+    return shoppingItemFromJson(_data(response.data), householdId);
+  });
+
+  @override
+  Future<void> delete(String id, int version) => _unwrap(() async {
+    await _client.dio.delete<Map<String, dynamic>>('/api/v1/shopping/items/$id', data: <String, dynamic>{'version': version});
   });
 
   Map<String, dynamic> _data(Map<String, dynamic>? raw) {

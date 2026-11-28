@@ -16,9 +16,22 @@ import '../stores/recipe_detail_store.dart';
 import '../../../utils/unit_label.dart';
 
 class RecipeDetailScene extends StatefulWidget {
-  const RecipeDetailScene({super.key, required this.recipeId});
+  const RecipeDetailScene({
+    super.key,
+    required this.recipeId,
+    this.viewOnly = false,
+    this.mealPlanDishId,
+    this.cookedAt,
+  });
 
   final String recipeId;
+
+  /// Chỉ xem (mở từ thực đơn buổi): ẩn yêu thích, đánh giá và nút nấu.
+  final bool viewOnly;
+
+  /// Mở từ 1 món thực đơn — chuyển tiếp cho guard nấu.
+  final String? mealPlanDishId;
+  final DateTime? cookedAt;
 
   @override
   State<RecipeDetailScene> createState() => _RecipeDetailSceneState();
@@ -39,26 +52,27 @@ class _RecipeDetailSceneState extends State<RecipeDetailScene> {
         builder: (_) => AppScaffold(
           title: context.l10n.homeRecipeDetailTitle,
           actions: <Widget>[
-            IconButton(
-              tooltip: context.l10n.recipesFavorites,
-              onPressed: _store.recipe == null || _store.isMutatingFavorite
-                  ? null
-                  : _store.toggleFavorite,
-              icon: _store.isMutatingFavorite
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(
-                      _store.recipe?.favorite.myFavorite == true
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                      color: _store.recipe?.favorite.myFavorite == true
-                          ? AppColors.error
-                          : null,
-                    ),
-            ),
+            if (!widget.viewOnly)
+              IconButton(
+                tooltip: context.l10n.recipesFavorites,
+                onPressed: _store.recipe == null || _store.isMutatingFavorite
+                    ? null
+                    : _store.toggleFavorite,
+                icon: _store.isMutatingFavorite
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        _store.recipe?.favorite.myFavorite == true
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color: _store.recipe?.favorite.myFavorite == true
+                            ? AppColors.error
+                            : null,
+                      ),
+              ),
           ],
           body: AppStateView<Recipe>(
             state: _store.state,
@@ -66,6 +80,11 @@ class _RecipeDetailSceneState extends State<RecipeDetailScene> {
             successBuilder: (context, recipe) => _RecipeDetailBody(
               recipe: recipe,
               store: _store,
+              viewOnly: widget.viewOnly,
+              onStartCooking: () => _store.startCooking(
+                mealPlanDishId: widget.mealPlanDishId,
+                cookedAt: widget.cookedAt,
+              ),
             ),
           ),
         ),
@@ -73,10 +92,17 @@ class _RecipeDetailSceneState extends State<RecipeDetailScene> {
 }
 
 class _RecipeDetailBody extends StatelessWidget {
-  const _RecipeDetailBody({required this.recipe, required this.store});
+  const _RecipeDetailBody({
+    required this.recipe,
+    required this.store,
+    required this.viewOnly,
+    required this.onStartCooking,
+  });
 
   final Recipe recipe;
   final RecipeDetailStore store;
+  final bool viewOnly;
+  final VoidCallback onStartCooking;
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -106,14 +132,18 @@ class _RecipeDetailBody extends StatelessWidget {
           const SizedBox(height: AppDimens.lg),
           _SectionTitle(title: context.l10n.recipeSteps),
           _Steps(steps: recipe.steps),
-          const SizedBox(height: AppDimens.lg),
-          _RatingCard(recipe: recipe, store: store),
+          if (!viewOnly) ...<Widget>[
+            const SizedBox(height: AppDimens.lg),
+            _RatingCard(recipe: recipe, store: store),
+          ],
           const SizedBox(height: AppDimens.xl),
-          if (recipe.hasSteps)
+          if (viewOnly)
+            const SizedBox.shrink()
+          else if (recipe.hasSteps)
             AppButton(
               label: context.l10n.recipeStartCooking,
               icon: Icons.restaurant_rounded,
-              onPressed: store.startCooking,
+              onPressed: onStartCooking,
             )
           else
             _NoStepsNotice(message: context.l10n.recipeNoSteps),

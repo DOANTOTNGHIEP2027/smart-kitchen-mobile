@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_kitchen_mobile/data/db/app_database.dart';
 import 'package:smart_kitchen_mobile/scenes/shopping/data/shopping_dao.dart';
+import 'package:smart_kitchen_mobile/scenes/shopping/domain/shopping_item.dart';
 
 AppDatabase legacyDatabase(
     {required bool hasInventoryColumn, int version = 8}) {
@@ -68,11 +69,17 @@ void main() {
       await dao.upsert(old.copyWith(inInventory: !hasColumn));
       expect((await dao.getById('old'))!.inInventory, !hasColumn);
       final version = await db.customSelect('PRAGMA user_version').getSingle();
-      expect(version.read<int>('user_version'), 9);
+      expect(version.read<int>('user_version'), 10);
       final columns =
           await db.customSelect('PRAGMA table_info(shopping_list_items)').get();
       expect(columns.where((c) => c.read<String>('name') == 'in_inventory'),
           hasLength(1));
+      // v10: cột gắn món thực đơn, ghi/đọc được sau nâng cấp.
+      expect(columns.where((c) => c.read<String>('name') == 'source_refs'),
+          hasLength(1));
+      await dao.upsert(old.copyWith(
+          sourceRefs: const <ShoppingSourceRef>[ShoppingSourceRef(dishId: 'd1')]));
+      expect((await dao.getById('old'))!.sourceRefs.single.dishId, 'd1');
     });
   }
 
@@ -86,11 +93,11 @@ void main() {
     expect((await dao.getById('old'))!.inInventory, isTrue);
   });
 
-  test('DB mới tạo đủ schema v9', () async {
+  test('DB mới tạo đủ schema v10', () async {
     final db = AppDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
     expect(await ShoppingDao(db).getAll('h1'), isEmpty);
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 9);
+    expect(version.read<int>('user_version'), 10);
   });
 }

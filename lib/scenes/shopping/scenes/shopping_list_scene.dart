@@ -27,6 +27,7 @@ import '../widgets/price_capture_sheet.dart';
 import '../widgets/share_export_sheet.dart';
 import '../../../widgets/feedback/app_toast.dart';
 import '../../../utils/unit_label.dart';
+import '../widgets/shopping_item_actions.dart';
 
 enum ShoppingFilter { all, pending, completed }
 
@@ -870,6 +871,19 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     ),
                   ),
                 ),
+                // Sửa/xoá món thêm nhầm — chỉ món đã đồng bộ, chưa vào kho.
+                if (!item.inInventory)
+                  IconButton(
+                    key: ValueKey<String>('shopping-item-menu-${item.id}'),
+                    tooltip: context.l10n.shoppingItemActions,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.more_vert_rounded, size: 20),
+                    onPressed: item.syncStatus == ShoppingSyncStatus.synced &&
+                            isOnline &&
+                            !store.isAssigning(item.id)
+                        ? () => openShoppingItemActions(context, store, item)
+                        : null,
+                  ),
               ],
             ),
           ),
