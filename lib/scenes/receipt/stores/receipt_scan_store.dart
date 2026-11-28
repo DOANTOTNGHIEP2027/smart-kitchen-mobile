@@ -73,6 +73,7 @@ class ReceiptScanStore {
   /// Gương observable của `_compressedBytes != null && _idempotencyKey != null`
   /// — chỉ đổi qua [_setResendPayload] để `canResend` luôn phản ứng (L1).
   final Observable<bool> _canResend = Observable(false);
+  final Observable<bool> _bulkAdding = Observable(false);
   final ObservableList<ReceiptMatchedItem> matchedItems =
       ObservableList<ReceiptMatchedItem>();
   final ObservableList<ReceiptUnmatchedItem> unmatchedItems =
@@ -126,8 +127,24 @@ class ReceiptScanStore {
   bool get hasOpenUnmatched => unmatchedItems
       .any((item) => item.confirmStatus != ReceiptConfirmStatus.confirmed);
 
-  bool get hasConfirmingUnmatched => unmatchedItems
-      .any((item) => item.confirmStatus == ReceiptConfirmStatus.confirming);
+  /// Thẻ "Thêm tất cả vào kho" thêm được ngay: chưa thêm (pending/failed) và
+  /// đủ thông tin.
+  int get bulkAddableCount => unmatchedItems
+      .where((item) => !item.isLocked && item.isValidForConfirm)
+      .length;
+
+  /// Thẻ chưa thêm nhưng thiếu thông tin (vd. chưa chọn đơn vị) — bị bỏ qua.
+  int get bulkIncompleteCount => unmatchedItems
+      .where((item) => !item.isLocked && !item.isValidForConfirm)
+      .length;
+
+  bool get isBulkAdding => _bulkAdding.value;
+
+  /// Gồm cả khoảng giữa 2 thẻ của "Thêm tất cả" — "Xong" không được bấm lọt.
+  bool get hasConfirmingUnmatched =>
+      _bulkAdding.value ||
+      unmatchedItems
+          .any((item) => item.confirmStatus == ReceiptConfirmStatus.confirming);
 
   bool get canRetryScan {
     if (!canResend) return false;
@@ -345,6 +362,28 @@ class ReceiptScanStore {
             );
     });
     return saved;
+  }
+
+  /// "Thêm tất cả vào kho": thêm LẦN LƯỢT từng thẻ đủ thông tin qua đúng
+  /// đường của [confirmUnmatchedItem] (ghi lạc quan, hàng đợi offline, khoá
+  /// double-tap) — 1 thẻ lỗi không chặn thẻ sau. Trả số thẻ vừa thêm được.
+  Future<int> confirmAllUnmatched() async {
+    if (_bulkAdding.value) return 0;
+    final ids = <String>[
+      for (final item in unmatchedItems)
+        if (!item.isLocked && item.isValidForConfirm) item.itemId,
+    ];
+    if (ids.isEmpty) return 0;
+    runInAction(() => _bulkAdding.value = true);
+    var added = 0;
+    try {
+      for (final id in ids) {
+        if (await confirmUnmatchedItem(id)) added++;
+      }
+    } finally {
+      runInAction(() => _bulkAdding.value = false);
+    }
+    return added;
   }
 
   /// Nút chung "Cập nhật danh sách mua sắm" — CHỈ matched (M-5). Chạy tối đa

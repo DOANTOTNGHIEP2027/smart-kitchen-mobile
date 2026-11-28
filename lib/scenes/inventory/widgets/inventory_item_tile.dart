@@ -4,6 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/quantity_format.dart';
+import '../domain/expiry_status.dart';
 import '../domain/inventory_item.dart';
 import 'food_category_visual.dart';
 import 'inventory_presentation.dart';
@@ -19,11 +20,15 @@ class InventoryItemTile extends StatelessWidget {
     required this.item,
     required this.onTap,
     this.isCurrentUser = false,
+    this.now,
   });
 
   final InventoryItemModel item;
   final VoidCallback onTap;
   final bool isCurrentUser;
+
+  /// Mốc "hôm nay" cho nhãn hạn dùng — `null` = `DateTime.now()` (test inject).
+  final DateTime? now;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +38,8 @@ class InventoryItemTile extends StatelessWidget {
     final displayUnitStr = unitLabel(context, item.displayUnit ?? item.unit);
     // #201: hết hàng (0) không phải "sắp hết".
     final lowStock = item.showsLowStock;
+    final expiry = expiryStatusOf(item.expiryDate, now ?? DateTime.now());
+    final expiryColor = expiryStatusColor(expiry);
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -141,18 +148,14 @@ class InventoryItemTile extends StatelessWidget {
                                 Icon(
                                   Icons.calendar_today_outlined,
                                   size: 11,
-                                  color: item.isExpiringSoon
-                                      ? AppColors.warning
-                                      : AppColors.textSecondary,
+                                  color: expiryColor ?? AppColors.textSecondary,
                                 ),
                                 const SizedBox(width: 3),
                                 Text(
                                   _formatExpiry(item.expiryDate!),
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: item.isExpiringSoon
-                                        ? AppColors.warning
-                                        : AppColors.textSecondary,
-                                    fontWeight: item.isExpiringSoon
+                                    color: expiryColor ?? AppColors.textSecondary,
+                                    fontWeight: expiryColor != null
                                         ? FontWeight.w700
                                         : FontWeight.w500,
                                     fontSize: 11,
@@ -164,7 +167,7 @@ class InventoryItemTile extends StatelessWidget {
                         ],
                       ),
                       if (lowStock ||
-                          item.isExpiringSoon ||
+                          expiry != ExpiryStatus.none ||
                           item.isPendingSync ||
                           item.hasConflict) ...<Widget>[
                         const SizedBox(height: 6),
@@ -177,10 +180,12 @@ class InventoryItemTile extends StatelessWidget {
                                 label: context.l10n.inventoryLowStock,
                                 color: AppColors.error,
                               ),
-                            if (item.isExpiringSoon)
+                            if (expiry != ExpiryStatus.none)
                               _Badge(
-                                label: context.l10n.inventoryExpiringSoon,
-                                color: AppColors.warning,
+                                key: ValueKey<String>(
+                                    'inventory-expiry-${expiry.name}-${item.id}'),
+                                label: expiryStatusLabel(context, expiry),
+                                color: expiryColor!,
                               ),
                             if (item.isPendingSync)
                               _Badge(
@@ -219,8 +224,24 @@ class InventoryItemTile extends StatelessWidget {
   }
 }
 
+/// Màu theo mức khẩn: đỏ = đã hết hạn, cam = đến hạn hôm nay, vàng hổ phách =
+/// sắp hết hạn; `null` = không nhấn mạnh.
+Color? expiryStatusColor(ExpiryStatus status) => switch (status) {
+      ExpiryStatus.expired => AppColors.error,
+      ExpiryStatus.today => AppColors.secondary,
+      ExpiryStatus.soon => AppColors.warning,
+      ExpiryStatus.none => null,
+    };
+
+String expiryStatusLabel(BuildContext context, ExpiryStatus status) =>
+    switch (status) {
+      ExpiryStatus.expired => context.l10n.inventoryExpired,
+      ExpiryStatus.today => context.l10n.inventoryExpiresToday,
+      ExpiryStatus.soon || ExpiryStatus.none => context.l10n.inventoryExpiringSoon,
+    };
+
 class _Badge extends StatelessWidget {
-  const _Badge({required this.label, required this.color});
+  const _Badge({super.key, required this.label, required this.color});
 
   final String label;
   final Color color;

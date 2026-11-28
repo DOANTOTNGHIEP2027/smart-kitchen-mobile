@@ -180,6 +180,18 @@ class _ReceiptResultSceneState extends State<ReceiptResultScene> {
         title: context.l10n.receiptUnmatchedSection,
         trailing: context.l10n.receiptUnmatchedCount(items.length),
       ),
+      if (store.bulkAddableCount > 0 || store.isBulkAdding)
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppDimens.sm),
+          child: AppButton(
+            key: const ValueKey<String>('receipt-unmatched-add-all'),
+            label: context.l10n.receiptAddAllToInventory(store.bulkAddableCount),
+            icon: Icons.playlist_add_check_rounded,
+            variant: AppButtonVariant.secondary,
+            isLoading: store.isBulkAdding,
+            onPressed: store.isBulkAdding ? null : () => _addAll(context, store),
+          ),
+        ),
       for (final item in items)
         ReceiptUnmatchedItemCard(
           key: ValueKey<String>('receipt-unmatched-${item.itemId}'),
@@ -198,6 +210,14 @@ class _ReceiptResultSceneState extends State<ReceiptResultScene> {
           onConfirm: () => store.confirmUnmatchedItem(item.itemId),
         ),
     ];
+  }
+
+  Future<void> _addAll(BuildContext context, ReceiptScanStore store) async {
+    final skipped = store.bulkIncompleteCount;
+    final message = context.l10n.receiptBulkIncomplete(skipped);
+    await store.confirmAllUnmatched();
+    // Thẻ thiếu thông tin không bị thêm im lặng — báo để người dùng bổ sung.
+    if (skipped > 0) AppToast.show(message, type: AppToastType.info);
   }
 
   /// "Chụp lại" (empty) = "Đặt lại" = back → về màn scan ở trạng thái idle.

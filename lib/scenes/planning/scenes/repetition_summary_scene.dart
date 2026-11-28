@@ -13,7 +13,6 @@ import '../../../widgets/states/app_state_view.dart';
 import '../../../widgets/states/view_state.dart';
 import '../domain/repetition_summary.dart';
 import '../stores/repetition_store.dart';
-import '../widgets/repetition_bar_chart.dart';
 
 /// Món đã gán lặp trong kế hoạch; range inclusive do server quyết định.
 class RepetitionSummaryScene extends StatefulWidget {
@@ -127,15 +126,6 @@ class _SummaryList extends StatelessWidget {
             key: const ValueKey<String>('repetition-empty'),
             message: l10n.planningRepetitionEmpty(summary.windowDays),
           ),
-        if (summary.repeatedDishes.isNotEmpty) ...<Widget>[
-          AppCard(
-            child: SizedBox(
-              height: 200,
-              child: RepetitionBarChart(dishes: summary.repeatedDishes),
-            ),
-          ),
-          const SizedBox(height: AppDimens.md),
-        ],
         for (final dish in summary.repeatedDishes)
           Padding(
             padding: const EdgeInsets.only(bottom: AppDimens.sm),

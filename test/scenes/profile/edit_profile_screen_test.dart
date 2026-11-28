@@ -248,6 +248,8 @@ void main() {
 }
 
 class _FakeProfileApi implements ProfileApi {
+  @override
+  Future<UserSummary> getMe() => throw UnimplementedError();
   Completer<FileUploadResult>? uploadCompleter;
   Completer<UserSummary>? updateCompleter;
   Object? uploadError;

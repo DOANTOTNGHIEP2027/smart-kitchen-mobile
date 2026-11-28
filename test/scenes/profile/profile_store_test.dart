@@ -197,6 +197,44 @@ void main() {
     });
   });
 
+  group('refreshCurrentUser — avatar đổi ở máy khác', () {
+    test('server có avatar mới → ghi đè currentUser + lưu TokenStorage', () async {
+      final api = _StubProfileApi(
+        me: const UserSummary(
+            id: 'u1', fullName: 'Tester', avatarUrl: 'http://10.0.2.2:8080/api/files/new.jpg'),
+      );
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+
+      await store.refreshCurrentUser();
+
+      expect(session.currentUser?.avatarUrl, 'http://10.0.2.2:8080/api/files/new.jpg');
+      expect((await tokenStorage.readUser())?['avatarUrl'], 'http://10.0.2.2:8080/api/files/new.jpg');
+    });
+
+    test('lỗi mạng / BE cũ chưa có endpoint → giữ nguyên bản đang có', () async {
+      final api = _StubProfileApi(meError: NetworkException());
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+
+      await store.refreshCurrentUser();
+
+      expect(api.meCalls, 1);
+      expect(session.currentUser?.fullName, 'Tester');
+      expect(session.currentUser?.avatarUrl, isNull);
+    });
+
+    test('đã đổi tài khoản khi request bay → không ghi đè người khác', () async {
+      final api = _StubProfileApi(
+        me: const UserSummary(id: 'other', fullName: 'Người khác', avatarUrl: 'x'),
+      );
+      final store = buildStore(_StubHealthApi(), profileApi: api);
+
+      await store.refreshCurrentUser();
+
+      expect(session.currentUser?.id, 'u1');
+      expect(session.currentUser?.avatarUrl, isNull);
+    });
+  });
+
   group('saveProfile — luồng 2 bước (D11, Guard 1/2/15)', () {
     final picked = Uint8List.fromList(<int>[1, 2, 3]);
     const uploadedUrl = 'http://localhost:8080/api/files/abc.jpg';
@@ -420,7 +458,19 @@ class _StubHealthApi implements HealthApi {
 }
 
 class _StubProfileApi implements ProfileApi {
-  _StubProfileApi({this.uploadUrl, this.uploadError, this.updateError});
+  _StubProfileApi({this.uploadUrl, this.uploadError, this.updateError, this.me, this.meError});
+
+  /// Bản server trả cho `GET /users/me`.
+  UserSummary? me;
+  Object? meError;
+  int meCalls = 0;
+
+  @override
+  Future<UserSummary> getMe() async {
+    meCalls++;
+    if (meError != null) throw meError!;
+    return me!;
+  }
 
   String? uploadUrl;
   Object? uploadError;

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -19,7 +20,6 @@ import 'package:smart_kitchen_mobile/scenes/planning/scenes/planning_routes.dart
 import 'package:smart_kitchen_mobile/scenes/planning/scenes/repetition_summary_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/planning/stores/candidate_store.dart';
 import 'package:smart_kitchen_mobile/scenes/planning/stores/repetition_store.dart';
-import 'package:smart_kitchen_mobile/scenes/planning/widgets/repetition_bar_chart.dart';
 import 'package:smart_kitchen_mobile/scenes/planning/widgets/soft_score_breakdown_panel.dart';
 import 'package:smart_kitchen_mobile/widgets/states/app_empty_view.dart';
 import 'package:smart_kitchen_mobile/widgets/states/app_error_view.dart';
@@ -679,7 +679,8 @@ void main() {
       await tester.pumpAppWidget(const RepetitionSummaryScene(),
           wrapInScaffold: false);
       await tester.pumpAndSettle();
-      expect(find.byType(RepetitionBarChart), findsOneWidget);
+      // Màn chỉ còn danh sách món, không còn biểu đồ.
+      expect(find.byType(BarChart), findsNothing);
       expect(find.text('Được gán 3 lần'), findsOneWidget);
       expect(find.byKey(const PageStorageKey<String>('repetition-dish-14-r-Canh')),
           findsOneWidget);

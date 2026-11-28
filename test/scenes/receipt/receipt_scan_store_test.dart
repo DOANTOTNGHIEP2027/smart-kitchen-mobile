@@ -640,6 +640,43 @@ void main() {
       verifySaveCalled(2); // 1 lần lỗi + 1 lần thành công, không trùng
     });
 
+    test('thêm tất cả: thêm lần lượt thẻ đủ thông tin, bỏ qua thẻ thiếu đơn vị, lỗi 1 thẻ không chặn thẻ sau',
+        () async {
+      api.outcomes.add(_result(unmatched: const <ReceiptUnmatchedItem>[
+        _unmatched,
+        ReceiptUnmatchedItem(itemId: 'u-2', name: 'Trứng', quantity: 10, unit: 'quả', rawName: 'TRUNG', rawQuantity: 1, rawUnit: 'cai'),
+        ReceiptUnmatchedItem(itemId: 'u-3', name: 'Bơ', quantity: 1, rawName: 'BO', rawQuantity: 1, rawUnit: 'cai'),
+        ReceiptUnmatchedItem(itemId: 'u-4', name: 'Táo', quantity: 3, unit: 'quả', rawName: 'TAO', rawQuantity: 1, rawUnit: 'cai'),
+      ]));
+      await store.pickAndScan(OcrImageSource.gallery);
+      store.editUnmatchedItem('u-1', unit: 'cái');
+      expect(store.bulkAddableCount, 3); // u-3 chưa chọn đơn vị
+      expect(store.bulkIncompleteCount, 1);
+
+      var calls = 0;
+      stubSave(() async => ++calls != 2); // thẻ thứ 2 (u-2) lỗi
+      when(() => formStore.saveError).thenReturn(NetworkException());
+
+      final running = store.confirmAllUnmatched();
+      expect(store.isBulkAdding, isTrue);
+      expect(store.hasConfirmingUnmatched, isTrue);
+      expect(await running, 2);
+
+      ReceiptConfirmStatus status(String id) =>
+          store.unmatchedItems.firstWhere((i) => i.itemId == id).confirmStatus;
+      expect(status('u-1'), ReceiptConfirmStatus.confirmed);
+      expect(status('u-2'), ReceiptConfirmStatus.failed);
+      expect(status('u-3'), ReceiptConfirmStatus.pending);
+      expect(status('u-4'), ReceiptConfirmStatus.confirmed);
+      verifySaveCalled(3);
+      expect(store.isBulkAdding, isFalse);
+
+      // Bấm lại chỉ thử lại thẻ lỗi, không ghi trùng thẻ đã thêm.
+      expect(store.bulkAddableCount, 1);
+      expect(await store.confirmAllUnmatched(), 1);
+      expect(status('u-2'), ReceiptConfirmStatus.confirmed);
+    });
+
     test('save() throw → failed SAVE_FAILED, không kẹt confirming', () async {
       await scanned();
       store.editUnmatchedItem('u-1', unit: 'cái');

@@ -298,6 +298,10 @@ void main() {
       expect(nullRod.borderDashArray, isNotNull);
       expect(data.barGroups[0].barRods.single.toY, 0);
       expect(find.text('12/10'), findsOneWidget);
+      // Nhãn ngày xoay nghiêng để 8 tuần không đè nhau trên màn hẹp.
+      final title = tester.widget<SideTitleWidget>(
+          find.ancestor(of: find.text('12/10'), matching: find.byType(SideTitleWidget)));
+      expect(title.angle, isNot(0));
     });
 
     testWidgets('SpendSection: ghi chú quy đổi — weekly không có; monthly có; unknown không chứa "tháng"', (tester) async {
