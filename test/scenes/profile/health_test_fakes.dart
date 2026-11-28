@@ -111,6 +111,8 @@ class MemoryReadCache implements ReadCacheDao {
 
 class UnusedProfileApi implements ProfileApi {
   @override
+  Future<UserSummary> getMe() => throw UnimplementedError();
+  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 

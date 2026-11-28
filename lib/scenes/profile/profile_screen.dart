@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
+import 'package:mobx/mobx.dart';
 
 import '../../constants/app_colors.dart';
 import '../../constants/app_colors_extension.dart';
@@ -19,6 +20,7 @@ import '../auth/stores/auth_store.dart';
 import '../cooking/scenes/cooking_routes.dart';
 import '../insights/scenes/insights_routes.dart';
 import '../recap/scenes/recap_routes.dart';
+import '../shell/app_shell_store.dart';
 import '../nutrition/widgets/profile_nutrition_section.dart';
 import '../notifications/notifications_routes.dart';
 import '../../stores/notification_store.dart';
@@ -32,7 +34,9 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = Get.find<ProfileStore>();
     final session = Get.find<SessionStore>();
-    return AppScaffold(
+    return _CurrentUserRefresher(
+      store: store,
+      child: AppScaffold(
       title: context.l10n.profileTitle,
       body: Observer(builder: (_) {
         final user = store.currentUser;
@@ -160,6 +164,7 @@ class ProfileScreen extends StatelessWidget {
           ],
         );
       }),
+    ),
     );
   }
 
@@ -313,4 +318,43 @@ class _NoSessionView extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Mở Cá nhân (route riêng hoặc tab 4 của shell — IndexedStack giữ state nên
+/// initState chỉ chạy 1 lần) ⇒ đọc lại hồ sơ từ server: avatar đổi ở máy khác,
+/// hoặc lần lưu cục bộ trước bị lỗi, không còn bị "mất".
+class _CurrentUserRefresher extends StatefulWidget {
+  const _CurrentUserRefresher({required this.store, required this.child});
+
+  final ProfileStore store;
+  final Widget child;
+
+  @override
+  State<_CurrentUserRefresher> createState() => _CurrentUserRefresherState();
+}
+
+class _CurrentUserRefresherState extends State<_CurrentUserRefresher> {
+  static const int _profileTabIndex = 4;
+  ReactionDisposer? _tabReaction;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.store.refreshCurrentUser();
+    if (Get.isRegistered<AppShellStore>()) {
+      final shell = Get.find<AppShellStore>();
+      _tabReaction = reaction<int>((_) => shell.selectedIndex, (index) {
+        if (index == _profileTabIndex) widget.store.refreshCurrentUser();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabReaction?.call();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

@@ -353,6 +353,36 @@ void main() {
   });
 
   group('thẻ ngoài danh sách', () {
+    testWidgets('"Thêm tất cả vào kho": chỉ thêm thẻ đủ thông tin, báo thẻ còn thiếu',
+        (tester) async {
+      harness.stubSave(() async => true);
+      await harness.pumpResult(tester, _result());
+
+      // u-1 chưa có đơn vị, u-2 đủ thông tin.
+      expect(viL10n.receiptAddToInventory, 'Thêm vào kho');
+      final addAll = _key('receipt-unmatched-add-all');
+      expect(
+        find.descendant(of: addAll, matching: find.text(viL10n.receiptAddAllToInventory(1))),
+        findsOneWidget,
+      );
+
+      await tester.tap(addAll);
+      await tester.pumpAndSettle();
+
+      expect(harness.saveCallCount(), 1);
+      expect(
+        find.descendant(
+          of: _key('receipt-unmatched-action-u-2'),
+          matching: find.text(viL10n.receiptAdded),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text(viL10n.receiptBulkIncomplete(1)), findsOneWidget);
+      // Không còn thẻ nào thêm được ngay → nút ẩn.
+      expect(addAll, findsNothing);
+      await tester.pump(const Duration(seconds: 3));
+    });
+
     testWidgets('chưa có đơn vị → nút khoá + gợi ý; chọn đơn vị → bật',
         (tester) async {
       await harness.pumpResult(tester, _result());

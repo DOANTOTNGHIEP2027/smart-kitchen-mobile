@@ -33,6 +33,9 @@ abstract interface class ProfileApi {
   /// Bước 2 — `PUT /api/v1/users/me`, JSON camelCase. Chỉ gửi key có giá trị
   /// (BE coi `null`/vắng = giữ nguyên — Guard 15).
   Future<UserSummary> updateMe({String? fullName, String? avatarUrl});
+
+  /// `GET /api/v1/users/me` — hồ sơ hiện tại trên server (đổi ở máy khác).
+  Future<UserSummary> getMe();
 }
 
 class ProfileApiImpl implements ProfileApi {
@@ -62,6 +65,13 @@ class ProfileApiImpl implements ProfileApi {
             if (avatarUrl != null) 'avatarUrl': avatarUrl,
           },
         );
+        return UserSummary.fromJson(_data(response));
+      });
+
+  @override
+  Future<UserSummary> getMe() => _unwrap(() async {
+        final response =
+            await _client.dio.get<Map<String, dynamic>>('/api/v1/users/me');
         return UserSummary.fromJson(_data(response));
       });
 

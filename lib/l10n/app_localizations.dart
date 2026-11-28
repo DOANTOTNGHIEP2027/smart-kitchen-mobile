@@ -6694,10 +6694,34 @@ abstract class AppLocalizations {
   /// **'Skipped'**
   String get receiptSkipped;
 
+  /// No description provided for @inventoryExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get inventoryExpired;
+
+  /// No description provided for @inventoryExpiresToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires today'**
+  String get inventoryExpiresToday;
+
+  /// No description provided for @receiptAddAllToInventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add all to pantry ({count})'**
+  String receiptAddAllToInventory(int count);
+
+  /// No description provided for @receiptBulkIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items are missing info (unit/quantity) and were not added'**
+  String receiptBulkIncomplete(int count);
+
   /// No description provided for @receiptAddToInventory.
   ///
   /// In en, this message translates to:
-  /// **'Add to inventory'**
+  /// **'Add to pantry'**
   String get receiptAddToInventory;
 
   /// No description provided for @receiptAdding.

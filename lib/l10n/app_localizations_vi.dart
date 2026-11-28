@@ -3742,7 +3742,23 @@ class AppLocalizationsVi extends AppLocalizations {
   String get receiptSkipped => 'Bỏ qua';
 
   @override
-  String get receiptAddToInventory => 'Thêm vào tồn kho';
+  String get inventoryExpired => 'Đã hết hạn';
+
+  @override
+  String get inventoryExpiresToday => 'Đến hạn hôm nay';
+
+  @override
+  String receiptAddAllToInventory(int count) {
+    return 'Thêm tất cả vào kho ($count)';
+  }
+
+  @override
+  String receiptBulkIncomplete(int count) {
+    return '$count món chưa đủ thông tin (đơn vị/số lượng) nên chưa thêm';
+  }
+
+  @override
+  String get receiptAddToInventory => 'Thêm vào kho';
 
   @override
   String get receiptAdding => 'Đang thêm…';

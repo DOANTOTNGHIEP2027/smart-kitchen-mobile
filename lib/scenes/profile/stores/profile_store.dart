@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:typed_data';
 
 import 'package:mobx/mobx.dart';
@@ -80,6 +81,32 @@ class ProfileStore {
 
   /// Cùng điều kiện cho [saveHealthProfile] (Guard 13 — dữ liệu cache chỉ đọc).
   bool get canEditHealth => canSaveAllergens;
+
+  bool _refreshingUser = false;
+
+  /// Đọc lại hồ sơ của mình (`GET /users/me`): avatar/tên đổi ở máy khác — hoặc
+  /// lần lưu secure storage trước bị lỗi — hiện đúng khi mở Cá nhân. Lỗi
+  /// (offline, BE cũ chưa có endpoint) ⇒ giữ bản đang có, không báo.
+  Future<void> refreshCurrentUser() async {
+    final before = _session.currentUser;
+    if (before == null || _refreshingUser) return;
+    _refreshingUser = true;
+    try {
+      final fresh = await _profileApi.getMe();
+      // Đổi tài khoản trong lúc request bay → không ghi đè người khác.
+      if (_session.currentUser?.id != fresh.id) return;
+      try {
+        await _session.updateCurrentUser(fresh);
+      } catch (error) {
+        developer.log('Không lưu được hồ sơ vào máy: $error', name: 'Profile');
+        runInAction(() => _session.currentUser = fresh);
+      }
+    } catch (error) {
+      developer.log('Không đọc lại được hồ sơ: $error', name: 'Profile');
+    } finally {
+      _refreshingUser = false;
+    }
+  }
 
   String get _healthProfileCacheKey =>
       'health_profile:${_session.currentUser?.id}';
@@ -279,9 +306,11 @@ class ProfileStore {
       // luồng đã bị bỏ thì không ghi phase của màn (có thể là màn mới).
       try {
         await _session.updateCurrentUser(updated); // Guard 2 — BẮT BUỘC
-      } catch (_) {
+      } catch (error) {
         // BE đã lưu; lỗi secure storage không được biến thành "lưu thất bại".
-        // Vẫn phản ánh in-memory để ProfileScreen không hiện dữ liệu cũ.
+        // Vẫn phản ánh in-memory để ProfileScreen không hiện dữ liệu cũ; lần
+        // mở Cá nhân sau [refreshCurrentUser] đọc lại từ server nên không mất.
+        developer.log('Không lưu được hồ sơ vào máy: $error', name: 'Profile');
         runInAction(() => _session.currentUser = updated);
       }
       if (abandoned()) return false;

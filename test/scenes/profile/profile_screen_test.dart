@@ -150,6 +150,8 @@ class _UnusedHealthApi implements HealthApi {
 
 class _UnusedProfileApi implements ProfileApi {
   @override
+  Future<UserSummary> getMe() => throw UnimplementedError();
+  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 

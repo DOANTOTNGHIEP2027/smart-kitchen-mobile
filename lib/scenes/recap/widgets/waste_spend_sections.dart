@@ -832,12 +832,15 @@ class SpendTrendSparkline extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 26,
+              // Nhãn xoay nghiêng: 8 cột trên màn hẹp, nhãn nằm ngang đè nhau.
+              reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 final i = value.toInt();
                 if (i < 0 || i >= shown.length) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(top: 6),
+                return SideTitleWidget(
+                  meta: meta,
+                  space: 10,
+                  angle: -0.7,
                   child: Text(
                     DateFormat('d/M').format(shown[i].weekStart),
                     style: const TextStyle(

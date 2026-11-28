@@ -11,6 +11,7 @@ import '../../../stores/session_store.dart';
 import '../../../services/connectivity_service.dart';
 import '../data/inventory_api.dart';
 import '../data/inventory_dao.dart';
+import '../domain/expiry_status.dart';
 import '../domain/inventory_item.dart';
 import '../domain/inventory_mapper.dart';
 import '../domain/sync_status.dart';
@@ -35,15 +36,18 @@ class InventoryStore with HouseholdScoped {
     required InventoryApi api,
     required ConnectivityService connectivity,
     required SessionStore sessionStore,
+    DateTime Function()? clock,
   })  : _dao = dao,
         _api = api,
         _connectivity = connectivity,
-        _session = sessionStore;
+        _session = sessionStore,
+        _clock = clock ?? DateTime.now;
 
   final InventoryDao _dao;
   final InventoryApi _api;
   final ConnectivityService _connectivity;
   final SessionStore _session;
+  final DateTime Function() _clock;
 
   StreamSubscription<List<InventoryItemModel>>? _dbSub;
   StreamSubscription<void>? _connectivitySub;
@@ -104,7 +108,7 @@ class InventoryStore with HouseholdScoped {
       // Cùng điều kiện với expiringCount / lowStockCount để số khớp danh sách.
       final matchesStatus = switch (status) {
         InventoryStatusFilter.all => true,
-        InventoryStatusFilter.expiring => i.isExpiringSoon,
+        InventoryStatusFilter.expiring => _needsExpiryAttention(i),
         InventoryStatusFilter.lowStock => i.showsLowStock,
       };
       return matchesSearch && matchesCategory && matchesStatus;
@@ -118,7 +122,11 @@ class InventoryStore with HouseholdScoped {
 
   late final Computed<int> _expiringCount =
       Computed<int>(
-          () => _itemsView.value.where((i) => i.isExpiringSoon).length);
+          () => _itemsView.value.where(_needsExpiryAttention).length);
+
+  /// Đã hết hạn / đến hạn hôm nay / sắp hết hạn — cùng luật với nhãn trên thẻ.
+  bool _needsExpiryAttention(InventoryItemModel i) =>
+      expiryStatusOf(i.expiryDate, _clock()) != ExpiryStatus.none;
 
   late final Computed<int> _lowStockCount =
       Computed<int>(

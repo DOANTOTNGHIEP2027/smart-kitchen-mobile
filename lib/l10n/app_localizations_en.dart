@@ -3792,7 +3792,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiptSkipped => 'Skipped';
 
   @override
-  String get receiptAddToInventory => 'Add to inventory';
+  String get inventoryExpired => 'Expired';
+
+  @override
+  String get inventoryExpiresToday => 'Expires today';
+
+  @override
+  String receiptAddAllToInventory(int count) {
+    return 'Add all to pantry ($count)';
+  }
+
+  @override
+  String receiptBulkIncomplete(int count) {
+    return '$count items are missing info (unit/quantity) and were not added';
+  }
+
+  @override
+  String get receiptAddToInventory => 'Add to pantry';
 
   @override
   String get receiptAdding => 'Adding…';

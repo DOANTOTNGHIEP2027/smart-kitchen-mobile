@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../data/network/cache/app_image_cache_manager.dart';
 import '../data/network/cache/connectivity_signal.dart';
+import '../utils/media_url.dart';
 
 enum AppCachedImageShape { rectangle, circle }
 
@@ -83,7 +84,9 @@ class AppCachedImage extends StatelessWidget {
     }
     return _wrapShape(
       CachedNetworkImage(
-        imageUrl: url!,
+        // URL ảnh BE đổi về host của máy đang xem — cache key ổn định giữa
+        // dữ liệu cũ/mới (avatar upload từ máy khác).
+        imageUrl: normalizeMediaUrl(url!),
         cacheManager: AppImageCacheManager.instance,
         width: width,
         height: height,

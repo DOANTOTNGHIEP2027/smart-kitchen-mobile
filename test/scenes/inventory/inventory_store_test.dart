@@ -482,9 +482,11 @@ void main() {
     Future<void> seedAndInit() async {
       api.onListError = NetworkException(); // sync nền thất bại êm
       await dao.upsertItem(serverItem(id: 'a', name: 'Dầu ăn'));
+      // Nhãn/đếm "sắp hết hạn" tính theo ngày hết hạn, không theo cờ server.
       await dao.upsertItem(serverItem(id: 'b', name: 'Muối').copyWith(
         category: 'Khô',
         isExpiringSoon: true,
+        expiryDate: DateTime.now().add(const Duration(days: 1)),
       ));
       await dao.upsertItem(serverItem(id: 'c', name: 'Đường').copyWith(
         category: 'Khô',
@@ -538,9 +540,11 @@ void main() {
       expect(store.expiringCount, 1);
       expect(store.lowStockCount, 1);
 
+      // Đã hết hạn cũng phải được đếm (trước đây chỉ có cờ "sắp hết hạn").
       await dao.upsertItem(serverItem(id: 'd', name: 'Sữa').copyWith(
         isExpiringSoon: true,
         isLowStock: true,
+        expiryDate: DateTime.now().subtract(const Duration(days: 2)),
       ));
       await until(() => store.items.length == 4);
       expect(store.expiringCount, 2);
