@@ -887,6 +887,10 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
     final quantity = TextEditingController(text: '1');
     String unit = unitOptions.first.value;
     String? category;
+    // Lỗi bắt buộc của sheet — snackbar nằm sau sheet nên báo ngay dưới ô.
+    String? nameError;
+    String? quantityError;
+    String? categoryError;
 
     // #201: bộ phân loại chuẩn dùng chung kho/đi chợ/hoá đơn.
     final defaultCategories = FoodCategory.labels;
@@ -937,6 +941,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 decoration: InputDecoration(
                   hintText: context.l10n.shoppingNameHint,
                   labelText: context.l10n.shoppingNameLabel,
+                  errorText: nameError,
                   prefixIcon: const Icon(Icons.edit_note_rounded),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppDimens.radiusMd),
@@ -951,6 +956,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 decoration: InputDecoration(
                   hintText: '1',
                   labelText: context.l10n.shoppingQuantityLabel,
+                  errorText: quantityError,
                   prefixIcon: const Icon(Icons.numbers_rounded),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppDimens.radiusMd),
@@ -1010,7 +1016,10 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                           fontSize: 12,
                         ),
                         onSelected: (val) {
-                          setModalState(() => category = val ? cat : null);
+                          setModalState(() {
+                            category = val ? cat : null;
+                            if (category != null) categoryError = null;
+                          });
                         },
                       ),
                     );
@@ -1018,6 +1027,17 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 ),
               ),
               ),
+              if (categoryError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppDimens.xs),
+                  child: Text(
+                    categoryError!,
+                    key: const ValueKey<String>('add-category-error'),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.error,
+                        ),
+                  ),
+                ),
               const SizedBox(height: AppDimens.lg),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -1030,9 +1050,23 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 ),
                 onPressed: () async {
                   final text = name.text.trim();
-                  if (text.isEmpty) return;
-                  final qty = double.tryParse(quantity.text) ?? 1.0;
-                  await store.add(text, qty, unit, category: category);
+                  final qty = double.tryParse(quantity.text.trim());
+                  setModalState(() {
+                    nameError =
+                        text.isEmpty ? context.l10n.shoppingNameRequired : null;
+                    quantityError = qty == null || qty <= 0
+                        ? context.l10n.shoppingQuantityInvalid
+                        : null;
+                    categoryError = category == null
+                        ? context.l10n.shoppingCategoryRequired
+                        : null;
+                  });
+                  if (nameError != null ||
+                      quantityError != null ||
+                      categoryError != null) {
+                    return;
+                  }
+                  await store.add(text, qty!, unit, category: category);
                   if (context.mounted) Navigator.pop(bottomSheetContext);
                 },
                 child: Text(

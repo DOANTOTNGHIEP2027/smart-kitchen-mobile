@@ -2407,16 +2407,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingNameHint => 'Food or ingredient name...';
 
   @override
-  String get shoppingNameLabel => 'Item name';
+  String get shoppingNameLabel => 'Item name *';
 
   @override
-  String get shoppingQuantityLabel => 'Quantity';
+  String get shoppingQuantityLabel => 'Quantity *';
 
   @override
-  String get shoppingUnitLabel => 'Unit';
+  String get shoppingUnitLabel => 'Unit *';
 
   @override
-  String get shoppingCategoryLabel => 'Category';
+  String get shoppingCategoryLabel => 'Category *';
+
+  @override
+  String get shoppingNameRequired => 'Please enter an item name';
+
+  @override
+  String get shoppingQuantityInvalid =>
+      'Quantity must be a number greater than 0';
+
+  @override
+  String get shoppingCategoryRequired => 'Please choose a category';
 
   @override
   String get shoppingAddToList => 'Add to list';
@@ -3967,6 +3977,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dietTypeDiabeticDescription =>
       'Limits sugar and fast-absorbing carbs, favours low-sugar dishes.';
+
+  @override
+  String get inventoryCategoryLabel => 'Category *';
+
+  @override
+  String get inventoryCategoryRequired => 'Please choose a category';
 
   @override
   String get inventoryZeroQuantityTitle => 'Used up this item?';

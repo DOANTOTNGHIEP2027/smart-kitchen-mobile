@@ -4345,26 +4345,44 @@ abstract class AppLocalizations {
   /// No description provided for @shoppingNameLabel.
   ///
   /// In en, this message translates to:
-  /// **'Item name'**
+  /// **'Item name *'**
   String get shoppingNameLabel;
 
   /// No description provided for @shoppingQuantityLabel.
   ///
   /// In en, this message translates to:
-  /// **'Quantity'**
+  /// **'Quantity *'**
   String get shoppingQuantityLabel;
 
   /// No description provided for @shoppingUnitLabel.
   ///
   /// In en, this message translates to:
-  /// **'Unit'**
+  /// **'Unit *'**
   String get shoppingUnitLabel;
 
   /// No description provided for @shoppingCategoryLabel.
   ///
   /// In en, this message translates to:
-  /// **'Category'**
+  /// **'Category *'**
   String get shoppingCategoryLabel;
+
+  /// No description provided for @shoppingNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an item name'**
+  String get shoppingNameRequired;
+
+  /// No description provided for @shoppingQuantityInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity must be a number greater than 0'**
+  String get shoppingQuantityInvalid;
+
+  /// No description provided for @shoppingCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please choose a category'**
+  String get shoppingCategoryRequired;
 
   /// No description provided for @shoppingAddToList.
   ///
@@ -6957,6 +6975,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Limits sugar and fast-absorbing carbs, favours low-sugar dishes.'**
   String get dietTypeDiabeticDescription;
+
+  /// No description provided for @inventoryCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category *'**
+  String get inventoryCategoryLabel;
+
+  /// No description provided for @inventoryCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please choose a category'**
+  String get inventoryCategoryRequired;
 
   /// No description provided for @inventoryZeroQuantityTitle.
   ///
