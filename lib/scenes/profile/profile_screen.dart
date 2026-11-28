@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
-import '../../app/env_config.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_colors_extension.dart';
 import '../../constants/app_dimens.dart';
@@ -18,7 +17,6 @@ import '../../widgets/cards/app_card.dart';
 import '../../widgets/states/state_view_layout.dart';
 import '../auth/stores/auth_store.dart';
 import '../cooking/scenes/cooking_routes.dart';
-import '../dev/dev_routes.dart';
 import '../insights/scenes/insights_routes.dart';
 import '../recap/scenes/recap_routes.dart';
 import '../nutrition/widgets/profile_nutrition_section.dart';
@@ -145,17 +143,6 @@ class ProfileScreen extends StatelessWidget {
               title: context.l10n.insightsHistoryTooltip,
               onPressed: () => Get.toNamed(InsightsRoutes.history),
             ),
-            // Lối vào showcase widget library — chỉ build dev (design-system.md §8).
-            if (EnvConfig.isDev) ...<Widget>[
-              const SizedBox(height: AppDimens.sm),
-              _ProfileNavigationTile(
-                key: const ValueKey<String>('profile-widget-showcase'),
-                icon: Icons.widgets_outlined,
-                iconColor: AppColors.primary,
-                title: context.l10n.showcaseEntry,
-                onPressed: () => Get.toNamed(DevRoutes.widgetShowcase),
-              ),
-            ],
             const SizedBox(height: AppDimens.lg),
             AppButton(
               label: context.l10n.profileLogout,

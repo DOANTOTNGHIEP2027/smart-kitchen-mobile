@@ -2,19 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
 
-import '../../app/env_config.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_dimens.dart';
-import '../../demo/fixtures/demo_fixtures.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
-import '../../utils/recipe_images.dart';
 import '../../stores/session_store.dart';
-import '../../widgets/app_cached_image.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/buttons/app_button.dart';
-import '../../widgets/states/app_state_view.dart';
-import '../../widgets/states/view_state.dart';
 import '../cooking/scenes/cooking_routes.dart';
 import '../home/home_binding.dart';
 import '../home/widgets/upcoming_meal_section.dart';
@@ -22,18 +16,13 @@ import '../inventory/scenes/inventory_list_binding.dart';
 import '../inventory/scenes/inventory_list_scene.dart';
 import '../mealplan/scenes/meal_plan_routes.dart' show WeeklyMealPlanBinding;
 import '../mealplan/scenes/weekly_meal_plan_scene.dart';
-import '../mealplan/widgets/recipe_cover_image.dart';
 import '../profile/profile_family_bindings.dart';
 import '../profile/profile_screen.dart';
-import '../recipe/data/recipe_catalog_api.dart';
-import '../recipe/domain/recipe.dart';
-import '../recipe/stores/recipe_store.dart';
 import '../shopping/scenes/shopping_list_binding.dart';
 import '../shopping/scenes/shopping_list_scene.dart';
 import '../shopping/stores/shopping_store.dart';
 import '../assistant/scenes/assistant_routes.dart';
 import 'app_shell_store.dart';
-import 'home_recipe_detail_scene.dart';
 import 'home_greeting.dart';
 import '../notifications/shell_notification_host.dart';
 
@@ -166,7 +155,6 @@ int shoppingAssignedBadgeCount() => Get.isRegistered<ShoppingStore>()
 ///
 /// Áp dụng màu Cam tươi mới (#FF7A45), 100% Solid Color (không dùng gradient),
 /// bo góc tròn mềm mại 18dp, bóng ambient đổ nhẹ tự nhiên.
-/// Demo dùng fixture; backend thật tải công thức từ catalog, không gọi AI.
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
 
@@ -261,36 +249,6 @@ class HomeTab extends StatelessWidget {
                 ],
               );
             }),
-            if (EnvConfig.isDemoMode) ...<Widget>[
-              const SizedBox(height: AppDimens.xl),
-              Text(
-                context.l10n.homeRecommendedMeals,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                    ),
-              ),
-              const SizedBox(height: AppDimens.sm),
-              ...DemoFixtures.suggestions().map(
-                (recipe) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppDimens.md),
-                  child: _HomeRecipeCard(
-                    recipeId: recipe['recipeId']! as String,
-                    recipeName: recipe['recipeName']! as String,
-                    actionLabel: context.l10n.homeRecipeAction,
-                    onTap: () => Get.to<void>(
-                      () => HomeRecipeDetailScene(
-                        recipeId: recipe['recipeId']! as String,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ] else ...<Widget>[
-              const SizedBox(height: AppDimens.xl),
-              const HomeRecipeCatalog(),
-            ],
           ],
         ),
       ),
@@ -298,100 +256,6 @@ class HomeTab extends StatelessWidget {
   }
 
   void _openMealPlan() => Get.find<AppShellStore>().selectTab(2);
-}
-
-/// Catalog trên Home có store riêng để bộ lọc/tab của màn Công thức không
-/// làm thay đổi danh sách này. Mọi dữ liệu lấy qua API thật đã đăng ký ở DI.
-class HomeRecipeCatalog extends StatefulWidget {
-  const HomeRecipeCatalog({super.key});
-
-  @override
-  State<HomeRecipeCatalog> createState() => _HomeRecipeCatalogState();
-}
-
-class _HomeRecipeCatalogState extends State<HomeRecipeCatalog> {
-  late final RecipeStore _store;
-
-  @override
-  void initState() {
-    super.initState();
-    _store = RecipeStore(Get.find<RecipeCatalogApi>());
-    _store.init();
-  }
-
-  @override
-  void dispose() {
-    _store.dispose();
-    super.dispose();
-  }
-
-  ViewState<List<Recipe>> get _state {
-    if (_store.status == RecipeListStatus.loading) {
-      return const LoadingState();
-    }
-    final error = _store.error;
-    if (error != null) return ErrorState(error);
-    if (_store.recipes.isEmpty) return const EmptyState();
-    return SuccessState(_store.recipes.take(6).toList(growable: false));
-  }
-
-  @override
-  Widget build(BuildContext context) => Observer(
-        builder: (_) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    context.l10n.recipesTitle,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
-                        ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: context.l10n.refresh,
-                  onPressed: _store.status == RecipeListStatus.loading
-                      ? null
-                      : _store.refresh,
-                  icon: const Icon(Icons.refresh_rounded),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppDimens.sm),
-            AppStateView<List<Recipe>>(
-              state: _state,
-              onRetry: _store.refresh,
-              emptyMessage: context.l10n.recipesNoResults,
-              emptyIcon: Icons.menu_book_outlined,
-              successBuilder: (context, recipes) => Column(
-                children: <Widget>[
-                  for (final recipe in recipes)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: AppDimens.md),
-                      child: _HomeRecipeCard(
-                        recipeId: recipe.id,
-                        recipeName: recipe.name,
-                        prepTimeMinutes: recipe.prepTimeMinutes,
-                        thumbnailUrl: recipe.thumbnailUrl,
-                        actionLabel: context.l10n.homeRecipeAction,
-                        onTap: () => Get.toNamed<void>(AppRoutes.recipeDetail
-                            .replaceFirst(':id', recipe.id)),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            TextButton(
-              onPressed: () => Get.toNamed<void>(AppRoutes.recipes),
-              child: Text(context.l10n.recipesTitle),
-            ),
-          ],
-        ),
-      );
 }
 
 class _HomeHeader extends StatelessWidget {
@@ -661,198 +525,6 @@ class _HomeActionCard extends StatelessWidget {
                       ? AppColors.textOnPrimary
                       : AppColors.textSecondary,
                   size: 15,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HomeRecipeCard extends StatelessWidget {
-  const _HomeRecipeCard({
-    required this.recipeId,
-    required this.recipeName,
-    required this.actionLabel,
-    required this.onTap,
-    this.prepTimeMinutes,
-    this.thumbnailUrl,
-  });
-
-  final String recipeId;
-  final String recipeName;
-  final String actionLabel;
-  final VoidCallback onTap;
-  final int? prepTimeMinutes;
-  final String? thumbnailUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppDimens.radiusCard);
-    final prepTime = prepTimeMinutes ??
-        (EnvConfig.isDemoMode
-            ? RecipeCoverImage.demoPrepTimeMinutes(recipeId)
-            : null);
-
-    return Material(
-      color: AppColors.surface,
-      borderRadius: radius,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: radius,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            border: Border.all(
-              color: AppColors.border,
-              width: 1.0,
-            ),
-            boxShadow: const <BoxShadow>[
-              BoxShadow(
-                color: Color(0x08000000),
-                blurRadius: 14,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(AppDimens.radiusCard)),
-                child: EnvConfig.isDemoMode
-                    ? RecipeCoverImage(
-                        recipeId: recipeId,
-                        recipeName: recipeName,
-                        height: 180,
-                      )
-                    : AppCachedImage(
-                        url: recipeImageUrl(
-                            recipeId: recipeId,
-                            recipeName: recipeName,
-                            thumbnailUrl: thumbnailUrl),
-                        width: double.infinity,
-                        height: 180,
-                        placeholderIcon: Icons.restaurant_menu_outlined,
-                      ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(
-                            recipeName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
-                          ),
-                        ),
-                        if (prepTime != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryContainer,
-                              borderRadius:
-                                  BorderRadius.circular(AppDimens.radiusPill),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                const Icon(
-                                  Icons.timer_outlined,
-                                  size: 13,
-                                  color: AppColors.primaryDark,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  context.l10n.homeRecipeMinutes(prepTime),
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primaryDark,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceSubtle,
-                            borderRadius:
-                                BorderRadius.circular(AppDimens.radiusPill),
-                          ),
-                          child: Text(
-                            EnvConfig.isDemoMode
-                                ? context.l10n.homeRecommendedMeals
-                                : context.l10n.recipesTitle,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 7),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius:
-                                BorderRadius.circular(AppDimens.radiusPill),
-                            boxShadow: const <BoxShadow>[
-                              BoxShadow(
-                                color: AppColors.primaryShadow,
-                                blurRadius: 10,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              const Icon(
-                                Icons.play_arrow_rounded,
-                                size: 16,
-                                color: AppColors.onPrimary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                actionLabel,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.onPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
               ),
             ],

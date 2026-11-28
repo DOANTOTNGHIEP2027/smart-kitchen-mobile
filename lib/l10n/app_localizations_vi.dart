@@ -227,6 +227,24 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String get mealPlanPastDayLocked => 'Ngày đã qua, không thể chỉnh sửa';
+
+  @override
+  String get mealPlanMissingTitle => 'Thiếu nguyên liệu';
+
+  @override
+  String get mealPlanMissingMessage =>
+      'Kho chưa đủ nguyên liệu cho món này. Thêm vào danh sách đi chợ?';
+
+  @override
+  String mealPlanMissingAdded(int count) {
+    return 'Đã thêm $count món vào danh sách đi chợ';
+  }
+
+  @override
+  String get mealPlanDuplicateRecipe => 'Món này đã có trong bữa';
+
+  @override
   String get mealPlanTapToAdd => 'Chạm để thêm món';
 
   @override

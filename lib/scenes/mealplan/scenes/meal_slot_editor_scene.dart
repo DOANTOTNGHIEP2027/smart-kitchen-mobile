@@ -8,12 +8,14 @@ import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../planning/scenes/planning_routes.dart';
 import '../../planning/widgets/slot_guest_diner_entry.dart';
+import '../domain/meal_suggestion.dart';
 import '../domain/meal_composition.dart';
 import '../domain/meal_plan_slot.dart';
 import '../../recipe/domain/recipe.dart';
 import '../../recipe/scenes/recipe_list_scene.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/meal_composition_store.dart';
+import '../widgets/missing_ingredients_prompt.dart';
 import '../widgets/meal_composition_panel.dart';
 import '../../../app/env_config.dart';
 import '../widgets/recipe_cover_image.dart';
@@ -153,13 +155,27 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
           RecipeListScene(onSelect: (value) => Get.back<Recipe>(result: value)),
     );
     if (recipe == null || !mounted) return;
-    final ok = await Get.find<MealPlanStore>().assignManual(
+    final store = Get.find<MealPlanStore>();
+    if (store.hasRecipeInSlot(widget.slotId, recipe.id, exceptDishId: dishId)) {
+      _showActionError(context.l10n.mealPlanDuplicateRecipe);
+      return;
+    }
+    List<IngredientItem>? serverMissing;
+    final ok = await store.assignManual(
       widget.slotId,
       dishId,
       recipe.id,
       recipe.name,
+      onAssigned: (dish) => serverMissing = dish.missingIngredients,
     );
-    if (!ok && mounted) _showActionError(context.l10n.mealplanUnableToChoose);
+    if (!mounted) return;
+    if (!ok) {
+      _showActionError(context.l10n.mealplanUnableToChoose);
+      return;
+    }
+    final missing =
+        await missingForRecipe(recipe.id, fromServer: serverMissing);
+    if (mounted) await confirmAddMissingToShopping(context, missing: missing);
   }
 
   void _showActionError(String message) {
@@ -179,6 +195,9 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
           final key = store.slotKeyOf(widget.slotId);
           final slot = key == null ? null : store.slots[key];
           final dishes = slot?.dishes ?? const <MealPlanDish>[];
+          // Plan đã chốt hoặc bữa của ngày đã qua ⇒ chỉ xem.
+          final readOnly =
+              store.isConfirmed || store.isSlotLocked(widget.slotId);
           // #201: món do AI ghép bữa đã được BE lưu thành dish thường của
           // slot → chỉ render `dishes` (không render lại menu), menu chỉ bổ
           // sung vai trò + khẩu phần cho thẻ.
@@ -222,7 +241,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                   store: composition,
                   slotId: widget.slotId,
                   hasDishes: dishes.isNotEmpty,
-                  readOnly: store.isConfirmed,
+                  readOnly: readOnly,
                 ),
               ...dishes.map(
                   (dish) => Padding(
@@ -238,11 +257,11 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                               ? null
                               : () => store.removeDish(widget.slotId, dish.id),
                           onInsights: () => _openCandidates(dish),
-                          onChoose: store.isConfirmed
+                          onChoose: readOnly
                               ? null
                               : () => _openSuggestions(dish.id),
                         ),
-                        if (!store.isConfirmed)
+                        if (!readOnly)
                           Wrap(
                             spacing: 8,
                             children: [
@@ -294,7 +313,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                     fontSize: 15,
                   ),
                 ),
-                onPressed: _isAdding || store.isConfirmed ? null : _addDish,
+                onPressed: _isAdding || readOnly ? null : _addDish,
               ),
             ],
           );

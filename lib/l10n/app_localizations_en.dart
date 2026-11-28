@@ -229,6 +229,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get mealPlanPastDayLocked => 'This day has passed — editing is locked';
+
+  @override
+  String get mealPlanMissingTitle => 'Missing ingredients';
+
+  @override
+  String get mealPlanMissingMessage =>
+      'Your pantry doesn\'t have enough for this dish. Add these to the shopping list?';
+
+  @override
+  String mealPlanMissingAdded(int count) {
+    return 'Added $count items to the shopping list';
+  }
+
+  @override
+  String get mealPlanDuplicateRecipe => 'This dish is already in this meal';
+
+  @override
   String get mealPlanTapToAdd => 'Tap to add a dish';
 
   @override

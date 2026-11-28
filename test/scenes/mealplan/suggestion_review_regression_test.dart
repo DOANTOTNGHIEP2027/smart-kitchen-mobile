@@ -72,6 +72,11 @@ Future<(MealPlanStore, FakeMealPlanApi, SuggestionStore)>
 }
 
 void main() {
+  // Fixture dùng ngày cố định — ghim "hôm nay" trước đó để không bị khoá
+  // theo luật ngày đã qua.
+  setUp(() => MealPlanStore.clock = () => DateTime(2026, 11, 1));
+  tearDown(() => MealPlanStore.clock = DateTime.now);
+
   test('recovery plan read cannot roll back a newer weekly confirmed snapshot',
       () async {
     final plans = FakeMealPlanApi();

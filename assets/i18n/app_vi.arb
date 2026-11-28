@@ -112,6 +112,11 @@
       "count": {"type": "int"}
     }
   },
+  "mealPlanPastDayLocked": "Ngày đã qua, không thể chỉnh sửa",
+  "mealPlanMissingTitle": "Thiếu nguyên liệu",
+  "mealPlanMissingMessage": "Kho chưa đủ nguyên liệu cho món này. Thêm vào danh sách đi chợ?",
+  "mealPlanMissingAdded": "Đã thêm {count} món vào danh sách đi chợ",
+  "mealPlanDuplicateRecipe": "Món này đã có trong bữa",
   "mealPlanTapToAdd": "Chạm để thêm món",
   "mealPlanSelectingDish": "Đang chọn món",
   "mealPlanDishUnselected": "Chưa chọn món",

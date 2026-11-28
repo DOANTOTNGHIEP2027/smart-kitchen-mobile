@@ -9,6 +9,7 @@ import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
+import '../domain/meal_suggestion.dart';
 import '../domain/shopping_list_sink.dart';
 import '../../recipe/domain/recipe.dart';
 import '../../recipe/scenes/recipe_list_scene.dart';
@@ -17,6 +18,7 @@ import '../../shell/app_shell_store.dart';
 import '../../../routing/app_routes.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/suggestion_store.dart';
+import '../widgets/missing_ingredients_prompt.dart';
 import '../widgets/suggestion_card.dart';
 
 /// Chi tiết gợi ý đã lưu của một món, độc lập với trạng thái attendance.
@@ -184,8 +186,12 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
                           SuggestionActionStatus.accepting,
                       onPressed: _store.canWrite && !suggestion.isBlocked
                           ? () async {
+                              final missing = suggestion.missingIngredients;
                               final ok = await _store.acceptSuggestion();
-                              if (ok && mounted) Get.back<void>();
+                              if (!ok || !context.mounted) return;
+                              await confirmAddMissingToShopping(context,
+                                  missing: missing, sink: _shoppingSink());
+                              if (mounted) Get.back<void>();
                             }
                           : null,
                     )),
@@ -263,15 +269,34 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
           RecipeListScene(onSelect: (value) => Get.back<Recipe>(result: value)),
     );
     if (recipe == null || !mounted) return;
-    final ok = await Get.find<MealPlanStore>().assignManual(
+    final mealPlan = Get.find<MealPlanStore>();
+    if (mealPlan.hasRecipeInSlot(_store.slotId, recipe.id,
+        exceptDishId: _store.dishId)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+              content: Text(context.l10n.mealPlanDuplicateRecipe)));
+      }
+      return;
+    }
+    List<IngredientItem>? serverMissing;
+    final ok = await mealPlan.assignManual(
       _store.slotId,
       _store.dishId,
       recipe.id,
       recipe.name,
+      onAssigned: (dish) => serverMissing = dish.missingIngredients,
     );
     if (!mounted) return;
     if (ok) {
-      Get.back<void>();
+      final missing =
+          await missingForRecipe(recipe.id, fromServer: serverMissing);
+      if (context.mounted) {
+        await confirmAddMissingToShopping(context,
+            missing: missing, sink: _shoppingSink());
+      }
+      if (mounted) Get.back<void>();
     } else if (context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
