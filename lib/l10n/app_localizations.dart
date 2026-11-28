@@ -164,6 +164,96 @@ abstract class AppLocalizations {
   /// **'Good morning'**
   String get homeGreeting;
 
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get homeGreetingAfternoon;
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get homeGreetingEvening;
+
+  /// No description provided for @homeGreetingNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello, night owl'**
+  String get homeGreetingNight;
+
+  /// No description provided for @homeShoppingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your grocery shopping list'**
+  String get homeShoppingSubtitle;
+
+  /// No description provided for @homeMealLogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track nutrition and calories'**
+  String get homeMealLogSubtitle;
+
+  /// No description provided for @inventoryCategoryOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Category (optional)'**
+  String get inventoryCategoryOptional;
+
+  /// No description provided for @inventoryCategoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Spices, seafood, vegetables'**
+  String get inventoryCategoryHint;
+
+  /// No description provided for @inventoryCategoryVegetables.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetables'**
+  String get inventoryCategoryVegetables;
+
+  /// No description provided for @inventoryCategorySeafood.
+  ///
+  /// In en, this message translates to:
+  /// **'Seafood'**
+  String get inventoryCategorySeafood;
+
+  /// No description provided for @inventoryCategoryMeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Meat'**
+  String get inventoryCategoryMeat;
+
+  /// No description provided for @inventoryCategorySpices.
+  ///
+  /// In en, this message translates to:
+  /// **'Spices'**
+  String get inventoryCategorySpices;
+
+  /// No description provided for @inventoryCategoryFruit.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruit'**
+  String get inventoryCategoryFruit;
+
+  /// No description provided for @inventoryCategoryDairy.
+  ///
+  /// In en, this message translates to:
+  /// **'Dairy and eggs'**
+  String get inventoryCategoryDairy;
+
+  /// No description provided for @inventoryCategoryDry.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry goods'**
+  String get inventoryCategoryDry;
+
+  /// No description provided for @inventoryCategoryDrinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinks'**
+  String get inventoryCategoryDrinks;
+
   /// No description provided for @homeQuickActions.
   ///
   /// In en, this message translates to:
@@ -6664,30 +6754,6 @@ abstract class AppLocalizations {
   /// **'Hello'**
   String get homeGreetingNoon;
 
-  /// No description provided for @homeGreetingAfternoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Good afternoon'**
-  String get homeGreetingAfternoon;
-
-  /// No description provided for @homeGreetingEvening.
-  ///
-  /// In en, this message translates to:
-  /// **'Good evening'**
-  String get homeGreetingEvening;
-
-  /// No description provided for @homeShoppingSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your list of things to buy'**
-  String get homeShoppingSubtitle;
-
-  /// No description provided for @homeMealLogSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Track nutrition & calories'**
-  String get homeMealLogSubtitle;
-
   /// No description provided for @familyMemberActions.
   ///
   /// In en, this message translates to:
@@ -6861,12 +6927,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Limits sugar and fast-absorbing carbs, favours low-sugar dishes.'**
   String get dietTypeDiabeticDescription;
-
-  /// No description provided for @inventoryCategoryOptional.
-  ///
-  /// In en, this message translates to:
-  /// **'Category (optional)'**
-  String get inventoryCategoryOptional;
 
   /// No description provided for @inventoryZeroQuantityTitle.
   ///

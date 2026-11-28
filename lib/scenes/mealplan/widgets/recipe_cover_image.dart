@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../widgets/app_cached_image.dart';
+import '../../../utils/recipe_images.dart';
 
 /// Ảnh minh hoạ công thức cho phần gợi ý/vote.
 ///
@@ -45,7 +46,8 @@ class RecipeCoverImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(AppDimens.radiusMd);
-    final imageUrl = _demoImageUrls[recipeId];
+    final imageUrl = _demoImageUrls[recipeId] ??
+        recipeImageUrl(recipeId: recipeId, recipeName: recipeName);
     return SizedBox(
       width: width,
       height: height,
@@ -82,18 +84,14 @@ class _RecipeImageFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: <Color>[AppColors.primaryGradientStart, AppColors.primary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppColors.primaryContainer,
         ),
         child: Center(
           child: Icon(
             recipeName.toLowerCase().contains('canh')
                 ? Icons.soup_kitchen_outlined
                 : Icons.restaurant_menu_outlined,
-            color: AppColors.textOnPrimary,
+            color: AppColors.onPrimaryContainer,
             size: 36,
           ),
         ),

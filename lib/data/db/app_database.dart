@@ -25,6 +25,8 @@ part 'app_database.g.dart';
 /// - 7 (#69): thêm bảng [ShoppingCategories] (category local-only).
 /// - 8 (#239): thêm cột `in_inventory` cho shopping_list_items. DB đi từ <4
 ///   tạo bảng mới đã có cột này nên chỉ ALTER khi đi từ v4..v7.
+/// - 9: sửa DB v8 của bản local từng dùng cùng version nhưng thiếu
+///   `in_inventory`; giữ nguyên dữ liệu và hàng đợi offline.
 @DriftDatabase(tables: <Type>[
   ReadCacheEntries,
   InventoryItems,
@@ -40,7 +42,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -71,6 +73,17 @@ class AppDatabase extends _$AppDatabase {
           if (from >= 4 && from < 8) {
             // #239 — món đã cất vào kho.
             await m.addColumn(shoppingListItems, shoppingListItems.inInventory);
+          }
+          if (from == 8) {
+            final columns = await customSelect(
+              'PRAGMA table_info(shopping_list_items)',
+            ).get();
+            if (!columns.any(
+              (column) => column.read<String>('name') == 'in_inventory',
+            )) {
+              await m.addColumn(
+                  shoppingListItems, shoppingListItems.inInventory);
+            }
           }
         },
       );

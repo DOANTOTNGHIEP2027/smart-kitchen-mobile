@@ -22,7 +22,7 @@ class ShareExportSheet extends StatelessWidget {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    final all = store.items;
+    final all = store.visibleItems;
     // FamilyStore có thể chưa đăng ký (đường /family → pop) — KHÔNG Get.find
     // trần; không có roster ⇒ không hậu tố (Guard #14, fix P0-2).
     final roster = shoppingFamilyStore()?.rosterState;
@@ -52,7 +52,7 @@ class ShareExportSheet extends StatelessWidget {
     final l10n = context.l10n;
     return Observer(
       builder: (_) {
-        final hasItems = store.items.isNotEmpty;
+        final hasItems = store.visibleItems.isNotEmpty;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.md),

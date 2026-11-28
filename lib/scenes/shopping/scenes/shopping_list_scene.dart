@@ -8,12 +8,14 @@ import '../../../domain/shared/food_category.dart';
 import '../../../routing/app_routes.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../stores/session_store.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/money_format.dart';
 import '../../../utils/quantity_format.dart';
 import '../../../utils/text_format.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/inputs/chip_choice_group.dart';
+import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../inventory/domain/unit_option.dart';
 import '../../profile/domain/household_roster.dart';
@@ -167,18 +169,26 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final loadError = store.loadError;
+          if (loadError != null && store.visibleItems.isEmpty) {
+            return AppErrorView(
+              message: apiErrorMessage(context.l10n, loadError),
+              onRetry: store.retryLoad,
+            );
+          }
+
           final me = Get.find<SessionStore>().currentUser?.id;
           // Đọc trong Observer để chip assignee tự vẽ lại khi roster về.
           shoppingFamilyStore()?.rosterState;
           List<ShoppingItem> mine(List<ShoppingItem> l) => _mineOnly
               ? l.where((e) => e.isAssignedTo(me)).toList()
               : l;
-          final allItems = mine(store.items);
+          final allItems = mine(store.visibleItems);
           final pendingItems = mine(store.pending);
           final completedItems = mine(store.completed);
           final myCount = store.assignedToMeCount;
 
-          if (store.items.isEmpty) {
+          if (store.visibleItems.isEmpty) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(AppDimens.xl),
@@ -260,7 +270,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 store.completed.length,
               ),
               // #239: món đã mua chưa vào kho → mở màn xem lại & cất vào kho.
-              if (store.completed.any((i) => i.awaitsInventory)) ...<Widget>[
+              if (store.completed.isNotEmpty) ...<Widget>[
                 const SizedBox(height: AppDimens.sm),
                 SizedBox(
                   width: double.infinity,
@@ -269,7 +279,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     onPressed: () => Get.toNamed<void>(AppRoutes.shoppingCheckout),
                     icon: const Icon(Icons.kitchen_outlined),
                     label: Text(context.l10n.shoppingCheckoutCta(
-                        store.completed.where((i) => i.awaitsInventory).length)),
+                        store.completed.length)),
                   ),
                 ),
               ],
@@ -379,7 +389,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                               _filter = ShoppingFilter.all;
                             }),
                             icon: const Icon(Icons.refresh_rounded, size: 18),
-                            label: Text(context.l10n.shoppingFilterAll(store.items.length)),
+                            label: Text(context.l10n.shoppingFilterAll(store.visibleItems.length)),
                           ),
                         ],
                       ),
@@ -420,7 +430,7 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                 _filter = ShoppingFilter.all;
                               }),
                               icon: const Icon(Icons.refresh_rounded, size: 18),
-                              label: Text(context.l10n.shoppingFilterAll(store.items.length)),
+                              label: Text(context.l10n.shoppingFilterAll(store.visibleItems.length)),
                             ),
                           ],
                         ],
@@ -706,9 +716,10 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                               : TextDecoration.none,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppDimens.xs),
                       Wrap(
                         spacing: 6,
+                        runSpacing: AppDimens.xs,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: <Widget>[
                           if (item.category != null)

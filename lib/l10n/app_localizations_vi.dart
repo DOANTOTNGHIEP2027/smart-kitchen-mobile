@@ -42,6 +42,51 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeGreeting => 'Chào buổi sáng';
 
   @override
+  String get homeGreetingAfternoon => 'Chào buổi chiều';
+
+  @override
+  String get homeGreetingEvening => 'Chào buổi tối';
+
+  @override
+  String get homeGreetingNight => 'Chào bạn đêm khuya';
+
+  @override
+  String get homeShoppingSubtitle => 'Danh sách đồ cần mua sắm';
+
+  @override
+  String get homeMealLogSubtitle => 'Theo dõi dinh dưỡng & calo';
+
+  @override
+  String get inventoryCategoryOptional => 'Phân loại (tuỳ chọn)';
+
+  @override
+  String get inventoryCategoryHint => 'VD: Gia vị, hải sản, rau củ';
+
+  @override
+  String get inventoryCategoryVegetables => 'Rau củ';
+
+  @override
+  String get inventoryCategorySeafood => 'Hải sản';
+
+  @override
+  String get inventoryCategoryMeat => 'Thịt';
+
+  @override
+  String get inventoryCategorySpices => 'Gia vị';
+
+  @override
+  String get inventoryCategoryFruit => 'Trái cây';
+
+  @override
+  String get inventoryCategoryDairy => 'Sữa và trứng';
+
+  @override
+  String get inventoryCategoryDry => 'Đồ khô';
+
+  @override
+  String get inventoryCategoryDrinks => 'Đồ uống';
+
+  @override
   String get homeQuickActions => 'Hôm nay bạn muốn làm gì?';
 
   @override
@@ -3740,18 +3785,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeGreetingNoon => 'Chào buổi trưa';
 
   @override
-  String get homeGreetingAfternoon => 'Chào buổi chiều';
-
-  @override
-  String get homeGreetingEvening => 'Chào buổi tối';
-
-  @override
-  String get homeShoppingSubtitle => 'Danh sách đồ cần mua sắm';
-
-  @override
-  String get homeMealLogSubtitle => 'Theo dõi dinh dưỡng & calo';
-
-  @override
   String get familyMemberActions => 'Thao tác với thành viên';
 
   @override
@@ -3845,9 +3878,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get dietTypeDiabeticDescription =>
       'Hạn chế đường và tinh bột hấp thu nhanh, ưu tiên món ít ngọt.';
-
-  @override
-  String get inventoryCategoryOptional => 'Phân loại (tuỳ chọn)';
 
   @override
   String get inventoryZeroQuantityTitle => 'Đã dùng hết mặt hàng này?';

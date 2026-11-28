@@ -13,7 +13,6 @@ import 'package:smart_kitchen_mobile/scenes/inventory/ocr/domain/ocr_scan_result
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/stores/ocr_store.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/stores/inventory_form_store.dart';
 
-
 class _FakeOcrApi implements OcrApi {
   final List<String> keys = <String>[];
   final List<Object> outcomes = <Object>[];
@@ -45,7 +44,8 @@ class _FakeCompressor implements OcrImageCompressor {
 class _MockInventoryFormStore extends Mock implements InventoryFormStore {}
 
 class _FakeBatchApi implements InventoryBatchApi {
-  final List<List<Map<String, dynamic>>> payloads = <List<Map<String, dynamic>>>[];
+  final List<List<Map<String, dynamic>>> payloads =
+      <List<Map<String, dynamic>>>[];
   Object? failure;
 
   @override
@@ -198,7 +198,8 @@ void main() {
       );
     });
 
-    test('ghi một lần batch, không gọi InventoryFormStore, gửi hạn theo ngày local',
+    test(
+        'ghi một lần batch, không gọi InventoryFormStore, gửi hạn theo ngày local',
         () async {
       api.outcomes.add(
         const OcrScanResult(scanId: 'scan-1', items: <OcrItem>[_validItem]),

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
-import '../../../domain/shared/food_category.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/quantity_format.dart';
-import '../../../utils/text_format.dart';
 import '../domain/inventory_item.dart';
+import 'food_category_visual.dart';
+import 'inventory_presentation.dart';
 
 /// Hiển thị một [InventoryItemModel] trong danh sách kho.
 ///
@@ -27,10 +27,9 @@ class InventoryItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final visual = foodCategoryVisual(context, item.category, item.name);
     final displayQty = item.displayQuantity ?? item.quantity;
     final displayUnitStr = item.displayUnit ?? item.unit;
-    // #201: một bảng phân loại chuẩn, khớp lỏng cả tên cũ ("Thịt cá"…).
-    final categoryStyle = FoodCategory.styleOf(item.category);
     // #201: hết hàng (0) không phải "sắp hết".
     final lowStock = item.showsLowStock;
 
@@ -68,12 +67,12 @@ class InventoryItemTile extends StatelessWidget {
                   height: 48,
                   margin: const EdgeInsets.only(right: AppDimens.md),
                   decoration: BoxDecoration(
-                    color: categoryStyle.backgroundColor,
+                    color: visual.background,
                     borderRadius: BorderRadius.circular(AppDimens.radiusMd),
                   ),
                   child: Icon(
-                    categoryStyle.icon,
-                    color: categoryStyle.iconColor,
+                    visual.icon,
+                    color: visual.color,
                     size: 24,
                   ),
                 ),
@@ -87,7 +86,7 @@ class InventoryItemTile extends StatelessWidget {
                         children: <Widget>[
                           Expanded(
                             child: Text(
-                              capitalizeFirst(item.name),
+                              inventoryDisplayName(item.name),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.textPrimary,
@@ -120,38 +119,45 @@ class InventoryItemTile extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 3),
-                      Row(
+                      Wrap(
+                        spacing: AppDimens.sm,
+                        runSpacing: AppDimens.xs,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: <Widget>[
                           if (item.category != null) ...<Widget>[
                             Text(
-                              item.category!,
+                              inventoryDisplayName(item.category!),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(width: 8),
                           ],
                           if (item.expiryDate != null) ...<Widget>[
-                            Icon(
-                              Icons.calendar_today_outlined,
-                              size: 11,
-                              color: item.isExpiringSoon
-                                  ? AppColors.warning
-                                  : AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 3),
-                            Text(
-                              _formatExpiry(item.expiryDate!),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: item.isExpiringSoon
-                                    ? AppColors.warning
-                                    : AppColors.textSecondary,
-                                fontWeight: item.isExpiringSoon
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                fontSize: 11,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 11,
+                                  color: item.isExpiringSoon
+                                      ? AppColors.warning
+                                      : AppColors.textSecondary,
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  _formatExpiry(item.expiryDate!),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: item.isExpiringSoon
+                                        ? AppColors.warning
+                                        : AppColors.textSecondary,
+                                    fontWeight: item.isExpiringSoon
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ],

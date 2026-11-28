@@ -329,8 +329,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       Get.back();
     } else if (store.saveError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(apiErrorMessage(context.l10n, store.saveError))),
+        SnackBar(content: Text(apiErrorMessage(context.l10n, store.saveError))),
       );
     }
     // Nếu conflict đã mở → dialog tự bật qua _onConflictChanged; không SnackBar.
@@ -374,8 +373,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
       Get.back();
     } else if (store.saveError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(apiErrorMessage(context.l10n, store.saveError))),
+        SnackBar(content: Text(apiErrorMessage(context.l10n, store.saveError))),
       );
     }
   }

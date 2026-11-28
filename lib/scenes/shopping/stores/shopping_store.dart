@@ -29,6 +29,7 @@ class ShoppingStore with HouseholdScoped {
   bool _draining = false;
   final ObservableList<ShoppingItem> _items = ObservableList<ShoppingItem>();
   final Observable<bool> _loading = Observable(true);
+  final Observable<ApiException?> _loadError = Observable(null);
   final Observable<ApiException?> _error = Observable(null);
   /// Lý do giá vừa nhập bị mất — 1 lần drain có thể có NHIỀU lý do cùng lúc.
   final ObservableSet<PriceLostReason> _priceLost = ObservableSet<PriceLostReason>();
@@ -42,7 +43,11 @@ class ShoppingStore with HouseholdScoped {
   final Set<String> _assignedDuringSync = <String>{};
   int _syncsRunning = 0;
   List<ShoppingItem> get items => List.unmodifiable(_items);
+  /// Món còn trên danh sách đi chợ. Giữ món đã cất trong cache để đồng bộ,
+  /// nhưng không tính chúng vào giao diện, bộ lọc hay tiến độ nữa.
+  List<ShoppingItem> get visibleItems => _items.where((e) => !e.inInventory).toList();
   bool get isLoading => _loading.value;
+  ApiException? get loadError => _loadError.value;
   ApiException? get error => _error.value;
   /// AM-TB-4 (§12): 1 toggle MANG GIÁ bị server từ chối vì món đã đổi ở nơi
   /// khác — giá vừa nhập chưa được lưu, phải báo người dùng.
@@ -64,11 +69,11 @@ class ShoppingStore with HouseholdScoped {
   int get assignedToMeCount {
     final me = _session.currentUser?.id;
     if (me == null) return 0;
-    return _items.where((e) => e.isAssignedTo(me) && e.status == ShoppingItemStatus.pending).length;
+    return pending.where((e) => e.isAssignedTo(me)).length;
   }
 
-  List<ShoppingItem> get pending => _items.where((e) => e.status == ShoppingItemStatus.pending).toList();
-  List<ShoppingItem> get completed => _items.where((e) => e.status == ShoppingItemStatus.completed).toList();
+  List<ShoppingItem> get pending => visibleItems.where((e) => e.status == ShoppingItemStatus.pending).toList();
+  List<ShoppingItem> get completed => visibleItems.where((e) => e.status == ShoppingItemStatus.completed).toList();
 
   /// Idempotent theo household: cùng household → no-op; household đổi (kể cả
   /// logout → login tài khoản khác) → huỷ luồng cũ, xoá dữ liệu cũ, nghe lại.
@@ -82,12 +87,53 @@ class ShoppingStore with HouseholdScoped {
       _items.clear(); _assigningIds.clear();
       _error.value = null; _assignError.value = null; _priceLost.clear(); _rejectedCreateName.value = null;
       _loading.value = householdId != null;
+      _loadError.value = null;
     });
     unawaited(oldItems?.cancel()); unawaited(oldConn?.cancel());
     if (householdId == null) return;
-    _itemsSub = _dao.watchAll(householdId).listen((rows) => runInAction(() { _items..clear()..addAll(rows); _loading.value = false; }));
+    _listenToItems(householdId, householdEpoch);
     _connectivitySub = _connectivity.onConnectivityRestored.listen((_) => unawaited(sync()));
     unawaited(sync());
+  }
+
+  void _listenToItems(String householdId, int epoch) {
+    _itemsSub = _dao.watchAll(householdId).listen(
+      (rows) {
+        if (isStaleEpoch(epoch)) return;
+        runInAction(() {
+          _items..clear()..addAll(rows);
+          _loading.value = false;
+          _loadError.value = null;
+        });
+      },
+      onError: (Object error, StackTrace stackTrace) => _setLoadError(error, epoch),
+    );
+  }
+
+  Future<void> retryLoad() async {
+    final householdId = _session.householdId;
+    if (householdId == null || !isHouseholdBound) return;
+    final epoch = householdEpoch;
+    final oldItems = _itemsSub;
+    _itemsSub = null;
+    await oldItems?.cancel();
+    if (isStaleEpoch(epoch)) return;
+    runInAction(() {
+      _loading.value = _items.isEmpty;
+      _loadError.value = null;
+    });
+    _listenToItems(householdId, epoch);
+    unawaited(sync());
+  }
+
+  void _setLoadError(Object error, int epoch) {
+    if (isStaleEpoch(epoch)) return;
+    runInAction(() {
+      _loading.value = false;
+      _loadError.value = error is ApiException
+          ? error
+          : ServerException('ERR_UNKNOWN', 'Could not load shopping list');
+    });
   }
 
   Future<bool> add(String name, double quantity, String unit, {String? category}) async {
@@ -213,11 +259,11 @@ class ShoppingStore with HouseholdScoped {
   Future<void> sync() async {
     final householdId = _session.householdId; if (householdId == null) return;
     final epoch = householdEpoch;
-    await _drain(householdId);
-    // Household đổi trong lúc drain → init() của household mới đã tự sync.
-    if (isStaleEpoch(epoch)) return;
     _syncsRunning++;
     try {
+      await _drain(householdId);
+      // Household đổi trong lúc drain → init() của household mới đã tự sync.
+      if (isStaleEpoch(epoch)) return;
       // Chụp row SYNCED TRƯỚC khi gửi list(): chỉ những row này mới được xoá
       // khi server không trả. Row thành SYNCED trong lúc list() bay (remap của
       // add() online / drain của sync khác) không có trong bản chụp server.
@@ -234,6 +280,7 @@ class ShoppingStore with HouseholdScoped {
     }
     // Household đổi trong lúc sync bay → lỗi của household cũ không được hiện ở household mới.
     on ApiException catch (e) { _setError(e, epoch); }
+    catch (error) { _setLoadError(error, epoch); }
     finally { if (--_syncsRunning == 0) _assignedDuringSync.clear(); }
   }
   Future<void> _drain(String householdId) async {

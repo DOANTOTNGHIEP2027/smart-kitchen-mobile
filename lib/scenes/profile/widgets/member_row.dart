@@ -59,25 +59,11 @@ class MemberRow extends StatelessWidget {
             shape: AppCachedImageShape.circle,
             placeholderIcon: Icons.person,
           ),
-          title: Row(
-            children: <Widget>[
-              Flexible(
-                child: Text(
-                  isMe ? l10n.familyMemberYou(name) : name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodyMedium,
-                ),
-              ),
-              if (member.provider == 'GUEST') ...<Widget>[
-                const SizedBox(width: AppDimens.xs),
-                _Badge(
-                  key: ValueKey<String>('member-guest-${member.userId}'),
-                  label: l10n.familyGuestBadge,
-                  filled: false,
-                ),
-              ],
-            ],
+          title: Text(
+            isMe ? l10n.familyMemberYou(name) : name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyMedium,
           ),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: AppDimens.xs),
@@ -86,6 +72,12 @@ class MemberRow extends StatelessWidget {
               runSpacing: AppDimens.xs,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: <Widget>[
+                if (member.provider == 'GUEST')
+                  _Badge(
+                    key: ValueKey<String>('member-guest-${member.userId}'),
+                    label: l10n.familyGuestBadge,
+                    filled: false,
+                  ),
                 if (member.role == 'OWNER')
                   _Badge(label: l10n.householdOwner, filled: true)
                 else if (member.role == 'MEMBER')
