@@ -131,6 +131,39 @@ class PlanSlot {
   final List<RecipeCard> dishes;
 }
 
+enum ActionStatus { pending, executing, done, failed, expired, rejected }
+
+/// Đề xuất ghi của AI chờ người dùng xác nhận (S6/S7) — `MEALPLAN_ADD_DISH`
+/// hoặc `SHOPPING_ADD_ITEMS`. Không gì được ghi trước khi người dùng bấm xác
+/// nhận.
+class AssistantAction {
+  static const String shoppingAddItems = 'SHOPPING_ADD_ITEMS';
+
+  const AssistantAction({
+    required this.actionId,
+    required this.type,
+    required this.summary,
+    required this.status,
+    this.expiresAt,
+  });
+
+  final String actionId;
+  final String type;
+  final String summary;
+  final ActionStatus status;
+  final DateTime? expiresAt;
+}
+
+/// Kết quả `POST /assistant/actions/{id}/confirm|reject`.
+class ActionResult {
+  const ActionResult({required this.status, this.code});
+
+  final ActionStatus status;
+
+  /// Mã lỗi khi `failed` (vd. `ERR_PLAN_003` — thực đơn đã chốt).
+  final String? code;
+}
+
 /// Một dòng của `GET /assistant/sessions` — đủ để mở lại phiên gần nhất.
 class AssistantSessionSummary {
   const AssistantSessionSummary({
@@ -166,6 +199,7 @@ class AssistantReply {
     this.question,
     this.recipeCards = const <RecipeCard>[],
     this.mealPlan = const <PlanSlot>[],
+    this.actions = const <AssistantAction>[],
   });
 
   final String turnId;
@@ -189,6 +223,9 @@ class AssistantReply {
 
   /// Thực đơn nhiều ngày của phiên PLANNING.
   final List<PlanSlot> mealPlan;
+
+  /// Đề xuất chờ xác nhận, trạng thái theo BE lúc tải.
+  final List<AssistantAction> actions;
 }
 
 /// Trạng thái một lượt — từ POST messages, GET turns, hoặc sự kiện SSE.

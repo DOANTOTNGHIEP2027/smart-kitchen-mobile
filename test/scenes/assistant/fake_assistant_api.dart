@@ -20,6 +20,10 @@ class FakeAssistantApi implements AssistantApi {
   List<AssistantSessionSummary> sessions = <AssistantSessionSummary>[];
   Map<String, List<AssistMessage>> history = <String, List<AssistMessage>>{};
   int listSessionsCalls = 0;
+  final List<String> confirmed = <String>[];
+  final List<String> rejected = <String>[];
+  Future<ActionResult> Function(String actionId)? onConfirm;
+  Future<String> Function(String kbRecipeId)? onResolveRecipe;
   final List<SendCall> sends = <SendCall>[];
   int statusCalls = 0;
   int streamCalls = 0;
@@ -74,6 +78,25 @@ class FakeAssistantApi implements AssistantApi {
   }
 
   @override
+  Future<ActionResult> confirmAction(String actionId) async {
+    confirmed.add(actionId);
+    if (onConfirm != null) return onConfirm!(actionId);
+    return const ActionResult(status: ActionStatus.done);
+  }
+
+  @override
+  Future<ActionResult> rejectAction(String actionId) async {
+    rejected.add(actionId);
+    return const ActionResult(status: ActionStatus.rejected);
+  }
+
+  @override
+  Future<String> resolveRecipe(String kbRecipeId) async {
+    if (onResolveRecipe != null) return onResolveRecipe!(kbRecipeId);
+    return 'recipe-$kbRecipeId';
+  }
+
+  @override
   Future<AssistantTurnStatus> turnStatus(String sessionId, String turnId) {
     statusCalls++;
     if (onStatus != null) return onStatus!(turnId);
@@ -111,6 +134,7 @@ AssistantReply assistantReply({
   bool fallback = false,
   List<RecipeCard> recipeCards = const <RecipeCard>[],
   List<PlanSlot> mealPlan = const <PlanSlot>[],
+  List<AssistantAction> actions = const <AssistantAction>[],
 }) =>
     AssistantReply(
       turnId: turnId,
@@ -124,4 +148,5 @@ AssistantReply assistantReply({
       fallback: fallback,
       recipeCards: recipeCards,
       mealPlan: mealPlan,
+      actions: actions,
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
@@ -88,9 +89,25 @@ class AssistantReplyView extends StatelessWidget {
     this.hasStep,
     this.onStepTap,
     this.onAnswer,
+    this.onRecipeTap,
+    this.actionStatus,
+    this.actionCode,
+    this.isActionInFlight,
+    this.onConfirmAction,
+    this.onRejectAction,
   });
 
   final AssistMessage message;
+
+  /// Bấm thẻ món (S4); `null` ⇒ thẻ không bấm được.
+  final ValueChanged<RecipeCard>? onRecipeTap;
+
+  /// Trạng thái hiện tại của đề xuất — xem `AssistantStore.actionStatus`.
+  final ActionStatus Function(AssistantAction action)? actionStatus;
+  final String? Function(String actionId)? actionCode;
+  final bool Function(String actionId)? isActionInFlight;
+  final ValueChanged<String>? onConfirmAction;
+  final ValueChanged<String>? onRejectAction;
 
   /// Bước `stepRef` có trong buổi nấu đang mở không — `null` ⇒ không hiện chip
   /// bước (ngoài màn nấu).
@@ -168,7 +185,29 @@ class AssistantReplyView extends StatelessWidget {
             ],
           ],
           if (reply != null && reply.recipeCards.isNotEmpty)
-            for (final card in reply.recipeCards.take(5)) RecipeCardTile(card: card),
+            for (final card in reply.recipeCards.take(5))
+              RecipeCardTile(
+                card: card,
+                onTap: onRecipeTap == null ? null : () => onRecipeTap!(card),
+              ),
+          if (reply != null)
+            for (final action in reply.actions)
+              // Observer riêng: trạng thái đổi sau khi bấm, build này nằm ngoài
+              // Observer của luồng tin nên MobX không theo dõi được.
+              Observer(
+                builder: (_) => ActionCard(
+                  action: action,
+                  status: actionStatus?.call(action) ?? action.status,
+                  code: actionCode?.call(action.actionId),
+                  inFlight: isActionInFlight?.call(action.actionId) ?? false,
+                  onConfirm: onConfirmAction == null
+                      ? null
+                      : () => onConfirmAction!(action.actionId),
+                  onReject: onRejectAction == null
+                      ? null
+                      : () => onRejectAction!(action.actionId),
+                ),
+              ),
           if (reply != null && reply.mealPlan.isNotEmpty)
             MealPlanView(slots: reply.mealPlan),
           if (data != null) ...<Widget>[
@@ -389,6 +428,82 @@ class MealPlanView extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Thẻ hành động (S6/S7): đề xuất chờ xác nhận, hoặc kết quả sau khi bấm.
+class ActionCard extends StatelessWidget {
+  const ActionCard({
+    super.key,
+    required this.action,
+    required this.status,
+    this.code,
+    this.inFlight = false,
+    this.onConfirm,
+    this.onReject,
+  });
+
+  final AssistantAction action;
+  final ActionStatus status;
+  final String? code;
+  final bool inFlight;
+  final VoidCallback? onConfirm;
+  final VoidCallback? onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final small = theme.textTheme.bodySmall;
+    final pending = status == ActionStatus.pending;
+    final shopping = action.type == AssistantAction.shoppingAddItems;
+    final label = switch (status) {
+      ActionStatus.done =>
+        shopping ? l10n.assistantActionDoneShopping : l10n.assistantActionDone,
+      ActionStatus.failed => l10n.assistantActionFailed(code ?? '-'),
+      ActionStatus.expired => l10n.assistantActionExpired,
+      ActionStatus.rejected => l10n.assistantActionRejected,
+      ActionStatus.pending || ActionStatus.executing => null,
+    };
+    return Card(
+      margin: const EdgeInsets.only(top: AppDimens.xs),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(action.summary,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w600)),
+            if (label != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppDimens.xs),
+                child: Text(label,
+                    style: small?.copyWith(
+                        color: status == ActionStatus.done
+                            ? AppColors.success
+                            : AppColors.textSecondary)),
+              ),
+            if (pending || status == ActionStatus.executing)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  TextButton(
+                    onPressed: pending && !inFlight ? onReject : null,
+                    child: Text(l10n.assistantActionCancel),
+                  ),
+                  FilledButton(
+                    onPressed: pending && !inFlight ? onConfirm : null,
+                    child: Text(shopping
+                        ? l10n.assistantActionConfirmShopping
+                        : l10n.assistantActionConfirm),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

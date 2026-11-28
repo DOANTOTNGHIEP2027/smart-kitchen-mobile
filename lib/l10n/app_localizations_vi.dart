@@ -841,6 +841,32 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String get assistantActionConfirm => 'Thêm vào thực đơn';
+
+  @override
+  String get assistantActionCancel => 'Bỏ qua';
+
+  @override
+  String get assistantActionDone => 'Đã thêm vào thực đơn';
+
+  @override
+  String get assistantActionConfirmShopping => 'Thêm vào danh sách đi chợ';
+
+  @override
+  String get assistantActionDoneShopping => 'Đã thêm vào danh sách đi chợ';
+
+  @override
+  String assistantActionFailed(String code) {
+    return 'Chưa thêm được ($code)';
+  }
+
+  @override
+  String get assistantActionExpired => 'Đề xuất đã hết hạn';
+
+  @override
+  String get assistantActionRejected => 'Đã bỏ qua';
+
+  @override
   String get allergensTitle => 'Dị ứng của tôi';
 
   @override

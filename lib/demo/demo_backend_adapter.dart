@@ -588,6 +588,27 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (path == '/api/v1/assistant/sessions' && method == 'POST') {
       return _createAssistantSession(body);
     }
+    final assistantAction =
+        RegExp(r'^/api/v1/assistant/actions/([^/]+)/(confirm|reject)$')
+            .firstMatch(path);
+    if (assistantAction != null && method == 'POST') {
+      final confirm = assistantAction.group(2) == 'confirm';
+      return _ok(200, <String, dynamic>{
+        'actionId': assistantAction.group(1),
+        'type': 'MEALPLAN_ADD_DISH',
+        'status': confirm ? 'DONE' : 'REJECTED',
+        'result': null,
+      });
+    }
+    final assistantRecipe =
+        RegExp(r'^/api/v1/assistant/recipes/([^/]+)$').firstMatch(path);
+    if (assistantRecipe != null && method == 'GET') {
+      // Demo: thẻ món mẫu trỏ về công thức demo có sẵn.
+      final recipeId = assistantRecipe.group(1) == 'demo-kb-2'
+          ? 'demo-recipe-thit-chay'
+          : 'demo-recipe-canh-chua';
+      return _ok(200, <String, dynamic>{'recipeId': recipeId});
+    }
     if (path == '/api/v1/assistant/sessions' && method == 'GET') {
       final sessions = _assistantSessions.values.toList().reversed.toList();
       return _ok(200, sessions);
@@ -1834,7 +1855,21 @@ class DemoBackendAdapter implements HttpClientAdapter {
       'suspectedDishes': <Object>[],
       'question': null,
       'needsInput': false,
-      'actions': <Object>[],
+      // PLANNING: một đề xuất thêm món để thử thẻ xác nhận (S6/S7).
+      'actions': days == 0
+          ? <Object>[]
+          : <Map<String, dynamic>>[
+              <String, dynamic>{
+                'actionId': '$turnId-action',
+                'type': 'MEALPLAN_ADD_DISH',
+                'summary': 'Canh chua cá lóc · ngày 1 · DINNER',
+                'status': 'PENDING',
+                'expiresAt': DateTime.now()
+                    .toUtc()
+                    .add(const Duration(minutes: 30))
+                    .toIso8601String(),
+              },
+            ],
       'fallback': true,
     };
   }

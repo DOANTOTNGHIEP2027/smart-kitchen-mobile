@@ -46,8 +46,34 @@ AssistantReply mapAssistantReply(Map<String, dynamic> json) {
     fallback: json['fallback'] as bool? ?? false,
     recipeCards: _list(json['recipeCards'], _recipeCard),
     mealPlan: _list(json['mealPlan'], _planSlot),
+    actions: _list(json['actions'], _action),
   );
 }
+
+ActionStatus actionStatusOf(String? raw) => switch (raw) {
+      'DONE' => ActionStatus.done,
+      'FAILED' => ActionStatus.failed,
+      'EXPIRED' => ActionStatus.expired,
+      'REJECTED' => ActionStatus.rejected,
+      'EXECUTING' => ActionStatus.executing,
+      _ => ActionStatus.pending,
+    };
+
+AssistantAction _action(Map<String, dynamic> json) => AssistantAction(
+      actionId: json['actionId'] as String,
+      type: json['type'] as String? ?? '',
+      summary: json['summary'] as String? ?? '',
+      status: actionStatusOf(json['status'] as String?),
+      expiresAt: json['expiresAt'] == null
+          ? null
+          : DateTime.tryParse(json['expiresAt'] as String),
+    );
+
+/// `data` của confirm/reject: `{actionId, type, status, result}`.
+ActionResult mapActionResult(Map<String, dynamic> json) => ActionResult(
+      status: actionStatusOf(json['status'] as String?),
+      code: (json['result'] as Map<String, dynamic>?)?['code'] as String?,
+    );
 
 RecipeCard _recipeCard(Map<String, dynamic> json) => RecipeCard(
       kbRecipeId: json['kbRecipeId'] as String? ?? '',
