@@ -289,6 +289,13 @@
   "assistantHorizonTitle": "Lên thực đơn cho mấy ngày?",
   "assistantHorizonOption": "{days} ngày",
   "@assistantHorizonOption": {"placeholders": {"days": {"type": "int"}}},
+  "assistantActionConfirm": "Thêm vào thực đơn",
+  "assistantActionCancel": "Bỏ qua",
+  "assistantActionDone": "Đã thêm vào thực đơn",
+  "assistantActionFailed": "Chưa thêm được ({code})",
+  "@assistantActionFailed": {"placeholders": {"code": {"type": "String"}}},
+  "assistantActionExpired": "Đề xuất đã hết hạn",
+  "assistantActionRejected": "Đã bỏ qua",
 
   "allergensTitle": "Dị ứng của tôi",
   "allergensCatalogEmpty": "Danh mục dị ứng không khả dụng.",

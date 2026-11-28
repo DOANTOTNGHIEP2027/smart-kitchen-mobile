@@ -788,6 +788,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get assistantActionConfirm => 'Add to meal plan';
+
+  @override
+  String get assistantActionCancel => 'Skip';
+
+  @override
+  String get assistantActionDone => 'Added to the meal plan';
+
+  @override
+  String assistantActionFailed(String code) {
+    return 'Could not add ($code)';
+  }
+
+  @override
+  String get assistantActionExpired => 'This suggestion has expired';
+
+  @override
+  String get assistantActionRejected => 'Skipped';
+
+  @override
   String get allergensTitle => 'My allergens';
 
   @override

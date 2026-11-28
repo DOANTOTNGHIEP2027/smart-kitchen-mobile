@@ -38,6 +38,15 @@ abstract interface class AssistantApi {
     int? currentStep,
   });
 
+  /// Xác nhận đề xuất; `X-Idempotency-Key` = `actionId` (FE design §3) nên bấm
+  /// lại không thêm món lần hai.
+  Future<ActionResult> confirmAction(String actionId);
+
+  Future<ActionResult> rejectAction(String actionId);
+
+  /// `recipeId` (UUID BE) của món KB trên thẻ món — để mở màn chi tiết.
+  Future<String> resolveRecipe(String kbRecipeId);
+
   /// Trạng thái lượt — dùng khi stream SSE lỗi (polling dự phòng).
   Future<AssistantTurnStatus> turnStatus(String sessionId, String turnId);
 
@@ -129,6 +138,43 @@ class AssistantApiImpl implements AssistantApi {
         options: Options(sendTimeout: timeout, receiveTimeout: timeout),
       );
       return mapTurnStatus(_data(res.data));
+    });
+  }
+
+  @override
+  Future<ActionResult> confirmAction(String actionId) {
+    return _unwrap(() async {
+      final res = await _client.dio.post<Map<String, dynamic>>(
+        '/api/v1/assistant/actions/$actionId/confirm',
+        options: Options(
+          headers: <String, String>{'X-Idempotency-Key': actionId},
+          sendTimeout: timeout,
+          receiveTimeout: timeout,
+        ),
+      );
+      return mapActionResult(_data(res.data));
+    });
+  }
+
+  @override
+  Future<ActionResult> rejectAction(String actionId) {
+    return _unwrap(() async {
+      final res = await _client.dio.post<Map<String, dynamic>>(
+        '/api/v1/assistant/actions/$actionId/reject',
+        options: Options(sendTimeout: timeout, receiveTimeout: timeout),
+      );
+      return mapActionResult(_data(res.data));
+    });
+  }
+
+  @override
+  Future<String> resolveRecipe(String kbRecipeId) {
+    return _unwrap(() async {
+      final res = await _client.dio.get<Map<String, dynamic>>(
+        '/api/v1/assistant/recipes/${Uri.encodeComponent(kbRecipeId)}',
+        options: Options(receiveTimeout: timeout),
+      );
+      return _data(res.data)['recipeId'] as String;
     });
   }
 
