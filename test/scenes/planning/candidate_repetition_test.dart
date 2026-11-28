@@ -681,7 +681,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(RepetitionBarChart), findsOneWidget);
       expect(find.text('Được gán 3 lần'), findsOneWidget);
-      expect(find.byKey(const ValueKey<String>('repetition-dish-r-Canh')),
+      expect(find.byKey(const PageStorageKey<String>('repetition-dish-14-r-Canh')),
           findsOneWidget);
 
       Get.reset();
@@ -692,6 +692,34 @@ void main() {
           wrapInScaffold: false);
       await tester.pumpAndSettle();
       expect(find.byType(AppErrorView), findsOneWidget);
+    });
+
+    testWidgets(
+        'RepetitionSummaryScene: cuộn rồi đổi bộ lọc 14 → 7 ngày không lỗi ép kiểu '
+        'PageStorage (double → bool?)', (tester) async {
+      final api = FakeRepetitionApi()
+        ..dishes = <RepeatedDish>[
+          for (var i = 0; i < 12; i++) repeated('Món $i', 2 + i % 3),
+        ];
+      Get.put<RepetitionStore>(RepetitionStore(api));
+      await tester.pumpAppWidget(const RepetitionSummaryScene(),
+          wrapInScaffold: false);
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(Scrollable).last, const Offset(0, -600));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('repetition-window-7')));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(api.requested.last, 7);
+      final tile =
+          find.byKey(const PageStorageKey<String>('repetition-dish-7-r-Món 0'));
+      await tester.scrollUntilVisible(tile, -200,
+          scrollable: find.byType(Scrollable).last);
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
     });
   });
 }

@@ -142,7 +142,10 @@ class _SummaryList extends StatelessWidget {
             child: AppCard(
               padding: EdgeInsets.zero,
               child: ExpansionTile(
-                key: ValueKey<String>('repetition-dish-${dish.recipeId}'),
+                // PageStorageKey riêng: thiếu nó, tile đọc nhầm vị trí cuộn (double) của ListView
+                // làm trạng thái mở/đóng (bool?) khi đổi bộ lọc 7/14 ngày → lỗi ép kiểu.
+                key: PageStorageKey<String>(
+                    'repetition-dish-${summary.windowDays}-${dish.recipeId}'),
                 shape: const Border(),
                 title: Text(
                   dish.recipeName,
