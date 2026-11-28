@@ -204,6 +204,7 @@ Future<void> bootstrap() async {
     quickActionApi: Get.find<QuickActionApi>(),
     firebaseAvailable: firebaseAvailable,
     onNavigate: notificationStore.navigateTo,
+    onNavigationData: notificationStore.setPendingData,
     onInventoryChanged: () async {
       if (Get.isRegistered<InventoryStore>()) {
         await Get.find<InventoryStore>().syncFromServer();

@@ -40,6 +40,10 @@ class FakeAttendanceApi implements MealAttendanceApi {
       onUpdate!(s);
   @override
   Future<List<MealAttendance>> list(String pid) async => [await get(pid, 's')];
+  @override
+  Future<List<MealAttendance>> updateMine(
+          String pid, Map<String, AttendanceStatus> statuses) async =>
+      [for (final s in statuses.values) await onUpdate!(s)];
 }
 
 void main() {
@@ -126,9 +130,9 @@ void main() {
     await tester
         .pumpAppWidget(const MealAttendancePanel(planId: 'p', slotId: 's'));
     await tester.pumpAndSettle();
-    expect(find.text('Chưa phản hồi'), findsOneWidget);
+    expect(find.text('Chưa vote (mặc định có ăn)'), findsOneWidget);
     // #201: SegmentedButton 3 trạng thái + dòng "Bạn: …".
-    expect(find.text('Bạn: Chưa phản hồi'), findsOneWidget);
+    expect(find.text('Bạn: Chưa vote (mặc định có ăn)'), findsOneWidget);
     await tester.tap(find.descendant(
         of: find.byKey(const ValueKey<String>('attendance-segments')),
         matching: find.text('Có ăn')));

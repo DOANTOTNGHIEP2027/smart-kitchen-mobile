@@ -565,6 +565,19 @@ class NotificationStore {
     return target;
   }
 
+  /// `data` của push đi kèm (vd. planId/targetDate cho popup vote) — đặt
+  /// TRƯỚC [navigateTo] để reaction của host luôn đọc được.
+  Map<String, dynamic>? _pendingData;
+
+  void setPendingData(Map<String, dynamic> data) => _pendingData = data;
+
+  /// Lấy-và-xoá `data` của lần điều hướng vừa consume.
+  Map<String, dynamic>? consumePendingData() {
+    final data = _pendingData;
+    _pendingData = null;
+    return data;
+  }
+
   void dispose() {
     _refreshSub?.cancel();
     _sessionDisposer?.call();

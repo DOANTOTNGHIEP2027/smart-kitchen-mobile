@@ -16,6 +16,8 @@ abstract class NotificationsRoutes {
   static String routeFor(NotificationTarget target) => switch (target) {
         NotificationTarget.inventory => InventoryRoutes.list,
         NotificationTarget.mealPlan => MealPlanRoutes.weekly,
+        // Popup do ShellNotificationHost mở; route chỉ là đường lùi.
+        NotificationTarget.attendanceInvite => MealPlanRoutes.weekly,
         NotificationTarget.shopping => AppRoutes.shopping,
         NotificationTarget.household => AppRoutes.family,
         NotificationTarget.notifications => list,

@@ -142,15 +142,21 @@ class NotificationService {
     required QuickActionApi quickActionApi,
     required Future<void> Function() onInventoryChanged,
     required void Function(NotificationTarget target) onNavigate,
+    void Function(Map<String, dynamic> data)? onNavigationData,
     bool firebaseAvailable = true,
   })  : _quickActionApi = quickActionApi,
         _onInventoryChanged = onInventoryChanged,
         _onNavigate = onNavigate,
+        _onNavigationData = onNavigationData,
         _firebaseAvailable = firebaseAvailable;
 
   final QuickActionApi _quickActionApi;
   final Future<void> Function() _onInventoryChanged;
   final void Function(NotificationTarget target) _onNavigate;
+
+  /// Nhận `data` của push ngay TRƯỚC `_onNavigate` (popup vote cần
+  /// planId/targetDate). Tách riêng để `onNavigate` giữ một tham số.
+  final void Function(Map<String, dynamic> data)? _onNavigationData;
   final bool _firebaseAvailable;
   final _localNotifications = FlutterLocalNotificationsPlugin();
   final _uiEventController = StreamController<NotificationUiEvent>.broadcast();
@@ -339,7 +345,12 @@ class NotificationService {
   /// Mở app từ thông báo (nền / cold start): ghi (đã đọc) + điều hướng.
   void handleOpenedMessage(RemoteMessage message) {
     _record(_fromRemote(message, read: true));
-    _onNavigate(resolveNotificationTarget(message.data));
+    _navigateFor(message.data);
+  }
+
+  void _navigateFor(Map<String, dynamic> data) {
+    _onNavigationData?.call(data);
+    _onNavigate(resolveNotificationTarget(data));
   }
 
   AppNotification _fromRemote(RemoteMessage message, {bool read = false}) =>
@@ -379,7 +390,7 @@ class NotificationService {
         messageId: interaction.messageId,
         read: true,
       ));
-      _onNavigate(resolveNotificationTarget(data));
+      _navigateFor(data);
       return;
     }
     if (action == 'COOK_TODAY') {
