@@ -455,7 +455,7 @@ class DependentStore {
     return true;
   }
 
-  /// Payload LUÔN đủ 4 key, null tường minh (Guard 6). Chặn khi
+  /// Payload LUÔN đủ 6 key, null tường minh (Guard 6, #201). Chặn khi
   /// `!canSaveHealthFor(id)` — API không được gọi (Guard 15, 19).
   Future<bool> saveHealthProfile(
     String id, {
@@ -463,6 +463,8 @@ class DependentStore {
     required String? dietTypeWire,
     required double? heightCm,
     required double? weightKg,
+    String? genderWire,
+    String? activityLevelWire,
   }) async {
     if (!canSaveHealthFor(id)) return false;
     if (_healthSaveStatus.value == FormStatus.submitting) return false;
@@ -475,6 +477,9 @@ class DependentStore {
       'dietType': dietTypeWire,
       'heightCm': heightCm,
       'weightKg': weightKg,
+      // #201: PUT thay toàn bộ — luôn gửi, `null` khi chưa chọn.
+      'gender': genderWire,
+      'activityLevel': activityLevelWire,
     };
     final DependentHealthProfile updated;
     try {

@@ -117,14 +117,9 @@ class _MealCompositionPanelState extends State<MealCompositionPanel> {
                         context.l10n.mealComposeDisabled,
                       _ => context.l10n.mealComposeFailed,
                     }),
+                  // #201: từng món hiện bằng thẻ món ở MealSlotEditorScene,
+                  // panel chỉ còn trạng thái + hành động.
                   if (menu != null) ...[
-                    for (final dish in menu.dishes)
-                      Text(
-                        context.l10n.mealComposeDishServings(
-                          dish.name,
-                          dish.servings.toStringAsFixed(1),
-                        ),
-                      ),
                     if (menu.totalCalories != null)
                       Text(
                         context.l10n.mealComposeCalories(

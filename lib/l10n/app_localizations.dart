@@ -1924,12 +1924,6 @@ abstract class AppLocalizations {
   /// **'Expired, spoiled, or discarded'**
   String get inventoryDeleteWaste;
 
-  /// No description provided for @inventoryDeleteCorrected.
-  ///
-  /// In en, this message translates to:
-  /// **'Deleted by mistake, correct data'**
-  String get inventoryDeleteCorrected;
-
   /// No description provided for @inventoryEditItem.
   ///
   /// In en, this message translates to:
@@ -5245,7 +5239,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealComposeRegenerate.
   ///
   /// In en, this message translates to:
-  /// **'Create another menu'**
+  /// **'Re-suggest the whole meal'**
   String get mealComposeRegenerate;
 
   /// No description provided for @mealComposeGenerate.
@@ -7083,6 +7077,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter height, weight, sex, date of birth and activity level to get a suggestion'**
   String get healthProfileCalorieSuggestionHint;
+
+  /// No description provided for @recipeCardServes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} servings'**
+  String recipeCardServes(int count);
+
+  /// No description provided for @recipesFilterApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get recipesFilterApply;
+
+  /// No description provided for @recipesFilterReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get recipesFilterReset;
+
+  /// No description provided for @recipesFilterMaxMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'≤ {minutes} min'**
+  String recipesFilterMaxMinutes(int minutes);
+
+  /// No description provided for @healthProfileCalorieSuggestionAdultOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'The suggestion formula applies to people aged 18 and over'**
+  String get healthProfileCalorieSuggestionAdultOnly;
+
+  /// No description provided for @healthProfileChoiceInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid choice, please choose again'**
+  String get healthProfileChoiceInvalid;
+
+  /// No description provided for @mealDishRoleStaple.
+  ///
+  /// In en, this message translates to:
+  /// **'Staple'**
+  String get mealDishRoleStaple;
+
+  /// No description provided for @mealDishRoleMain.
+  ///
+  /// In en, this message translates to:
+  /// **'Main dish'**
+  String get mealDishRoleMain;
+
+  /// No description provided for @mealDishRoleVegetable.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetable dish'**
+  String get mealDishRoleVegetable;
+
+  /// No description provided for @mealDishRoleSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Soup'**
+  String get mealDishRoleSoup;
+
+  /// No description provided for @mealDishRoleCompleteMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'One-dish meal'**
+  String get mealDishRoleCompleteMeal;
+
+  /// No description provided for @mealDishRoleLightMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Light meal'**
+  String get mealDishRoleLightMeal;
+
+  /// No description provided for @mealComposeServingsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{servings} servings'**
+  String mealComposeServingsShort(String servings);
 }
 
 class _AppLocalizationsDelegate

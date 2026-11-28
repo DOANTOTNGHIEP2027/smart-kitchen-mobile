@@ -14,6 +14,7 @@ import '../../../utils/money_format.dart';
 import '../../../utils/quantity_format.dart';
 import '../../../utils/text_format.dart';
 import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/inputs/chip_choice_group.dart';
 import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/view_state.dart';
 import '../../inventory/domain/unit_option.dart';
@@ -452,20 +453,14 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
       )),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         heroTag: 'shopping-list-fab',
+        tooltip: context.l10n.shoppingAddItem,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
-        ),
         onPressed: () => _showAddDialog(context, store),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(
-          context.l10n.shoppingAddItem,
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
+        child: const Icon(Icons.add_rounded),
       ),
     );
   }
@@ -948,54 +943,33 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                 ),
               ),
               const SizedBox(height: AppDimens.sm),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    flex: 2,
-                    child: TextField(
-                      controller: quantity,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(
-                        hintText: '1',
-                        labelText: context.l10n.shoppingQuantityLabel,
-                        prefixIcon: const Icon(Icons.numbers_rounded),
-                        border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppDimens.radiusMd),
-                        ),
-                      ),
-                    ),
+              TextField(
+                controller: quantity,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  hintText: '1',
+                  labelText: context.l10n.shoppingQuantityLabel,
+                  prefixIcon: const Icon(Icons.numbers_rounded),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusMd),
                   ),
-                  const SizedBox(width: AppDimens.sm),
-                  Expanded(
-                    flex: 3,
-                    child: DropdownButtonFormField<String>(
-                      // Nhãn đơn vị dài ("cái / gói / hộp…") tràn ngang nếu
-                      // dropdown tự đo theo mục rộng nhất.
-                      isExpanded: true,
-                      initialValue: unit,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.shoppingUnitLabel,
-                        border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppDimens.radiusMd),
-                        ),
-                      ),
-                      items: unitOptions
-                          .map(
-                            (o) => DropdownMenuItem(
-                              value: o.value,
-                              child: Text(o.label),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        if (v != null) setModalState(() => unit = v);
-                      },
-                    ),
-                  ),
+                ),
+              ),
+              const SizedBox(height: AppDimens.sm),
+              // #201: đơn vị dạng chip dưới ô số lượng — nhãn dài không chật.
+              ChipChoiceGroup<String>(
+                groupKey: 'add-unit',
+                title: context.l10n.shoppingUnitLabel,
+                value: unit,
+                allowDeselect: false,
+                options: <ChipChoiceOption<String>>[
+                  for (final o in unitOptions)
+                    ChipChoiceOption<String>(o.value, o.label, o.value),
                 ],
+                onChanged: (v) {
+                  if (v != null) setModalState(() => unit = v);
+                },
               ),
               const SizedBox(height: AppDimens.sm),
               Text(
