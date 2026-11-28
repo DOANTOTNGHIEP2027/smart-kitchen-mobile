@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/env_config.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../widgets/app_cached_image.dart';
@@ -7,9 +8,9 @@ import '../../../utils/recipe_images.dart';
 
 /// Ảnh minh hoạ công thức cho phần gợi ý/vote.
 ///
-/// URL của ba món demo được chọn từ `ai-native/data/recipes.json`, nhưng UI
-/// không phụ thuộc vào file hay mạng: mọi món khác, hoặc ảnh tải lỗi, đều dùng
-/// placeholder cục bộ. Nhờ đó cùng một card vẫn dùng được với backend thật.
+/// URL/thời gian của ba món demo (`demo-recipe-*`, chỉ có trong `DEMO_MODE`)
+/// được chọn từ `ai-native/data/recipes.json`; build thường không đọc bảng này.
+/// Mọi món khác, hoặc ảnh tải lỗi, đều dùng placeholder cục bộ.
 class RecipeCoverImage extends StatelessWidget {
   const RecipeCoverImage({
     super.key,
@@ -40,14 +41,16 @@ class RecipeCoverImage extends StatelessWidget {
   };
 
   /// Thời gian dùng để hiển thị trên card lịch demo. Backend thật không cần
-  /// field này ở summary của dish, vì vậy trả `null` cho recipe không phải mock.
-  static int? demoPrepTimeMinutes(String recipeId) => _demoPrepTimes[recipeId];
+  /// field này ở summary của dish, vì vậy ngoài `DEMO_MODE` luôn trả `null`.
+  static int? demoPrepTimeMinutes(String recipeId) =>
+      EnvConfig.isDemoMode ? _demoPrepTimes[recipeId] : null;
 
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(AppDimens.radiusMd);
-    final imageUrl = _demoImageUrls[recipeId] ??
-        recipeImageUrl(recipeId: recipeId, recipeName: recipeName);
+    final imageUrl =
+        (EnvConfig.isDemoMode ? _demoImageUrls[recipeId] : null) ??
+            recipeImageUrl(recipeId: recipeId, recipeName: recipeName);
     return SizedBox(
       width: width,
       height: height,
