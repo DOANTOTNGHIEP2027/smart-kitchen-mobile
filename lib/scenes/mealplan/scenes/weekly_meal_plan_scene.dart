@@ -9,7 +9,6 @@ import '../../../stores/session_store.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../widgets/app_scaffold.dart';
-import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/app_loading_view.dart';
@@ -120,14 +119,6 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene>
                   dateInCurrentWeek ? selectedDate : store.currentWeekStart;
               return _WeekCalendar(
                 store: store,
-                canConfirm: session.role == 'OWNER',
-                onConfirm: () async {
-                  final ok = await store.confirm();
-                  if (!ok && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(context.l10n.mealPlanConfirmFailed)));
-                  }
-                },
                 selectedDate: effectiveSelectedDate,
                 onDateSelected: (date) => setState(() => _selectedDate = date),
                 onNavigateWeek: (direction) => _navigateWeek(store, direction),
@@ -158,8 +149,6 @@ class _MenuRow extends StatelessWidget {
 class _WeekCalendar extends StatelessWidget {
   const _WeekCalendar({
     required this.store,
-    required this.canConfirm,
-    required this.onConfirm,
     required this.selectedDate,
     required this.onDateSelected,
     required this.onNavigateWeek,
@@ -167,9 +156,6 @@ class _WeekCalendar extends StatelessWidget {
 
   final MealPlanStore store;
 
-  /// Chỉ OWNER được chốt thực đơn tuần.
-  final bool canConfirm;
-  final Future<void> Function() onConfirm;
   final DateTime selectedDate;
   final ValueChanged<DateTime> onDateSelected;
   final Future<void> Function(int direction) onNavigateWeek;
@@ -191,20 +177,11 @@ class _WeekCalendar extends StatelessWidget {
               onNext: () => onNavigateWeek(1),
             ),
             const SizedBox(height: AppDimens.sm),
-            // "Chốt thực đơn tuần" — trước nằm trên app bar làm tiêu đề bị cắt.
-            if (store.isConfirmed)
-              _ConfirmedBanner(label: context.l10n.mealPlanConfirmed)
-            else if (canConfirm)
-              AppButton(
-                key: const ValueKey<String>('meal-plan-confirm'),
-                label: context.l10n.mealPlanConfirm,
-                icon: Icons.task_alt_rounded,
-                variant: AppButtonVariant.secondary,
-                isLoading: store.isConfirming,
-                onPressed: store.isConfirming ? null : onConfirm,
-              ),
-            if (store.isConfirmed || canConfirm)
+            // Không còn nút chốt tuần; plan đã CONFIRMED từ backend vẫn báo rõ.
+            if (store.isConfirmed) ...<Widget>[
+              _ConfirmedBanner(label: context.l10n.mealPlanConfirmed),
               const SizedBox(height: AppDimens.sm),
+            ],
 
             // 7 Days Calendar Strip
             Container(
@@ -544,7 +521,9 @@ class _MealScheduleCard extends StatelessWidget {
   Widget _buildCard(BuildContext context) {
     final slot = store.slots[_WeekCalendar._slotKey(date, period.wireValue)];
     final slotId = slot?.id;
-    final canEdit = slotId?.isNotEmpty == true;
+    // Ngày đã qua: chỉ xem món trên thẻ, không mở màn sửa bữa.
+    final isPast = MealPlanStore.isPastDate(date);
+    final canEdit = slotId?.isNotEmpty == true && !isPast;
     final periodLabel = period.labelOf(context);
 
     return Container(
@@ -649,19 +628,31 @@ class _MealScheduleCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: <Widget>[
-                        const Icon(
-                          Icons.add_circle_outline_rounded,
+                        Icon(
+                          isPast
+                              ? Icons.lock_outline_rounded
+                              : Icons.add_circle_outline_rounded,
                           size: 16,
-                          color: AppColors.primary,
+                          color: isPast
+                              ? AppColors.textDisabled
+                              : AppColors.primary,
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          context.l10n.mealPlanTapToAdd,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                        Flexible(
+                          child: Text(
+                            isPast
+                                ? context.l10n.mealPlanPastDayLocked
+                                : context.l10n.mealPlanTapToAdd,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: isPast
+                                      ? AppColors.textSecondary
+                                      : AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
                         ),
                       ],
                     ),

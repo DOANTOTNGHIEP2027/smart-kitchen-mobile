@@ -141,6 +141,16 @@
       "count": {"type": "int"}
     }
   },
+  "mealPlanPastDayLocked": "This day has passed — editing is locked",
+  "mealPlanMissingTitle": "Missing ingredients",
+  "mealPlanMissingMessage": "Your pantry doesn't have enough for this dish. Add these to the shopping list?",
+  "mealPlanMissingAdded": "Added {count} items to the shopping list",
+  "@mealPlanMissingAdded": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "mealPlanDuplicateRecipe": "This dish is already in this meal",
   "mealPlanTapToAdd": "Tap to add a dish",
   "mealPlanSelectingDish": "Choosing a dish",
   "mealPlanDishUnselected": "No dish selected",

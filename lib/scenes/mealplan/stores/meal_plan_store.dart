@@ -85,7 +85,31 @@ class MealPlanStore extends GetLifeCycle {
 
   DishSuggestionState suggestionState(String dishId) => _requestsFor(dishId);
   bool canEditDish(String dishId) =>
-      !_disposed && !isConfirmed && _requestsFor(dishId).canWrite;
+      !_disposed &&
+      !isConfirmed &&
+      !_isPastDish(dishId) &&
+      _requestsFor(dishId).canWrite;
+
+  /// Bữa thuộc ngày đã qua (trước hôm nay) — khoá mọi thao tác sửa món.
+  bool isSlotLocked(String slotId) {
+    final key = slotKeyOf(slotId);
+    final slot = key == null ? null : _slots[key];
+    return slot != null && isPastDate(slot.slotDate);
+  }
+
+  /// Nguồn "hôm nay" cho khoá ngày đã qua — test ghim lại khi fixture dùng
+  /// ngày cố định.
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
+
+  static bool isPastDate(DateTime date) {
+    final now = clock();
+    return DateTime(date.year, date.month, date.day)
+        .isBefore(DateTime(now.year, now.month, now.day));
+  }
+
+  bool _isPastDish(String dishId) => _slots.values.any((slot) =>
+      slot.dishes.any((d) => d.id == dishId) && isPastDate(slot.slotDate));
 
   _DishRequests _requestsFor(String did) => _dishRequests.putIfAbsent(
       did, () => _DishRequests(currentPlanId, _planEpoch));
@@ -510,18 +534,38 @@ class MealPlanStore extends GetLifeCycle {
         'ERR_PLAN_OWNER_ONLY'
       }.contains(error.code);
 
+  /// [onAssigned] nhận dish BE trả về (kèm `missingIngredients` #201) khi
+  /// gán thành công.
   Future<bool> assignManual(
     String sid,
     String did,
     String recipeId,
-    String name,
-  ) async {
+    String name, {
+    void Function(MealPlanDish dish)? onAssigned,
+  }) async {
     final pid = currentPlanId;
-    if (pid == null || !canEditDish(did)) return false;
+    if (pid == null ||
+        !canEditDish(did) ||
+        hasRecipeInSlot(sid, recipeId, exceptDishId: did)) {
+      return false;
+    }
+    MealPlanDish? assigned;
     final result = await _mutateDish(sid, did, DishMutation.select,
-        manualSelection: () => _api.assignDishRecipe(pid, sid, did,
+        manualSelection: () async => assigned = await _api.assignDishRecipe(
+            pid, sid, did,
             recipeId: recipeId, recipeName: name));
-    return result == DishRequestResult.applied;
+    final ok = result == DishRequestResult.applied;
+    if (ok && assigned != null) onAssigned?.call(assigned!);
+    return ok;
+  }
+
+  /// Bữa đã có món khác dùng công thức này — chặn chọn trùng khi thêm tay.
+  bool hasRecipeInSlot(String slotId, String recipeId, {String? exceptDishId}) {
+    final key = slotKeyOf(slotId);
+    final slot = key == null ? null : _slots[key];
+    return slot != null &&
+        slot.dishes.any(
+            (d) => d.id != exceptDishId && d.recipe?.recipeId == recipeId);
   }
 
   Future<bool> confirm() async {
@@ -616,7 +660,7 @@ class MealPlanStore extends GetLifeCycle {
   Future<MealPlanDish?> addDish(String slotId) async {
     final planId = _currentPlanId.value;
     final key = slotKeyOf(slotId);
-    if (key == null || planId == null) return null;
+    if (key == null || planId == null || isSlotLocked(slotId)) return null;
     try {
       final dish = await _api.addDish(planId, slotId);
       if (currentPlanId != planId) return null;

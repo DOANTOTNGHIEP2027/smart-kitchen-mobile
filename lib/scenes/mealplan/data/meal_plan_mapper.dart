@@ -1,5 +1,6 @@
 import '../../../data/network/api_exception.dart';
 import '../domain/meal_plan_slot.dart';
+import '../domain/meal_suggestion.dart';
 
 /// Cú pháp map JSON ↔ domain. Khác inventory-management, map ở tầng API class
 /// trực tiếp ( không tách file mapper) vì response shape của plan vs vote khác
@@ -50,8 +51,26 @@ class MealPlanMapper {
               recipeName: recipeJson['recipeName'] as String,
               source: recipeJson['source'] as String? ?? 'AI',
             ),
+      missingIngredients: (json['missingIngredients'] as List<dynamic>?)
+          ?.map((Object? m) => _shortageFromJson(m as Map<String, dynamic>))
+          .toList(growable: false),
     );
   }
+
+  /// `DishIngredientShortage` (#201) — lượng ở đơn vị chuẩn của BE; đổi về
+  /// literal đơn vị mà kho/đi chợ dùng (`unitOptions`).
+  static IngredientItem _shortageFromJson(Map<String, dynamic> json) =>
+      IngredientItem(
+        name: json['ingredientName'] as String? ?? '',
+        quantity: (json['shortfallQuantity'] as num?)?.toDouble() ?? 0,
+        unit: switch (json['unit'] as String?) {
+          'GRAM' => 'g',
+          'MILLILITER' => 'ml',
+          'PIECE' => 'quả',
+          'UNIT' => 'cái',
+          final other => other ?? '',
+        },
+      );
 
   static DishUiStatus _parseDishStatus(String? raw) {
     switch (raw) {

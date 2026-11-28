@@ -507,6 +507,36 @@ abstract class AppLocalizations {
   /// **'{count} open vote sessions'**
   String mealPlanOpenVotes(int count);
 
+  /// No description provided for @mealPlanPastDayLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This day has passed — editing is locked'**
+  String get mealPlanPastDayLocked;
+
+  /// No description provided for @mealPlanMissingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing ingredients'**
+  String get mealPlanMissingTitle;
+
+  /// No description provided for @mealPlanMissingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pantry doesn\'t have enough for this dish. Add these to the shopping list?'**
+  String get mealPlanMissingMessage;
+
+  /// No description provided for @mealPlanMissingAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {count} items to the shopping list'**
+  String mealPlanMissingAdded(int count);
+
+  /// No description provided for @mealPlanDuplicateRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'This dish is already in this meal'**
+  String get mealPlanDuplicateRecipe;
+
   /// No description provided for @mealPlanTapToAdd.
   ///
   /// In en, this message translates to:

@@ -1,3 +1,5 @@
+import 'meal_suggestion.dart';
+
 /// Tóm tắt 1 recipe đã được gán cho 1 dish (FE-7 §5.1).
 class AssignedRecipeSummary {
   const AssignedRecipeSummary({
@@ -24,11 +26,16 @@ class MealPlanDish {
     required this.sortOrder,
     required this.status,
     this.recipe,
+    this.missingIngredients,
   });
 
   final String id;
   final String slotId;
   final int sortOrder;
+
+  /// Chỉ có ở response gán món tay (#201): nguyên liệu kho đang thiếu, rỗng
+  /// khi đủ. `null` = response không mang field này (không suy ra "đủ").
+  final List<IngredientItem>? missingIngredients;
 
   /// Sentinel khi response không có `sort_order` (HIGH-1 fix review v2) — KHÔNG
   /// hiển thị, chỉ báo "không tin cậy" cho tầng reconcile.

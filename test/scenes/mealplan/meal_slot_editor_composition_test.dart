@@ -39,6 +39,11 @@ ComposedMeal _menu() => ComposedMeal.fromJson(<String, dynamic>{
 /// #201 mục 6: menu APPLIED 3 món → editor hiện 3 thẻ món (không in dòng
 /// chữ trong panel), có nhãn vai trò tiếng Việt, đổi/xoá từng món.
 void main() {
+  // Fixture dùng ngày cố định — ghim "hôm nay" trước đó để không bị khoá
+  // theo luật ngày đã qua.
+  setUp(() => MealPlanStore.clock = () => DateTime(2026, 11, 1));
+  tearDown(() => MealPlanStore.clock = DateTime.now);
+
   TestWidgetsFlutterBinding.ensureInitialized();
   tearDown(Get.reset);
 
@@ -100,7 +105,10 @@ void main() {
       home: const MealSlotEditorScene(
           slotId: 's', mealLabel: 'Bữa trưa', dateLabel: '16/11'),
     ));
-    await tester.pumpAndSettle();
+    // Ảnh bìa món là CachedNetworkImage: test không có mạng nên spinner
+    // placeholder quay mãi — pumpAndSettle không bao giờ dừng. Pump có hạn.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     for (var i = 0; i < 3; i++) {
       expect(find.byKey(ValueKey<String>('slot-dish-d$i')), findsOneWidget);

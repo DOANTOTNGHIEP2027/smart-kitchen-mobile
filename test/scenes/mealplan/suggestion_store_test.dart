@@ -25,6 +25,11 @@ class Sink implements ShoppingListSink {
 }
 
 void main() {
+  // Fixture dùng ngày cố định — ghim "hôm nay" trước đó để không bị khoá
+  // theo luật ngày đã qua.
+  setUp(() => MealPlanStore.clock = () => DateTime(2026, 11, 1));
+  tearDown(() => MealPlanStore.clock = DateTime.now);
+
   tearDown(Get.reset);
   testWidgets(
       'saved suggestions can regenerate; failed request keeps the card visible',
