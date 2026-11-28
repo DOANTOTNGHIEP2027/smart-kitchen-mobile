@@ -323,7 +323,8 @@ void main() {
       expect(api.calls, isEmpty);
     });
 
-    testWidgets('đổi công thức món đang có, huỷ ở bước dị ứng ⇒ giữ công thức cũ',
+    testWidgets(
+        'thẻ món chỉ còn nút Xoá; xoá phải xác nhận, huỷ thì giữ, đồng ý thì xoá hẳn',
         (tester) async {
       final store = await pumpEditor(tester, dishes: const <MealPlanDish>[
         MealPlanDish(
@@ -333,19 +334,27 @@ void main() {
             status: DishUiStatus.confirmed,
             recipe: _oldRecipe),
       ]);
-      api.onRecipeCheck = (_, __, ___) async => check();
 
-      await tester.tap(find.text(_l10n.mealPlanChooseRecipe));
-      await _settle(tester, frames: 3);
-      await tester
-          .tap(find.byKey(const ValueKey<String>('${kRecipeCardKeyPrefix}r9')));
-      await _settle(tester, frames: 3);
-      await tester
-          .tap(find.byKey(const ValueKey<String>('allergen-conflict-cancel')));
+      // Không còn chọn lại / đổi công thức / gợi ý AI trên thẻ.
+      expect(find.text(_l10n.mealPlanChooseRecipe), findsNothing);
+      expect(find.byIcon(Icons.auto_awesome_outlined), findsNothing);
+
+      final delete = find.byKey(const ValueKey<String>('slot-dish-delete-d1'));
+      await tester.tap(delete);
       await _settle(tester, frames: 2);
+      await tester
+          .tap(find.byKey(const ValueKey<String>('confirm-dialog-cancel')));
+      await _settle(tester, frames: 2);
+      expect(api.calls, isNot(contains('removeDish:d1')));
+      expect(store.slots['s']!.dishes, hasLength(1));
 
-      expect(api.calls, <String>['recipeCheck:s:r9']);
-      expect(store.slots['s']!.dishes.single.recipe?.recipeId, 'r-old');
+      await tester.tap(delete);
+      await _settle(tester, frames: 2);
+      await tester
+          .tap(find.byKey(const ValueKey<String>('confirm-dialog-confirm')));
+      await _settle(tester, frames: 2);
+      expect(api.calls, contains('removeDish:d1'));
+      expect(store.slots['s']!.dishes, isEmpty);
     });
 
     testWidgets('server cũ chưa có recipe-check ⇒ bỏ qua, gán như cũ',

@@ -10,15 +10,10 @@ import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_empty_view.dart';
 import '../domain/shopping_list_sink.dart';
-import '../../recipe/domain/recipe.dart';
-import '../../recipe/scenes/recipe_list_scene.dart';
 import '../../shopping/scenes/shopping_list_binding.dart';
-import '../../shell/app_shell_store.dart';
-import '../../../routing/app_routes.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/suggestion_store.dart';
 import '../widgets/suggestion_card.dart';
-import '../../../widgets/feedback/app_toast.dart';
 
 /// Chi tiết gợi ý đã lưu của một món, độc lập với trạng thái attendance.
 /// Hiển thị: SuggestionCard đầy đủ + AllergenBanner + nút Accept/Reject/Re-roll.
@@ -123,16 +118,6 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
                     onPressed:
                         _store.canWrite ? _store.refreshSuggestions : null,
                   ),
-                  const SizedBox(height: AppDimens.sm),
-                  AppButton(
-                    label: context.l10n.mealPlanChooseRecipe,
-                    variant: AppButtonVariant.secondary,
-                    icon: Icons.menu_book_outlined,
-                    onPressed: _store.canWrite &&
-                            _store.actionStatus == SuggestionActionStatus.idle
-                        ? () => _chooseFromRecipe(context)
-                        : null,
-                  ),
                 ],
                 if (suggestion != null) ...[
                   if (suggestion.isBlocked)
@@ -204,8 +189,6 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
   /// "Đọc lại" ẩn khi recovery card đang hiện (card đã có nút riêng).
   Widget _moreMenu(BuildContext context) {
     final l10n = context.l10n;
-    final suggestion = _store.currentSuggestion;
-    final idle = _store.actionStatus == SuggestionActionStatus.idle;
     return PopupMenuButton<_DetailAction>(
       key: const ValueKey<String>('suggestion-more-actions'),
       icon: const Icon(Icons.more_vert),
@@ -215,10 +198,6 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
             _store.load();
           case _DetailAction.regenerate:
             _store.refreshSuggestions();
-          case _DetailAction.chooseRecipe:
-            _chooseFromRecipe(context);
-          case _DetailAction.addShopping:
-            _addMissingToShopping(context);
         }
       },
       itemBuilder: (_) => <PopupMenuEntry<_DetailAction>>[
@@ -234,18 +213,6 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
               _store.actionStatus != SuggestionActionStatus.rerolling,
           child: _menuRow(Icons.refresh, l10n.mealPlanGenerateSuggestions),
         ),
-        PopupMenuItem<_DetailAction>(
-          value: _DetailAction.chooseRecipe,
-          enabled: _store.canWrite && !_store.outcomeUnknown && idle,
-          child: _menuRow(Icons.menu_book_outlined, l10n.mealPlanChooseRecipe),
-        ),
-        if (suggestion != null && suggestion.missingIngredients.isNotEmpty)
-          PopupMenuItem<_DetailAction>(
-            value: _DetailAction.addShopping,
-            enabled: !_store.outcomeUnknown && idle,
-            child: _menuRow(
-                Icons.shopping_cart_outlined, l10n.mealplanAddShoppingList),
-          ),
       ],
     );
   }
@@ -257,38 +224,6 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
           Flexible(child: Text(label)),
         ],
       );
-
-  /// Chọn thẳng một công thức cho món này thay vì gợi ý AI — cùng luồng với
-  /// "Chọn từ công thức" ở màn chỉnh bữa (`assignManual`).
-  Future<void> _chooseFromRecipe(BuildContext context) async {
-    final recipe = await Get.to<Recipe>(
-      () =>
-          RecipeListScene(onSelect: (value) => Get.back<Recipe>(result: value)),
-    );
-    if (recipe == null || !mounted) return;
-    final mealPlan = Get.find<MealPlanStore>();
-    if (mealPlan.hasRecipeInSlot(_store.slotId, recipe.id,
-        exceptDishId: _store.dishId)) {
-      if (context.mounted) {
-        AppToast.show(context.l10n.mealPlanDuplicateRecipe,
-            type: AppToastType.error);
-      }
-      return;
-    }
-    final ok = await mealPlan.assignManual(
-      _store.slotId,
-      _store.dishId,
-      recipe.id,
-      recipe.name,
-    );
-    if (!mounted) return;
-    if (ok) {
-      Get.back<void>();
-    } else if (context.mounted) {
-      AppToast.show(context.l10n.mealplanUnableToChoose,
-          type: AppToastType.error);
-    }
-  }
 
   Widget _recovery(BuildContext context) => Card(
         child: Padding(
@@ -324,25 +259,9 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
     ShoppingListBinding().dependencies();
     return Get.find<ShoppingListSink>();
   }
-
-  Future<void> _addMissingToShopping(BuildContext context) async {
-    final count = await _store.addMissingToShoppingList();
-    if (!context.mounted) return;
-    if (count == 0) {
-      AppToast.show(context.l10n.mealplanShoppingListUnavailable,
-          type: AppToastType.error);
-      return;
-    }
-    if (Get.isRegistered<AppShellStore>()) {
-      Get.back<void>();
-      Get.find<AppShellStore>().selectTab(3);
-    } else {
-      await Get.offNamed<void>(AppRoutes.shopping);
-    }
-  }
 }
 
-enum _DetailAction { reload, regenerate, chooseRecipe, addShopping }
+enum _DetailAction { reload, regenerate }
 
 class _SuggestionPager extends StatelessWidget {
   const _SuggestionPager({

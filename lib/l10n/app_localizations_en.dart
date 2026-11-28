@@ -4083,6 +4083,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealPlanDishSourceAi => 'AI suggestions';
 
   @override
+  String get mealPlanDishSourceCompose => 'AI builds the whole meal';
+
+  @override
+  String mealPlanDeleteDishMessage(String name) {
+    return 'Remove \"$name\" from this meal? AI won\'t suggest it again for this meal.';
+  }
+
+  @override
+  String get mealPlanDeleteEmptyDishMessage =>
+      'Remove this unselected dish from the meal?';
+
+  @override
   String get inventoryDeleteConfirmMessage =>
       'This item will be removed from the pantry.';
 
