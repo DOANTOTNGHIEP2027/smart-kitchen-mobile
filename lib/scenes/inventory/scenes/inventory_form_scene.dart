@@ -21,6 +21,7 @@ import '../widgets/conflict_dialog.dart';
 import '../widgets/delete_confirm_dialog.dart';
 import '../widgets/unit_picker.dart';
 import '../widgets/waste_cause_sheet.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Form thêm/sửa inventory (FE-5 §14 InventoryFormScene).
 ///
@@ -290,8 +291,7 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   Future<void> _onSave() async {
     final validation = _validateForSave();
     if (validation != null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(validation)));
+      AppToast.show(validation, type: AppToastType.error);
       return;
     }
     final quantity = double.parse(_quantityCtrl.text.trim());
@@ -330,9 +330,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     if (ok) {
       Get.back();
     } else if (store.saveError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(apiErrorMessage(context.l10n, store.saveError))),
-      );
+      AppToast.show(apiErrorMessage(context.l10n, store.saveError),
+          type: AppToastType.error);
     }
     // Nếu conflict đã mở → dialog tự bật qua _onConflictChanged; không SnackBar.
   }
@@ -374,9 +373,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
     if (ok) {
       Get.back();
     } else if (store.saveError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(apiErrorMessage(context.l10n, store.saveError))),
-      );
+      AppToast.show(apiErrorMessage(context.l10n, store.saveError),
+          type: AppToastType.error);
     }
   }
 

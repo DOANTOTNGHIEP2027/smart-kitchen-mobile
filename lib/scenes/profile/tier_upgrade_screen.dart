@@ -21,6 +21,7 @@ import 'domain/household_tier.dart';
 import 'stores/family_store.dart';
 import 'stores/form_status.dart';
 import 'widgets/tier_widgets.dart';
+import '../../widgets/feedback/app_toast.dart';
 
 /// Tự nâng/hạ gói household — công tắc demo/QA, KHÔNG phải mua hàng thật
 /// (tier-gate-screens.md §9). Disclaimer hiện ở banner cố định VÀ trong dialog
@@ -96,11 +97,11 @@ class _TierUpgradeScreenState extends State<TierUpgradeScreen> {
     // Claim chưa đổi theo (refresh lỗi) → nói rõ thay vì để màn hình hiện gói
     // cũ mà toast lại báo gói mới (người dùng dễ bấm đổi lần nữa).
     final label = tierLabel(l10n, target);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(_store.tier == target
-          ? l10n.tierUpdated(label)
-          : l10n.tierUpdatedClaimStale(label)),
-    ));
+    AppToast.show(
+        _store.tier == target
+            ? l10n.tierUpdated(label)
+            : l10n.tierUpdatedClaimStale(label),
+        type: AppToastType.success);
   }
 
   @override

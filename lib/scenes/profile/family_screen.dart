@@ -27,6 +27,7 @@ import 'widgets/invite_result_sheet.dart';
 import 'widgets/member_row.dart';
 import 'widgets/stale_data_banner.dart';
 import 'widgets/tier_widgets.dart';
+import '../../widgets/feedback/app_toast.dart';
 
 class FamilyScreen extends StatefulWidget {
   const FamilyScreen({super.key});
@@ -70,10 +71,9 @@ class _FamilyScreenState extends State<FamilyScreen> {
   static bool _isNoHousehold(ViewState<HouseholdRoster> state) =>
       state is ErrorState<HouseholdRoster> && state.error.code == 'ERR_HH_001';
 
-  void _toast(String message) {
+  void _toast(String message, {AppToastType type = AppToastType.error}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    AppToast.show(message, type: type);
   }
 
   Future<void> _createInvite() async {
@@ -114,9 +114,11 @@ class _FamilyScreenState extends State<FamilyScreen> {
     // Phòng thủ: `false` mà không có lỗi = store từ chối (guard), không phải
     // lỗi thao tác → không toast lỗi chung.
     if (!removed && store.mutationError == null) return;
-    _toast(removed
-        ? context.l10n.familyRemoveSuccess(name)
-        : familyErrorMessage(context.l10n, store.mutationError));
+    _toast(
+        removed
+            ? context.l10n.familyRemoveSuccess(name)
+            : familyErrorMessage(context.l10n, store.mutationError),
+        type: removed ? AppToastType.success : AppToastType.error);
   }
 
   void _openTierUpgrade() => Get.toNamed<void>(ProfileFamilyRoutes.tierUpgrade);

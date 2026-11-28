@@ -1754,7 +1754,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get insightsHistoryTooltip => 'Nutrition trends';
+  String get insightsHistoryTooltip => 'Monthly recap';
 
   @override
   String insightsCalorieTooltip(Object calories, Object day, Object month) {
@@ -4182,4 +4182,203 @@ class AppLocalizationsEn extends AppLocalizations {
   String mealComposeServingsShort(String servings) {
     return '$servings servings';
   }
+
+  @override
+  String get nutritionProteinShort => 'Protein';
+
+  @override
+  String get nutritionCarbsShort => 'Carbs';
+
+  @override
+  String get nutritionFatShort => 'Fat';
+
+  @override
+  String nutritionGramValue(String name, String grams) {
+    return '$name $grams g';
+  }
+
+  @override
+  String get insightsMacroChartTitle => 'Daily nutrient breakdown';
+
+  @override
+  String get insightsMacroChartSubtitle =>
+      'Protein, carbs and fat in grams (g)';
+
+  @override
+  String insightsMacroTooltip(
+      int day, int month, String p, String c, String f, String total) {
+    return 'Day $day/$month\n• Protein: $p g\n• Carbs: $c g\n• Fat: $f g\nTotal: $total g';
+  }
+
+  @override
+  String get mealPlanNoSlotsForDay => 'No meals for this day';
+
+  @override
+  String get mealPlanSlotLocked =>
+      'This meal is past its time or already cooked and can\'t be edited';
+
+  @override
+  String get mealPlanSlotLockedToast =>
+      'This meal is locked and can no longer be edited';
+
+  @override
+  String get mealPlanDishCooked => 'Cooked';
+
+  @override
+  String get homeUpcomingAllCooked => 'All cooked';
+
+  @override
+  String get dishCookedTitle => 'Dish already cooked';
+
+  @override
+  String get dishCookedMessage =>
+      'This dish has already been cooked for this meal plan.';
+
+  @override
+  String dishCookedMessageAt(String time, String date) {
+    return 'This dish was cooked at $time on $date.';
+  }
+
+  @override
+  String get dishCookedClose => 'Close';
+
+  @override
+  String get mealPlanAllergyWarningTitle => 'Allergy warning';
+
+  @override
+  String get mealPlanAllergyWarningMessage =>
+      'This dish contains allergens for people eating this meal:';
+
+  @override
+  String mealPlanAllergyPersonLine(String name, String allergens) {
+    return '$name: $allergens';
+  }
+
+  @override
+  String get mealPlanAllergyUnverifiedNote =>
+      'This dish\'s allergen data is not verified — please double-check the ingredients.';
+
+  @override
+  String get mealPlanAllergyContinue => 'Continue';
+
+  @override
+  String get mealPlanAllergyGuest => 'Guest';
+
+  @override
+  String get mealPlanAllergyMember => 'Member';
+
+  @override
+  String get mealPlanMissingAddWithShopping => 'Add dish + shopping';
+
+  @override
+  String get mealPlanMissingAddOnly => 'Add dish only';
+
+  @override
+  String get monthlyRecapTitle => 'Monthly recap';
+
+  @override
+  String get monthlyRecapPreviousMonth => 'Previous month';
+
+  @override
+  String get monthlyRecapNextMonth => 'Next month';
+
+  @override
+  String get monthlyRecapNoHousehold =>
+      'Join a household to see the Monthly recap';
+
+  @override
+  String get monthlyRecapMonthInvalid =>
+      'This month has no recap yet. Please choose another month.';
+
+  @override
+  String get monthlyRecapHeroFallback =>
+      'No personalized insight for you this month yet. Keep logging your meals for a more detailed recap!';
+
+  @override
+  String get monthlyRecapAvgCalories => 'Average calories per day';
+
+  @override
+  String get monthlyRecapAdherenceCaption => 'Meal plan adherence this month';
+
+  @override
+  String monthlyRecapStreak(int count) {
+    return '$count weeks';
+  }
+
+  @override
+  String get monthlyRecapStreakCaption => 'Weeks on target';
+
+  @override
+  String get monthlyRecapEmptyInsights =>
+      'No personalized insights for this month yet.';
+
+  @override
+  String get monthlyRecapShare =>
+      'My household\'s monthly recap on Smart Kitchen!';
+
+  @override
+  String monthlyRecapWeekLabel(String date) {
+    return 'Week of $date';
+  }
+
+  @override
+  String monthlyRecapShowWeeks(int count) {
+    return 'Show weekly details ($count)';
+  }
+
+  @override
+  String get monthlyRecapHideWeeks => 'Hide weekly details';
+
+  @override
+  String monthlyRecapMonthRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get monthlyRecapWasteTitle => 'Waste this month';
+
+  @override
+  String get monthlyRecapWasteNone =>
+      '🎉 Your household threw nothing away this month. Keep it up!';
+
+  @override
+  String get monthlyRecapSpendTitle => 'Spending this month';
+
+  @override
+  String get monthlyRecapSpendNone => 'No items have been priced this month';
+
+  @override
+  String monthlyRecapSpendPercent(int percent) {
+    return '$percent% of the monthly budget';
+  }
+
+  @override
+  String monthlyRecapSpendOver(int percent, String amount) {
+    return '$percent% of the monthly budget · Over by $amount';
+  }
+
+  @override
+  String monthlyRecapBudgetConvertedWeekly(String amount) {
+    return 'The weekly budget ($amount) has been converted to a monthly amount.';
+  }
+
+  @override
+  String monthlyRecapBudgetConvertedOther(String amount) {
+    return 'Your budget ($amount) has been converted to a monthly amount.';
+  }
+
+  @override
+  String get monthlyRecapSpendTrend => 'Weekly trend';
+
+  @override
+  String get monthlyRecapSpendCategoryEmpty =>
+      'No priced spending this month yet';
+
+  @override
+  String get monthlyRecapSpendUpsell =>
+      'See spending by category and the weekly trend with Premium';
+
+  @override
+  String get monthlyRecapSpendDetailNeutral =>
+      'No detailed data for this month yet.';
 }

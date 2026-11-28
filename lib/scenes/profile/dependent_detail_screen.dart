@@ -23,6 +23,7 @@ import 'widgets/change_guardian_sheet.dart';
 import 'widgets/dependent_row.dart';
 import 'widgets/dependent_state_views.dart';
 import 'widgets/guardian_inactive_banner.dart';
+import '../../widgets/feedback/app_toast.dart';
 
 /// Đọc `:dependentId` từ path; [explicit] chỉ cho test/nhúng trực tiếp.
 String resolveDependentId(String? explicit) {
@@ -73,8 +74,7 @@ class _DependentDetailScreenState extends State<DependentDetailScreen> {
 
   void _toast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    AppToast.show(message, type: AppToastType.error);
   }
 
   Future<void> _openChangeGuardian(DependentSummary d) async {
@@ -98,7 +98,6 @@ class _DependentDetailScreenState extends State<DependentDetailScreen> {
   Future<void> _confirmDelete(DependentSummary d) async {
     if (!store.canAdminister) return;
     store.clearDeleteStatus();
-    final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final deleted = await showDialog<bool>(
       context: context,
@@ -107,16 +106,14 @@ class _DependentDetailScreenState extends State<DependentDetailScreen> {
     if (deleted == null || !mounted) return;
     if (deleted) {
       backToDependentList();
-      messenger.showSnackBar(
-          SnackBar(content: Text(l10n.dependentDeletedToast)));
+      AppToast.show(l10n.dependentDeletedToast, type: AppToastType.success);
       return;
     }
     final error = store.deleteError;
     if (error == null) return; // store từ chối (guard), không phải lỗi
     if (error.code == 'ERR_DEP_001') {
       backToDependentList();
-      messenger.showSnackBar(
-          SnackBar(content: Text(l10n.dependentNotFoundTitle)));
+      AppToast.show(l10n.dependentNotFoundTitle, type: AppToastType.error);
       return;
     }
     _toast(dependentErrorMessage(l10n, error));

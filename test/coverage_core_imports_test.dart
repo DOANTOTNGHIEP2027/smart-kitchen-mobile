@@ -34,225 +34,240 @@ import 'package:smart_kitchen_mobile/scenes/cooking/widgets/cooking_assist_sheet
     as _i14;
 import 'package:smart_kitchen_mobile/scenes/cooking/widgets/cooking_unit_label.dart'
     as _i15;
-import 'package:smart_kitchen_mobile/scenes/cooking/widgets/ingredient_deduction_list.dart'
+import 'package:smart_kitchen_mobile/scenes/cooking/widgets/dish_cooked_dialog.dart'
     as _i16;
-import 'package:smart_kitchen_mobile/scenes/cooking/widgets/meal_log_bottom_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/cooking/widgets/ingredient_deduction_list.dart'
     as _i17;
-import 'package:smart_kitchen_mobile/scenes/cooking/widgets/meal_log_card.dart'
+import 'package:smart_kitchen_mobile/scenes/cooking/widgets/meal_log_bottom_sheet.dart'
     as _i18;
-import 'package:smart_kitchen_mobile/scenes/cooking/widgets/meal_type_label.dart'
+import 'package:smart_kitchen_mobile/scenes/cooking/widgets/meal_log_card.dart'
     as _i19;
-import 'package:smart_kitchen_mobile/scenes/cooking/widgets/shortfall_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/cooking/widgets/meal_type_label.dart'
     as _i20;
-import 'package:smart_kitchen_mobile/scenes/cooking/widgets/step_progress_bar.dart'
+import 'package:smart_kitchen_mobile/scenes/cooking/widgets/shortfall_sheet.dart'
     as _i21;
-import 'package:smart_kitchen_mobile/scenes/cooking/widgets/step_timer_view.dart'
+import 'package:smart_kitchen_mobile/scenes/cooking/widgets/start_cooking_guard.dart'
     as _i22;
-import 'package:smart_kitchen_mobile/scenes/household/stores/household_store.dart'
+import 'package:smart_kitchen_mobile/scenes/cooking/widgets/step_progress_bar.dart'
     as _i23;
-import 'package:smart_kitchen_mobile/scenes/insights/stores/history_store.dart'
+import 'package:smart_kitchen_mobile/scenes/cooking/widgets/step_timer_view.dart'
     as _i24;
-import 'package:smart_kitchen_mobile/scenes/insights/widgets/adherence_weekly_bar_chart.dart'
+import 'package:smart_kitchen_mobile/scenes/home/stores/home_store.dart'
     as _i25;
-import 'package:smart_kitchen_mobile/scenes/insights/widgets/chart_gap_utils.dart'
+import 'package:smart_kitchen_mobile/scenes/home/widgets/upcoming_meal_section.dart'
     as _i26;
-import 'package:smart_kitchen_mobile/scenes/insights/widgets/history_skeleton.dart'
+import 'package:smart_kitchen_mobile/scenes/household/stores/household_store.dart'
     as _i27;
-import 'package:smart_kitchen_mobile/scenes/insights/widgets/macro_stacked_area_chart.dart'
-    as _i28;
-import 'package:smart_kitchen_mobile/scenes/insights/widgets/nutrition_trend_chart.dart'
-    as _i29;
-import 'package:smart_kitchen_mobile/scenes/insights/widgets/streak_badge.dart'
-    as _i30;
 import 'package:smart_kitchen_mobile/scenes/inventory/ocr/stores/ocr_store.dart'
-    as _i31;
+    as _i28;
 import 'package:smart_kitchen_mobile/scenes/inventory/stores/inventory_form_store.dart'
-    as _i32;
+    as _i29;
 import 'package:smart_kitchen_mobile/scenes/inventory/stores/inventory_history_store.dart'
-    as _i33;
+    as _i30;
 import 'package:smart_kitchen_mobile/scenes/inventory/stores/inventory_store.dart'
-    as _i34;
+    as _i31;
 import 'package:smart_kitchen_mobile/scenes/inventory/widgets/conflict_dialog.dart'
-    as _i35;
+    as _i32;
 import 'package:smart_kitchen_mobile/scenes/inventory/widgets/delete_confirm_dialog.dart'
-    as _i36;
+    as _i33;
+import 'package:smart_kitchen_mobile/scenes/inventory/widgets/food_category_visual.dart'
+    as _i34;
 import 'package:smart_kitchen_mobile/scenes/inventory/widgets/inventory_item_tile.dart'
-    as _i37;
+    as _i35;
+import 'package:smart_kitchen_mobile/scenes/inventory/widgets/inventory_presentation.dart'
+    as _i36;
 import 'package:smart_kitchen_mobile/scenes/inventory/widgets/unit_picker.dart'
-    as _i38;
+    as _i37;
 import 'package:smart_kitchen_mobile/scenes/inventory/widgets/waste_cause_sheet.dart'
-    as _i39;
+    as _i38;
 import 'package:smart_kitchen_mobile/scenes/mealplan/stores/meal_attendance_store.dart'
-    as _i40;
+    as _i39;
 import 'package:smart_kitchen_mobile/scenes/mealplan/stores/meal_composition_store.dart'
-    as _i41;
+    as _i40;
 import 'package:smart_kitchen_mobile/scenes/mealplan/stores/meal_plan_store.dart'
-    as _i42;
+    as _i41;
 import 'package:smart_kitchen_mobile/scenes/mealplan/stores/suggestion_store.dart'
-    as _i43;
+    as _i42;
 import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/allergen_banner.dart'
+    as _i43;
+import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/allergen_conflict_dialog.dart'
     as _i44;
-import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/meal_attendance_panel.dart'
+import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/dish_cooked_badge.dart'
     as _i45;
-import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/meal_card.dart'
+import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/meal_attendance_panel.dart'
     as _i46;
-import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/meal_composition_panel.dart'
+import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/meal_card.dart'
     as _i47;
-import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/recipe_cover_image.dart'
+import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/meal_composition_panel.dart'
     as _i48;
-import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/suggestion_card.dart'
+import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/missing_ingredients_prompt.dart'
     as _i49;
-import 'package:smart_kitchen_mobile/scenes/nutrition/stores/nutrition_store.dart'
+import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/recipe_cover_image.dart'
     as _i50;
-import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/daily_breakdown_list.dart'
+import 'package:smart_kitchen_mobile/scenes/mealplan/widgets/suggestion_card.dart'
     as _i51;
-import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/diet_compliance_badge.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/stores/nutrition_store.dart'
     as _i52;
-import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/macro_doughnut_chart.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/daily_breakdown_list.dart'
     as _i53;
-import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/nutrition_format.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/diet_compliance_badge.dart'
     as _i54;
-import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/nutrition_summary_widget.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/macro_doughnut_chart.dart'
     as _i55;
-import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/profile_nutrition_section.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/nutrition_format.dart'
     as _i56;
-import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/weekly_calorie_bar_chart.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/nutrition_summary_widget.dart'
     as _i57;
-import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/weekly_calorie_overview_card.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/profile_nutrition_section.dart'
     as _i58;
-import 'package:smart_kitchen_mobile/scenes/planning/stores/candidate_store.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/weekly_calorie_bar_chart.dart'
     as _i59;
-import 'package:smart_kitchen_mobile/scenes/planning/stores/guest_diner_store.dart'
+import 'package:smart_kitchen_mobile/scenes/nutrition/widgets/weekly_calorie_overview_card.dart'
     as _i60;
-import 'package:smart_kitchen_mobile/scenes/planning/stores/meal_slot_store.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/stores/candidate_store.dart'
     as _i61;
-import 'package:smart_kitchen_mobile/scenes/planning/stores/repetition_store.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/stores/guest_diner_store.dart'
     as _i62;
-import 'package:smart_kitchen_mobile/scenes/planning/widgets/allergen_multi_select.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/stores/meal_slot_store.dart'
     as _i63;
-import 'package:smart_kitchen_mobile/scenes/planning/widgets/candidate_card.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/stores/repetition_store.dart'
     as _i64;
-import 'package:smart_kitchen_mobile/scenes/planning/widgets/repetition_bar_chart.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/widgets/allergen_multi_select.dart'
     as _i65;
-import 'package:smart_kitchen_mobile/scenes/planning/widgets/slot_form_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/widgets/candidate_card.dart'
     as _i66;
-import 'package:smart_kitchen_mobile/scenes/planning/widgets/soft_score_breakdown_panel.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/widgets/repetition_bar_chart.dart'
     as _i67;
-import 'package:smart_kitchen_mobile/scenes/profile/stores/dependent_store.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/widgets/slot_form_sheet.dart'
     as _i68;
-import 'package:smart_kitchen_mobile/scenes/profile/stores/family_store.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/widgets/slot_guest_diner_entry.dart'
     as _i69;
-import 'package:smart_kitchen_mobile/scenes/profile/stores/profile_store.dart'
+import 'package:smart_kitchen_mobile/scenes/planning/widgets/soft_score_breakdown_panel.dart'
     as _i70;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/add_dependent_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/stores/dependent_store.dart'
     as _i71;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/allergen_label.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/stores/family_store.dart'
     as _i72;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/calorie_target_field.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/stores/profile_store.dart'
     as _i73;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/change_guardian_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/add_dependent_sheet.dart'
     as _i74;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/change_role_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/allergen_label.dart'
     as _i75;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/dependent_row.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/calorie_target_field.dart'
     as _i76;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/dependent_state_views.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/change_guardian_sheet.dart'
     as _i77;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/dependents_family_card.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/change_role_sheet.dart'
     as _i78;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/diet_type_label.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/dependent_row.dart'
     as _i79;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/diet_type_selector.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/dependent_state_views.dart'
     as _i80;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/guardian_inactive_banner.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/dependents_family_card.dart'
     as _i81;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/household_budget_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/diet_type_label.dart'
     as _i82;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/household_plan_strip.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/diet_type_selector.dart'
     as _i83;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/invite_result_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/guardian_inactive_banner.dart'
     as _i84;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/member_row.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/health_profile_parts.dart'
     as _i85;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/profile_avatar.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/household_budget_sheet.dart'
     as _i86;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/stale_data_banner.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/household_plan_strip.dart'
     as _i87;
-import 'package:smart_kitchen_mobile/scenes/profile/widgets/tier_widgets.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/invite_result_sheet.dart'
     as _i88;
-import 'package:smart_kitchen_mobile/scenes/recap/stores/weekly_recap_store.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/member_row.dart'
     as _i89;
-import 'package:smart_kitchen_mobile/scenes/recap/widgets/insight_card.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/profile_avatar.dart'
     as _i90;
-import 'package:smart_kitchen_mobile/scenes/recap/widgets/recap_badge_colors.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/stale_data_banner.dart'
     as _i91;
-import 'package:smart_kitchen_mobile/scenes/recap/widgets/recap_skeleton.dart'
+import 'package:smart_kitchen_mobile/scenes/profile/widgets/tier_widgets.dart'
     as _i92;
-import 'package:smart_kitchen_mobile/scenes/recap/widgets/shareable_recap_card.dart'
+import 'package:smart_kitchen_mobile/scenes/recap/stores/monthly_recap_store.dart'
     as _i93;
-import 'package:smart_kitchen_mobile/scenes/recap/widgets/streak_counter_widget.dart'
+import 'package:smart_kitchen_mobile/scenes/recap/stores/weekly_recap_store.dart'
     as _i94;
-import 'package:smart_kitchen_mobile/scenes/recap/widgets/waste_spend_sections.dart'
+import 'package:smart_kitchen_mobile/scenes/recap/widgets/insight_card.dart'
     as _i95;
-import 'package:smart_kitchen_mobile/scenes/receipt/stores/receipt_scan_store.dart'
+import 'package:smart_kitchen_mobile/scenes/recap/widgets/monthly_recap_widgets.dart'
     as _i96;
-import 'package:smart_kitchen_mobile/scenes/receipt/widgets/receipt_matched_line_tile.dart'
+import 'package:smart_kitchen_mobile/scenes/recap/widgets/recap_badge_colors.dart'
     as _i97;
-import 'package:smart_kitchen_mobile/scenes/receipt/widgets/receipt_summary_header.dart'
+import 'package:smart_kitchen_mobile/scenes/recap/widgets/recap_skeleton.dart'
     as _i98;
-import 'package:smart_kitchen_mobile/scenes/receipt/widgets/receipt_unmatched_item_card.dart'
+import 'package:smart_kitchen_mobile/scenes/recap/widgets/shareable_recap_card.dart'
     as _i99;
-import 'package:smart_kitchen_mobile/scenes/recipe/stores/recipe_detail_store.dart'
+import 'package:smart_kitchen_mobile/scenes/recap/widgets/streak_counter_widget.dart'
     as _i100;
-import 'package:smart_kitchen_mobile/scenes/recipe/stores/recipe_store.dart'
+import 'package:smart_kitchen_mobile/scenes/recap/widgets/waste_spend_sections.dart'
     as _i101;
-import 'package:smart_kitchen_mobile/scenes/shell/app_shell_store.dart'
+import 'package:smart_kitchen_mobile/scenes/receipt/stores/receipt_scan_store.dart'
     as _i102;
-import 'package:smart_kitchen_mobile/scenes/shopping/stores/category_store.dart'
+import 'package:smart_kitchen_mobile/scenes/receipt/widgets/receipt_matched_line_tile.dart'
     as _i103;
-import 'package:smart_kitchen_mobile/scenes/shopping/stores/shopping_checkout_store.dart'
+import 'package:smart_kitchen_mobile/scenes/receipt/widgets/receipt_summary_header.dart'
     as _i104;
-import 'package:smart_kitchen_mobile/scenes/shopping/stores/shopping_store.dart'
+import 'package:smart_kitchen_mobile/scenes/receipt/widgets/receipt_unmatched_item_card.dart'
     as _i105;
-import 'package:smart_kitchen_mobile/scenes/shopping/widgets/assignee_widgets.dart'
+import 'package:smart_kitchen_mobile/scenes/recipe/stores/recipe_detail_store.dart'
     as _i106;
-import 'package:smart_kitchen_mobile/scenes/shopping/widgets/category_widgets.dart'
+import 'package:smart_kitchen_mobile/scenes/recipe/stores/recipe_store.dart'
     as _i107;
-import 'package:smart_kitchen_mobile/scenes/shopping/widgets/price_capture_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/shell/app_shell_store.dart'
     as _i108;
-import 'package:smart_kitchen_mobile/scenes/shopping/widgets/share_export_sheet.dart'
+import 'package:smart_kitchen_mobile/scenes/shopping/stores/category_store.dart'
     as _i109;
-import 'package:smart_kitchen_mobile/stores/notification_store.dart' as _i110;
-import 'package:smart_kitchen_mobile/stores/realtime_store.dart' as _i111;
-import 'package:smart_kitchen_mobile/stores/session_store.dart' as _i112;
-import 'package:smart_kitchen_mobile/stores/theme_store.dart' as _i113;
-import 'package:smart_kitchen_mobile/widgets/ai/ai_offline_widgets.dart'
+import 'package:smart_kitchen_mobile/scenes/shopping/stores/shopping_checkout_store.dart'
+    as _i110;
+import 'package:smart_kitchen_mobile/scenes/shopping/stores/shopping_store.dart'
+    as _i111;
+import 'package:smart_kitchen_mobile/scenes/shopping/widgets/assignee_widgets.dart'
+    as _i112;
+import 'package:smart_kitchen_mobile/scenes/shopping/widgets/category_widgets.dart'
+    as _i113;
+import 'package:smart_kitchen_mobile/scenes/shopping/widgets/price_capture_sheet.dart'
     as _i114;
-import 'package:smart_kitchen_mobile/widgets/app_bottom_nav.dart' as _i115;
-import 'package:smart_kitchen_mobile/widgets/app_cached_image.dart' as _i116;
-import 'package:smart_kitchen_mobile/widgets/app_scaffold.dart' as _i117;
-import 'package:smart_kitchen_mobile/widgets/buttons/app_button.dart' as _i118;
-import 'package:smart_kitchen_mobile/widgets/cards/app_card.dart' as _i119;
-import 'package:smart_kitchen_mobile/widgets/dialogs/confirm_dialog.dart'
+import 'package:smart_kitchen_mobile/scenes/shopping/widgets/share_export_sheet.dart'
+    as _i115;
+import 'package:smart_kitchen_mobile/stores/notification_store.dart' as _i116;
+import 'package:smart_kitchen_mobile/stores/realtime_store.dart' as _i117;
+import 'package:smart_kitchen_mobile/stores/session_store.dart' as _i118;
+import 'package:smart_kitchen_mobile/stores/theme_store.dart' as _i119;
+import 'package:smart_kitchen_mobile/widgets/ai/ai_offline_widgets.dart'
     as _i120;
-import 'package:smart_kitchen_mobile/widgets/feature_banner.dart' as _i121;
-import 'package:smart_kitchen_mobile/widgets/inputs/app_text_field.dart'
-    as _i122;
-import 'package:smart_kitchen_mobile/widgets/inputs/expiry_date_chip.dart'
-    as _i123;
-import 'package:smart_kitchen_mobile/widgets/loading_overlay.dart' as _i124;
-import 'package:smart_kitchen_mobile/widgets/states/app_empty_view.dart'
-    as _i125;
-import 'package:smart_kitchen_mobile/widgets/states/app_error_view.dart'
+import 'package:smart_kitchen_mobile/widgets/app_bottom_nav.dart' as _i121;
+import 'package:smart_kitchen_mobile/widgets/app_cached_image.dart' as _i122;
+import 'package:smart_kitchen_mobile/widgets/app_scaffold.dart' as _i123;
+import 'package:smart_kitchen_mobile/widgets/buttons/app_button.dart' as _i124;
+import 'package:smart_kitchen_mobile/widgets/cards/app_card.dart' as _i125;
+import 'package:smart_kitchen_mobile/widgets/dialogs/confirm_dialog.dart'
     as _i126;
-import 'package:smart_kitchen_mobile/widgets/states/app_loading_view.dart'
-    as _i127;
-import 'package:smart_kitchen_mobile/widgets/states/app_state_view.dart'
-    as _i128;
-import 'package:smart_kitchen_mobile/widgets/states/state_view_layout.dart'
+import 'package:smart_kitchen_mobile/widgets/feature_banner.dart' as _i127;
+import 'package:smart_kitchen_mobile/widgets/feedback/app_toast.dart' as _i128;
+import 'package:smart_kitchen_mobile/widgets/inputs/app_text_field.dart'
     as _i129;
-import 'package:smart_kitchen_mobile/widgets/states/view_state.dart' as _i130;
+import 'package:smart_kitchen_mobile/widgets/inputs/chip_choice_group.dart'
+    as _i130;
+import 'package:smart_kitchen_mobile/widgets/inputs/expiry_date_chip.dart'
+    as _i131;
+import 'package:smart_kitchen_mobile/widgets/loading_overlay.dart' as _i132;
+import 'package:smart_kitchen_mobile/widgets/states/app_empty_view.dart'
+    as _i133;
+import 'package:smart_kitchen_mobile/widgets/states/app_error_view.dart'
+    as _i134;
+import 'package:smart_kitchen_mobile/widgets/states/app_loading_view.dart'
+    as _i135;
+import 'package:smart_kitchen_mobile/widgets/states/app_state_view.dart'
+    as _i136;
+import 'package:smart_kitchen_mobile/widgets/states/state_view_layout.dart'
+    as _i137;
+import 'package:smart_kitchen_mobile/widgets/states/view_state.dart' as _i138;
 
 void main() {
-  test('coverage core: import đủ 131 file', () {});
+  test('coverage core: import đủ 139 file', () {});
 }

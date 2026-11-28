@@ -3,6 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../../utils/l10n_x.dart';
 import '../stores/meal_composition_store.dart';
+import '../../../utils/unit_label.dart';
 
 class MealCompositionPanel extends StatefulWidget {
   const MealCompositionPanel({
@@ -132,7 +133,7 @@ class _MealCompositionPanelState extends State<MealCompositionPanel> {
                       Text(context.l10n.mealComposeShopping),
                       for (final item in menu.missing)
                         Text(
-                          '${item.name}: ${item.quantity.toStringAsFixed(1)} ${item.unit}',
+                          '${item.name}: ${item.quantity.toStringAsFixed(1)} ${unitLabel(context, item.unit)}',
                         ),
                     ],
                   ],

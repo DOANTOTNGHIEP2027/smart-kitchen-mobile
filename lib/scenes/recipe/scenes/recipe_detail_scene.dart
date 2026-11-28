@@ -13,6 +13,7 @@ import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_state_view.dart';
 import '../domain/recipe.dart';
 import '../stores/recipe_detail_store.dart';
+import '../../../utils/unit_label.dart';
 
 class RecipeDetailScene extends StatefulWidget {
   const RecipeDetailScene({super.key, required this.recipeId});
@@ -271,11 +272,17 @@ class _NutritionCard extends StatelessWidget {
               if (nutrition.calories != null)
                 Text('${nutrition.calories!.round()} kcal'),
               if (nutrition.proteinG != null)
-                Text('P ${nutrition.proteinG!.toStringAsFixed(1)}g'),
+                Text(context.l10n.nutritionGramValue(
+                    context.l10n.nutritionProteinShort,
+                    nutrition.proteinG!.toStringAsFixed(1))),
               if (nutrition.fatG != null)
-                Text('F ${nutrition.fatG!.toStringAsFixed(1)}g'),
+                Text(context.l10n.nutritionGramValue(
+                    context.l10n.nutritionFatShort,
+                    nutrition.fatG!.toStringAsFixed(1))),
               if (nutrition.carbsG != null)
-                Text('C ${nutrition.carbsG!.toStringAsFixed(1)}g'),
+                Text(context.l10n.nutritionGramValue(
+                    context.l10n.nutritionCarbsShort,
+                    nutrition.carbsG!.toStringAsFixed(1))),
             ],
           ),
         ),
@@ -333,7 +340,12 @@ class _Ingredients extends StatelessWidget {
                               BorderRadius.circular(AppDimens.radiusSm),
                         ),
                         child: Text(
-                          _quantity(ingredient.quantity!, ingredient.unit),
+                          _quantity(
+                            ingredient.quantity!,
+                            ingredient.unit == null
+                                ? null
+                                : unitLabel(context, ingredient.unit!),
+                          ),
                           style: const TextStyle(
                             color: AppColors.onPrimaryContainer,
                             fontWeight: FontWeight.w700,

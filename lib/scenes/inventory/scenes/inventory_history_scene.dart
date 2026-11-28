@@ -15,6 +15,7 @@ import '../../../widgets/states/app_loading_view.dart';
 import '../domain/inventory_item.dart';
 import '../domain/inventory_transaction.dart';
 import '../stores/inventory_history_store.dart';
+import '../../../utils/unit_label.dart';
 
 /// Lịch sử xuất nhập tồn kho — phong cách Tasty:
 /// Thẻ thông tin mặt hàng thoáng đãng, timeline giao dịch rõ ràng với mã màu trực quan.
@@ -115,7 +116,7 @@ class _ItemSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final quantity = item.displayQuantity ?? item.quantity;
-    final unit = item.displayUnit ?? item.unit;
+    final unit = unitLabel(context, item.displayUnit ?? item.unit);
 
     return Container(
       width: double.infinity,
@@ -210,7 +211,7 @@ class _TransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final delta = transaction.quantityDelta;
     final deltaText = '${delta > 0 ? '+' : ''}${_formatNumber(delta)} '
-        '${transaction.unit}';
+        '${unitLabel(context, transaction.unit)}';
     final date = DateFormat.yMd(Localizations.localeOf(context).toString())
         .add_Hm()
         .format(transaction.createdAt.toLocal());

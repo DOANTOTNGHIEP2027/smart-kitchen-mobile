@@ -136,7 +136,7 @@ void main() {
     }
   }
 
-  testWidgets('mở dialog → xác nhận → SnackBar hiện kết quả', (tester) async {
+  testWidgets('mở dialog → xác nhận → toast hiện kết quả', (tester) async {
     await pumpShowcase(tester);
     final open = find.byKey(const ValueKey<String>('showcase-open-dialog'));
     await scrollTo(tester, open);

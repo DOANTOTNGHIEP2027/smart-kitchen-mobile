@@ -16,6 +16,7 @@ import '../stores/receipt_scan_store.dart';
 import '../widgets/receipt_matched_line_tile.dart';
 import '../widgets/receipt_summary_header.dart';
 import '../widgets/receipt_unmatched_item_card.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Màn kết quả quét (#68, shopping-receipt-scan.md §13.2). Chỉ được push khi
 /// scan trả 200; điều hướng nằm ở scene (§12.4, D19).
@@ -219,7 +220,6 @@ class _ReceiptResultSceneState extends State<ReceiptResultScene> {
     if (_finishing) return;
     _finishing = true;
     final count = store.committedItemIds.length;
-    final title = context.l10n.receiptDoneTitle;
     final message = context.l10n.receiptDoneToast(count);
     // Pop ĐÚNG 2 màn (result + scan). KHÔNG Get.until theo tên: Mua sắm là tab
     // trong IndexedStack của shell, không có route '/shopping' (Guard 13).
@@ -232,7 +232,7 @@ class _ReceiptResultSceneState extends State<ReceiptResultScene> {
     }
     store.reset();
     if (count > 0) {
-      Get.snackbar(title, message);
+      AppToast.show(message, type: AppToastType.success);
       // #239: món vừa đánh dấu đã mua → xem lại hạn & cất vào kho.
       Get.toNamed<void>(AppRoutes.shoppingCheckout);
     }

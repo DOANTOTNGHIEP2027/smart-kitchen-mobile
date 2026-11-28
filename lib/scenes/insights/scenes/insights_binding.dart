@@ -2,29 +2,20 @@ import 'package:get/get.dart';
 
 import '../../../data/network/dio_client.dart';
 import '../../../stores/session_store.dart';
-import '../../profile/api/health_api.dart';
-import '../data/adherence_api.dart';
-import '../data/history_api.dart';
-import '../stores/history_store.dart';
+import '../../recap/data/monthly_recap_api.dart';
+import '../../recap/stores/monthly_recap_store.dart';
 
-/// DI cho module insights (#87) — `HistoryStore` dùng HealthApi trực tiếp
-/// (Decision D3, tái áp dụng từ meal-log-screen).
+/// DI cho màn Tổng kết tháng (route `InsightsRoutes.history`).
 class InsightsBinding extends Bindings {
   @override
   void dependencies() {
-    if (!Get.isRegistered<HealthApi>()) {
-      Get.put<HealthApi>(HealthApiImpl(Get.find<DioClient>()), permanent: true);
-    }
-    Get.lazyPut<HistoryApi>(() => HistoryApi(Get.find<DioClient>()), fenix: true);
-    Get.lazyPut<AdherenceApi>(
-      () => AdherenceApi(Get.find<DioClient>()),
+    Get.lazyPut<MonthlyRecapApi>(
+      () => MonthlyRecapApi(Get.find<DioClient>()),
       fenix: true,
     );
-    Get.lazyPut<HistoryStore>(
-      () => HistoryStore(
-        Get.find<HistoryApi>(),
-        Get.find<AdherenceApi>(),
-        Get.find<HealthApi>(),
+    Get.lazyPut<MonthlyRecapStore>(
+      () => MonthlyRecapStore(
+        Get.find<MonthlyRecapApi>(),
         Get.find<SessionStore>(),
       ),
       fenix: true,

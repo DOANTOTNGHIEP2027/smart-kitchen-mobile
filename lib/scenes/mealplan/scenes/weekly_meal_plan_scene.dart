@@ -15,6 +15,7 @@ import '../../../widgets/states/app_loading_view.dart';
 import '../../planning/scenes/planning_routes.dart';
 import '../domain/meal_plan_slot.dart';
 import '../stores/meal_plan_store.dart';
+import '../widgets/dish_cooked_badge.dart';
 import '../widgets/recipe_cover_image.dart';
 import 'meal_slot_editor_scene.dart';
 
@@ -237,35 +238,41 @@ class _WeekCalendar extends StatelessWidget {
             ),
             const SizedBox(height: AppDimens.sm),
 
-            // 3 Meals cards
-            ...const <_MealPeriod>[
-              _MealPeriod('BREAKFAST', Icons.wb_sunny_outlined),
-              _MealPeriod('LUNCH', Icons.light_mode_outlined),
-              _MealPeriod('DINNER', Icons.nightlight_round),
-            ].map(
-              (period) => Padding(
-                padding: const EdgeInsets.only(bottom: AppDimens.sm),
-                child: _MealScheduleCard(
-                  store: store,
-                  date: selectedDate,
-                  period: period,
+            // Các bữa của ngày theo đúng danh sách slot server trả (bữa tuỳ
+            // biến theo template như 2 bữa phụ vẫn hiện đủ), không cố định
+            // Sáng/Trưa/Tối.
+            if (store.slotsOfDate(selectedDate).isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppDimens.md),
+                child: Text(
+                  context.l10n.mealPlanNoSlotsForDay,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: AppColors.textSecondary),
                 ),
               ),
-            ),
+            ...store.slotsOfDate(selectedDate).map(
+                  (slot) => Padding(
+                    key: ValueKey<String>('meal-slot-card-${slot.id}'),
+                    padding: const EdgeInsets.only(bottom: AppDimens.sm),
+                    child: _MealScheduleCard(
+                      store: store,
+                      date: selectedDate,
+                      slotId: slot.id,
+                    ),
+                  ),
+                ),
           ],
         ),
       );
 
-  static bool _hasDishes(MealPlanStore store, DateTime date) =>
-      const <String>['BREAKFAST', 'LUNCH', 'DINNER'].any(
-        (meal) => store.slots[_slotKey(date, meal)]?.dishes.isNotEmpty ?? false,
-      );
+  static bool _hasDishes(MealPlanStore store, DateTime date) => store
+      .slotsOfDate(date)
+      .any((slot) => slot.dishes.isNotEmpty);
 
   static bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
-
-  static String _slotKey(DateTime date, String meal) =>
-      '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}_$meal';
 
   static List<String> _weekdayLabels(BuildContext context) => <String>[
         context.l10n.mealPlanWeekdayMonday,
@@ -454,19 +461,26 @@ class _ConfirmedBanner extends StatelessWidget {
       );
 }
 
-class _MealPeriod {
-  const _MealPeriod(this.wireValue, this.icon);
-
-  final String wireValue;
-  final IconData icon;
-
-  String labelOf(BuildContext context) => switch (wireValue) {
-        'BREAKFAST' => context.l10n.mealPlanBreakfast,
-        'LUNCH' => context.l10n.mealPlanLunch,
-        'DINNER' => context.l10n.mealPlanDinner,
-        _ => wireValue,
-      };
+/// Tên bữa: ưu tiên `label` server (tên trong template), thiếu thì theo
+/// `mealTime`.
+String mealSlotLabel(BuildContext context, MealPlanSlot slot) {
+  final label = slot.label;
+  if (label != null) return label;
+  return switch (slot.mealTime) {
+    'BREAKFAST' => context.l10n.mealPlanBreakfast,
+    'LUNCH' => context.l10n.mealPlanLunch,
+    'DINNER' => context.l10n.mealPlanDinner,
+    'SNACK' => context.l10n.nutritionMealSnack,
+    final other => other,
+  };
 }
+
+IconData _mealSlotIcon(MealPlanSlot slot) => switch (slot.mealTime) {
+      'BREAKFAST' => Icons.wb_sunny_outlined,
+      'LUNCH' => Icons.light_mode_outlined,
+      'DINNER' => Icons.nightlight_round,
+      _ => Icons.local_cafe_outlined,
+    };
 
 /// Chọn số ngày cần lên thực đơn rồi mở trợ lý PLANNING cho ô bữa này.
 Future<void> _askAssistant(
@@ -506,12 +520,12 @@ class _MealScheduleCard extends StatelessWidget {
   const _MealScheduleCard({
     required this.store,
     required this.date,
-    required this.period,
+    required this.slotId,
   });
 
   final MealPlanStore store;
   final DateTime date;
-  final _MealPeriod period;
+  final String slotId;
 
   // Observer riêng: Observer của _WeekCalendar không theo dõi được các lần đọc
   // store trong build() của widget con, nên trước đây xoá món không vẽ lại thẻ.
@@ -519,12 +533,17 @@ class _MealScheduleCard extends StatelessWidget {
   Widget build(BuildContext context) => Observer(builder: _buildCard);
 
   Widget _buildCard(BuildContext context) {
-    final slot = store.slots[_WeekCalendar._slotKey(date, period.wireValue)];
-    final slotId = slot?.id;
-    // Ngày đã qua: chỉ xem món trên thẻ, không mở màn sửa bữa.
-    final isPast = MealPlanStore.isPastDate(date);
-    final canEdit = slotId?.isNotEmpty == true && !isPast;
-    final periodLabel = period.labelOf(context);
+    final slot = store.slots[slotId];
+    if (slot == null) return const SizedBox.shrink();
+    // Bữa bị khoá (cờ `locked` server; server cũ: ngày đã qua): chỉ xem món
+    // trên thẻ, không mở màn sửa bữa.
+    final isPast = MealPlanStore.slotIsLocked(slot);
+    final canEdit = slotId.isNotEmpty && !isPast;
+    final time = slot.scheduledMinutes;
+    final periodLabel = mealSlotLabel(context, slot);
+    final headerLabel = time == null
+        ? periodLabel
+        : '$periodLabel · ${(time ~/ 60).toString().padLeft(2, '0')}:${(time % 60).toString().padLeft(2, '0')}';
 
     return Container(
       decoration: BoxDecoration(
@@ -547,7 +566,7 @@ class _MealScheduleCard extends StatelessWidget {
               ? () async {
                   await Get.to<void>(
                     () => MealSlotEditorScene(
-                      slotId: slotId!,
+                      slotId: slotId,
                       mealLabel: periodLabel,
                       dateLabel:
                           context.l10n.mealPlanDateShort(date.day, date.month),
@@ -572,7 +591,7 @@ class _MealScheduleCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                       ),
                       child: Icon(
-                        period.icon,
+                        _mealSlotIcon(slot),
                         color: AppColors.primary,
                         size: 18,
                       ),
@@ -580,7 +599,7 @@ class _MealScheduleCard extends StatelessWidget {
                     const SizedBox(width: AppDimens.sm),
                     Expanded(
                       child: Text(
-                        periodLabel,
+                        headerLabel,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -602,7 +621,7 @@ class _MealScheduleCard extends StatelessWidget {
                         onPressed: () => _askAssistant(
                           context,
                           planId: store.currentPlanId!,
-                          slotId: slotId!,
+                          slotId: slotId,
                           slotLabel:
                               '${context.l10n.mealPlanDateShort(date.day, date.month)} · $periodLabel',
                         ),
@@ -617,13 +636,13 @@ class _MealScheduleCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppDimens.sm),
-                if (slot != null && store.attendances[slot.id] != null)
+                if (store.attendances[slot.id] != null)
                   Text(context.l10n.attendanceSummary(
                       store.attendances[slot.id]!.attendingCount,
                       store.attendances[slot.id]!.unknownCount)),
                 if (store.attendanceError != null)
                   Text(context.l10n.attendanceLoadFailed),
-                if (slot == null || slot.dishes.isEmpty)
+                if (slot.dishes.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
@@ -641,7 +660,9 @@ class _MealScheduleCard extends StatelessWidget {
                         Flexible(
                           child: Text(
                             isPast
-                                ? context.l10n.mealPlanPastDayLocked
+                                ? (slot.locked == true
+                                    ? context.l10n.mealPlanSlotLocked
+                                    : context.l10n.mealPlanPastDayLocked)
                                 : context.l10n.mealPlanTapToAdd,
                             style: Theme.of(context)
                                 .textTheme
@@ -743,6 +764,7 @@ class _ScheduledDishCard extends StatelessWidget {
                         ],
                       ),
                     _dishStatusChip(context, dish.status),
+                    if (dish.isCooked) const DishCookedBadge(compact: true),
                   ],
                 ),
               ],

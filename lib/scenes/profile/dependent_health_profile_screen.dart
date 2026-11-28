@@ -31,6 +31,7 @@ import 'widgets/dependent_state_views.dart';
 import 'widgets/diet_type_label.dart';
 import 'widgets/diet_type_selector.dart';
 import 'widgets/health_profile_parts.dart';
+import '../../widgets/feedback/app_toast.dart';
 
 /// Hồ sơ sức khoẻ của một dependent (§9.5, §16.10, §16.12) — tinh thần
 /// `HealthProfileScreen` (S10.x) nhưng bind `DependentStore`.
@@ -154,18 +155,15 @@ class _DependentHealthProfileScreenState
           _activity == null ? null : activityLevelToWire(_activity!),
     );
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     if (ok) {
       setState(() => _isEditing = false);
-      messenger
-          .showSnackBar(SnackBar(content: Text(l10n.healthSavedToast)));
+      AppToast.show(l10n.healthSavedToast, type: AppToastType.success);
       return;
     }
     if (store.healthSaveError?.code == 'ERR_DEP_001') {
       backToDependentList();
-      messenger.showSnackBar(
-          SnackBar(content: Text(l10n.dependentNotFoundTitle)));
+      AppToast.show(l10n.dependentNotFoundTitle, type: AppToastType.error);
     }
   }
 

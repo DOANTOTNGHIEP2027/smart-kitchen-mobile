@@ -25,6 +25,7 @@ import 'widgets/diet_type_label.dart';
 import 'widgets/diet_type_selector.dart';
 import 'widgets/health_profile_parts.dart';
 import 'widgets/stale_data_banner.dart';
+import '../../widgets/feedback/app_toast.dart';
 
 /// Hồ sơ sức khỏe — chế độ xem (S10.2 empty / S10.3 view / S10.3c cache) +
 /// chế độ sửa (S10.4) (§10.3, Decision D16). Chỉ vào được chế độ sửa khi
@@ -143,8 +144,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     );
     if (!ok || !mounted) return;
     setState(() => _isEditing = false);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(context.l10n.healthSavedToast)));
+    AppToast.show(context.l10n.healthSavedToast, type: AppToastType.success);
   }
 
   @override

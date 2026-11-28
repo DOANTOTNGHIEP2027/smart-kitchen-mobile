@@ -22,6 +22,11 @@ String apiErrorMessage(AppLocalizations l10n, ApiException? error,
     // #239 cất đồ đi chợ vào kho.
     'ERR_SHOP_ITEM_ALREADY_IN_INVENTORY' => l10n.errShopItemAlreadyInInventory,
     'ERR_SHOP_ITEM_NOT_BOUGHT' => l10n.errShopItemNotBought,
+    // Thực đơn: món đã nấu / bữa đã khoá (409).
+    'ERR_DISH_ALREADY_COOKED' => l10n.dishCookedTitle,
+    'ERR_PLAN_SLOT_LOCKED' => l10n.mealPlanSlotLockedToast,
+    // Tổng kết tháng: tháng tương lai / sai định dạng (400).
+    'ERR_RECAP_MONTH_INVALID' => l10n.monthlyRecapMonthInvalid,
     _ => error.message,
   };
 }

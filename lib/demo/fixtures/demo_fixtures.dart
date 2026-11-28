@@ -268,6 +268,91 @@ abstract final class DemoFixtures {
     };
   }
 
+  /// Tổng kết tháng cho Demo Mode — [month] là ngày 1 của tháng cần xem,
+  /// [hasPrevious] do adapter quyết (giới hạn số tháng demo).
+  static Map<String, dynamic> monthlyRecap(DateTime month,
+      {required bool hasPrevious}) {
+    final weeks = <String>[];
+    var monday = DateTime(month.year, month.month, 1);
+    while (monday.weekday != DateTime.monday) {
+      monday = monday.add(const Duration(days: 1));
+    }
+    while (monday.month == month.month) {
+      weeks.add(_dateOnly(monday));
+      monday = monday.add(const Duration(days: 7));
+    }
+    Map<String, dynamic> week(String start, double avg, double pct) =>
+        <String, dynamic>{
+          'weekStart': start,
+          'calorieAvg': avg,
+          'calorieGoal': 1800.0,
+          'compliancePct': pct,
+          'badge': pct >= 90 ? 'great_week' : 'on_track',
+          'topNutrientGap': 'Chất xơ',
+          'highlight': 'Ăn uống điều độ trong tuần',
+          'tip': 'Thêm một phần rau vào bữa tối',
+        };
+    final m = '${month.year.toString().padLeft(4, '0')}-'
+        '${month.month.toString().padLeft(2, '0')}';
+    return <String, dynamic>{
+      'householdId': householdId,
+      'month': m,
+      'mealsLoggedCount': 64,
+      'avgCaloriesKcal': 1805.5,
+      'adherencePercent': 88.0,
+      'bestStreakWeeks': 3,
+      'memberInsights': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'memberId': ownerId,
+          'calorieAvg': 1805.5,
+          'calorieGoal': 1800.0,
+          'compliancePct': 92.0,
+          'badge': 'great_week',
+          'topNutrientGap': 'Chất xơ',
+          'highlight': 'Cả tháng giữ năng lượng sát mục tiêu',
+          'tip': 'Duy trì thói quen ăn sáng đều đặn',
+          'weeks': <Map<String, dynamic>>[
+            for (var i = 0; i < weeks.length; i++)
+              week(weeks[i], 1760.0 + i * 20, 85.0 + i * 3),
+          ],
+        },
+      ],
+      'householdSummary':
+          'Tháng này cả nhà ăn uống điều độ, lượng thức ăn bỏ đi giảm rõ rệt.',
+      'suggestedFocus': 'Tăng thêm rau xanh trong các bữa tối.',
+      'isStale': false,
+      'computedAt': DateTime.now().toUtc().toIso8601String(),
+      'wasteItemCount': 3,
+      'wasteCauseBreakdown': <String, dynamic>{
+        'OVERBOUGHT': 1,
+        'FORGOTTEN': 2,
+        'SPOILED_EARLY': 0,
+        'UNTAGGED': 0,
+      },
+      'spendTotal': 5200000.0,
+      'spendItemCount': 56,
+      'shoppingCompletedItemCount': 60,
+      'spendByCategory': <String, dynamic>{
+        'Rau củ': 1100000.0,
+        'Thịt cá': 2900000.0,
+        'Gia vị': 400000.0,
+        'Khác': 800000.0,
+      },
+      'budgetAmount': 1500000.0,
+      'budgetPeriod': 'WEEKLY',
+      'budgetMonthlyAmount': 6000000.0,
+      'spendTrend': <Map<String, dynamic>>[
+        for (var i = 0; i < weeks.length; i++)
+          <String, dynamic>{
+            'weekStart': weeks[i],
+            'spendTotal': 1200000.0 + i * 50000,
+            'budgetWeeklyAmount': 1500000.0,
+          },
+      ],
+      'hasPrevious': hasPrevious,
+    };
+  }
+
   static Map<String, dynamic> householdStreak() {
     final now = DateTime.now();
     final monday = DateTime(now.year, now.month, now.day)

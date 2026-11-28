@@ -20,6 +20,7 @@ import 'stores/form_status.dart';
 import 'stores/profile_store.dart';
 import 'widgets/allergen_label.dart';
 import 'widgets/stale_data_banner.dart';
+import '../../widgets/feedback/app_toast.dart';
 
 /// Picker dị ứng (`/profile/allergens`) — 3 nhánh theo trạng thái health
 /// (§10.3, Guard 12, Decision D14):
@@ -81,17 +82,15 @@ class _AllergenSelectScreenState extends State<AllergenSelectScreen> {
   Future<void> _save() async {
     final ok = await store.saveAllergens(selected.toList()..sort());
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     if (ok) {
-      messenger.showSnackBar(
-          SnackBar(content: Text(context.l10n.allergensSavedToast)));
+      AppToast.show(context.l10n.allergensSavedToast,
+          type: AppToastType.success);
       Navigator.of(context).maybePop();
       return;
     }
     if (store.allergensSaveStatus != FormStatus.failure) return;
     final error = store.mutationError;
-    messenger.showSnackBar(
-        SnackBar(content: Text(_saveErrorMessage(context, error))));
+    AppToast.show(_saveErrorMessage(context, error), type: AppToastType.error);
     // S11.3 — danh mục có thể đã đổi; giữ nguyên lựa chọn đang tick.
     if (error?.code == 'ERR_ALLERGEN_NOT_FOUND') store.loadAllergenCatalog();
   }

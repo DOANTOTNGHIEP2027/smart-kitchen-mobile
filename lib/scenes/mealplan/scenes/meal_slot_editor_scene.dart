@@ -1,26 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get/get.dart';
+import 'package:mobx/mobx.dart' show ReactionDisposer, reaction;
 
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
+import '../../../data/network/api_exception.dart';
+import '../../../utils/api_error_l10n.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../planning/scenes/planning_routes.dart';
 import '../../planning/widgets/slot_guest_diner_entry.dart';
-import '../domain/meal_suggestion.dart';
 import '../domain/meal_composition.dart';
 import '../domain/meal_plan_slot.dart';
+import '../domain/recipe_check.dart';
 import '../../recipe/domain/recipe.dart';
 import '../../recipe/scenes/recipe_list_scene.dart';
 import '../stores/meal_plan_store.dart';
 import '../stores/meal_composition_store.dart';
+import '../widgets/allergen_conflict_dialog.dart';
 import '../widgets/missing_ingredients_prompt.dart';
 import '../widgets/meal_composition_panel.dart';
 import '../../../app/env_config.dart';
 import '../widgets/recipe_cover_image.dart';
 import '../widgets/meal_attendance_panel.dart';
 import 'meal_plan_routes.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Chỉnh một bữa của ngày đã chọn trong lịch tuần — Phong cách Tasty.
 class MealSlotEditorScene extends StatefulWidget {
@@ -41,6 +46,27 @@ class MealSlotEditorScene extends StatefulWidget {
 
 class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
   bool _isAdding = false;
+  ReactionDisposer? _lockedReaction;
+
+  @override
+  void initState() {
+    super.initState();
+    // Server báo bữa đã khoá (409 ERR_PLAN_SLOT_LOCKED): store đã đánh dấu
+    // khoá + tải lại plan, màn chỉ cần báo toast.
+    final store = Get.find<MealPlanStore>();
+    _lockedReaction = reaction<int>((_) => store.slotLockedTick, (_) {
+      if (mounted) {
+        AppToast.show(context.l10n.mealPlanSlotLockedToast,
+            type: AppToastType.error);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _lockedReaction?.call();
+    super.dispose();
+  }
 
   /// `null` khi cờ tắt HOẶC store chưa đăng ký (binding chỉ tạo khi tạo mới
   /// MealPlanStore) — không `Get.find` mù.
@@ -55,21 +81,22 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
     setState(() => _isAdding = true);
     final store = Get.find<MealPlanStore>();
     try {
-      final dish = await store.addDish(widget.slotId);
-      if (!mounted) return;
-      if (dish == null) {
-        _showActionError(context.l10n.mealPlanAddDishFailed);
-        return;
-      }
-      // Thêm món xong hỏi cách chọn: gợi ý AI (luồng cũ) hay chọn thẳng
-      // từ công thức. Đóng sheet = để món "chưa chọn", chọn sau cũng được.
+      // Hỏi cách chọn TRƯỚC khi tạo món trên server: đóng sheet/huỷ ở bất kỳ
+      // bước nào cũng không để lại món rỗng (#201 R3).
       final source = await _askDishSource();
       if (!mounted) return;
       switch (source) {
         case _DishSource.ai:
+          final dish = await store.addDish(widget.slotId);
+          if (!mounted) return;
+          if (dish == null) {
+            _showActionError(context.l10n.mealPlanAddDishFailed);
+            return;
+          }
           await _openSuggestions(dish.id);
         case _DishSource.recipe:
-          await _chooseManual(dish.id);
+          // Món chỉ được tạo sau khi người dùng xác nhận hết các bước.
+          await _chooseManual(null);
         case null:
           break;
       }
@@ -149,39 +176,89 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
     );
   }
 
-  Future<void> _chooseManual(String dishId) async {
+  /// Chọn món từ công thức. [dishId] `null` = thêm món mới; khác null = đổi
+  /// công thức của món đang có.
+  ///
+  /// Thứ tự (#201 R3): chọn công thức → kiểm tra (chỉ đọc) → cảnh báo dị ứng
+  /// → hỏi nguyên liệu thiếu → CHỈ KHI xác nhận mới tạo/gán món. Huỷ/back ở
+  /// bất kỳ bước nào: không tạo món mới, món đang có giữ công thức cũ.
+  Future<void> _chooseManual(String? dishId) async {
     final recipe = await Get.to<Recipe>(
       () =>
           RecipeListScene(onSelect: (value) => Get.back<Recipe>(result: value)),
     );
     if (recipe == null || !mounted) return;
     final store = Get.find<MealPlanStore>();
+    final l10n = context.l10n;
     if (store.hasRecipeInSlot(widget.slotId, recipe.id, exceptDishId: dishId)) {
-      _showActionError(context.l10n.mealPlanDuplicateRecipe);
+      _showActionError(l10n.mealPlanDuplicateRecipe);
       return;
     }
-    List<IngredientItem>? serverMissing;
+
+    // 1. Kiểm tra trước — server cũ chưa có endpoint ⇒ `null`, bỏ qua bước.
+    RecipeCheckResult? check;
+    try {
+      check = await store.recipeCheck(widget.slotId, recipe.id);
+    } on ApiException catch (e) {
+      _showActionError(
+          apiErrorMessage(l10n, e, fallback: l10n.mealplanUnableToChoose));
+      return;
+    }
+    if (!mounted) return;
+
+    // 2. Có người ăn bữa này dị ứng → cảnh báo đỏ, Huỷ = dừng.
+    if (check != null && check.allergenConflicts.isNotEmpty) {
+      final proceed = await showAllergenConflictDialog(
+        context,
+        conflicts: check.allergenConflicts,
+        verified: check.allergenVerified,
+      );
+      if (!proceed || !mounted) return;
+    }
+
+    // 3. Thiếu nguyên liệu → "Thêm món + đi chợ" / "Chỉ thêm món" / "Huỷ".
+    final missing =
+        check?.missingIngredients ?? await missingForRecipe(recipe.id);
+    if (!mounted) return;
+    final choice = await askMissingIngredientsChoice(context, missing: missing);
+    if (choice == MissingIngredientsChoice.cancel || !mounted) return;
+
+    // 4. Đã xác nhận — giờ mới tạo món (nếu thêm mới) rồi gán công thức.
+    var targetId = dishId;
+    MealPlanDish? created;
+    if (targetId == null) {
+      created = await store.addDish(widget.slotId);
+      if (created == null) {
+        _showActionError(l10n.mealPlanAddDishFailed);
+        return;
+      }
+      targetId = created.id;
+    }
     final ok = await store.assignManual(
       widget.slotId,
-      dishId,
+      targetId,
       recipe.id,
       recipe.name,
-      onAssigned: (dish) => serverMissing = dish.missingIngredients,
     );
-    if (!mounted) return;
     if (!ok) {
-      _showActionError(context.l10n.mealplanUnableToChoose);
+      // Gán lỗi: xoá món vừa tạo để không để lại món rỗng.
+      if (created != null) {
+        await store.removeDish(widget.slotId, created.id,
+            discardCreated: true);
+      }
+      _showActionError(l10n.mealplanUnableToChoose);
       return;
     }
-    final missing =
-        await missingForRecipe(recipe.id, fromServer: serverMissing);
-    if (mounted) await confirmAddMissingToShopping(context, missing: missing);
+    if (choice == MissingIngredientsChoice.addWithShopping) {
+      await addMissingToShopping(l10n, missing);
+    }
   }
 
   void _showActionError(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    // Bữa vừa bị server khoá: toast "bữa đã khoá" đã hiện, không đè bằng
+    // lỗi chung.
+    if (Get.find<MealPlanStore>().isSlotLocked(widget.slotId)) return;
+    AppToast.show(message, type: AppToastType.error);
   }
 
   @override
@@ -256,7 +333,10 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                           onDelete: !store.canEditDish(dish.id)
                               ? null
                               : () => store.removeDish(widget.slotId, dish.id),
-                          onInsights: () => _openCandidates(dish),
+                          // Bữa đã khoá: không mở gợi ý AI cho món.
+                          onInsights: store.isSlotLocked(widget.slotId)
+                              ? null
+                              : () => _openCandidates(dish),
                           onChoose: readOnly
                               ? null
                               : () => _openSuggestions(dish.id),
@@ -265,14 +345,6 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                           Wrap(
                             spacing: 8,
                             children: [
-                              if (dish.recipe != null)
-                                TextButton.icon(
-                                  onPressed: () => _openSuggestions(dish.id),
-                                  icon: const Icon(Icons.auto_awesome),
-                                  label: Text(
-                                    context.l10n.mealPlanGenerateSuggestions,
-                                  ),
-                                ),
                               TextButton.icon(
                                 onPressed: store.canEditDish(dish.id)
                                     ? () => _chooseManual(dish.id)
@@ -360,7 +432,7 @@ class _EditableDishCard extends StatelessWidget {
   /// #201: thông tin vai trò/khẩu phần khi món đến từ AI ghép bữa.
   final ComposedMealDish? composed;
   final VoidCallback? onDelete;
-  final VoidCallback onInsights;
+  final VoidCallback? onInsights;
   final VoidCallback? onChoose;
 
   @override
@@ -498,7 +570,7 @@ class _PendingDishCard extends StatelessWidget {
   });
 
   final VoidCallback? onDelete;
-  final VoidCallback onInsights;
+  final VoidCallback? onInsights;
   final VoidCallback? onChoose;
 
   @override
@@ -569,7 +641,7 @@ class _PendingDishCard extends StatelessWidget {
 class _InsightsButton extends StatelessWidget {
   const _InsightsButton({required this.onPressed});
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) => IconButton(

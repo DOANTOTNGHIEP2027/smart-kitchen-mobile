@@ -15,6 +15,8 @@ import '../../inventory/domain/unit_option.dart';
 import '../../inventory/widgets/unit_picker.dart';
 import '../domain/checkout_preview_item.dart';
 import '../stores/shopping_checkout_store.dart';
+import '../../../widgets/feedback/app_toast.dart';
+import '../../../utils/unit_label.dart';
 
 /// "Cất vào kho" (#239, thiết kế FE §1–§2): xem lại món đã mua, sửa hạn/số
 /// lượng, bỏ chọn món không cất, rồi ghi tất cả bằng MỘT lần batch.
@@ -37,20 +39,20 @@ class _ShoppingCheckoutSceneState extends State<ShoppingCheckoutScene> {
   Future<void> _submit() async {
     final count = await _store.submit();
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     if (count != null) {
-      messenger.showSnackBar(SnackBar(content: Text(context.l10n.shoppingCheckoutDone(count))));
+      AppToast.show(context.l10n.shoppingCheckoutDone(count),
+          type: AppToastType.success);
       Get.back<void>();
       return;
     }
     final error = _store.submitError;
     if (error == null) return;
     final reloaded = error.code.startsWith('ERR_SHOP_');
-    messenger.showSnackBar(SnackBar(
-      content: Text(reloaded
-          ? '${apiErrorMessage(context.l10n, error)} ${context.l10n.shoppingCheckoutReloaded}'
-          : apiErrorMessage(context.l10n, error)),
-    ));
+    AppToast.show(
+        reloaded
+            ? '${apiErrorMessage(context.l10n, error)} ${context.l10n.shoppingCheckoutReloaded}'
+            : apiErrorMessage(context.l10n, error),
+        type: AppToastType.error);
   }
 
   @override
@@ -169,7 +171,7 @@ class _CheckoutRow extends StatelessWidget {
                         ActionChip(
                           key: ValueKey<String>('checkout-qty-${item.shoppingItemId}'),
                           visualDensity: VisualDensity.compact,
-                          label: Text(formatQuantityWithUnit(item.quantity, item.unit)),
+                          label: Text(formatQuantityWithUnitLabel(context.l10n, item.quantity, item.unit)),
                           onPressed: disabled || !item.selected ? null : () => _editQuantity(context),
                         ),
                         ExpiryDateChip(
@@ -231,7 +233,9 @@ class _CheckoutRow extends StatelessWidget {
                     final picked = await showUnitPicker(context, selected: unit);
                     if (picked != null) setState(() => unit = picked);
                   },
-                  child: Text(unit?.value ?? context.l10n.inventoryChooseUnit),
+                  child: Text(unit == null
+                      ? context.l10n.inventoryChooseUnit
+                      : unitLabel(context, unit!.value)),
                 ),
               ],
             ),

@@ -218,6 +218,8 @@ void main() {
                     id: 's',
                     slotDate: DateTime(2026, 11, 16),
                     mealTime: 'LUNCH',
+                    // Server báo bữa chưa khoá (không fallback theo ngày).
+                    locked: false,
                     dishes: [
                       const MealPlanDish(
                           id: 'd',

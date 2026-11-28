@@ -6,7 +6,7 @@ import '../../../utils/l10n_x.dart';
 import '../../../utils/quantity_format.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../domain/missing_ingredient.dart';
-import 'cooking_unit_label.dart';
+import '../../../utils/unit_label.dart';
 
 /// Kết quả người dùng chọn trên [ShortfallSheet]. `null` (vuốt/back đóng
 /// sheet) được xử lý như [back].
@@ -128,7 +128,7 @@ class _MissingRow extends StatelessWidget {
                 formatQuantity(ingredient.requiredQuantity),
                 formatQuantity(ingredient.availableQuantity),
                 formatQuantity(ingredient.shortfallQuantity),
-                cookingUnitLabel(context, ingredient.unit),
+                unitLabel(context, ingredient.unit),
               ),
               style:
                   theme.textTheme.bodySmall?.copyWith(color: AppColors.error),

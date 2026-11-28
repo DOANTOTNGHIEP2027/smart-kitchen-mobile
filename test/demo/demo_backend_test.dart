@@ -13,13 +13,13 @@ import 'package:smart_kitchen_mobile/scenes/cooking/data/cooking_session_mapper.
 import 'package:smart_kitchen_mobile/scenes/cooking/data/meal_log_api.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/data/recipe_api.dart';
 import 'package:smart_kitchen_mobile/scenes/household/api/household_api.dart';
-import 'package:smart_kitchen_mobile/scenes/insights/data/history_api.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/data/inventory_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_plan_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_suggestion_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/family_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/health_api.dart';
 import 'package:smart_kitchen_mobile/scenes/profile/api/profile_api.dart';
+import 'package:smart_kitchen_mobile/scenes/recap/data/monthly_recap_api.dart';
 import 'package:smart_kitchen_mobile/scenes/recap/data/recap_api.dart';
 import 'package:smart_kitchen_mobile/utils/dio_exception_x.dart';
 
@@ -43,7 +43,7 @@ void main() {
   late CookingSessionApi cookingApi;
   late RecapApi recapApi;
   late MealLogApi mealLogApi;
-  late HistoryApi historyApi;
+  late MonthlyRecapApi monthlyRecapApi;
   late DioClient client;
 
   setUp(() {
@@ -62,7 +62,7 @@ void main() {
     cookingApi = CookingSessionApiImpl(client);
     recapApi = RecapApi(client);
     mealLogApi = MealLogApiImpl(client);
-    historyApi = HistoryApi(client);
+    monthlyRecapApi = MonthlyRecapApi(client);
   });
 
   tearDown(storageChannel.uninstall);
@@ -305,7 +305,25 @@ void main() {
     expect(streak.bestStreak, greaterThanOrEqualTo(0));
   });
 
-  test('nhật ký bữa ăn và lịch sử demo đọc và ghi được', () async {
+  test('tổng kết tháng demo parse chuẩn model production', () async {
+    final now = DateTime.now();
+    final current = await monthlyRecapApi.getMonthlyRecap();
+    expect(current.month, DateTime(now.year, now.month));
+    expect(current.memberInsights.first.weeks, isNotEmpty);
+    expect(current.hasPrevious, isTrue);
+
+    final oldest = await monthlyRecapApi.getMonthlyRecap(
+        month: DateTime(now.year, now.month - 3));
+    expect(oldest.hasPrevious, isFalse);
+
+    await expectLater(
+      monthlyRecapApi.getMonthlyRecap(month: DateTime(now.year, now.month + 1)),
+      throwsA(isA<ApiException>()
+          .having((e) => e.code, 'code', 'ERR_RECAP_MONTH_INVALID')),
+    );
+  });
+
+  test('nhật ký bữa ăn demo đọc và ghi được', () async {
     final now = DateTime.now();
     final from = DateTime(now.year, now.month, 1);
     final to = DateTime(now.year, now.month + 1, 0);
@@ -315,12 +333,5 @@ void main() {
 
     final newLog = await mealLogApi.logMeal(description: 'Cơm tấm sườn bì chả');
     expect(newLog.description, contains('Cơm tấm sườn bì chả'));
-
-    final historyLogs = await historyApi.listAllLogsInRange(
-      memberId: 'user-primary-1',
-      from: from,
-      to: to,
-    );
-    expect(historyLogs, isNotEmpty);
   });
 }

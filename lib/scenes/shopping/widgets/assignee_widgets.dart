@@ -13,6 +13,7 @@ import '../../profile/domain/household_roster.dart';
 import '../../profile/stores/family_store.dart';
 import '../domain/shopping_item.dart';
 import '../stores/shopping_store.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Roster dùng chung — `null` khi FamilyStore chưa đăng ký (degrade, §9.5 B).
 FamilyStore? shoppingFamilyStore() =>
@@ -133,9 +134,8 @@ Future<void> openAssigneePicker(
   required Future<bool> Function() isOnline,
 }) async {
   final l10n = context.l10n;
-  final messenger = ScaffoldMessenger.of(context);
   if (!await isOnline()) {
-    messenger.showSnackBar(SnackBar(content: Text(l10n.shoppingAssignNeedsNetwork)));
+    AppToast.show(l10n.shoppingAssignNeedsNetwork, type: AppToastType.error);
     return;
   }
   if (!context.mounted) return;
@@ -163,18 +163,17 @@ Future<void> openAssigneePicker(
   if (!ok && store.assignError == null) {
     // assign() không gửi gì: mất mạng SAU khi mở picker, hoặc món vừa thành
     // PENDING_* (đang đồng bộ) — phải báo, không im lặng.
-    messenger.showSnackBar(SnackBar(
-        content: Text(await isOnline()
-            ? l10n.shoppingAssignSyncing
-            : l10n.shoppingAssignNeedsNetwork)));
+    AppToast.show(await isOnline()
+        ? l10n.shoppingAssignSyncing
+        : l10n.shoppingAssignNeedsNetwork);
     return;
   }
   if (!ok && store.assignError != null) {
-    messenger.showSnackBar(SnackBar(
-      content: Text(store.assignError!.code == 'ERR_SHOP_ASSIGNEE_INVALID'
-          ? l10n.shoppingAssigneeInvalid
-          : apiErrorMessage(l10n, store.assignError)),
-    ));
+    AppToast.show(
+        store.assignError!.code == 'ERR_SHOP_ASSIGNEE_INVALID'
+            ? l10n.shoppingAssigneeInvalid
+            : apiErrorMessage(l10n, store.assignError),
+        type: AppToastType.error);
     store.clearAssignError();
   }
 }

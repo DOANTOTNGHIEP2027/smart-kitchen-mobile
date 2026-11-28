@@ -5,6 +5,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../domain/assistant_models.dart';
+import '../../../utils/unit_label.dart';
 
 // Khối hiển thị dùng chung cho sheet trợ lý màn nấu và màn trợ lý toàn màn
 // (#204, FE design `kitchen-assistant.md` v2 S3–S5c, S8).
@@ -343,7 +344,7 @@ class ScaledTable extends StatelessWidget {
                 i.originalQuantity == null && i.scaledQuantity == null
                     ? '${i.name}${i.note == null ? '' : ': ${i.note}'}'
                     : '${i.name}: ${_qty(i.originalQuantity)} → '
-                        '${_qty(i.scaledQuantity)} ${i.unit ?? ''}'
+                        '${_qty(i.scaledQuantity)} ${i.unit == null ? '' : unitLabel(context, i.unit!)}'
                         '${i.note == null ? '' : ' (${i.note})'}',
                 style: small,
               ),

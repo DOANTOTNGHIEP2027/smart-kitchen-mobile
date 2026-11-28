@@ -15,6 +15,7 @@ import 'api/avatar_image_processor.dart';
 import 'domain/edit_profile_phase.dart';
 import 'stores/profile_store.dart';
 import 'widgets/profile_avatar.dart';
+import '../../widgets/feedback/app_toast.dart';
 
 /// Sửa tên + ảnh đại diện — luồng 2 bước `POST /api/v1/files` →
 /// `PUT /api/v1/users/me` (profile-family-screens.md §10.2, D11, Guard 1/15).
@@ -95,17 +96,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
     if (source == null || !mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     try {
       final bytes = await picker.pick(source);
       if (bytes == null || !mounted) return; // huỷ chọn → không đổi gì
       store.onAvatarRepicked(); // ảnh mới ⇒ bỏ pendingAvatarUrl cũ + banner lỗi
       setState(() => pickedAvatar = bytes);
     } on AvatarPermissionDeniedException {
-      messenger.showSnackBar(
-          SnackBar(content: Text(l10n.profileAvatarPermissionDenied)));
+      AppToast.show(l10n.profileAvatarPermissionDenied,
+          type: AppToastType.error);
     } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.genericRetryError)));
+      AppToast.show(l10n.genericRetryError, type: AppToastType.error);
     }
   }
 
@@ -118,14 +118,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return;
       }
     }
-    final messenger = ScaffoldMessenger.of(context);
     final savedText = context.l10n.profileSavedToast;
     final ok =
         await store.saveProfile(newFullName: newName, rawAvatar: pickedAvatar);
     if (!mounted) return;
     if (ok) {
       Get.back<void>();
-      messenger.showSnackBar(SnackBar(content: Text(savedText))); // E5
+      AppToast.show(savedText, type: AppToastType.success); // E5
       return;
     }
     if (store.editProfilePhase is EditUploadError) {

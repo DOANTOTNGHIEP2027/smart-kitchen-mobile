@@ -4,6 +4,7 @@ import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../domain/inventory_item.dart';
 import '../stores/inventory_form_store.dart';
+import '../../../utils/unit_label.dart';
 
 /// Dialog hiển thị 2 cột: local (draft người dùng vừa nhập) vs server
 /// (snapshot mới nhất từ `GET /inventory-items/{id}`). (FE-5 §10 D11.)
@@ -83,7 +84,7 @@ class _Column extends StatelessWidget {
         _Pair(label: context.l10n.inventoryName, value: item.name),
         _Pair(
             label: context.l10n.inventoryQuantityLabel,
-            value: '${item.displayQuantity ?? item.quantity} ${item.displayUnit ?? item.unit}'),
+            value: '${item.displayQuantity ?? item.quantity} ${unitLabel(context, item.displayUnit ?? item.unit)}'),
         _Pair(label: context.l10n.inventoryCategory, value: item.category ?? '—'),
         if (item.expiryDate != null)
           _Pair(

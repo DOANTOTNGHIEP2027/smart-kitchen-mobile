@@ -7,6 +7,7 @@ import '../../../utils/quantity_format.dart';
 import '../domain/inventory_item.dart';
 import 'food_category_visual.dart';
 import 'inventory_presentation.dart';
+import '../../../utils/unit_label.dart';
 
 /// Hiển thị một [InventoryItemModel] trong danh sách kho.
 ///
@@ -29,7 +30,7 @@ class InventoryItemTile extends StatelessWidget {
     final theme = Theme.of(context);
     final visual = foodCategoryVisual(context, item.category, item.name);
     final displayQty = item.displayQuantity ?? item.quantity;
-    final displayUnitStr = item.displayUnit ?? item.unit;
+    final displayUnitStr = unitLabel(context, item.displayUnit ?? item.unit);
     // #201: hết hàng (0) không phải "sắp hết".
     final lowStock = item.showsLowStock;
 

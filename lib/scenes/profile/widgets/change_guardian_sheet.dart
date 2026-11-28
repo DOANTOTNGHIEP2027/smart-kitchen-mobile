@@ -10,6 +10,7 @@ import '../domain/dependent_summary.dart';
 import '../domain/household_member.dart';
 import '../stores/dependent_store.dart';
 import '../stores/form_status.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Picker guardian mới (§9.4, §16.6) — OWNER only, caller đảm bảo roster đã
 /// tải trước khi mở. Candidate: OWNER/MEMBER, loại REMOTE_VIEWER, loại guardian
@@ -42,10 +43,9 @@ class _ChangeGuardianSheetState extends State<ChangeGuardianSheet> {
   Future<void> _submit(String userId) async {
     final ok = await _store.changeGuardian(widget.dependent.id, userId);
     if (!ok || !mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final toast = context.l10n.dependentGuardianChangedToast;
     Navigator.of(context).pop();
-    messenger.showSnackBar(SnackBar(content: Text(toast)));
+    AppToast.show(toast, type: AppToastType.success);
   }
 
   String _roleLabel(BuildContext context, HouseholdMember m) =>

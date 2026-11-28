@@ -54,7 +54,11 @@ class ShareableRecapCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _RecapHeroSection(ownInsight: ownInsight, summary: summary),
+            RecapHeroSection(
+              ownInsight: ownInsight,
+              householdSummary: summary.householdSummary,
+              fallbackText: l10n.recapHeroFallback,
+            ),
             const SizedBox(height: AppDimens.lg),
             HouseholdStatsStrip(l10n: l10n, summary: summary),
             const SizedBox(height: AppDimens.lg),
@@ -77,24 +81,31 @@ class ShareableRecapCard extends StatelessWidget {
 
 /// Badge của chính người xem + highlight + householdSummary. `ownInsight ==
 /// null` (isStale=true HOẶC self không đủ điều kiện) → fallback trung tính,
-/// KHÔNG đoán badge (decision-log D11).
-class _RecapHeroSection extends StatelessWidget {
-  const _RecapHeroSection({required this.ownInsight, required this.summary});
+/// KHÔNG đoán badge (decision-log D11). Public để Tổng kết tháng tái dùng.
+class RecapHeroSection extends StatelessWidget {
+  const RecapHeroSection({
+    super.key,
+    required this.ownInsight,
+    required this.householdSummary,
+    required this.fallbackText,
+  });
 
   final MemberWeeklyInsight? ownInsight;
-  final WeeklyRecapSummary summary;
+  final String? householdSummary;
+
+  /// Câu hiển thị khi chưa có insight của người xem.
+  final String fallbackText;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final insight = ownInsight;
-    final householdSummary = summary.householdSummary;
+    final householdSummary = this.householdSummary;
     if (insight == null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            l10n.recapHeroFallback,
+            fallbackText,
             key: ShareableRecapCard.recapHeroFallbackKey,
             style: const TextStyle(
               fontSize: 18,
@@ -191,7 +202,7 @@ class HouseholdStatsStrip extends StatelessWidget {
     return Row(
       children: <Widget>[
         Expanded(
-          child: _StatCard(
+          child: RecapStatCard(
             icon: Icons.restaurant_rounded,
             iconColor: AppColors.primary,
             iconBgColor: AppColors.primaryContainer,
@@ -201,7 +212,7 @@ class HouseholdStatsStrip extends StatelessWidget {
         ),
         const SizedBox(width: AppDimens.xs),
         Expanded(
-          child: _StatCard(
+          child: RecapStatCard(
             icon: Icons.local_fire_department_rounded,
             iconColor: const Color(0xFFFF9500),
             iconBgColor: const Color(0xFFFFF3E0),
@@ -211,7 +222,7 @@ class HouseholdStatsStrip extends StatelessWidget {
         ),
         const SizedBox(width: AppDimens.xs),
         Expanded(
-          child: _StatCard(
+          child: RecapStatCard(
             icon: Icons.verified_rounded,
             iconColor: AppColors.success,
             iconBgColor: AppColors.successSurface,
@@ -225,8 +236,10 @@ class HouseholdStatsStrip extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({
+/// 1 ô số liệu của thẻ chia sẻ — public để Tổng kết tháng tái dùng.
+class RecapStatCard extends StatelessWidget {
+  const RecapStatCard({
+    super.key,
     required this.icon,
     required this.iconColor,
     required this.iconBgColor,

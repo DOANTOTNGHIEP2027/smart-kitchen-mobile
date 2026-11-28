@@ -14,6 +14,7 @@ import '../../shopping/data/shopping_api.dart';
 import '../../shopping/domain/shopping_item.dart';
 import '../domain/pending_ingredient_matcher.dart';
 import '../scenes/cooking_routes.dart';
+import 'dish_cooked_dialog.dart';
 
 /// Trước khi vào màn nấu: nếu nguyên liệu của món còn nằm trong danh sách đi
 /// chợ chưa mua, hiện popup cho chọn "Vẫn nấu" hoặc sang Đi chợ để phân công.
@@ -23,10 +24,22 @@ import '../scenes/cooking_routes.dart';
 ///
 /// Dùng `Get.dialog` (không cần `BuildContext`) vì chỗ gọi thường vừa đóng
 /// bottom sheet của chính nó.
-Future<void> startCookingWithShoppingCheck(String recipeId) async {
+///
+/// Nấu từ 1 món thực đơn: truyền [mealPlanDishId] để server gắn phiên với món;
+/// món đã nấu xong ([cookedAt] khác null) ⇒ chỉ báo "Món đã nấu xong", không
+/// mở màn nấu.
+Future<void> startCookingWithShoppingCheck(
+  String recipeId, {
+  String? mealPlanDishId,
+  DateTime? cookedAt,
+}) async {
+  if (cookedAt != null) {
+    await showDishCookedDialog(cookedAt: cookedAt);
+    return;
+  }
   final pending = await _findPendingItems(recipeId);
   if (pending.isEmpty) {
-    _goCooking(recipeId);
+    _goCooking(recipeId, mealPlanDishId);
     return;
   }
   final choice = await Get.dialog<_PendingChoice>(
@@ -34,7 +47,7 @@ Future<void> startCookingWithShoppingCheck(String recipeId) async {
   );
   switch (choice) {
     case _PendingChoice.cookAnyway:
-      _goCooking(recipeId);
+      _goCooking(recipeId, mealPlanDishId);
     case _PendingChoice.goShopping:
       Get.toNamed<void>(AppRoutes.shopping);
     case null:
@@ -42,10 +55,10 @@ Future<void> startCookingWithShoppingCheck(String recipeId) async {
   }
 }
 
-void _goCooking(String recipeId) {
+void _goCooking(String recipeId, String? mealPlanDishId) {
   Get.toNamed<void>(
     CookingRoutes.session,
-    arguments: CookingArgs.start(recipeId),
+    arguments: CookingArgs.start(recipeId, mealPlanDishId: mealPlanDishId),
   );
 }
 

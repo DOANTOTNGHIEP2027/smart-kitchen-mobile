@@ -12,6 +12,7 @@ import '../domain/meal_attendance.dart';
 import '../data/meal_suggestion_api.dart';
 import '../domain/meal_plan_slot.dart';
 import '../domain/meal_suggestion.dart';
+import '../domain/recipe_check.dart';
 
 enum MealPlanLoadStatus { loading, ready, error }
 
@@ -71,8 +72,10 @@ class MealPlanStore extends GetLifeCycle {
     _lastAppliedPlanRead = ticket;
     runInAction(() {
       _slots.clear();
+      // Khoá theo id slot: nhiều bữa tuỳ biến cùng mealTime (vd 2 bữa SNACK)
+      // trong 1 ngày không được đè nhau như khoá `ngày_mealTime` cũ.
       for (final slot in plan.slots) {
-        _slots['${_isoDate(slot.slotDate)}_${slot.mealTime}'] = slot;
+        _slots[slot.id] = slot;
       }
       _planStatus.value = plan.status;
     });
@@ -90,11 +93,42 @@ class MealPlanStore extends GetLifeCycle {
       !_isPastDish(dishId) &&
       _requestsFor(dishId).canWrite;
 
-  /// Bữa thuộc ngày đã qua (trước hôm nay) — khoá mọi thao tác sửa món.
+  /// Bữa bị khoá — khoá mọi thao tác sửa món. Ưu tiên cờ `locked` của
+  /// server (quá giờ + 2h hoặc đã nấu món); server cũ không trả thì fallback
+  /// "ngày đã qua".
   bool isSlotLocked(String slotId) {
     final key = slotKeyOf(slotId);
     final slot = key == null ? null : _slots[key];
-    return slot != null && isPastDate(slot.slotDate);
+    return slot != null && slotIsLocked(slot);
+  }
+
+  static bool slotIsLocked(MealPlanSlot slot) =>
+      slot.locked ?? isPastDate(slot.slotDate);
+
+  /// Mã lỗi server khi sửa bữa đã khoá.
+  static const String slotLockedCode = 'ERR_PLAN_SLOT_LOCKED';
+
+  /// Tăng mỗi lần server báo bữa đã khoá (409) — màn hình lắng nghe để báo
+  /// toast; store đã tự đánh dấu khoá + tải lại plan.
+  final Observable<int> _slotLockedTick = Observable(0);
+  int get slotLockedTick => _slotLockedTick.value;
+
+  void _onSlotLocked(String slotId) {
+    final key = slotKeyOf(slotId);
+    final slot = key == null ? null : _slots[key];
+    runInAction(() {
+      if (slot != null) _slots[key!] = slot.copyWith(locked: true);
+      _slotLockedTick.value++;
+    });
+    // Dời sang event kế: nơi gọi (vd `_mutateDish`) còn `finally` bump
+    // phiên bản ghi — đọc khởi động ngay sẽ bị coi là cũ và bỏ.
+    unawaited(Future<void>(() async {
+      try {
+        await refreshPlan();
+      } on ApiException {
+        // Tải lại lỗi: giữ cờ khoá cục bộ, lần vào sau sẽ đọc lại.
+      }
+    }));
   }
 
   /// Nguồn "hôm nay" cho khoá ngày đã qua — test ghim lại khi fixture dùng
@@ -109,7 +143,7 @@ class MealPlanStore extends GetLifeCycle {
   }
 
   bool _isPastDish(String dishId) => _slots.values.any((slot) =>
-      slot.dishes.any((d) => d.id == dishId) && isPastDate(slot.slotDate));
+      slot.dishes.any((d) => d.id == dishId) && slotIsLocked(slot));
 
   _DishRequests _requestsFor(String did) => _dishRequests.putIfAbsent(
       did, () => _DishRequests(currentPlanId, _planEpoch));
@@ -166,10 +200,37 @@ class MealPlanStore extends GetLifeCycle {
     runInAction(() => _currentPlanId.value = value);
   }
 
-  List<String> get currentWeekSlotKeys => List<String>.generate(21, (i) {
-        const meals = ['BREAKFAST', 'LUNCH', 'DINNER'];
-        return '${_isoDate(currentWeekStart.add(Duration(days: i ~/ 3)))}_${meals[i % 3]}';
-      });
+  /// Các bữa của [date] theo đúng danh sách slot server trả, sắp theo
+  /// `sortOrder` → giờ dự kiến → thứ tự mealTime mặc định.
+  List<MealPlanSlot> slotsOfDate(DateTime date) {
+    final day = _isoDate(date);
+    final list = _slots.values
+        .where((slot) => _isoDate(slot.slotDate) == day)
+        .toList(growable: false)
+      ..sort(compareSlots);
+    return list;
+  }
+
+  static const List<String> _mealTimeOrder = <String>[
+    'BREAKFAST',
+    'LUNCH',
+    'SNACK',
+    'DINNER',
+  ];
+
+  static int _mealRank(String mealTime) {
+    final i = _mealTimeOrder.indexOf(mealTime);
+    return i < 0 ? _mealTimeOrder.length : i;
+  }
+
+  static int compareSlots(MealPlanSlot a, MealPlanSlot b) {
+    final sa = a.sortOrder, sb = b.sortOrder;
+    if (sa != null && sb != null && sa != sb) return sa.compareTo(sb);
+    final ta = a.scheduledMinutes, tb = b.scheduledMinutes;
+    if (ta != null && tb != null && ta != tb) return ta.compareTo(tb);
+    final byMeal = _mealRank(a.mealTime).compareTo(_mealRank(b.mealTime));
+    return byMeal != 0 ? byMeal : a.id.compareTo(b.id);
+  }
   SlotUiStatus uiStatusOf(String key) {
     final ds = _slots[key]?.dishes ?? [];
     if (ds.isEmpty) return SlotUiStatus.empty;
@@ -460,6 +521,7 @@ class MealPlanStore extends GetLifeCycle {
         if (_current(r)) {
           final apiError = _apiError(error);
           result = DishRequestResult.rejected;
+          if (apiError.code == slotLockedCode) _onSlotLocked(sid);
           runInAction(() {
             r._mutationError.value = apiError;
             r._unknown.value = _uncertain(kind, apiError);
@@ -648,10 +710,15 @@ class MealPlanStore extends GetLifeCycle {
         .firstOrNull;
     final merged = existing == null
         ? serverDish
-        : existing.copyWith(
+        : MealPlanDish(
+            id: existing.id,
+            slotId: existing.slotId,
+            sortOrder: existing.sortOrder,
             status: serverDish.status,
             recipe: serverDish.recipe,
-            clearRecipe: serverDish.recipe == null,
+            cookedAt: serverDish.cookedAt ?? existing.cookedAt,
+            cookedSessionId:
+                serverDish.cookedSessionId ?? existing.cookedSessionId,
           );
     _replaceDish(key, merged);
   }
@@ -670,16 +737,42 @@ class MealPlanStore extends GetLifeCycle {
       _setDishes(key, <MealPlanDish>[...slot.dishes, dish]);
       return dish;
     } on ApiException catch (e) {
+      if (e.code == slotLockedCode) _onSlotLocked(slotId);
       runInAction(() => _loadError.value = e);
       return null;
     }
   }
 
+  /// Kiểm tra công thức cho bữa TRƯỚC khi gán (dị ứng + nguyên liệu thiếu).
+  /// `null` khi server chưa hỗ trợ endpoint (404/lỗi khác) — luồng chọn món
+  /// bỏ qua bước kiểm tra. Lỗi mạng/khoá bữa ném lại cho màn hình xử lý.
+  Future<RecipeCheckResult?> recipeCheck(
+      String slotId, String recipeId) async {
+    final planId = currentPlanId;
+    if (planId == null || _disposed) return null;
+    try {
+      return await _api.recipeCheck(planId, slotId, recipeId: recipeId);
+    } on ApiException catch (e) {
+      if (e.code == slotLockedCode) {
+        _onSlotLocked(slotId);
+        rethrow;
+      }
+      if (e is NetworkException || e is AuthExpiredException) rethrow;
+      return null;
+    }
+  }
+
   /// Xoá 1 dish (chỉ gọi sau người dùng confirm). KHÔNG optimistic — chờ 204.
-  Future<void> removeDish(String slotId, String dishId) async {
+  ///
+  /// [discardCreated] — dọn món màn hình VỪA tạo khi gán công thức thất bại:
+  /// bỏ qua trạng thái request của món (lỗi gán làm món "không ghi được")
+  /// để không để lại món rỗng.
+  Future<void> removeDish(String slotId, String dishId,
+      {bool discardCreated = false}) async {
     final planId = _currentPlanId.value;
     final key = slotKeyOf(slotId);
-    if (key == null || planId == null || !canEditDish(dishId)) return;
+    if (key == null || planId == null) return;
+    if (discardCreated ? _disposed : !canEditDish(dishId)) return;
     try {
       await _api.removeDish(planId, slotId, dishId);
       if (currentPlanId != planId) return;
@@ -701,6 +794,7 @@ class MealPlanStore extends GetLifeCycle {
             .toList(growable: false),
       );
     } on ApiException catch (e) {
+      if (e.code == slotLockedCode) _onSlotLocked(slotId);
       runInAction(() => _loadError.value = e);
     }
   }

@@ -22,6 +22,7 @@ import 'stores/dependent_store.dart';
 import 'stores/form_status.dart';
 import 'widgets/allergen_label.dart';
 import 'widgets/dependent_state_views.dart';
+import '../../widgets/feedback/app_toast.dart';
 
 /// Picker dị ứng của một dependent (§9.6, §16.10) — tinh thần
 /// `AllergenSelectScreen` (S11.x) bind `DependentStore`.
@@ -94,11 +95,9 @@ class _DependentAllergenSelectScreenState
   Future<void> _save() async {
     final ok = await store.saveAllergens(id, selected.toList()..sort());
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     if (ok) {
-      messenger
-          .showSnackBar(SnackBar(content: Text(l10n.allergensSavedToast)));
+      AppToast.show(l10n.allergensSavedToast, type: AppToastType.success);
       Navigator.of(context).maybePop();
       return;
     }
@@ -106,13 +105,11 @@ class _DependentAllergenSelectScreenState
     final error = store.allergensSaveError;
     if (error?.code == 'ERR_DEP_001') {
       backToDependentList();
-      messenger.showSnackBar(
-          SnackBar(content: Text(l10n.dependentNotFoundTitle)));
+      AppToast.show(l10n.dependentNotFoundTitle, type: AppToastType.error);
       return;
     }
     // ERR_ALLERGEN_NOT_FOUND: store đã nạp lại catalog; GIỮ lựa chọn (S-A3).
-    messenger.showSnackBar(
-        SnackBar(content: Text(dependentErrorMessage(l10n, error))));
+    AppToast.show(dependentErrorMessage(l10n, error), type: AppToastType.error);
   }
 
   @override

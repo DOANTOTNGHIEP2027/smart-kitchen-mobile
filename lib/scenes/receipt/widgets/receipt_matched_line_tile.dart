@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
-import '../../../utils/quantity_format.dart';
 import '../domain/receipt_matched_item.dart';
 import 'receipt_summary_header.dart';
+import '../../../utils/unit_label.dart';
 
 /// Kết quả của 1 dòng sau `commitMatched()` (§9.1).
 enum ReceiptLineOutcome { none, marked, failed, skipped }
@@ -60,7 +60,7 @@ class ReceiptMatchedLineTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   '${context.l10n.receiptOnReceipt(line.rawName)} · '
-                  '${formatQuantityWithUnit(line.quantity, line.unit)}',
+                  '${formatQuantityWithUnitLabel(context.l10n, line.quantity, line.unit)}',
                   style: textTheme.bodySmall?.copyWith(
                     color: AppColors.textSecondary,
                   ),

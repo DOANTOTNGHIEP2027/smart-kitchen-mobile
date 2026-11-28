@@ -5,10 +5,12 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
+import '../../cooking/widgets/dish_cooked_dialog.dart';
 import '../../cooking/widgets/start_cooking_guard.dart';
 import '../domain/meal_plan_slot.dart';
 import '../stores/meal_plan_store.dart';
 import '../scenes/meal_plan_routes.dart';
+import 'dish_cooked_badge.dart';
 
 /// 1 ô lưới meal plan (FE-7 §12, Observer riêng — granular reactivity).
 ///
@@ -67,7 +69,8 @@ class MealCard extends StatelessWidget {
                   ),
                   if (currentSlot.id.isNotEmpty)
                     TextButton.icon(
-                      onPressed: store.isConfirmed
+                      onPressed: store.isConfirmed ||
+                              MealPlanStore.slotIsLocked(currentSlot)
                           ? null
                           : () => _confirmAddDish(currentSlot.id),
                       icon: const Icon(Icons.add, size: 16),
@@ -91,6 +94,11 @@ class MealCard extends StatelessWidget {
   }
 
   void _handleDishTap(MealPlanDish dish) {
+    // Món đã nấu xong: chỉ báo, không mở lại luồng nấu/gợi ý.
+    if (dish.isCooked) {
+      showDishCookedDialog(cookedAt: dish.cookedAt);
+      return;
+    }
     switch (dish.status) {
       case DishUiStatus.empty:
       case DishUiStatus.suggested:
@@ -165,6 +173,7 @@ class _DishChip extends StatelessWidget {
             Expanded(
               child: Text(label, style: theme.textTheme.bodySmall),
             ),
+            if (dish.isCooked) const DishCookedBadge(compact: true),
             if (voteTallyCount != null)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
@@ -237,12 +246,25 @@ class ConfirmedDishSheet extends StatelessWidget {
             const SizedBox(height: AppDimens.sm),
             if (dish.recipe != null && dish.recipe!.source == 'AI')
               Text(context.l10n.mealplanAiSuggestion),
+            if (dish.isCooked) ...<Widget>[
+              const SizedBox(height: AppDimens.sm),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: DishCookedBadge(),
+              ),
+            ],
             const SizedBox(height: AppDimens.lg),
             if (dish.recipe != null)
               FilledButton.icon(
                 onPressed: () {
                   Get.back<void>();
-                  startCookingWithShoppingCheck(dish.recipe!.recipeId);
+                  // Gắn phiên nấu với món thực đơn; món đã nấu ⇒ guard chỉ
+                  // báo "Món đã nấu xong".
+                  startCookingWithShoppingCheck(
+                    dish.recipe!.recipeId,
+                    mealPlanDishId: dish.id,
+                    cookedAt: dish.cookedAt,
+                  );
                 },
                 icon: const Icon(Icons.restaurant),
                 label: Text(context.l10n.mealplanStartCooking),

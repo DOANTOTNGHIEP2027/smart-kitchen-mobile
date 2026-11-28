@@ -10,6 +10,7 @@ import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/feature_banner.dart';
 import '../stores/family_store.dart';
 import '../stores/form_status.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Đặt/sửa ngân sách household (tier-gate-screens.md §19.4, §19.7). Chỉ mở từ
 /// P3/P4 (đã biết giá trị hiện tại). Không có ô currency (Guard #15).
@@ -86,10 +87,9 @@ class _HouseholdBudgetSheetState extends State<HouseholdBudgetSheet> {
     }
     final ok = await _store.upsertBudget(_period, amount);
     if (!ok || !mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final message = context.l10n.budgetUpdated;
     Navigator.of(context).pop();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
+    AppToast.show(message, type: AppToastType.success);
   }
 
   @override

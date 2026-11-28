@@ -16,8 +16,13 @@ class FakeCookingApi implements CookingSessionApi {
   Object? onAbandonError;
   Object? onGetByIdError;
 
+  /// `mealPlanDishId` của từng lần gọi `start` — theo thứ tự.
+  final List<String?> startDishIds = <String?>[];
+
   @override
-  Future<CookingSession> start(String recipeId) async {
+  Future<CookingSession> start(String recipeId,
+      {String? mealPlanDishId}) async {
+    startDishIds.add(mealPlanDishId);
     if (onStartError != null) throw onStartError!;
     if (onStart != null) return onStart!(recipeId);
     throw UnimplementedError();
