@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -179,7 +180,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-      int startDay, int startMonth, int endDay, int endMonth) {
+    int startDay,
+    int startMonth,
+    int endDay,
+    int endMonth,
+  ) {
     return 'Week $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -684,7 +689,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-      String required, String available, String shortfall, String unit) {
+    String required,
+    String available,
+    String shortfall,
+    String unit,
+  ) {
     return 'Need $required · Have $available · Short $shortfall $unit';
   }
 
@@ -3038,14 +3047,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceNo => 'Not attending';
 
   @override
-  String get attendanceUnknown => 'Not answered';
+  String get attendanceUnknown => 'Not answered (attending by default)';
 
   @override
   String get attendanceClear => 'Clear response';
 
   @override
   String get attendanceClosed =>
-      'This meal has passed or you only have view access, so attendance can\'t be changed.';
+      'Headcount is locked from 00:00 of the meal day, or you only have view access, so attendance can\'t be changed.';
 
   @override
   String get attendanceLoadFailed => 'Could not load attendance';
@@ -3060,6 +3069,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String attendanceSummary(int yes, int unknown) {
     return '$yes members attending · $unknown unanswered';
   }
+
+  @override
+  String get attendanceInviteTitle => 'Will you eat at home tomorrow?';
+
+  @override
+  String get attendanceInviteHint =>
+      'No answer counts as attending. Answers lock at 00:00 and the menu is generated for the confirmed headcount.';
+
+  @override
+  String get attendanceDefaultYes => 'Attending (default)';
+
+  @override
+  String get attendanceInviteSave => 'Save';
+
+  @override
+  String get attendanceInviteSaved => 'Your answers were saved';
+
+  @override
+  String get attendanceInviteEmpty =>
+      'There are no meals to answer for this day.';
+
+  @override
+  String get attendanceInviteClosed =>
+      'Headcount is locked for these meals, answers can\'t be changed.';
 
   @override
   String get mealPlanConfirm => 'Confirm weekly menu';
@@ -4305,7 +4338,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insightsMacroTooltip(
-      int day, int month, String p, String c, String f, String total) {
+    int day,
+    int month,
+    String p,
+    String c,
+    String f,
+    String total,
+  ) {
     return 'Day $day/$month\n• Protein: $p g\n• Carbs: $c g\n• Fat: $f g\nTotal: $total g';
   }
 

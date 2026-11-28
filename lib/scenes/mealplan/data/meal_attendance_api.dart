@@ -52,4 +52,34 @@ class MealAttendanceApi {
           ServerException('ERR_UNKNOWN', 'Unexpected response');
     }
   }
+
+  /// Lưu popup vote (nhiều bữa một lượt, cả lô hoặc không gì):
+  /// `PUT /meal-plans/{pid}/attendance/me`. `unknown` = xoá vote (về mặc định
+  /// có ăn).
+  Future<List<MealAttendance>> updateMine(
+      String pid, Map<String, AttendanceStatus> statuses) async {
+    try {
+      final response = await _client.dio.put<Map<String, dynamic>>(
+          '/api/v1/meal-plans/$pid/attendance/me',
+          data: <String, dynamic>{
+            'items': [
+              for (final entry in statuses.entries)
+                <String, dynamic>{
+                  'slotId': entry.key,
+                  'status': switch (entry.value) {
+                    AttendanceStatus.attending => 'ATTENDING',
+                    AttendanceStatus.notAttending => 'NOT_ATTENDING',
+                    AttendanceStatus.unknown => null,
+                  },
+                },
+            ],
+          });
+      return (response.data!['data'] as List<dynamic>)
+          .map((v) => MealAttendance.fromJson(v as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw e.error as ApiException? ??
+          ServerException('ERR_UNKNOWN', 'Unexpected response');
+    }
+  }
 }

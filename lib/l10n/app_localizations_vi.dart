@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -177,7 +178,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String mealPlanWeekRange(
-      int startDay, int startMonth, int endDay, int endMonth) {
+    int startDay,
+    int startMonth,
+    int endDay,
+    int endMonth,
+  ) {
     return 'Tuần $startDay/$startMonth – $endDay/$endMonth';
   }
 
@@ -678,7 +683,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String cookingShortfallLine(
-      String required, String available, String shortfall, String unit) {
+    String required,
+    String available,
+    String shortfall,
+    String unit,
+  ) {
     return 'Cần $required · Có $available · Thiếu $shortfall $unit';
   }
 
@@ -3001,14 +3010,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get attendanceNo => 'Không ăn';
 
   @override
-  String get attendanceUnknown => 'Chưa phản hồi';
+  String get attendanceUnknown => 'Chưa vote (mặc định có ăn)';
 
   @override
   String get attendanceClear => 'Bỏ phản hồi';
 
   @override
   String get attendanceClosed =>
-      'Bữa này đã qua hoặc bạn chỉ có quyền xem nên không đổi được xác nhận ăn.';
+      'Số người đã chốt từ 00:00 ngày của bữa, hoặc bạn chỉ có quyền xem nên không đổi được xác nhận ăn.';
 
   @override
   String get attendanceLoadFailed => 'Không tải được xác nhận ăn';
@@ -3023,6 +3032,29 @@ class AppLocalizationsVi extends AppLocalizations {
   String attendanceSummary(int yes, int unknown) {
     return '$yes thành viên có ăn · $unknown chưa phản hồi';
   }
+
+  @override
+  String get attendanceInviteTitle => 'Ngày mai bạn có ăn ở nhà không?';
+
+  @override
+  String get attendanceInviteHint =>
+      'Không chọn sẽ tính là có ăn. Chốt lúc 00:00, thực đơn được tạo theo số người đã chốt.';
+
+  @override
+  String get attendanceDefaultYes => 'Có ăn (mặc định)';
+
+  @override
+  String get attendanceInviteSave => 'Lưu';
+
+  @override
+  String get attendanceInviteSaved => 'Đã lưu lựa chọn';
+
+  @override
+  String get attendanceInviteEmpty => 'Ngày này không có bữa nào cần vote.';
+
+  @override
+  String get attendanceInviteClosed =>
+      'Đã chốt số người cho các bữa này, không đổi được nữa.';
 
   @override
   String get mealPlanConfirm => 'Chốt thực đơn tuần';
@@ -4230,7 +4262,13 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String insightsMacroTooltip(
-      int day, int month, String p, String c, String f, String total) {
+    int day,
+    int month,
+    String p,
+    String c,
+    String f,
+    String total,
+  ) {
     return 'Ngày $day/$month\n• Đạm: $p g\n• Tinh bột: $c g\n• Béo: $f g\nTổng: $total g';
   }
 

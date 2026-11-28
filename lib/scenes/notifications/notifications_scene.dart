@@ -17,6 +17,7 @@ import '../../widgets/cards/app_card.dart';
 import '../../widgets/feature_banner.dart';
 import '../../widgets/states/app_state_view.dart';
 import '../../widgets/states/view_state.dart';
+import '../mealplan/widgets/daily_attendance_sheet.dart';
 import 'notifications_routes.dart';
 
 /// Hộp thư thông báo (fcm-notification-flow.md §8, N4; #201 đọc từ server).
@@ -38,6 +39,14 @@ class _NotificationsSceneState extends State<NotificationsScene> {
 
   void _open(AppNotification notification) {
     unawaited(_store.markRead(notification.id));
+    final invite = notification.target == NotificationTarget.attendanceInvite
+        ? attendanceInviteOf(notification.data)
+        : null;
+    if (invite != null) {
+      unawaited(showDailyAttendanceSheet(context,
+          planId: invite.planId, date: invite.date));
+      return;
+    }
     if (notification.target != NotificationTarget.notifications) {
       Get.toNamed<void>(NotificationsRoutes.routeFor(notification.target));
     }
@@ -246,7 +255,9 @@ class _NotificationTile extends StatelessWidget {
 
   IconData get _icon => switch (notification.target) {
         NotificationTarget.inventory => Icons.kitchen_outlined,
-        NotificationTarget.mealPlan => Icons.restaurant_menu_rounded,
+        NotificationTarget.mealPlan ||
+        NotificationTarget.attendanceInvite =>
+          Icons.restaurant_menu_rounded,
         NotificationTarget.shopping => Icons.shopping_cart_outlined,
         NotificationTarget.household => Icons.group_outlined,
         NotificationTarget.notifications => Icons.notifications_none_rounded,

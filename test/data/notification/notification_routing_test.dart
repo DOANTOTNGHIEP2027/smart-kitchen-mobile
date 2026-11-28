@@ -54,6 +54,20 @@ void main() {
           NotificationTarget.inventory);
     });
 
+    test('mời vote 20:00 (có planId + targetDate) → attendanceInvite', () {
+      final data = <String, dynamic>{
+        'type': 'MEAL_ATTENDANCE_REMINDER',
+        'planId': 'p1',
+        'targetDate': '2026-11-29',
+        'slotIds': 's1,s2',
+      };
+      expect(resolveNotificationTarget(data), NotificationTarget.attendanceInvite);
+      final invite = attendanceInviteOf(data)!;
+      expect(invite.planId, 'p1');
+      expect(invite.date, DateTime(2026, 11, 29));
+      expect(attendanceInviteOf(<String, dynamic>{'planId': 'p1', 'targetDate': 'x'}), isNull);
+    });
+
     test('type lạ / data rỗng / deepLink lạ → notifications (không dùng chuỗi payload)', () {
       expect(resolveNotificationTarget(const <String, dynamic>{}), NotificationTarget.notifications);
       expect(resolveNotificationTarget(<String, dynamic>{'type': 'WHATEVER', 'route': '/admin'}),

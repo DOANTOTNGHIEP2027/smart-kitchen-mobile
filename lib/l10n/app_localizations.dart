@@ -63,7 +63,7 @@ import 'app_localizations_vi.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('vi')
+    Locale('vi'),
   ];
 
   /// Application name shown in the OS task switcher
@@ -427,7 +427,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Week {startDay}/{startMonth} – {endDay}/{endMonth}'**
   String mealPlanWeekRange(
-      int startDay, int startMonth, int endDay, int endMonth);
+    int startDay,
+    int startMonth,
+    int endDay,
+    int endMonth,
+  );
 
   /// No description provided for @mealPlanDaySchedule.
   ///
@@ -1364,7 +1368,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Need {required} · Have {available} · Short {shortfall} {unit}'**
   String cookingShortfallLine(
-      String required, String available, String shortfall, String unit);
+    String required,
+    String available,
+    String shortfall,
+    String unit,
+  );
 
   /// No description provided for @cookingShortfallNoDetail.
   ///
@@ -5413,7 +5421,7 @@ abstract class AppLocalizations {
   /// No description provided for @attendanceUnknown.
   ///
   /// In en, this message translates to:
-  /// **'Not answered'**
+  /// **'Not answered (attending by default)'**
   String get attendanceUnknown;
 
   /// No description provided for @attendanceClear.
@@ -5425,7 +5433,7 @@ abstract class AppLocalizations {
   /// No description provided for @attendanceClosed.
   ///
   /// In en, this message translates to:
-  /// **'This meal has passed or you only have view access, so attendance can\'t be changed.'**
+  /// **'Headcount is locked from 00:00 of the meal day, or you only have view access, so attendance can\'t be changed.'**
   String get attendanceClosed;
 
   /// No description provided for @attendanceLoadFailed.
@@ -5451,6 +5459,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{yes} members attending · {unknown} unanswered'**
   String attendanceSummary(int yes, int unknown);
+
+  /// No description provided for @attendanceInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Will you eat at home tomorrow?'**
+  String get attendanceInviteTitle;
+
+  /// No description provided for @attendanceInviteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No answer counts as attending. Answers lock at 00:00 and the menu is generated for the confirmed headcount.'**
+  String get attendanceInviteHint;
+
+  /// No description provided for @attendanceDefaultYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Attending (default)'**
+  String get attendanceDefaultYes;
+
+  /// No description provided for @attendanceInviteSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get attendanceInviteSave;
+
+  /// No description provided for @attendanceInviteSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answers were saved'**
+  String get attendanceInviteSaved;
+
+  /// No description provided for @attendanceInviteEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no meals to answer for this day.'**
+  String get attendanceInviteEmpty;
+
+  /// No description provided for @attendanceInviteClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Headcount is locked for these meals, answers can\'t be changed.'**
+  String get attendanceInviteClosed;
 
   /// No description provided for @mealPlanConfirm.
   ///
@@ -7527,7 +7577,13 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Day {day}/{month}\n• Protein: {p} g\n• Carbs: {c} g\n• Fat: {f} g\nTotal: {total} g'**
   String insightsMacroTooltip(
-      int day, int month, String p, String c, String f, String total);
+    int day,
+    int month,
+    String p,
+    String c,
+    String f,
+    String total,
+  );
 
   /// No description provided for @mealPlanNoSlotsForDay.
   ///
@@ -7833,8 +7889,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

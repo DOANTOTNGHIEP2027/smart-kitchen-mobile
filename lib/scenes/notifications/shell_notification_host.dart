@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobx/mobx.dart';
 
 import '../../constants/app_dimens.dart';
+import '../../data/notification/notification_routing.dart';
 import '../../stores/notification_store.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../mealplan/widgets/daily_attendance_sheet.dart';
 import 'notifications_routes.dart';
 
 /// Bọc body của shell (fcm-notification-flow.md §14.1, §14.5):
@@ -39,7 +43,17 @@ class _ShellNotificationHostState extends State<ShellNotificationHost> {
           // có thể đang khoá (review v2 N-MEDIUM-1).
           final pending = store.consumePendingTarget();
           if (pending == null) return;
+          final data = store.consumePendingData();
+          final invite = pending == NotificationTarget.attendanceInvite
+              ? attendanceInviteOf(data)
+              : null;
           WidgetsBinding.instance.addPostFrameCallback((_) {
+            // Mời vote bữa ngày mai → popup ngay trên màn hiện tại.
+            if (invite != null && mounted) {
+              unawaited(showDailyAttendanceSheet(context,
+                  planId: invite.planId, date: invite.date));
+              return;
+            }
             Get.toNamed<void>(NotificationsRoutes.routeFor(pending));
           });
           // Màn đang đứng yên thì không có frame nào tới — chủ động xin 1
