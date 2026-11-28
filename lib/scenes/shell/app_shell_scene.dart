@@ -16,6 +16,8 @@ import '../../widgets/buttons/app_button.dart';
 import '../../widgets/states/app_state_view.dart';
 import '../../widgets/states/view_state.dart';
 import '../cooking/scenes/cooking_routes.dart';
+import '../home/home_binding.dart';
+import '../home/widgets/upcoming_meal_section.dart';
 import '../inventory/scenes/inventory_list_binding.dart';
 import '../inventory/scenes/inventory_list_scene.dart';
 import '../mealplan/scenes/meal_plan_routes.dart' show WeeklyMealPlanBinding;
@@ -145,6 +147,7 @@ class AppShellScene extends StatelessWidget {
   static const int _shoppingTabIndex = 3;
 
   static void _ensureBindings() {
+    HomeBinding().dependencies();
     InventoryListBinding().dependencies();
     WeeklyMealPlanBinding().dependencies();
     ShoppingListBinding().dependencies();
@@ -190,6 +193,8 @@ class HomeTab extends StatelessWidget {
               ),
               const SizedBox(height: AppDimens.lg),
             ],
+            const UpcomingMealSection(),
+            const SizedBox(height: AppDimens.xl),
             Text(
               context.l10n.homeQuickActions,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(

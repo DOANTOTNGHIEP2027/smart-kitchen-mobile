@@ -42,6 +42,11 @@
   "homeRecipeIngredients": "Nguyên liệu",
   "homeRecipeGuide": "Nguồn công thức tham khảo",
   "homeRecipeCook": "Nấu món này",
+  "homeUpcomingMealTitle": "Bữa sắp tới",
+  "homeUpcomingToday": "Hôm nay",
+  "homeUpcomingTomorrow": "Ngày mai",
+  "homeUpcomingEmpty": "Chưa có bữa nào sắp tới trong thực đơn",
+  "homeUpcomingOpenPlan": "Lên thực đơn",
   "homeRecipeMinutes": "{minutes} phút",
   "@homeRecipeMinutes": {
     "placeholders": {

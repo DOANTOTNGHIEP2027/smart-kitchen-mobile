@@ -129,6 +129,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRecipeCook => 'Cook this meal';
 
   @override
+  String get homeUpcomingMealTitle => 'Upcoming meal';
+
+  @override
+  String get homeUpcomingToday => 'Today';
+
+  @override
+  String get homeUpcomingTomorrow => 'Tomorrow';
+
+  @override
+  String get homeUpcomingEmpty => 'No upcoming meal in your plan';
+
+  @override
+  String get homeUpcomingOpenPlan => 'Plan meals';
+
+  @override
   String homeRecipeMinutes(int minutes) {
     return '$minutes min';
   }

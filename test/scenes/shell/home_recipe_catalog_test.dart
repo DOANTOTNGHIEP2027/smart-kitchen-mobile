@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/l10n/app_localizations.dart';
 import 'package:smart_kitchen_mobile/l10n/app_localizations_vi.dart';
 import 'package:smart_kitchen_mobile/routing/app_routes.dart';
+import 'package:smart_kitchen_mobile/scenes/home/stores/home_store.dart';
+import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_plan_api.dart';
 import 'package:smart_kitchen_mobile/scenes/recipe/data/recipe_catalog_api.dart';
 import 'package:smart_kitchen_mobile/scenes/recipe/domain/recipe.dart';
 import 'package:smart_kitchen_mobile/scenes/recipe/scenes/recipe_detail_scene.dart';
@@ -23,6 +26,8 @@ import '../../helpers/pump_app.dart';
 import '../../helpers/shell_bindings_stub.dart';
 import '../recipe/fake_recipe_catalog_api.dart';
 
+class _MockMealPlanApi extends Mock implements MealPlanApi {}
+
 void main() {
   final l10n = AppLocalizationsVi();
   late FakeRecipeCatalogApi api;
@@ -30,6 +35,11 @@ void main() {
   setUp(() {
     api = FakeRecipeCatalogApi();
     Get.put<RecipeCatalogApi>(api);
+    // HomeTab có khung "Bữa sắp tới" — cần HomeStore; lỗi tải không ảnh hưởng
+    // các phần khác của Home đang được test ở đây.
+    final mealPlanApi = _MockMealPlanApi();
+    when(mealPlanApi.getCurrent).thenThrow(NetworkException());
+    Get.put<HomeStore>(HomeStore(mealPlanApi: mealPlanApi));
   });
   tearDown(Get.reset);
 
@@ -66,7 +76,10 @@ void main() {
           l10n.homeMealLogSubtitle,
         ]) {
           final text = find.text(label);
-          await tester.ensureVisible(text);
+          // Khung "Bữa sắp tới" đẩy phần này xuống ngoài vùng ListView dựng
+          // sẵn — phải cuộn tới, ensureVisible không thấy widget chưa dựng.
+          await tester.scrollUntilVisible(text, 100,
+              scrollable: find.byType(Scrollable).first);
           await tester.pumpAndSettle();
           expect(tester.renderObject<RenderParagraph>(text).didExceedMaxLines,
               isFalse,
@@ -140,7 +153,8 @@ void main() {
     registerShellStubBindings();
     await tester.pumpAppWidget(const AppShellScene(), wrapInScaffold: false);
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byType(HomeRecipeCatalog));
+    await tester.scrollUntilVisible(find.byType(HomeRecipeCatalog), 100,
+        scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
     expect(find.text('Phở bò từ backend'), findsOneWidget);
     expect(api.listCalls, hasLength(1));
