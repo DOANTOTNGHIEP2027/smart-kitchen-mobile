@@ -72,7 +72,9 @@ class MealPlanStore extends GetLifeCycle {
     runInAction(() {
       _slots.clear();
       for (final slot in plan.slots) {
-        _slots['${_isoDate(slot.slotDate)}_${slot.mealTime}'] = slot;
+        // Khoá theo slotKey (duy nhất/ngày): bữa tự đặt đều là SNACK, khoá
+        // theo mealTime thì đè nhau. Bữa mặc định slotKey = mealTime.
+        _slots['${_isoDate(slot.slotDate)}_${slot.slotKey}'] = slot;
       }
       _planStatus.value = plan.status;
     });
@@ -152,6 +154,29 @@ class MealPlanStore extends GetLifeCycle {
     return ds.every((d) => d.recipe != null)
         ? SlotUiStatus.confirmed
         : SlotUiStatus.inProgress;
+  }
+
+  /// Các bữa của 1 ngày theo thứ tự cấu hình (sortOrder, rồi giờ ăn).
+  List<MealPlanSlot> slotsOfDay(DateTime date) {
+    final prefix = '${_isoDate(date)}_';
+    final day = _slots.entries
+        .where((e) => e.key.startsWith(prefix))
+        .map((e) => e.value)
+        .toList();
+    day.sort((a, b) {
+      final byOrder = (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0);
+      if (byOrder != 0) return byOrder;
+      final byTime = (a.scheduledTime ?? '').compareTo(b.scheduledTime ?? '');
+      if (byTime != 0) return byTime;
+      return _mealRank(a.mealTime).compareTo(_mealRank(b.mealTime));
+    });
+    return day;
+  }
+
+  static int _mealRank(String mealTime) {
+    const order = <String>['BREAKFAST', 'LUNCH', 'DINNER'];
+    final i = order.indexOf(mealTime);
+    return i < 0 ? order.length : i;
   }
 
   String? slotKeyOf(String id) =>

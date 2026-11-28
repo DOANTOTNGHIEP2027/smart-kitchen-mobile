@@ -73,7 +73,11 @@ class _WeeklyMealPlanSceneState extends State<WeeklyMealPlanScene>
         PopupMenuButton<String>(
           key: const ValueKey<String>('meal-plan-more'),
           icon: const Icon(Icons.more_vert),
-          onSelected: (route) => Get.toNamed<void>(route),
+          onSelected: (route) async {
+            await Get.toNamed<void>(route);
+            // Cấu hình bữa đổi thì tuần mới tạo sẽ khác — đọc lại plan.
+            if (route == PlanningRoutes.slotConfig) await store.loadWeekPlan();
+          },
           itemBuilder: (menuCtx) => <PopupMenuEntry<String>>[
             PopupMenuItem<String>(
               key: const ValueKey<String>('meal-plan-repetition'),
@@ -260,18 +264,15 @@ class _WeekCalendar extends StatelessWidget {
             ),
             const SizedBox(height: AppDimens.sm),
 
-            // 3 Meals cards
-            ...const <_MealPeriod>[
-              _MealPeriod('BREAKFAST', Icons.wb_sunny_outlined),
-              _MealPeriod('LUNCH', Icons.light_mode_outlined),
-              _MealPeriod('DINNER', Icons.nightlight_round),
-            ].map(
-              (period) => Padding(
+            // Các bữa của ngày theo cấu hình household; chưa có plan thì
+            // hiện 3 bữa mặc định.
+            ..._daySlotKeys(store, selectedDate).map(
+              (slotKey) => Padding(
                 padding: const EdgeInsets.only(bottom: AppDimens.sm),
                 child: _MealScheduleCard(
                   store: store,
                   date: selectedDate,
-                  period: period,
+                  slotKey: slotKey,
                 ),
               ),
             ),
@@ -280,9 +281,12 @@ class _WeekCalendar extends StatelessWidget {
       );
 
   static bool _hasDishes(MealPlanStore store, DateTime date) =>
-      const <String>['BREAKFAST', 'LUNCH', 'DINNER'].any(
-        (meal) => store.slots[_slotKey(date, meal)]?.dishes.isNotEmpty ?? false,
-      );
+      store.slotsOfDay(date).any((slot) => slot.dishes.isNotEmpty);
+
+  static List<String> _daySlotKeys(MealPlanStore store, DateTime date) {
+    final keys = store.slotsOfDay(date).map((slot) => slot.slotKey).toList();
+    return keys.isEmpty ? const <String>['BREAKFAST', 'LUNCH', 'DINNER'] : keys;
+  }
 
   static bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
@@ -480,15 +484,40 @@ class _ConfirmedBanner extends StatelessWidget {
 class _MealPeriod {
   const _MealPeriod(this.wireValue, this.icon);
 
+  /// Icon theo loại bữa; bữa tự đặt (SNACK) dùng icon riêng.
+  factory _MealPeriod.of(String mealTime) => switch (mealTime) {
+        'BREAKFAST' => const _MealPeriod('BREAKFAST', Icons.wb_sunny_outlined),
+        'LUNCH' => const _MealPeriod('LUNCH', Icons.light_mode_outlined),
+        'DINNER' => const _MealPeriod('DINNER', Icons.nightlight_round),
+        _ => _MealPeriod(mealTime, Icons.local_cafe_outlined),
+      };
+
   final String wireValue;
   final IconData icon;
 
-  String labelOf(BuildContext context) => switch (wireValue) {
-        'BREAKFAST' => context.l10n.mealPlanBreakfast,
-        'LUNCH' => context.l10n.mealPlanLunch,
-        'DINNER' => context.l10n.mealPlanDinner,
-        _ => wireValue,
-      };
+  /// Nhãn BE tự đặt cho bữa mặc định — gặp thì dùng l10n thay vì chữ cứng.
+  static const Map<String, String> _serverDefaultLabels = <String, String>{
+    'BREAKFAST': 'Bữa sáng',
+    'LUNCH': 'Bữa trưa',
+    'DINNER': 'Bữa tối',
+    'SNACK': 'Bữa phụ',
+  };
+
+  String labelOf(BuildContext context, {String? customLabel}) {
+    final label = customLabel?.trim();
+    if (label != null &&
+        label.isNotEmpty &&
+        label != _serverDefaultLabels[wireValue]) {
+      return label;
+    }
+    return switch (wireValue) {
+      'BREAKFAST' => context.l10n.mealPlanBreakfast,
+      'LUNCH' => context.l10n.mealPlanLunch,
+      'DINNER' => context.l10n.mealPlanDinner,
+      'SNACK' => context.l10n.nutritionMealSnack,
+      _ => wireValue,
+    };
+  }
 }
 
 /// Chọn số ngày cần lên thực đơn rồi mở trợ lý PLANNING cho ô bữa này.
@@ -529,12 +558,12 @@ class _MealScheduleCard extends StatelessWidget {
   const _MealScheduleCard({
     required this.store,
     required this.date,
-    required this.period,
+    required this.slotKey,
   });
 
   final MealPlanStore store;
   final DateTime date;
-  final _MealPeriod period;
+  final String slotKey;
 
   // Observer riêng: Observer của _WeekCalendar không theo dõi được các lần đọc
   // store trong build() của widget con, nên trước đây xoá món không vẽ lại thẻ.
@@ -542,10 +571,14 @@ class _MealScheduleCard extends StatelessWidget {
   Widget build(BuildContext context) => Observer(builder: _buildCard);
 
   Widget _buildCard(BuildContext context) {
-    final slot = store.slots[_WeekCalendar._slotKey(date, period.wireValue)];
+    final slot = store.slots[_WeekCalendar._slotKey(date, slotKey)];
     final slotId = slot?.id;
     final canEdit = slotId?.isNotEmpty == true;
-    final periodLabel = period.labelOf(context);
+    final period = _MealPeriod.of(slot?.mealTime ?? slotKey);
+    final periodLabel = period.labelOf(context, customLabel: slot?.label);
+    final time = slot?.scheduledTime;
+    final timeLabel =
+        time != null && time.length >= 5 ? time.substring(0, 5) : null;
 
     return Container(
       decoration: BoxDecoration(
@@ -601,7 +634,9 @@ class _MealScheduleCard extends StatelessWidget {
                     const SizedBox(width: AppDimens.sm),
                     Expanded(
                       child: Text(
-                        periodLabel,
+                        timeLabel == null
+                            ? periodLabel
+                            : '$periodLabel · $timeLabel',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(

@@ -63,18 +63,35 @@ class MealPlanSlot {
     required this.slotDate,
     required this.mealTime,
     required this.dishes,
-  });
+    String? slotKey,
+    this.label,
+    this.scheduledTime,
+    this.sortOrder,
+  }) : slotKey = slotKey ?? mealTime;
 
   final String id;
   final DateTime slotDate;
-  final String mealTime; // BREAKFAST | LUNCH | DINNER
+  final String mealTime; // BREAKFAST | LUNCH | DINNER | SNACK (bữa tự đặt)
   final List<MealPlanDish> dishes;
+
+  /// Khoá bữa trong ngày theo cấu hình household (vd `CUSTOM_1`); duy nhất
+  /// trong 1 ngày nên nhiều bữa SNACK không đè nhau. Thiếu thì = [mealTime].
+  final String slotKey;
+
+  /// Tên / giờ (`HH:mm[:ss]`) / thứ tự bữa chụp từ cấu hình lúc tạo plan.
+  final String? label;
+  final String? scheduledTime;
+  final int? sortOrder;
 
   MealPlanSlot copyWith({List<MealPlanDish>? dishes}) => MealPlanSlot(
         id: id,
         slotDate: slotDate,
         mealTime: mealTime,
         dishes: dishes ?? this.dishes,
+        slotKey: slotKey,
+        label: label,
+        scheduledTime: scheduledTime,
+        sortOrder: sortOrder,
       );
 }
 
