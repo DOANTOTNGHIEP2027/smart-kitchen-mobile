@@ -150,6 +150,10 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                                 value: '${items.length}',
                                 icon: Icons.inventory_2_outlined,
                                 color: AppColors.primary,
+                                selected: store.statusFilter ==
+                                    InventoryStatusFilter.all,
+                                onTap: () => store.toggleStatusFilter(
+                                    InventoryStatusFilter.all),
                               ),
                               Container(
                                 width: 1,
@@ -163,6 +167,10 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                                 color: expiringCount > 0
                                     ? AppColors.warning
                                     : AppColors.textSecondary,
+                                selected: store.statusFilter ==
+                                    InventoryStatusFilter.expiring,
+                                onTap: () => store.toggleStatusFilter(
+                                    InventoryStatusFilter.expiring),
                               ),
                               Container(
                                 width: 1,
@@ -176,6 +184,10 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                                 color: lowStockCount > 0
                                     ? AppColors.error
                                     : AppColors.textSecondary,
+                                selected: store.statusFilter ==
+                                    InventoryStatusFilter.lowStock,
+                                onTap: () => store.toggleStatusFilter(
+                                    InventoryStatusFilter.lowStock),
                               ),
                             ],
                           ),
@@ -279,7 +291,8 @@ class _InventoryListSceneState extends State<InventoryListScene> {
                 final filtered = stockedInventoryItems(store.filteredItems);
                 if (filtered.isEmpty) {
                   final isEmptyDueToFilters = store.searchQuery.isNotEmpty ||
-                      store.selectedCategory != null;
+                      store.selectedCategory != null ||
+                      store.statusFilter != InventoryStatusFilter.all;
                   if (isEmptyDueToFilters) {
                     return AppEmptyView(
                       icon: Icons.search_off_rounded,
@@ -352,6 +365,8 @@ class _StatItem extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.color,
+    required this.selected,
+    required this.onTap,
   });
 
   final String label;
@@ -359,8 +374,27 @@ class _StatItem extends StatelessWidget {
   final IconData icon;
   final Color color;
 
+  /// Bộ lọc của ô này đang bật → nền nhạt để người dùng biết danh sách đã lọc.
+  final bool selected;
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
+    return Material(
+      color: selected ? color.withValues(alpha: 0.12) : Colors.transparent,
+      borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          child: _buildContent(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent() {
     return Column(
       children: <Widget>[
         Row(
