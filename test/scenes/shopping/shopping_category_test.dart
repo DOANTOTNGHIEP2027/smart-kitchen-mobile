@@ -539,6 +539,29 @@ void main() {
         expect(tester.widget<ListTile>(find.byKey(const ValueKey<String>('share-link'))).enabled, isFalse);
       });
 
+      testWidgets('món đã vào kho không còn trong nội dung chia sẻ hay số đếm', (tester) async {
+        await pumpSheet(tester, <ShoppingItem>[
+          item('1', 'Bò'),
+          item('2', 'Rau muống', status: ShoppingItemStatus.completed),
+          item('3', 'Gạo đã cất', status: ShoppingItemStatus.completed)
+              .copyWith(inInventory: true),
+        ]);
+        await tester.tap(find.byKey(const ValueKey<String>('share-copy-text')));
+        await tester.pump();
+        expect(copied, contains('Đã mua: 1/2'));
+        expect(copied, contains('☑ Rau muống'));
+        expect(copied, isNot(contains('Gạo đã cất')));
+      });
+
+      testWidgets('chỉ còn món đã vào kho → không còn danh sách để chia sẻ', (tester) async {
+        await pumpSheet(tester, <ShoppingItem>[
+          item('1', 'Gạo đã cất', status: ShoppingItemStatus.completed)
+              .copyWith(inInventory: true),
+        ]);
+        expect(tester.widget<ListTile>(find.byKey(const ValueKey<String>('share-copy-text'))).enabled, isFalse);
+        expect(find.text('Chưa có mặt hàng nào để chia sẻ'), findsOneWidget);
+      });
+
       testWidgets('FamilyStore CHƯA đăng ký → không crash; copy ra text TOÀN BỘ món, không hậu tố', (tester) async {
         await pumpSheet(tester, <ShoppingItem>[
           item('1', 'Bò', category: 'Thịt', assignedTo: 'me'),

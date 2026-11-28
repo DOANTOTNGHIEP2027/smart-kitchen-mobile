@@ -43,6 +43,9 @@ class ShoppingStore with HouseholdScoped {
   final Set<String> _assignedDuringSync = <String>{};
   int _syncsRunning = 0;
   List<ShoppingItem> get items => List.unmodifiable(_items);
+  /// Món còn trên danh sách đi chợ. Giữ món đã cất trong cache để đồng bộ,
+  /// nhưng không tính chúng vào giao diện, bộ lọc hay tiến độ nữa.
+  List<ShoppingItem> get visibleItems => _items.where((e) => !e.inInventory).toList();
   bool get isLoading => _loading.value;
   ApiException? get loadError => _loadError.value;
   ApiException? get error => _error.value;
@@ -66,11 +69,11 @@ class ShoppingStore with HouseholdScoped {
   int get assignedToMeCount {
     final me = _session.currentUser?.id;
     if (me == null) return 0;
-    return _items.where((e) => e.isAssignedTo(me) && e.status == ShoppingItemStatus.pending).length;
+    return pending.where((e) => e.isAssignedTo(me)).length;
   }
 
-  List<ShoppingItem> get pending => _items.where((e) => e.status == ShoppingItemStatus.pending).toList();
-  List<ShoppingItem> get completed => _items.where((e) => e.status == ShoppingItemStatus.completed).toList();
+  List<ShoppingItem> get pending => visibleItems.where((e) => e.status == ShoppingItemStatus.pending).toList();
+  List<ShoppingItem> get completed => visibleItems.where((e) => e.status == ShoppingItemStatus.completed).toList();
 
   /// Idempotent theo household: cùng household → no-op; household đổi (kể cả
   /// logout → login tài khoản khác) → huỷ luồng cũ, xoá dữ liệu cũ, nghe lại.
