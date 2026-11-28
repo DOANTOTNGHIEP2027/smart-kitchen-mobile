@@ -9,8 +9,8 @@ import '../domain/meal_plan_candidate.dart';
 /// `GET /api/v1/meal-plans/{mealPlanId}/candidates` (#105,
 /// `MealPlanCandidateController`). `mealPlanId` = id kế hoạch TUẦN (OD-06/OD-08).
 ///
-/// Không có `generate()` riêng: sinh gợi ý CHÍNH LÀ `POST .../vote/open` —
-/// dùng lại `MealPlanStore.openVoteSession` (đã xử lý 409 `ERR_PLAN_002`).
+/// Không có `generate()` riêng: sinh gợi ý là `POST .../dishes/{dishId}/suggestions`
+/// qua `MealPlanStore.loadSuggestions(regenerate: true)` — BE gọi AI service thật.
 class CandidateApi {
   CandidateApi(this._client);
 
