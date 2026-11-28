@@ -205,7 +205,7 @@ void main() {
   }
 
   testWidgets(
-      'B08 editor opens the current dish candidate panel through binding',
+      'B08 editor không còn lối vào candidate trên thẻ món (chỉ còn nút Xoá)',
       (tester) async {
     final plansApi = FakeMealPlanApi()
       ..onGetWeek = (_) async => MealPlanDto(
@@ -254,19 +254,14 @@ void main() {
               binding: CandidateInsightBinding())
         ]);
     await tester.pumpAndSettle();
-    final insights =
-        find.byKey(const ValueKey<String>('dish-candidate-insights'));
-    await tester.ensureVisible(insights);
-    await tester.pumpAndSettle();
-    await tester.tap(insights);
-    await tester.pumpAndSettle();
-    expect(find.byType(CandidateInsightScene), findsOneWidget);
-    expect(Get.parameters['dishId'], 'd');
-    expect(Get.parameters['slotId'], 's');
-    expect(find.text('Tín hiệu gợi ý'), findsOneWidget);
-    expect(find.text('Các thanh thể hiện mức tín hiệu tham khảo.'),
+    // Luồng thêm món gom về nút "Thêm món" duy nhất: thẻ món không còn nút
+    // mở candidate, màn không gọi candidate API.
+    expect(find.byKey(const ValueKey<String>('dish-candidate-insights')),
+        findsNothing);
+    expect(find.byKey(const ValueKey<String>('slot-dish-delete-d')),
         findsOneWidget);
-    expect(candidates.calls, 1);
+    expect(find.byType(CandidateInsightScene), findsNothing);
+    expect(candidates.calls, 0);
     expect(tester.takeException(), isNull);
   });
 

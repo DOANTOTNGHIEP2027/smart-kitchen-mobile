@@ -7140,6 +7140,24 @@ abstract class AppLocalizations {
   /// **'AI suggestions'**
   String get mealPlanDishSourceAi;
 
+  /// No description provided for @mealPlanDishSourceCompose.
+  ///
+  /// In en, this message translates to:
+  /// **'AI builds the whole meal'**
+  String get mealPlanDishSourceCompose;
+
+  /// No description provided for @mealPlanDeleteDishMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \"{name}\" from this meal? AI won\'t suggest it again for this meal.'**
+  String mealPlanDeleteDishMessage(String name);
+
+  /// No description provided for @mealPlanDeleteEmptyDishMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this unselected dish from the meal?'**
+  String get mealPlanDeleteEmptyDishMessage;
+
   /// No description provided for @inventoryDeleteConfirmMessage.
   ///
   /// In en, this message translates to:

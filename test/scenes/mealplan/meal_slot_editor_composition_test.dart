@@ -118,9 +118,22 @@ void main() {
     expect(find.text('Món tinh bột · 4 khẩu phần'), findsOneWidget);
     expect(find.text('Món mặn · 4 khẩu phần'), findsOneWidget);
     expect(find.text('Món rau · 4 khẩu phần'), findsOneWidget);
-    // Kế hoạch chưa chốt → mỗi món có nút xoá + chọn từ công thức.
+    // Kế hoạch chưa chốt → thẻ món chỉ còn nút xoá; ghép cả bữa không nằm
+    // sẵn trong bữa mà là một lựa chọn của "Thêm món".
     expect(find.byTooltip('Xoá món'), findsNWidgets(3));
-    expect(find.text('Chọn từ công thức'), findsNWidgets(3));
+    expect(find.text('Chọn từ công thức'), findsNothing);
+    expect(find.text('Gợi ý lại cả bữa'), findsNothing);
+
+    await tester.tap(find.text('Thêm món'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+        find.byKey(const ValueKey<String>('dish-source-ai')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('dish-source-recipe')),
+        findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey<String>('dish-source-compose')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Gợi ý lại cả bữa'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

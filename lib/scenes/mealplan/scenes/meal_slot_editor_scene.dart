@@ -9,7 +9,6 @@ import '../../../data/network/api_exception.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/app_scaffold.dart';
-import '../../planning/scenes/planning_routes.dart';
 import '../../planning/widgets/slot_guest_diner_entry.dart';
 import '../domain/meal_composition.dart';
 import '../domain/meal_plan_slot.dart';
@@ -26,6 +25,7 @@ import '../../../app/env_config.dart';
 import '../widgets/recipe_cover_image.dart';
 import '../widgets/meal_attendance_panel.dart';
 import 'meal_plan_routes.dart';
+import '../../../widgets/dialogs/confirm_dialog.dart';
 import '../../../widgets/feedback/app_toast.dart';
 
 /// Chỉnh một bữa của ngày đã chọn trong lịch tuần — Phong cách Tasty.
@@ -53,6 +53,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
   @override
   void initState() {
     super.initState();
+    _loadComposition();
     // Server báo bữa đã khoá (409 ERR_PLAN_SLOT_LOCKED): store đã đánh dấu
     // khoá + tải lại plan, màn chỉ cần báo toast.
     final store = Get.find<MealPlanStore>();
@@ -62,6 +63,15 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
             type: AppToastType.error);
       }
     });
+  }
+
+  /// Panel ghép bữa không còn nằm sẵn trong bữa: tự tải menu-context để thẻ
+  /// món AI ghép vẫn có nhãn vai trò + khẩu phần.
+  void _loadComposition() {
+    final composition = _compositionStore;
+    if (composition != null) {
+      Future.microtask(() => composition.load(widget.slotId));
+    }
   }
 
   @override
@@ -96,6 +106,14 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
             return;
           }
           await _openSuggestions(dish.id);
+          // Rời màn gợi ý mà chưa chọn món → không để lại món rỗng; muốn thêm
+          // lại thì bấm "Thêm món".
+          if (mounted && _dishOf(store, dish.id)?.recipe == null) {
+            await store.removeDish(widget.slotId, dish.id,
+                discardCreated: true);
+          }
+        case _DishSource.compose:
+          await _openComposition();
         case _DishSource.recipe:
           // Món chỉ được tạo sau khi người dùng xác nhận hết các bước.
           await _chooseManual(null);
@@ -131,8 +149,8 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                 ),
                 ListTile(
                   key: const ValueKey<String>('dish-source-ai'),
-                  leading: const Icon(Icons.auto_awesome,
-                      color: AppColors.primary),
+                  leading:
+                      const Icon(Icons.auto_awesome, color: AppColors.primary),
                   title: Text(sheetCtx.l10n.mealPlanDishSourceAi),
                   onTap: () => Navigator.of(sheetCtx).pop(_DishSource.ai),
                 ),
@@ -143,6 +161,15 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                   title: Text(sheetCtx.l10n.mealPlanChooseRecipe),
                   onTap: () => Navigator.of(sheetCtx).pop(_DishSource.recipe),
                 ),
+                if (_compositionStore != null)
+                  ListTile(
+                    key: const ValueKey<String>('dish-source-compose'),
+                    leading: const Icon(Icons.restaurant_rounded,
+                        color: AppColors.primary),
+                    title: Text(sheetCtx.l10n.mealPlanDishSourceCompose),
+                    onTap: () =>
+                        Navigator.of(sheetCtx).pop(_DishSource.compose),
+                  ),
               ],
             ),
           ),
@@ -160,22 +187,58 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
     }
   }
 
-  /// Mở "Gợi ý AI có kiểm chứng" của đúng món này (OD-08): biết id phiên thật
-  /// thì lọc theo phiên; món chưa từng mở phiên thì hiện rỗng + nút sinh.
-  void _openCandidates(MealPlanDish dish) {
+  MealPlanDish? _dishOf(MealPlanStore store, String dishId) {
+    final key = store.slotKeyOf(widget.slotId);
+    final dishes = key == null ? null : store.slots[key]?.dishes;
+    return dishes?.where((d) => d.id == dishId).firstOrNull;
+  }
+
+  /// AI ghép cả bữa — một lựa chọn của nút "Thêm món", không nằm sẵn trong
+  /// bữa nữa.
+  Future<void> _openComposition() async {
+    final composition = _compositionStore;
+    if (composition == null) return;
     final store = Get.find<MealPlanStore>();
-    final planId = store.currentPlanId;
-    if (planId == null) {
-      _showActionError(context.l10n.planningPlanNotReady);
-      return;
-    }
-    Get.toNamed<void>(
-      PlanningRoutes.candidatesOf(
-        planId,
-        slotId: widget.slotId,
-        dishId: dish.id,
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(
+              AppDimens.lg, 0, AppDimens.lg, AppDimens.lg),
+          child: Observer(builder: (_) {
+            final key = store.slotKeyOf(widget.slotId);
+            final dishes = key == null
+                ? const <MealPlanDish>[]
+                : store.slots[key]?.dishes ?? const <MealPlanDish>[];
+            return MealCompositionPanel(
+              store: composition,
+              slotId: widget.slotId,
+              hasDishes: dishes.isNotEmpty,
+              readOnly: false,
+            );
+          }),
+        ),
       ),
     );
+  }
+
+  /// Xoá hẳn món khỏi bữa (hỏi trước). AI sẽ không gợi ý lại món đã xoá cho
+  /// bữa này.
+  Future<void> _confirmDelete(MealPlanDish dish) async {
+    final l10n = context.l10n;
+    final ok = await showConfirmDialog(
+      context,
+      title: l10n.mealplanDeleteDishTitle,
+      message: dish.recipe == null
+          ? l10n.mealPlanDeleteEmptyDishMessage
+          : l10n.mealPlanDeleteDishMessage(dish.recipe!.recipeName),
+      confirmLabel: l10n.mealplanDeleteDish,
+      isDestructive: true,
+    );
+    if (!ok || !mounted) return;
+    await Get.find<MealPlanStore>().removeDish(widget.slotId, dish.id);
   }
 
   /// Chọn món từ công thức. [dishId] `null` = thêm món mới; khác null = đổi
@@ -238,8 +301,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
     if (!ok) {
       // Gán lỗi: xoá món vừa tạo để không để lại món rỗng.
       if (created != null) {
-        await store.removeDish(widget.slotId, created.id,
-            discardCreated: true);
+        await store.removeDish(widget.slotId, created.id, discardCreated: true);
       }
       _showActionError(l10n.mealplanUnableToChoose);
     }
@@ -320,59 +382,32 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
                     ?.copyWith(color: AppColors.textSecondary),
               ),
               const SizedBox(height: AppDimens.lg),
-              if (composition != null)
-                MealCompositionPanel(
-                  store: composition,
-                  slotId: widget.slotId,
-                  hasDishes: dishes.isNotEmpty,
-                  readOnly: readOnly,
-                ),
               ...dishes.map(
-                  (dish) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppDimens.sm),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _EditableDishCard(
-                          key: ValueKey<String>('slot-dish-${dish.id}'),
-                          dish: dish,
-                          composed: composed[dish.id],
-                          onDelete: !store.canEditDish(dish.id)
-                              ? null
-                              : () => store.removeDish(widget.slotId, dish.id),
-                          // Bữa đã khoá: không mở gợi ý AI cho món.
-                          onInsights: store.isSlotLocked(widget.slotId)
-                              ? null
-                              : () => _openCandidates(dish),
-                          onOpen: dish.recipe == null
-                              ? null
-                              : () => Get.toNamed<void>(
-                                    recipeDetailPath(
-                                      dish.recipe!.recipeId,
-                                      viewOnly: true,
-                                    ),
+                (dish) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppDimens.sm),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _EditableDishCard(
+                        key: ValueKey<String>('slot-dish-${dish.id}'),
+                        dish: dish,
+                        composed: composed[dish.id],
+                        onDelete: readOnly || !store.canEditDish(dish.id)
+                            ? null
+                            : () => _confirmDelete(dish),
+                        onOpen: dish.recipe == null
+                            ? null
+                            : () => Get.toNamed<void>(
+                                  recipeDetailPath(
+                                    dish.recipe!.recipeId,
+                                    viewOnly: true,
                                   ),
-                          onChoose: readOnly
-                              ? null
-                              : () => _openSuggestions(dish.id),
-                        ),
-                        if (!readOnly)
-                          Wrap(
-                            spacing: 8,
-                            children: [
-                              TextButton.icon(
-                                onPressed: store.canEditDish(dish.id)
-                                    ? () => _chooseManual(dish.id)
-                                    : null,
-                                icon: const Icon(Icons.menu_book_outlined),
-                                label: Text(context.l10n.mealPlanChooseRecipe),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
+                                ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
               const SizedBox(height: AppDimens.sm),
               FilledButton.icon(
                 style: FilledButton.styleFrom(
@@ -439,7 +474,7 @@ class _MealSlotEditorSceneState extends State<MealSlotEditorScene> {
   }
 }
 
-enum _DishSource { ai, recipe }
+enum _DishSource { ai, recipe, compose }
 
 /// Ghép món của menu AI vào dish của slot theo tên công thức (BE lưu
 /// `recipe_name = mealName`), mỗi món menu chỉ dùng một lần. Dish đã bị đổi /
@@ -466,8 +501,6 @@ class _EditableDishCard extends StatelessWidget {
     super.key,
     required this.dish,
     required this.onDelete,
-    required this.onInsights,
-    this.onChoose,
     this.onOpen,
     this.composed,
   });
@@ -477,8 +510,6 @@ class _EditableDishCard extends StatelessWidget {
   /// #201: thông tin vai trò/khẩu phần khi món đến từ AI ghép bữa.
   final ComposedMealDish? composed;
   final VoidCallback? onDelete;
-  final VoidCallback? onInsights;
-  final VoidCallback? onChoose;
 
   /// Bấm thân thẻ → chi tiết món (chỉ xem).
   final VoidCallback? onOpen;
@@ -487,11 +518,7 @@ class _EditableDishCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final recipe = dish.recipe;
     if (recipe == null) {
-      return _PendingDishCard(
-        onDelete: onDelete,
-        onInsights: onInsights,
-        onChoose: onChoose,
-      );
+      return _PendingDishCard(onDelete: onDelete);
     }
     final minutes = RecipeCoverImage.demoPrepTimeMinutes(recipe.recipeId);
     final info = composed;
@@ -583,8 +610,8 @@ class _EditableDishCard extends StatelessWidget {
                 ],
               ),
             ),
-            _InsightsButton(onPressed: onInsights),
             IconButton(
+              key: ValueKey<String>('slot-dish-delete-${dish.id}'),
               onPressed: onDelete,
               visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.delete_outline_rounded),
@@ -616,15 +643,9 @@ String _formatServings(double v) =>
     v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
 
 class _PendingDishCard extends StatelessWidget {
-  const _PendingDishCard({
-    required this.onDelete,
-    required this.onInsights,
-    this.onChoose,
-  });
+  const _PendingDishCard({required this.onDelete});
 
   final VoidCallback? onDelete;
-  final VoidCallback? onInsights;
-  final VoidCallback? onChoose;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -667,17 +688,6 @@ class _PendingDishCard extends StatelessWidget {
                     ),
               ),
             ),
-            if (onChoose != null)
-              IconButton.filledTonal(
-                onPressed: onChoose,
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColors.primaryContainer,
-                  foregroundColor: AppColors.onPrimaryContainer,
-                ),
-              ),
-            _InsightsButton(onPressed: onInsights),
             IconButton(
               onPressed: onDelete,
               visualDensity: VisualDensity.compact,
@@ -687,22 +697,5 @@ class _PendingDishCard extends StatelessWidget {
             ),
           ],
         ),
-      );
-}
-
-/// Mở "Gợi ý AI có kiểm chứng" của 1 món (flexible-meal-planning §9 mục 1).
-class _InsightsButton extends StatelessWidget {
-  const _InsightsButton({required this.onPressed});
-
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) => IconButton(
-        key: const ValueKey<String>('dish-candidate-insights'),
-        onPressed: onPressed,
-        visualDensity: VisualDensity.compact,
-        icon: const Icon(Icons.auto_awesome_outlined),
-        color: AppColors.primary,
-        tooltip: context.l10n.planningCandidateTooltip,
       );
 }

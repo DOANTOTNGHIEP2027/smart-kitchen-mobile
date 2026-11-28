@@ -4011,6 +4011,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get mealPlanDishSourceAi => 'Gợi ý AI';
 
   @override
+  String get mealPlanDishSourceCompose => 'AI ghép cả bữa';
+
+  @override
+  String mealPlanDeleteDishMessage(String name) {
+    return 'Xoá \"$name\" khỏi bữa này? AI sẽ không gợi ý lại món này cho bữa này.';
+  }
+
+  @override
+  String get mealPlanDeleteEmptyDishMessage =>
+      'Xoá món chưa chọn này khỏi bữa?';
+
+  @override
   String get inventoryDeleteConfirmMessage => 'Mặt hàng sẽ bị xoá khỏi kho.';
 
   @override
