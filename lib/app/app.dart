@@ -14,6 +14,7 @@ import '../scenes/inventory/inventory_catch_up.dart';
 import '../stores/notification_store.dart';
 import '../stores/theme_store.dart';
 import '../utils/l10n_x.dart';
+import '../widgets/feedback/app_toast.dart';
 
 /// Widget gốc (fe-app-shell.md §3). Chỉ lắp theme + bảng route + i18n;
 /// mọi logic khởi tạo nằm ở `bootstrap()`.
@@ -125,9 +126,7 @@ class _NotificationUiHostState extends State<_NotificationUiHost>
   }
 
   void _show(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    AppToast.show(message);
   }
 
   @override

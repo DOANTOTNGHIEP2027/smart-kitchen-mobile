@@ -725,6 +725,9 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (path == '/api/v1/insights/weekly' && method == 'GET') {
       return _getWeeklyRecap(options);
     }
+    if (path == '/api/v1/insights/monthly' && method == 'GET') {
+      return _getMonthlyRecap(options);
+    }
     if (path == '/api/v1/insights/streaks' && method == 'GET') {
       return _getHouseholdStreak();
     }
@@ -2350,6 +2353,36 @@ class DemoBackendAdapter implements HttpClientAdapter {
     if (members != null && members.isNotEmpty) {
       members.first['memberId'] = _userId;
     }
+    return _ok(200, copy);
+  }
+
+  /// Tổng kết tháng demo: cho xem tối đa 3 tháng trước tháng hiện tại; tháng
+  /// tương lai/sai định dạng → 400 ERR_RECAP_MONTH_INVALID như BE.
+  ResponseBody _getMonthlyRecap(RequestOptions options) {
+    final now = DateTime.now();
+    final current = DateTime(now.year, now.month);
+    final raw = options.queryParameters['month'] as String?;
+    var month = current;
+    if (raw != null) {
+      final match = RegExp(r'^(\d{4})-(\d{2})$').firstMatch(raw);
+      final mm = match == null ? 0 : int.parse(match.group(2)!);
+      if (match == null || mm < 1 || mm > 12) {
+        return _error(400, 'ERR_RECAP_MONTH_INVALID', 'Tháng không hợp lệ.');
+      }
+      month = DateTime(int.parse(match.group(1)!), mm);
+      if (month.isAfter(current)) {
+        return _error(400, 'ERR_RECAP_MONTH_INVALID', 'Tháng không hợp lệ.');
+      }
+    }
+    final earliest = DateTime(current.year, current.month - 3);
+    final copy = DemoFixtures.monthlyRecap(
+      month,
+      hasPrevious: month.isAfter(earliest),
+    );
+    copy['householdId'] = _householdId ?? DemoFixtures.householdId;
+    final members = (copy['memberInsights'] as List<dynamic>)
+        .cast<Map<String, dynamic>>();
+    if (members.isNotEmpty) members.first['memberId'] = _userId;
     return _ok(200, copy);
   }
 

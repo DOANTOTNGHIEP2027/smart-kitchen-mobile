@@ -27,6 +27,7 @@ import 'package:smart_kitchen_mobile/scenes/shopping/widgets/assignee_widgets.da
 import 'package:smart_kitchen_mobile/services/connectivity_service.dart';
 import 'package:smart_kitchen_mobile/stores/session_store.dart';
 import 'package:smart_kitchen_mobile/widgets/states/view_state.dart';
+import 'package:smart_kitchen_mobile/widgets/feedback/app_toast.dart';
 
 import '../../helpers/fake_http_adapter.dart';
 import '../../helpers/pump_app.dart';
@@ -582,7 +583,7 @@ void main() {
         shopApi.assignError = BusinessException('ERR_SHOP_ITEM_VERSION_CONFLICT', 'conflict');
         final before = shopApi.listCalls;
         await pickMe(tester, item());
-        expect(find.byType(SnackBar), findsOneWidget);
+        expect(find.byKey(AppToast.toastKey), findsOneWidget);
         expect(find.byType(AlertDialog), findsNothing);
         expect(find.byType(Dialog), findsNothing);
         expect(shopApi.listCalls, greaterThan(before));

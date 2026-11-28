@@ -9,8 +9,10 @@ import '../../../utils/l10n_x.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../../../widgets/states/app_state_view.dart';
 import '../../../widgets/states/view_state.dart';
+import '../../cooking/widgets/dish_cooked_dialog.dart';
 import '../../cooking/widgets/start_cooking_guard.dart';
 import '../../mealplan/domain/meal_plan_slot.dart';
+import '../../mealplan/widgets/dish_cooked_badge.dart';
 import '../../shell/app_shell_store.dart';
 import '../domain/upcoming_meal.dart';
 import '../stores/home_store.dart';
@@ -76,7 +78,7 @@ class _UpcomingMealSectionState extends State<UpcomingMealSection> {
               onRetry: _store.load,
               successBuilder: (context, meal) => _UpcomingMealCard(
                 meal: meal,
-                onDishTap: _onDishTap,
+                onDishTap: (dish) => _onDishTap(meal, dish),
               ),
             );
           }),
@@ -85,12 +87,21 @@ class _UpcomingMealSectionState extends State<UpcomingMealSection> {
 
   /// Popup món chưa mua (dẫn sang Đi chợ) hoặc vào màn nấu — dùng chung
   /// guard với thẻ món trong thực đơn. Hoàn thành nấu thì BE trừ kho.
-  Future<void> _onDishTap(MealPlanDish dish) async {
+  Future<void> _onDishTap(UpcomingMeal meal, MealPlanDish dish) async {
     final recipeId = dish.recipe?.recipeId;
     if (recipeId == null || _opening) return;
     _opening = true;
     try {
-      await startCookingWithShoppingCheck(recipeId);
+      // Bữa/món đã nấu xong: chỉ báo, không mở màn nấu.
+      if (meal.allCooked && !dish.isCooked) {
+        await showDishCookedDialog();
+        return;
+      }
+      await startCookingWithShoppingCheck(
+        recipeId,
+        mealPlanDishId: dish.id,
+        cookedAt: dish.cookedAt,
+      );
     } finally {
       _opening = false;
     }
@@ -149,7 +160,7 @@ class _UpcomingMealCard extends StatelessWidget {
                 const SizedBox(width: AppDimens.sm),
                 Expanded(
                   child: Text(
-                    '${_mealTimeLabel(context, meal.slot.mealTime)} · '
+                    '${meal.slot.label ?? _mealTimeLabel(context, meal.slot.mealTime)} · '
                     '${_dateLabel(context, meal.slot.slotDate)}',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: AppColors.textPrimary,
@@ -157,11 +168,24 @@ class _UpcomingMealCard extends StatelessWidget {
                         ),
                   ),
                 ),
+                if (meal.allCooked) ...<Widget>[
+                  const SizedBox(width: AppDimens.sm),
+                  Flexible(
+                    child: DishCookedBadge(
+                      key: const ValueKey<String>('home-upcoming-all-cooked'),
+                      label: context.l10n.homeUpcomingAllCooked,
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: AppDimens.sm),
             for (final dish in meal.dishes)
-              _DishTile(dish: dish, onTap: () => onDishTap(dish)),
+              _DishTile(
+                dish: dish,
+                cooked: meal.allCooked || dish.isCooked,
+                onTap: () => onDishTap(dish),
+              ),
           ],
         ),
       );
@@ -187,10 +211,17 @@ class _UpcomingMealCard extends StatelessWidget {
 }
 
 class _DishTile extends StatelessWidget {
-  const _DishTile({required this.dish, required this.onTap});
+  const _DishTile({
+    required this.dish,
+    required this.onTap,
+    this.cooked = false,
+  });
 
   final MealPlanDish dish;
   final VoidCallback onTap;
+
+  /// Món đã nấu xong — thay mũi tên bằng nhãn "Đã nấu".
+  final bool cooked;
 
   @override
   Widget build(BuildContext context) => ListTile(
@@ -202,8 +233,10 @@ class _DishTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: const Icon(Icons.chevron_right_rounded,
-            color: AppColors.textSecondary),
+        trailing: cooked
+            ? const DishCookedBadge()
+            : const Icon(Icons.chevron_right_rounded,
+                color: AppColors.textSecondary),
         onTap: onTap,
       );
 }

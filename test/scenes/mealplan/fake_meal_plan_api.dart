@@ -1,7 +1,9 @@
+import 'package:smart_kitchen_mobile/data/network/api_exception.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_suggestion_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_suggestion.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/data/meal_plan_api.dart';
 import 'package:smart_kitchen_mobile/scenes/mealplan/domain/meal_plan_slot.dart';
+import 'package:smart_kitchen_mobile/scenes/mealplan/domain/recipe_check.dart';
 
 class FakeMealPlanApi implements MealPlanApi {
   Future<MealPlanDto> Function()? onGetCurrent;
@@ -15,6 +17,12 @@ class FakeMealPlanApi implements MealPlanApi {
       required String recipeName})? onAssignDishRecipe;
 
   Object? onGetCurrentError;
+
+  Future<RecipeCheckResult> Function(String planId, String slotId,
+      String recipeId)? onRecipeCheck;
+
+  /// Nhật ký gọi API ghi (để test khẳng định "huỷ thì không tạo/gán/xoá").
+  final List<String> calls = <String>[];
 
   Future<MealPlanDto> Function(DateTime week)? onGetWeek;
   Future<void> Function(String id)? onConfirm;
@@ -47,12 +55,14 @@ class FakeMealPlanApi implements MealPlanApi {
 
   @override
   Future<MealPlanDish> addDish(String planId, String slotId) async {
+    calls.add('addDish:$slotId');
     if (onAddDish != null) return onAddDish!(planId, slotId);
     throw UnimplementedError();
   }
 
   @override
   Future<void> removeDish(String planId, String slotId, String dishId) async {
+    calls.add('removeDish:$dishId');
     if (onRemoveDish != null) {
       await onRemoveDish!(planId, slotId, dishId);
       return;
@@ -68,11 +78,20 @@ class FakeMealPlanApi implements MealPlanApi {
     required String recipeId,
     required String recipeName,
   }) async {
+    calls.add('assign:$dishId:$recipeId');
     if (onAssignDishRecipe != null) {
       return onAssignDishRecipe!(planId, slotId, dishId,
           recipeId: recipeId, recipeName: recipeName);
     }
     throw UnimplementedError();
+  }
+
+  @override
+  Future<RecipeCheckResult> recipeCheck(String planId, String slotId,
+      {required String recipeId}) async {
+    calls.add('recipeCheck:$slotId:$recipeId');
+    if (onRecipeCheck != null) return onRecipeCheck!(planId, slotId, recipeId);
+    throw BusinessException('ERR_NOT_FOUND', 'not supported');
   }
 }
 

@@ -8,6 +8,7 @@ import '../../../constants/app_text_styles.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../widgets/buttons/app_button.dart';
 import '../domain/invite_result.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Kết quả `createInvite()` (S12.9, Guard 16a): QR + mã + link + hạn + sao chép.
 class InviteResultSheet extends StatelessWidget {
@@ -18,10 +19,9 @@ class InviteResultSheet extends StatelessWidget {
   final InviteResult invite;
 
   Future<void> _copy(BuildContext context, String text) async {
-    final messenger = ScaffoldMessenger.of(context);
     final copied = context.l10n.familyInviteCopied;
     await Clipboard.setData(ClipboardData(text: text));
-    messenger.showSnackBar(SnackBar(content: Text(copied)));
+    AppToast.show(copied, type: AppToastType.success);
   }
 
   @override

@@ -11,7 +11,6 @@ import '../../../stores/session_store.dart';
 import '../../../utils/api_error_l10n.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/money_format.dart';
-import '../../../utils/quantity_format.dart';
 import '../../../utils/text_format.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/inputs/chip_choice_group.dart';
@@ -26,6 +25,8 @@ import '../widgets/assignee_widgets.dart';
 import '../widgets/category_widgets.dart';
 import '../widgets/price_capture_sheet.dart';
 import '../widgets/share_export_sheet.dart';
+import '../../../widgets/feedback/app_toast.dart';
+import '../../../utils/unit_label.dart';
 
 enum ShoppingFilter { all, pending, completed }
 
@@ -663,8 +664,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
           // về sau sẽ ghi đè/ăn 409 làm mất lần tick (Guard #18).
           onTap: item.inInventory
               // #239: kho đã có lô tương ứng — chỉ giải thích, không toggle.
-              ? () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(context.l10n.shoppingInInventoryToggleBlocked)))
+              ? () =>
+                  AppToast.show(context.l10n.shoppingInInventoryToggleBlocked)
               : item.canToggle && !store.isAssigning(item.id)
                   ? () => toggleShoppingItemWithPrice(context, store, item)
                   : null,
@@ -821,12 +822,9 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                                           isOnline: connectivity.isOnline);
                                       return;
                                     }
-                                    ScaffoldMessenger.of(context)
-                                      ..hideCurrentSnackBar()
-                                      ..showSnackBar(SnackBar(
-                                          content: Text(offline
-                                              ? context.l10n.shoppingAssignNeedsNetwork
-                                              : context.l10n.shoppingAssignSyncing)));
+                                    AppToast.show(offline
+                                        ? context.l10n.shoppingAssignNeedsNetwork
+                                        : context.l10n.shoppingAssignSyncing);
                                   }
                                 : null,
                             onTap: () => openAssigneePicker(
@@ -861,7 +859,8 @@ class _ShoppingListSceneState extends State<ShoppingListScene> {
                     borderRadius: BorderRadius.circular(AppDimens.radiusPill),
                   ),
                   child: Text(
-                    formatQuantityWithUnit(item.displayQuantity, item.displayUnit),
+                    formatQuantityWithUnitLabel(
+                        context.l10n, item.displayQuantity, item.displayUnit),
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 12,

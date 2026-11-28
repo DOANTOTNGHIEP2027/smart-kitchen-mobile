@@ -39,6 +39,7 @@ class CookingSessionStore {
     required CookingProgressCoordinator progressStore,
     required this.userId,
     this.recipeId,
+    this.mealPlanDishId,
     String? sessionId,
   })  : _cookingApi = cookingApi,
         _recipeApi = recipeApi,
@@ -55,6 +56,10 @@ class CookingSessionStore {
 
   /// Bắt buộc khi `entryMode == start`. `null` khi `entryMode == resume`.
   final String? recipeId;
+
+  /// Món trong thực đơn đang nấu — gửi kèm `start()` để server đánh dấu món
+  /// đã nấu khi hoàn thành.
+  final String? mealPlanDishId;
 
   /// Biết sau `start()` (mode start) HOẶC truyền sẵn khi `entryMode == resume`.
   String? _sessionId;
@@ -101,6 +106,7 @@ class CookingSessionStore {
     'ERR_SESSION_NO_HOUSEHOLD',
     'ERR_SESSION_RECIPE_NOT_FOUND',
     'ERR_SESSION_RECIPE_NO_STEPS',
+    'ERR_DISH_ALREADY_COOKED',
   };
 
   // Lỗi thao tác mà gọi lại y nguyên vẫn sai — snackbar KHÔNG có "Thử lại"
@@ -167,7 +173,7 @@ class CookingSessionStore {
         if (recipeId == null) {
           throw StateError('recipeId required when entryMode == start');
         }
-        s = await _cookingApi.start(recipeId!);
+        s = await _cookingApi.start(recipeId!, mealPlanDishId: mealPlanDishId);
         _sessionId = s.id;
         runInAction(() => _deductions.value = const <IngredientDeduction>[]);
       } else {

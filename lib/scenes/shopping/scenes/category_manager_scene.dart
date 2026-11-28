@@ -11,6 +11,7 @@ import '../../../widgets/states/app_error_view.dart';
 import '../../../widgets/states/app_loading_view.dart';
 import '../stores/category_store.dart';
 import '../widgets/category_widgets.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Quản lý category đi chợ local-only (#69 §9). Chỉ mở được từ icon trên
 /// `ShoppingListScene` — `CategoryStore` do `ShoppingListBinding` đăng ký (Guard #11).
@@ -97,9 +98,8 @@ class CategoryManagerScene extends StatelessWidget {
   /// Xoá/kéo thả không có dialog để hiện `store.error` — lỗi ghi phải báo bằng
   /// SnackBar, không im lặng (store đã trả list về snapshot cũ).
   static Future<void> _reportFailure(BuildContext context, Future<bool> write) async {
-    final messenger = ScaffoldMessenger.of(context);
     final message = context.l10n.shoppingCategoryErrSaveFailed;
-    if (!await write) messenger.showSnackBar(SnackBar(content: Text(message)));
+    if (!await write) AppToast.show(message, type: AppToastType.error);
   }
 }
 

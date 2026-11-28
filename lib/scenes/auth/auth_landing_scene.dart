@@ -6,6 +6,7 @@ import '../../routing/app_routes.dart';
 import '../../stores/session_store.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/feedback/app_toast.dart';
 import 'stores/auth_store.dart';
 import 'widgets/auth_frame.dart';
 
@@ -23,7 +24,8 @@ class _AuthLandingSceneState extends State<AuthLandingScene> {
     if (await store.googleSignIn()) {
       if (!mounted) return;
       if (store.accountLinked) {
-        Get.snackbar('app_title'.localized(context), 'google_account_linked'.localized(context));
+        AppToast.show('google_account_linked'.localized(context),
+            type: AppToastType.success);
       }
       _routeAfterAuth();
     }

@@ -5,7 +5,7 @@ import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
 import '../../../utils/quantity_format.dart';
 import '../domain/ingredient_deduction.dart';
-import 'cooking_unit_label.dart';
+import '../../../utils/unit_label.dart';
 
 /// Danh sách kết quả trừ kho sau `complete()` (FE-6 §7.4).
 ///
@@ -44,7 +44,7 @@ class _DeductionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final unit = cookingUnitLabel(context, deduction.requiredUnit);
+    final unit = unitLabel(context, deduction.requiredUnit);
     return Card(
       margin: const EdgeInsets.symmetric(vertical: AppDimens.xs),
       elevation: 0,

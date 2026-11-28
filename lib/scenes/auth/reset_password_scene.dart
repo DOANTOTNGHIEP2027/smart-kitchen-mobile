@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../routing/app_routes.dart';
 import '../../utils/l10n_x.dart';
 import '../../widgets/buttons/app_button.dart';
+import '../../widgets/feedback/app_toast.dart';
 import '../../widgets/inputs/app_text_field.dart';
 import 'domain/auth_validators.dart';
 import 'stores/password_reset_store.dart';
@@ -67,8 +68,8 @@ class _ResetPasswordSceneState extends State<ResetPasswordScene> {
       return;
     }
     if (!mounted) return;
-    Get.snackbar('', 'auth_reset_success'.localized(context),
-        snackPosition: SnackPosition.BOTTOM);
+    AppToast.show('auth_reset_success'.localized(context),
+        type: AppToastType.success);
     Get.offAllNamed(AppRoutes.login);
   }
 

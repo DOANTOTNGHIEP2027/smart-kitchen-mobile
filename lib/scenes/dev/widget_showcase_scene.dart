@@ -18,6 +18,7 @@ import '../../widgets/loading_overlay.dart';
 import '../../widgets/states/app_empty_view.dart';
 import '../../widgets/states/app_error_view.dart';
 import '../../widgets/states/app_loading_view.dart';
+import '../../widgets/feedback/app_toast.dart';
 
 /// Màn dev liệt kê mọi widget dùng chung và các trạng thái của chúng
 /// (design-system.md §8). State ở đây chỉ là ephemeral UI state của màn demo
@@ -61,12 +62,8 @@ class _WidgetShowcaseSceneState extends State<WidgetShowcaseScene> {
       isDestructive: destructive,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(context.l10n.showcaseDialogResult(
-            result ? context.l10n.commonConfirm : context.l10n.cancel)),
-      ));
+    AppToast.show(context.l10n.showcaseDialogResult(
+        result ? context.l10n.commonConfirm : context.l10n.cancel));
   }
 
   @override

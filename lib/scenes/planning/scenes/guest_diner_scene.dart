@@ -18,6 +18,7 @@ import '../domain/guest_diner.dart';
 import '../stores/guest_diner_store.dart';
 import '../widgets/allergen_multi_select.dart';
 import '../../../widgets/feature_banner.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Thêm/sửa/xoá khách ăn tạm thời của kế hoạch tuần
 /// (flexible-meal-planning-screens.md §8.2). Phạm vi = cả tuần (OD-06).
@@ -39,7 +40,7 @@ class _GuestDinerSceneState extends State<GuestDinerScene> {
   }
 
   void _toast(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+    AppToast.show(text, type: AppToastType.success);
   }
 
   Future<void> _openForm({GuestDiner? editing}) async {

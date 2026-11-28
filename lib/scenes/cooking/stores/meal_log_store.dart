@@ -135,16 +135,14 @@ class MealLogStore {
   Future<void> loadToday() async {
     final previous = _todayLogsState.value;
     final inFlight = previous is SuccessState<List<MealLogEntry>>
-        ? previous.data
-            .where((e) => e.status != MealEntryStatus.saved)
-            .toList()
+        ? previous.data.where((e) => e.status != MealEntryStatus.saved).toList()
         : <MealLogEntry>[];
 
     // Guard generation chống race: 2 lần gọi chồng nhau, chỉ lần gần nhất
     // được ghi kết quả (Fix review Task 1).
     final requestTs = ++_loadGeneration;
 
-    _todayLogsState.value = const LoadingState();
+    runInAction(() => _todayLogsState.value = const LoadingState());
 
     final today = now();
     final results = await Future.wait(<Future<Object?>>[
@@ -162,10 +160,11 @@ class MealLogStore {
       // Fix HIGH-1: giữ toàn bộ previous.data — ko biến 1 lỗi refetch thành
       // mất mát entry saved đã hiển thị. Chỉ rơi về ErrorState khi chưa từng
       // tải thành công lần nào.
-      _todayLogsState.value =
-          previous is SuccessState<List<MealLogEntry>>
-              ? SuccessState<List<MealLogEntry>>(previous.data)
-              : ErrorState<List<MealLogEntry>>(logsResult);
+      runInAction(() {
+        _todayLogsState.value = previous is SuccessState<List<MealLogEntry>>
+            ? SuccessState<List<MealLogEntry>>(previous.data)
+            : ErrorState<List<MealLogEntry>>(logsResult);
+      });
       return;
     }
 
@@ -178,7 +177,10 @@ class MealLogStore {
     }
     final logs = authoritative.values.toList()
       ..sort((a, b) => b.loggedAt.compareTo(a.loggedAt));
-    _todayLogsState.value = SuccessState<List<MealLogEntry>>(logs);
+    // Sau `await` đã ra khỏi action — gán trần sẽ bị MobX assert, state kẹt ở
+    // Loading (màn quay mãi).
+    runInAction(
+        () => _todayLogsState.value = SuccessState<List<MealLogEntry>>(logs));
   }
 
   /// Best-effort — không chặn màn hình. `_targetLoaded = true` sau khi thử kể
@@ -186,13 +188,14 @@ class MealLogStore {
   Future<void> _loadCalorieGoal() async {
     try {
       final profile = await _healthApi.getMyHealthProfile();
-      _targetDailyCalories.value = profile.targetDailyCalories;
+      runInAction(
+          () => _targetDailyCalories.value = profile.targetDailyCalories);
     } on ApiException {
-      _targetDailyCalories.value = null;
+      runInAction(() => _targetDailyCalories.value = null);
     } on DioException {
       // HealthApi chưa `_unwrap` — ném DioException (not ApiException). Bắt ở
       // đây để `loadToday` không throw giữa chừng (Fix review Task 1).
-      _targetDailyCalories.value = null;
+      runInAction(() => _targetDailyCalories.value = null);
     } finally {
       runInAction(() => _targetLoaded.value = true);
     }
@@ -295,8 +298,10 @@ class MealLogStore {
   /// `caloriesKcal == null` chỉ hợp lệ khi entry hiện tại KHÔNG null (chấp
   /// nhận đúng như AI) — UI validate trước khi gọi (Guard #10).
   Future<bool> confirmCalories(String id, {double? caloriesKcal}) async {
-    _confirmStatus.value = FormStatus.submitting;
-    _confirmError.value = null;
+    runInAction(() {
+      _confirmStatus.value = FormStatus.submitting;
+      _confirmError.value = null;
+    });
     try {
       final updated = await _api.confirm(id: id, caloriesKcal: caloriesKcal);
       runInAction(() {
@@ -334,16 +339,16 @@ class MealLogStore {
   void _replaceToday(String id, MealLogEntry updated) {
     final s = _todayLogsState.value;
     if (s is! SuccessState<List<MealLogEntry>>) return;
-    _todayLogsState.value = SuccessState<List<MealLogEntry>>(s.data
-        .map((e) => e.id == id ? updated : e)
-        .toList());
+    // Có chỗ gọi sau `await` (retry/submit lỗi) — tự bọc action, lồng nhau vô hại.
+    runInAction(() => _todayLogsState.value = SuccessState<List<MealLogEntry>>(
+        s.data.map((e) => e.id == id ? updated : e).toList()));
   }
 
   void _removeToday(String id) {
     final s = _todayLogsState.value;
     if (s is! SuccessState<List<MealLogEntry>>) return;
-    _todayLogsState.value =
-        SuccessState<List<MealLogEntry>>(s.data.where((e) => e.id != id).toList());
+    runInAction(() => _todayLogsState.value = SuccessState<List<MealLogEntry>>(
+        s.data.where((e) => e.id != id).toList()));
   }
 }
 

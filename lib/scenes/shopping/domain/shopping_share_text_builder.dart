@@ -17,12 +17,19 @@ class ShoppingShareLabels {
     required this.progress,
     required this.uncategorized,
     required this.footer,
+    this.unitLabel = _rawUnit,
   });
 
   final String header;
   final String Function(int checked, int total) progress;
   final String uncategorized;
   final String footer;
+
+  /// Nhãn hiển thị của đơn vị (widget truyền `unitLabelOf` theo l10n);
+  /// mặc định in nguyên văn.
+  final String Function(String unit) unitLabel;
+
+  static String _rawUnit(String unit) => unit;
 }
 
 /// Pure function — không I/O, không Clipboard, không BuildContext (#69 §11, Guard #7).
@@ -78,7 +85,7 @@ class ShoppingShareTextBuilder {
         final mark = item.status == ShoppingItemStatus.completed ? '☑' : '☐';
         final assignee = item.assignedTo == null ? null : memberNamesById[item.assignedTo];
         final suffix = assignee == null ? '' : ' — @$assignee';
-        buffer.writeln('$mark ${item.name} — ${formatQuantityWithUnit(item.displayQuantity, item.displayUnit)}$suffix');
+        buffer.writeln('$mark ${item.name} — ${formatQuantityWithUnit(item.displayQuantity, labels.unitLabel(item.displayUnit))}$suffix');
       }
       buffer.writeln();
     }

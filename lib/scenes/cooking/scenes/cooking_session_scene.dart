@@ -17,6 +17,7 @@ import '../../assistant/stores/assistant_store.dart';
 import '../domain/missing_ingredient.dart';
 import '../stores/cooking_session_store.dart';
 import '../widgets/cooking_assist_sheet.dart';
+import '../widgets/dish_cooked_dialog.dart';
 import '../widgets/ingredient_deduction_list.dart';
 import '../widgets/shortfall_sheet.dart';
 import '../widgets/step_progress_bar.dart';
@@ -50,6 +51,7 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
   ReactionDisposer? _wakelockReaction;
   ReactionDisposer? _actionErrorReaction;
   ReactionDisposer? _shortfallReaction;
+  ReactionDisposer? _alreadyCookedReaction;
 
   /// Context của sheet thiếu nguyên liệu đang mở — `null` khi không mở.
   BuildContext? _shortfallSheetContext;
@@ -96,7 +98,21 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
       _onShortfallChanged,
     );
 
+    // 409 món thực đơn đã nấu xong → báo "Món đã nấu xong" rồi rời màn nấu.
+    _alreadyCookedReaction = reaction<ApiException?>(
+      (_) => _store.loadError,
+      (error) {
+        if (error?.code == kDishAlreadyCookedCode) _onAlreadyCooked(error!);
+      },
+    );
+
     _store.init();
+  }
+
+  Future<void> _onAlreadyCooked(ApiException error) async {
+    if (!mounted) return;
+    await showDishCookedDialog(cookedAt: cookedAtFromDetails(error.details));
+    if (mounted) await Navigator.of(context).maybePop();
   }
 
   void _onShortfallChanged(List<MissingIngredient>? missing) {
@@ -217,6 +233,7 @@ class _CookingSessionSceneState extends State<CookingSessionScene>
     _store.clearActionError();
     _actionErrorReaction?.call();
     _shortfallReaction?.call();
+    _alreadyCookedReaction?.call();
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable(); // idempotent-safe dù reaction đã tắt trước đó
     _store.dispose();

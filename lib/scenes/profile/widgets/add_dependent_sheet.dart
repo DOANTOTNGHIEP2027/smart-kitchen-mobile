@@ -9,6 +9,7 @@ import '../../../widgets/feature_banner.dart';
 import '../dependent_error_l10n.dart';
 import '../stores/dependent_store.dart';
 import '../stores/form_status.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Giới hạn `displayName` của BE (OAS `maxLength: 255`, Java đếm UTF-16).
 const int kDependentNameMax = 255;
@@ -73,10 +74,9 @@ class _AddDependentSheetState extends State<AddDependentSheet> {
     final ok = await _store.createDependent(
         displayName: _nameCtl.text, dateOfBirth: _dob);
     if (!ok || !mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final toast = context.l10n.dependentCreatedToast;
     Navigator.of(context).pop();
-    messenger.showSnackBar(SnackBar(content: Text(toast)));
+    AppToast.show(toast, type: AppToastType.success);
   }
 
   @override

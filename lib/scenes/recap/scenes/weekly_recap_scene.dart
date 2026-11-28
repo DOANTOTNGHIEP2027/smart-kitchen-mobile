@@ -23,6 +23,7 @@ import '../widgets/insight_card.dart';
 import '../widgets/recap_skeleton.dart';
 import '../widgets/shareable_recap_card.dart';
 import '../widgets/waste_spend_sections.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Màn hình Weekly Recap "kiểu Wrapped" (weekly-recap-screen.md, issue #86).
 class WeeklyRecapScene extends StatefulWidget {
@@ -195,9 +196,7 @@ class _WeeklyRecapSceneState extends State<WeeklyRecapScene> {
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.recapShareFailed)),
-      );
+      AppToast.show(l10n.recapShareFailed, type: AppToastType.error);
     } finally {
       if (mounted) setState(() => _isSharing = false);
     }

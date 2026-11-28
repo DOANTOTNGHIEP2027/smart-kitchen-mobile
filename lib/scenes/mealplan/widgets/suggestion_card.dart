@@ -6,6 +6,7 @@ import '../../../utils/l10n_x.dart';
 import '../domain/meal_suggestion.dart';
 import 'allergen_banner.dart';
 import 'recipe_cover_image.dart';
+import '../../../utils/unit_label.dart';
 
 /// Card hiển thị 1 suggestion món ăn. Dùng trong cả `MealSuggestionDetailScene`
 /// (chi tiết đầy đủ) và `VoteSessionScene` (rút gọn).
@@ -93,7 +94,7 @@ class SuggestionCard extends StatelessWidget {
                     padding: const EdgeInsets.only(left: AppDimens.md, top: 2),
                     child: Text(
                       '• ${i.role?.toLowerCase() == 'main' ? context.l10n.mealplanMainIngredientPrefix : ''}'
-                      '${i.name} — ${i.quantity} ${i.unit}',
+                      '${i.name} — ${i.quantity} ${unitLabel(context, i.unit)}',
                       style: theme.textTheme.bodySmall,
                     ),
                   ),

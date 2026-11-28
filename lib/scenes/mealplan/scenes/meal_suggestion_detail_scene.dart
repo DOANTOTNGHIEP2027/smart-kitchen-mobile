@@ -20,6 +20,7 @@ import '../stores/meal_plan_store.dart';
 import '../stores/suggestion_store.dart';
 import '../widgets/missing_ingredients_prompt.dart';
 import '../widgets/suggestion_card.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Chi tiết gợi ý đã lưu của một món, độc lập với trạng thái attendance.
 /// Hiển thị: SuggestionCard đầy đủ + AllergenBanner + nút Accept/Reject/Re-roll.
@@ -273,10 +274,8 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
     if (mealPlan.hasRecipeInSlot(_store.slotId, recipe.id,
         exceptDishId: _store.dishId)) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-              content: Text(context.l10n.mealPlanDuplicateRecipe)));
+        AppToast.show(context.l10n.mealPlanDuplicateRecipe,
+            type: AppToastType.error);
       }
       return;
     }
@@ -298,10 +297,8 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
       }
       if (mounted) Get.back<void>();
     } else if (context.mounted) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-            SnackBar(content: Text(context.l10n.mealplanUnableToChoose)));
+      AppToast.show(context.l10n.mealplanUnableToChoose,
+          type: AppToastType.error);
     }
   }
 
@@ -344,10 +341,8 @@ class _MealSuggestionDetailSceneState extends State<MealSuggestionDetailScene>
     final count = await _store.addMissingToShoppingList();
     if (!context.mounted) return;
     if (count == 0) {
-      Get.snackbar(
-        context.l10n.unavailable,
-        context.l10n.mealplanShoppingListUnavailable,
-      );
+      AppToast.show(context.l10n.mealplanShoppingListUnavailable,
+          type: AppToastType.error);
       return;
     }
     if (Get.isRegistered<AppShellStore>()) {

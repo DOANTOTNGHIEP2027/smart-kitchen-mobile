@@ -18,6 +18,7 @@ import '../mealplan/scenes/meal_plan_routes.dart' show WeeklyMealPlanBinding;
 import '../mealplan/scenes/weekly_meal_plan_scene.dart';
 import '../profile/profile_family_bindings.dart';
 import '../profile/profile_screen.dart';
+import '../profile/widgets/profile_avatar.dart';
 import '../shopping/scenes/shopping_list_binding.dart';
 import '../shopping/scenes/shopping_list_scene.dart';
 import '../shopping/stores/shopping_store.dart';
@@ -25,6 +26,8 @@ import '../assistant/scenes/assistant_routes.dart';
 import 'app_shell_store.dart';
 import 'home_greeting.dart';
 import '../notifications/shell_notification_host.dart';
+import '../notifications/notifications_routes.dart';
+import '../../stores/notification_store.dart';
 
 /// Khung bottom-nav (fe-app-shell.md §12).
 ///
@@ -169,9 +172,17 @@ class HomeTab extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(
               AppDimens.lg, AppDimens.md, AppDimens.lg, AppDimens.xl),
           children: <Widget>[
-            _HomeHeader(
-              displayName:
-                  session?.currentUser?.displayName ?? context.l10n.appTitle,
+            // Observer riêng cho header: đổi tên/ảnh đại diện ở Hồ sơ phải
+            // phản ánh ngay ở Home (HomeTab là StatelessWidget, không tự
+            // dựng lại khi currentUser đổi).
+            Observer(
+              builder: (context) {
+                final user = session?.currentUser;
+                return _HomeHeader(
+                  displayName: user?.displayName ?? context.l10n.appTitle,
+                  avatarUrl: user?.avatarUrl,
+                );
+              },
             ),
             const SizedBox(height: AppDimens.lg),
             if (session?.provider == 'GUEST') ...<Widget>[
@@ -259,17 +270,19 @@ class HomeTab extends StatelessWidget {
 }
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.displayName});
+  const _HomeHeader({required this.displayName, this.avatarUrl});
 
   final String displayName;
 
+  /// Ảnh đại diện của user; null/rỗng ⇒ [ProfileAvatar] tự hiện chữ cái đầu.
+  final String? avatarUrl;
+
   @override
   Widget build(BuildContext context) {
-    final trimmedName = displayName.trim();
-    final initial = trimmedName.isEmpty ? 'S' : trimmedName.substring(0, 1);
     return Row(
       children: <Widget>[
         Container(
+          key: const ValueKey<String>('home-header-avatar'),
           width: 48,
           height: 48,
           decoration: BoxDecoration(
@@ -285,13 +298,10 @@ class _HomeHeader extends StatelessWidget {
             ],
           ),
           alignment: Alignment.center,
-          child: Text(
-            initial.toUpperCase(),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.primaryDark,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                ),
+          child: ProfileAvatar(
+            avatarUrl: avatarUrl,
+            fullName: displayName,
+            size: 45,
           ),
         ),
         const SizedBox(width: AppDimens.md),
@@ -324,8 +334,9 @@ class _HomeHeader extends StatelessWidget {
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(AppDimens.radiusPill),
           child: InkWell(
+            key: const ValueKey<String>('home-header-notifications'),
             borderRadius: BorderRadius.circular(AppDimens.radiusPill),
-            onTap: () => Get.toNamed<void>(AppRoutes.recipes),
+            onTap: () => Get.toNamed<void>(NotificationsRoutes.list),
             child: Ink(
               width: 44,
               height: 44,
@@ -341,10 +352,9 @@ class _HomeHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.menu_book_rounded,
-                color: AppColors.primary,
-                size: 20,
+              child: Tooltip(
+                message: context.l10n.notificationsNavTitle,
+                child: _notificationIcon(),
               ),
             ),
           ),
@@ -352,6 +362,28 @@ class _HomeHeader extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Icon chuông + badge số chưa đọc (cùng nguồn `NotificationStore.unreadCount`
+/// như mục Thông báo ở màn Cá nhân). Chưa đăng ký store → chỉ icon.
+Widget _notificationIcon() {
+  const icon = Icon(
+    Icons.notifications_none_rounded,
+    color: AppColors.primary,
+    size: 20,
+  );
+  if (!Get.isRegistered<NotificationStore>()) return const Center(child: icon);
+  final store = Get.find<NotificationStore>();
+  return Center(
+    child: Observer(builder: (_) {
+      final unread = store.unreadCount;
+      return Badge(
+        isLabelVisible: unread > 0,
+        label: Text(unread > 99 ? '99+' : '$unread'),
+        child: icon,
+      );
+    }),
+  );
 }
 
 class _GuestProfileCard extends StatelessWidget {

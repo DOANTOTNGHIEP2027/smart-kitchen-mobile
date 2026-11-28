@@ -4,6 +4,7 @@ import '../../../data/network/api_exception.dart';
 import '../../../data/network/api_response.dart';
 import '../../../data/network/dio_client.dart';
 import '../domain/meal_plan_slot.dart';
+import '../domain/recipe_check.dart';
 import 'meal_plan_mapper.dart';
 
 /// 6 endpoint thật của #42 sau amendment multi-dish (FE-7 §6).
@@ -24,6 +25,14 @@ abstract interface class MealPlanApi {
     String dishId, {
     required String recipeId,
     required String recipeName,
+  });
+
+  /// Kiểm tra dị ứng + nguyên liệu thiếu của [recipeId] cho bữa [slotId]
+  /// TRƯỚC khi gán (chỉ đọc, không tạo dish).
+  Future<RecipeCheckResult> recipeCheck(
+    String planId,
+    String slotId, {
+    required String recipeId,
   });
 }
 
@@ -116,6 +125,21 @@ class MealPlanApiImpl implements MealPlanApi {
         },
       );
       return MealPlanMapper.dishFromJson(_data(res.data));
+    });
+  }
+
+  @override
+  Future<RecipeCheckResult> recipeCheck(
+    String planId,
+    String slotId, {
+    required String recipeId,
+  }) {
+    return _unwrap(() async {
+      final res = await _client.dio.get<Map<String, dynamic>>(
+        '/api/v1/meal-plans/$planId/slots/$slotId/recipe-check',
+        queryParameters: <String, dynamic>{'recipeId': recipeId},
+      );
+      return MealPlanMapper.recipeCheckFromJson(_data(res.data));
     });
   }
 

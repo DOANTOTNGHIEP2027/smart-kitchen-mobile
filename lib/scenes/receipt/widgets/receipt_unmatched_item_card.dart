@@ -13,6 +13,7 @@ import '../../inventory/widgets/unit_picker.dart';
 import '../domain/receipt_unmatched_item.dart';
 import 'receipt_matched_line_tile.dart' show ReceiptBadge;
 import 'receipt_summary_header.dart';
+import '../../../utils/unit_label.dart';
 
 /// Map `confirmError` (MÃ lỗi) → câu chữ (§13.3).
 String receiptConfirmErrorMessage(AppLocalizations l10n, String code) {
@@ -159,7 +160,7 @@ class _ReceiptUnmatchedItemCardState extends State<ReceiptUnmatchedItemCard> {
     final price = item.totalPrice;
     final raw = <String>[
       context.l10n.receiptOnReceipt(item.rawName),
-      formatQuantityWithUnit(item.rawQuantity, item.rawUnit),
+      formatQuantityWithUnitLabel(context.l10n, item.rawQuantity, item.rawUnit),
       if (price != null) formatReceiptAmount(price, widget.currency),
     ].join(' · ');
     final secondary = Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -275,7 +276,9 @@ class _ReceiptUnmatchedItemCardState extends State<ReceiptUnmatchedItemCard> {
           children: <Widget>[
             Expanded(
               child: Text(
-                unit ?? context.l10n.inventoryChooseUnit,
+                unit == null
+                    ? context.l10n.inventoryChooseUnit
+                    : unitLabel(context, unit),
                 style: TextStyle(
                   color: unit == null
                       ? AppColors.textSecondary

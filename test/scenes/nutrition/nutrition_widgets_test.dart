@@ -79,7 +79,7 @@ void main() {
     final day0 = store.summary!.days[0];
     final text = WeeklyCalorieBarChart.tooltipText(ctx, day0);
     expect(text, contains('2.000 kcal'));
-    expect(text, contains('P 100 g · C 200 g · F 50 g'));
+    expect(text, contains('Đạm 100 g · Tinh bột 200 g · Béo 50 g'));
     expect(WeeklyCalorieBarChart.tooltipText(ctx, store.summary!.days[2]),
         contains('1 món chưa có dữ liệu dinh dưỡng'));
     expect(WeeklyCalorieBarChart.tooltipText(ctx, store.summary!.days[5]),
@@ -104,9 +104,9 @@ void main() {
         nutrition: <String, dynamic>{'m': kcal(1650, p: 100, c: 200, f: 50)});
     final pie = tester.widget<PieChart>(find.byType(PieChart));
     expect(pie.data.sections, hasLength(3));
-    expect(find.text('Protein 28,6%'), findsOneWidget);
-    expect(find.text('Carbs 57,1%'), findsOneWidget);
-    expect(find.text('Fat 14,3%'), findsOneWidget);
+    expect(find.text('Chất đạm 28,6%'), findsOneWidget);
+    expect(find.text('Tinh bột 57,1%'), findsOneWidget);
+    expect(find.text('Chất béo 14,3%'), findsOneWidget);
   });
 
   testWidgets('breakdown mở/đóng: hiện từng bữa và món', (tester) async {

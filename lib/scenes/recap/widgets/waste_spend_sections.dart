@@ -17,6 +17,10 @@ import '../stores/weekly_recap_store.dart';
 /// Mọi widget là Stateless nhận dữ liệu qua constructor (Guard #8) và nằm
 /// NGOÀI RepaintBoundary chia sẻ — số tiền không lọt vào ảnh share (Guard #19).
 
+/// Kỳ tổng kết mà khối waste/spend đang hiển thị — chỉ đổi câu chữ, KHÔNG đổi
+/// giao diện. Mặc định [week] (Tổng kết tuần giữ nguyên như cũ).
+enum RecapPeriod { week, month }
+
 /// Thứ Hai dd/MM – Chủ Nhật dd/MM — CHỈ dùng bên trong khối waste/spend
 /// (lịch tuần thật), không cho HouseholdStatsStrip (Guard #18).
 String recapWeekRange(AppLocalizations l10n, DateTime weekStart) {
@@ -198,20 +202,29 @@ class WasteSection extends StatelessWidget {
     required this.count,
     required this.breakdown,
     required this.weekStart,
+    this.period = RecapPeriod.week,
+    this.subtitle,
   });
 
   /// Con số hiển thị luôn là field của BE — không cộng lại từ breakdown (Guard #15).
   final int count;
   final WasteCauseBreakdown breakdown;
   final DateTime weekStart;
+  final RecapPeriod period;
+
+  /// Ghi đè dòng phụ đề (mặc định: khoảng ngày của tuần [weekStart]).
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final month = period == RecapPeriod.month;
+    final title = month ? l10n.monthlyRecapWasteTitle : l10n.recapWasteTitle;
+    final sub = subtitle ?? recapWeekRange(l10n, weekStart);
     if (count == 0) {
       return _Block(
-        title: l10n.recapWasteTitle,
-        subtitle: recapWeekRange(l10n, weekStart),
+        title: title,
+        subtitle: sub,
         children: <Widget>[
           Container(
             padding: const EdgeInsets.all(AppDimens.md),
@@ -225,7 +238,7 @@ class WasteSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.recapWasteNone,
+                    month ? l10n.monthlyRecapWasteNone : l10n.recapWasteNone,
                     key: const ValueKey<String>('waste-none'),
                     style: const TextStyle(
                       fontSize: 13,
@@ -250,8 +263,8 @@ class WasteSection extends StatelessWidget {
       if (breakdown.other > 0) (l10n.recapWasteOther, breakdown.other),
     ];
     return _Block(
-      title: l10n.recapWasteTitle,
-      subtitle: recapWeekRange(l10n, weekStart),
+      title: title,
+      subtitle: sub,
       children: <Widget>[
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -295,11 +308,19 @@ class SpendSection extends StatelessWidget {
     required this.summary,
     required this.canSetBudget,
     required this.onSetBudget,
+    this.period = RecapPeriod.week,
+    this.subtitle,
   });
 
+  /// Với [RecapPeriod.month], `budgetWeeklyAmount` mang ngân sách ĐÃ QUY ĐỔI
+  /// THÁNG (xem `MonthlyRecapSummary.toSpendSummary`).
   final WeeklyRecapSummary summary;
   final bool canSetBudget;
   final VoidCallback onSetBudget;
+  final RecapPeriod period;
+
+  /// Ghi đè dòng phụ đề (mặc định: khoảng ngày của tuần).
+  final String? subtitle;
 
   /// Ngưỡng màu là lựa chọn hiển thị của FE (decision D14).
   static Color colorFor(double ratio) => ratio > 1
@@ -313,12 +334,13 @@ class SpendSection extends StatelessWidget {
     final spend = s.spendTotal;
     final budget = s.budgetWeeklyAmount;
     final ratio = s.spendRatio;
+    final month = period == RecapPeriod.month;
     final children = <Widget>[];
 
     if (spend == null) {
       children.addAll(<Widget>[
         Text(
-          l10n.recapSpendNone,
+          month ? l10n.monthlyRecapSpendNone : l10n.recapSpendNone,
           key: const ValueKey<String>('spend-none'),
           style: const TextStyle(
             fontSize: 14,
@@ -373,9 +395,10 @@ class SpendSection extends StatelessWidget {
                 ),
                 child: Text(
                   over
-                      ? l10n.recapSpendOver(
+                      ? (month ? l10n.monthlyRecapSpendOver : l10n.recapSpendOver)(
                           (ratio * 100).round(), formatVnd(spend - budget))
-                      : l10n.recapSpendPercent((ratio * 100).round()),
+                      : (month ? l10n.monthlyRecapSpendPercent : l10n.recapSpendPercent)(
+                          (ratio * 100).round()),
                   key: const ValueKey<String>('spend-percent'),
                   style: TextStyle(
                     fontSize: 11,
@@ -427,13 +450,23 @@ class SpendSection extends StatelessWidget {
     }
 
     final budgetAmount = s.budgetAmount;
-    if (budgetAmount != null && s.budgetPeriod != BudgetPeriod.weekly) {
+    // Ghi chú quy đổi khi chu kỳ ngân sách khác kỳ đang tổng kết.
+    final nativePeriod = month ? BudgetPeriod.monthly : BudgetPeriod.weekly;
+    if (budgetAmount != null && s.budgetPeriod != nativePeriod) {
+      final String note;
+      if (month) {
+        note = s.budgetPeriod == BudgetPeriod.weekly
+            ? l10n.monthlyRecapBudgetConvertedWeekly(formatVnd(budgetAmount))
+            : l10n.monthlyRecapBudgetConvertedOther(formatVnd(budgetAmount));
+      } else {
+        note = s.budgetPeriod == BudgetPeriod.monthly
+            ? l10n.recapBudgetConvertedMonthly(formatVnd(budgetAmount))
+            : l10n.recapBudgetConvertedOther(formatVnd(budgetAmount));
+      }
       children.addAll(<Widget>[
         const SizedBox(height: AppDimens.xs),
         Text(
-          s.budgetPeriod == BudgetPeriod.monthly
-              ? l10n.recapBudgetConvertedMonthly(formatVnd(budgetAmount))
-              : l10n.recapBudgetConvertedOther(formatVnd(budgetAmount)),
+          note,
           key: const ValueKey<String>('spend-converted'),
           style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
         ),
@@ -461,8 +494,8 @@ class SpendSection extends StatelessWidget {
     }
 
     return _Block(
-      title: l10n.recapSpendTitle,
-      subtitle: recapWeekRange(l10n, s.weekStart),
+      title: month ? l10n.monthlyRecapSpendTitle : l10n.recapSpendTitle,
+      subtitle: subtitle ?? recapWeekRange(l10n, s.weekStart),
       children: children,
     );
   }
@@ -474,15 +507,18 @@ class SpendDetailSection extends StatelessWidget {
     required this.gate,
     required this.summary,
     required this.onUpgrade,
+    this.period = RecapPeriod.week,
   });
 
   final SpendDetailGate gate;
   final WeeklyRecapSummary summary;
   final VoidCallback onUpgrade;
+  final RecapPeriod period;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final month = period == RecapPeriod.month;
     switch (gate) {
       case SpendDetailGate.lockedUpsell:
         return _Block(
@@ -494,7 +530,7 @@ class SpendDetailSection extends StatelessWidget {
                 const SizedBox(width: AppDimens.sm),
                 Expanded(
                   child: Text(
-                    l10n.recapSpendUpsell,
+                    month ? l10n.monthlyRecapSpendUpsell : l10n.recapSpendUpsell,
                     style: const TextStyle(
                       fontSize: 13,
                       height: 1.4,
@@ -517,7 +553,9 @@ class SpendDetailSection extends StatelessWidget {
           title: l10n.recapSpendByCategory,
           children: <Widget>[
             Text(
-              l10n.recapSpendDetailNeutral,
+              month
+                  ? l10n.monthlyRecapSpendDetailNeutral
+                  : l10n.recapSpendDetailNeutral,
               key: const ValueKey<String>('spend-detail-neutral'),
               style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
@@ -534,7 +572,9 @@ class SpendDetailSection extends StatelessWidget {
           children: <Widget>[
             if (sorted.isEmpty)
               Text(
-                l10n.recapSpendCategoryEmpty,
+                month
+                    ? l10n.monthlyRecapSpendCategoryEmpty
+                    : l10n.recapSpendCategoryEmpty,
                 key: const ValueKey<String>('spend-category-empty'),
                 style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
               )
@@ -592,7 +632,7 @@ class SpendDetailSection extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                '${l10n.recapSpendTrend} (VNĐ)',
+                                '${month ? l10n.monthlyRecapSpendTrend : l10n.recapSpendTrend} (VNĐ)',
                                 style: const TextStyle(
                                   fontSize: 14.5,
                                   fontWeight: FontWeight.w800,

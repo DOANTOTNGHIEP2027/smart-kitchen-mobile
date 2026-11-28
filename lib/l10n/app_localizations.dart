@@ -3271,7 +3271,7 @@ abstract class AppLocalizations {
   /// No description provided for @insightsHistoryTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Nutrition trends'**
+  /// **'Monthly recap'**
   String get insightsHistoryTooltip;
 
   /// No description provided for @insightsCalorieTooltip.
@@ -7323,6 +7323,325 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{servings} servings'**
   String mealComposeServingsShort(String servings);
+
+  /// No description provided for @nutritionProteinShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein'**
+  String get nutritionProteinShort;
+
+  /// No description provided for @nutritionCarbsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs'**
+  String get nutritionCarbsShort;
+
+  /// No description provided for @nutritionFatShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat'**
+  String get nutritionFatShort;
+
+  /// No description provided for @nutritionGramValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {grams} g'**
+  String nutritionGramValue(String name, String grams);
+
+  /// No description provided for @insightsMacroChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily nutrient breakdown'**
+  String get insightsMacroChartTitle;
+
+  /// No description provided for @insightsMacroChartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein, carbs and fat in grams (g)'**
+  String get insightsMacroChartSubtitle;
+
+  /// No description provided for @insightsMacroTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}/{month}\n• Protein: {p} g\n• Carbs: {c} g\n• Fat: {f} g\nTotal: {total} g'**
+  String insightsMacroTooltip(
+      int day, int month, String p, String c, String f, String total);
+
+  /// No description provided for @mealPlanNoSlotsForDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No meals for this day'**
+  String get mealPlanNoSlotsForDay;
+
+  /// No description provided for @mealPlanSlotLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This meal is past its time or already cooked and can\'t be edited'**
+  String get mealPlanSlotLocked;
+
+  /// No description provided for @mealPlanSlotLockedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'This meal is locked and can no longer be edited'**
+  String get mealPlanSlotLockedToast;
+
+  /// No description provided for @mealPlanDishCooked.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooked'**
+  String get mealPlanDishCooked;
+
+  /// No description provided for @homeUpcomingAllCooked.
+  ///
+  /// In en, this message translates to:
+  /// **'All cooked'**
+  String get homeUpcomingAllCooked;
+
+  /// No description provided for @dishCookedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dish already cooked'**
+  String get dishCookedTitle;
+
+  /// No description provided for @dishCookedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This dish has already been cooked for this meal plan.'**
+  String get dishCookedMessage;
+
+  /// No description provided for @dishCookedMessageAt.
+  ///
+  /// In en, this message translates to:
+  /// **'This dish was cooked at {time} on {date}.'**
+  String dishCookedMessageAt(String time, String date);
+
+  /// No description provided for @dishCookedClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get dishCookedClose;
+
+  /// No description provided for @mealPlanAllergyWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergy warning'**
+  String get mealPlanAllergyWarningTitle;
+
+  /// No description provided for @mealPlanAllergyWarningMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This dish contains allergens for people eating this meal:'**
+  String get mealPlanAllergyWarningMessage;
+
+  /// No description provided for @mealPlanAllergyPersonLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {allergens}'**
+  String mealPlanAllergyPersonLine(String name, String allergens);
+
+  /// No description provided for @mealPlanAllergyUnverifiedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This dish\'s allergen data is not verified — please double-check the ingredients.'**
+  String get mealPlanAllergyUnverifiedNote;
+
+  /// No description provided for @mealPlanAllergyContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get mealPlanAllergyContinue;
+
+  /// No description provided for @mealPlanAllergyGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest'**
+  String get mealPlanAllergyGuest;
+
+  /// No description provided for @mealPlanAllergyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get mealPlanAllergyMember;
+
+  /// No description provided for @mealPlanMissingAddWithShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Add dish + shopping'**
+  String get mealPlanMissingAddWithShopping;
+
+  /// No description provided for @mealPlanMissingAddOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Add dish only'**
+  String get mealPlanMissingAddOnly;
+
+  /// No description provided for @monthlyRecapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly recap'**
+  String get monthlyRecapTitle;
+
+  /// No description provided for @monthlyRecapPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get monthlyRecapPreviousMonth;
+
+  /// No description provided for @monthlyRecapNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get monthlyRecapNextMonth;
+
+  /// No description provided for @monthlyRecapNoHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a household to see the Monthly recap'**
+  String get monthlyRecapNoHousehold;
+
+  /// No description provided for @monthlyRecapMonthInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This month has no recap yet. Please choose another month.'**
+  String get monthlyRecapMonthInvalid;
+
+  /// No description provided for @monthlyRecapHeroFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'No personalized insight for you this month yet. Keep logging your meals for a more detailed recap!'**
+  String get monthlyRecapHeroFallback;
+
+  /// No description provided for @monthlyRecapAvgCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Average calories per day'**
+  String get monthlyRecapAvgCalories;
+
+  /// No description provided for @monthlyRecapAdherenceCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal plan adherence this month'**
+  String get monthlyRecapAdherenceCaption;
+
+  /// No description provided for @monthlyRecapStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} weeks'**
+  String monthlyRecapStreak(int count);
+
+  /// No description provided for @monthlyRecapStreakCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Weeks on target'**
+  String get monthlyRecapStreakCaption;
+
+  /// No description provided for @monthlyRecapEmptyInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'No personalized insights for this month yet.'**
+  String get monthlyRecapEmptyInsights;
+
+  /// No description provided for @monthlyRecapShare.
+  ///
+  /// In en, this message translates to:
+  /// **'My household\'s monthly recap on Smart Kitchen!'**
+  String get monthlyRecapShare;
+
+  /// No description provided for @monthlyRecapWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Week of {date}'**
+  String monthlyRecapWeekLabel(String date);
+
+  /// No description provided for @monthlyRecapShowWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Show weekly details ({count})'**
+  String monthlyRecapShowWeeks(int count);
+
+  /// No description provided for @monthlyRecapHideWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide weekly details'**
+  String get monthlyRecapHideWeeks;
+
+  /// No description provided for @monthlyRecapMonthRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} – {end}'**
+  String monthlyRecapMonthRange(String start, String end);
+
+  /// No description provided for @monthlyRecapWasteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waste this month'**
+  String get monthlyRecapWasteTitle;
+
+  /// No description provided for @monthlyRecapWasteNone.
+  ///
+  /// In en, this message translates to:
+  /// **'🎉 Your household threw nothing away this month. Keep it up!'**
+  String get monthlyRecapWasteNone;
+
+  /// No description provided for @monthlyRecapSpendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending this month'**
+  String get monthlyRecapSpendTitle;
+
+  /// No description provided for @monthlyRecapSpendNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No items have been priced this month'**
+  String get monthlyRecapSpendNone;
+
+  /// No description provided for @monthlyRecapSpendPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of the monthly budget'**
+  String monthlyRecapSpendPercent(int percent);
+
+  /// No description provided for @monthlyRecapSpendOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of the monthly budget · Over by {amount}'**
+  String monthlyRecapSpendOver(int percent, String amount);
+
+  /// No description provided for @monthlyRecapBudgetConvertedWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'The weekly budget ({amount}) has been converted to a monthly amount.'**
+  String monthlyRecapBudgetConvertedWeekly(String amount);
+
+  /// No description provided for @monthlyRecapBudgetConvertedOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Your budget ({amount}) has been converted to a monthly amount.'**
+  String monthlyRecapBudgetConvertedOther(String amount);
+
+  /// No description provided for @monthlyRecapSpendTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly trend'**
+  String get monthlyRecapSpendTrend;
+
+  /// No description provided for @monthlyRecapSpendCategoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No priced spending this month yet'**
+  String get monthlyRecapSpendCategoryEmpty;
+
+  /// No description provided for @monthlyRecapSpendUpsell.
+  ///
+  /// In en, this message translates to:
+  /// **'See spending by category and the weekly trend with Premium'**
+  String get monthlyRecapSpendUpsell;
+
+  /// No description provided for @monthlyRecapSpendDetailNeutral.
+  ///
+  /// In en, this message translates to:
+  /// **'No detailed data for this month yet.'**
+  String get monthlyRecapSpendDetailNeutral;
 }
 
 class _AppLocalizationsDelegate

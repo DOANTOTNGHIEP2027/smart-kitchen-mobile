@@ -13,7 +13,9 @@ import 'cooking_session_mapper.dart';
 /// Implementation Guard 11): convert `DioException` → `ApiException` BÊN
 /// TRONG API layer, không để `Store` tự parse.
 abstract interface class CookingSessionApi {
-  Future<CookingSession> start(String recipeId);
+  /// [mealPlanDishId] — nấu từ 1 món trong thực đơn: server gắn phiên với món
+  /// và trả 409 `ERR_DISH_ALREADY_COOKED` nếu món đã nấu xong.
+  Future<CookingSession> start(String recipeId, {String? mealPlanDishId});
   /// Thiếu kho và `allowShortfall == false` → [BusinessException]
   /// `ERR_INSUFFICIENT_STOCK_FOR_RECIPE` (409, kho không đổi — OD-36).
   Future<CookingSessionResult> complete(String sessionId,
@@ -28,11 +30,14 @@ class CookingSessionApiImpl implements CookingSessionApi {
   final DioClient _client;
 
   @override
-  Future<CookingSession> start(String recipeId) {
+  Future<CookingSession> start(String recipeId, {String? mealPlanDishId}) {
     return _unwrap(() async {
       final res = await _client.dio.post<Map<String, dynamic>>(
         '/api/v1/cooking/sessions',
-        data: <String, dynamic>{'recipeId': recipeId},
+        data: <String, dynamic>{
+          'recipeId': recipeId,
+          if (mealPlanDishId != null) 'mealPlanDishId': mealPlanDishId,
+        },
       );
       return mapCookingSession(_data(res.data));
     });

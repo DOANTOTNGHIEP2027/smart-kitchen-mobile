@@ -10,6 +10,8 @@ import '../../profile/domain/household_roster.dart';
 import '../domain/shopping_share_text_builder.dart';
 import '../stores/shopping_store.dart';
 import 'assignee_widgets.dart';
+import '../../../widgets/feedback/app_toast.dart';
+import '../../../utils/unit_label.dart';
 
 /// Chia sẻ danh sách đi chợ (#69 §11): "Sao chép dạng text" chạy thật; "Chia
 /// sẻ link" disabled vĩnh viễn — BE không có endpoint share (Guard #2).
@@ -20,7 +22,6 @@ class ShareExportSheet extends StatelessWidget {
 
   Future<void> _copy(BuildContext context) async {
     final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final all = store.visibleItems;
     // FamilyStore có thể chưa đăng ký (đường /family → pop) — KHÔNG Get.find
@@ -39,12 +40,13 @@ class ShareExportSheet extends StatelessWidget {
         progress: l10n.shoppingShareTextProgress,
         uncategorized: l10n.shoppingShareTextUncategorized,
         footer: l10n.shoppingShareTextFooter,
+        unitLabel: (unit) => unitLabelOf(l10n, unit),
       ),
       memberNamesById: names,
     );
     await Clipboard.setData(ClipboardData(text: text));
     navigator.pop();
-    messenger.showSnackBar(SnackBar(content: Text(l10n.shoppingShareCopied)));
+    AppToast.show(l10n.shoppingShareCopied, type: AppToastType.success);
   }
 
   @override

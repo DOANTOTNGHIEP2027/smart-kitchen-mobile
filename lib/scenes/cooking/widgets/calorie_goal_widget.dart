@@ -119,19 +119,19 @@ class CalorieGoalWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppDimens.radiusPill),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Text(
-                        'Xu hướng',
-                        style: TextStyle(
+                        context.l10n.insightsHistoryTooltip,
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary,
                         ),
                       ),
-                      SizedBox(width: 2),
-                      Icon(
+                      const SizedBox(width: 2),
+                      const Icon(
                         Icons.chevron_right_rounded,
                         size: 14,
                         color: AppColors.primary,
@@ -162,23 +162,29 @@ class CalorieGoalWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              _StatItem(
-                label: 'Đã nạp',
-                value: '$consumedKcal',
-                unit: 'kcal',
-                valueColor: AppColors.textPrimary,
+              Flexible(
+                child: _StatItem(
+                  label: 'Đã nạp',
+                  value: '$consumedKcal',
+                  unit: 'kcal',
+                  valueColor: AppColors.textPrimary,
+                ),
               ),
-              _StatItem(
-                label: isOver ? 'Vượt quá' : 'Còn lại',
-                value: '${isOver ? overAmount : remaining}',
-                unit: 'kcal',
-                valueColor: isOver ? AppColors.error : AppColors.primary,
+              Flexible(
+                child: _StatItem(
+                  label: isOver ? 'Vượt quá' : 'Còn lại',
+                  value: '${isOver ? overAmount : remaining}',
+                  unit: 'kcal',
+                  valueColor: isOver ? AppColors.error : AppColors.primary,
+                ),
               ),
-              _StatItem(
-                label: 'Mục tiêu',
-                value: '$target',
-                unit: 'kcal',
-                valueColor: AppColors.textSecondary,
+              Flexible(
+                child: _StatItem(
+                  label: 'Mục tiêu',
+                  value: '$target',
+                  unit: 'kcal',
+                  valueColor: AppColors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -192,7 +198,7 @@ class CalorieGoalWidget extends StatelessWidget {
               children: <Widget>[
                 Expanded(
                   child: _MacroTag(
-                    label: 'Đạm',
+                    label: context.l10n.nutritionProteinShort,
                     grams: proteinG,
                     color: const Color(0xFF10B981),
                     containerColor: const Color(0xFFEAF7EE),
@@ -201,7 +207,7 @@ class CalorieGoalWidget extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: _MacroTag(
-                    label: 'Carbs',
+                    label: context.l10n.nutritionCarbsShort,
                     grams: carbsG,
                     color: const Color(0xFFF59E0B),
                     containerColor: const Color(0xFFFEF7EA),
@@ -210,7 +216,7 @@ class CalorieGoalWidget extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: _MacroTag(
-                    label: 'Béo',
+                    label: context.l10n.nutritionFatShort,
                     grams: fatG,
                     color: const Color(0xFFEF4444),
                     containerColor: const Color(0xFFFDECEC),
@@ -245,33 +251,40 @@ class _StatItem extends StatelessWidget {
       children: <Widget>[
         Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontSize: 10.5,
             color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 1),
-        RichText(
-          text: TextSpan(
-            children: <TextSpan>[
-              TextSpan(
-                text: value,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: valueColor,
+        // Màn hẹp/cỡ chữ lớn: số co lại thay vì tràn hàng.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: RichText(
+            text: TextSpan(
+              children: <TextSpan>[
+                TextSpan(
+                  text: value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: valueColor,
+                  ),
                 ),
-              ),
-              const TextSpan(text: ' '),
-              TextSpan(
-                text: unit,
-                style: const TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
+                const TextSpan(text: ' '),
+                TextSpan(
+                  text: unit,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
@@ -300,33 +313,48 @@ class _MacroTag extends StatelessWidget {
         color: containerColor,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
+      // Nhãn trên, số gam dưới: "Tinh bột" dài hơn nhãn cũ — chip hẹp (màn
+      // 320dp) không tràn, không phải cắt chữ.
+      child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+          Row(
+            children: <Widget>[
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-          const Spacer(),
-          Text(
-            '${grams.toStringAsFixed(1)}g',
-            style: TextStyle(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w800,
-              color: color,
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${grams.toStringAsFixed(1)}g',
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
             ),
           ),
         ],

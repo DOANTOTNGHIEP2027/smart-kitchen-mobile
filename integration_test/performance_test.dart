@@ -39,7 +39,8 @@ import 'package:smart_kitchen_mobile/scenes/auth/auth_landing_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/scenes/cooking_session_scene.dart';
 import 'package:smart_kitchen_mobile/scenes/cooking/widgets/step_progress_bar.dart';
 import 'package:smart_kitchen_mobile/scenes/insights/scenes/insights_routes.dart';
-import 'package:smart_kitchen_mobile/scenes/insights/scenes/monthly_history_scene.dart';
+import 'package:smart_kitchen_mobile/scenes/recap/scenes/monthly_recap_scene.dart';
+import 'package:smart_kitchen_mobile/scenes/recap/widgets/monthly_recap_widgets.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/stores/inventory_store.dart';
 import 'package:smart_kitchen_mobile/scenes/inventory/widgets/inventory_item_tile.dart';
 import 'package:smart_kitchen_mobile/scenes/recap/scenes/recap_routes.dart';
@@ -327,14 +328,15 @@ Future<void> _fullNavigation(
   Get.toNamed<void>(RecapRoutes.root);
   await _untilFound(tester, binding, find.byType(ShareableRecapCard), sw);
   Get.toNamed<void>(InsightsRoutes.history);
-  await _untilFound(tester, binding, find.byType(MonthlyHistoryScene), sw);
-  final tabs = find.byType(Tab);
-  await _untilFound(tester, binding, tabs, sw);
-  for (var i = 0; i < tabs.evaluate().length; i++) {
-    await tester.tap(tabs.at(i));
-    await tester.pump(const Duration(milliseconds: 500));
-  }
-  Get.back<void>(); // history → recap
+  await _untilFound(tester, binding, find.byType(MonthlyRecapScene), sw);
+  await _untilFound(tester, binding, find.byType(MonthlyRecapShareCard), sw);
+  // Lùi 1 tháng rồi tiến lại tháng hiện tại.
+  await tester.tap(find.byKey(MonthNavigator.previousKey));
+  await tester.pump(const Duration(milliseconds: 500));
+  await _untilFound(tester, binding, find.byType(MonthlyRecapShareCard), sw);
+  await tester.tap(find.byKey(MonthNavigator.nextKey));
+  await tester.pump(const Duration(milliseconds: 500));
+  Get.back<void>(); // tổng kết tháng → recap
   await tester.pump(const Duration(milliseconds: 300));
   Get.back<void>(); // recap → shell
   await tester.pump(const Duration(milliseconds: 300));

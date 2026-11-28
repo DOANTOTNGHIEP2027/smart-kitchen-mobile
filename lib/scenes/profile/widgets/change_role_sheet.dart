@@ -12,6 +12,7 @@ import '../domain/household_tier.dart';
 import '../stores/family_store.dart';
 import '../stores/form_status.dart';
 import 'tier_widgets.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Picker 2 vai trò MEMBER ↔ REMOTE_VIEWER (tier-gate-screens.md §8). KHÔNG có
 /// OWNER (Guard 3). Hint ghế chỉ là gợi ý — không bao giờ chặn cứng lựa chọn
@@ -42,11 +43,9 @@ class _ChangeRoleSheetState extends State<ChangeRoleSheet> {
   Future<void> _submit() async {
     final ok = await _store.changeRole(widget.member.userId, _selected);
     if (!ok || !mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
+    final message = context.l10n.tierChangeRoleSuccess;
     Navigator.of(context).pop();
-    messenger.showSnackBar(
-      SnackBar(content: Text(context.l10n.tierChangeRoleSuccess)),
-    );
+    AppToast.show(message, type: AppToastType.success);
   }
 
   /// Reset ở `dispose` (sau khi animation đóng sheet xong), KHÔNG ở lúc pop:

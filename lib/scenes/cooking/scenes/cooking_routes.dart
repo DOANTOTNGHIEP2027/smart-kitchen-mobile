@@ -52,13 +52,17 @@ class MealLogBinding extends Bindings {
 /// `start` tạo session mới; `resume` lấy session đã có.
 sealed class CookingArgs {
   const CookingArgs();
-  const factory CookingArgs.start(String recipeId) = _CookingStartArgs;
+  const factory CookingArgs.start(String recipeId, {String? mealPlanDishId}) =
+      _CookingStartArgs;
   const factory CookingArgs.resume(String sessionId) = _CookingResumeArgs;
 }
 
 class _CookingStartArgs implements CookingArgs {
-  const _CookingStartArgs(this.recipeId);
+  const _CookingStartArgs(this.recipeId, {this.mealPlanDishId});
   final String recipeId;
+
+  /// Món trong thực đơn đang được nấu (nếu nấu từ thực đơn).
+  final String? mealPlanDishId;
 }
 
 class _CookingResumeArgs implements CookingArgs {
@@ -87,13 +91,15 @@ class CookingSessionBinding extends Bindings {
         }
         final progressStore = Get.find<CookingProgressCoordinator>();
         return switch (args) {
-          _CookingStartArgs(:final recipeId) => CookingSessionStore(
+          _CookingStartArgs(:final recipeId, :final mealPlanDishId) =>
+            CookingSessionStore(
               cookingApi: cookingApi,
               recipeApi: recipeApi,
               progressStore: progressStore,
               userId: userId,
               entryMode: CookingEntryMode.start,
               recipeId: recipeId,
+              mealPlanDishId: mealPlanDishId,
             ),
           _CookingResumeArgs(:final sessionId) => CookingSessionStore(
               cookingApi: cookingApi,

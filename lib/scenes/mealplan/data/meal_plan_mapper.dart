@@ -1,6 +1,7 @@
 import '../../../data/network/api_exception.dart';
 import '../domain/meal_plan_slot.dart';
 import '../domain/meal_suggestion.dart';
+import '../domain/recipe_check.dart';
 
 /// Cú pháp map JSON ↔ domain. Khác inventory-management, map ở tầng API class
 /// trực tiếp ( không tách file mapper) vì response shape của plan vs vote khác
@@ -31,6 +32,59 @@ class MealPlanMapper {
       dishes: dishesJson
           .map((Object? d) => dishFromJson(d as Map<String, dynamic>))
           .toList(growable: false),
+      // Field mới (khung bữa theo template + khoá bữa) — server cũ không trả
+      // thì để null, tầng trên tự fallback theo mealTime/ngày.
+      slotKey: _string(json['slotKey']),
+      label: _string(json['label']),
+      scheduledTime: _string(json['scheduledTime']),
+      sortOrder: json['sortOrder'] is num
+          ? (json['sortOrder'] as num).toInt()
+          : null,
+      locked: _bool(json['locked']),
+      allCooked: _bool(json['allCooked']),
+    );
+  }
+
+  static String? _string(Object? raw) =>
+      raw is String && raw.isNotEmpty ? raw : null;
+
+  static bool? _bool(Object? raw) => raw is bool ? raw : null;
+
+  /// `cookedAt` ISO-8601 → giờ máy; sai định dạng coi như chưa nấu.
+  static DateTime? _dateTime(Object? raw) =>
+      raw is String ? DateTime.tryParse(raw)?.toLocal() : null;
+
+  /// `GET .../recipe-check` — parse khoan dung, thiếu field ⇒ rỗng.
+  static RecipeCheckResult recipeCheckFromJson(Map<String, dynamic> json) {
+    final conflicts =
+        json['allergenConflicts'] as List<dynamic>? ?? const <dynamic>[];
+    final missing =
+        json['missingIngredients'] as List<dynamic>? ?? const <dynamic>[];
+    return RecipeCheckResult(
+      recipeId: _string(json['recipeId']) ?? '',
+      allergenVerified: _bool(json['allergenVerified']) ?? false,
+      allergenConflicts: conflicts
+          .whereType<Map<String, dynamic>>()
+          .map((c) => RecipeAllergenConflict(
+                personType: _string(c['personType']) ?? 'MEMBER',
+                personId: _string(c['personId']),
+                name: _string(c['name']) ?? '',
+                allergens: (c['allergens'] as List<dynamic>? ??
+                        const <dynamic>[])
+                    .whereType<Map<String, dynamic>>()
+                    .map((a) => RecipeCheckAllergen(
+                          // BE trả id allergen là số (SERIAL), không phải uuid.
+                          id: a['id']?.toString(),
+                          name: _string(a['name']) ?? '',
+                        ))
+                    .where((a) => a.name.isNotEmpty)
+                    .toList(growable: false),
+              ))
+          .toList(growable: false),
+      missingIngredients: missing
+          .whereType<Map<String, dynamic>>()
+          .map(_shortageFromJson)
+          .toList(growable: false),
     );
   }
 
@@ -54,6 +108,8 @@ class MealPlanMapper {
       missingIngredients: (json['missingIngredients'] as List<dynamic>?)
           ?.map((Object? m) => _shortageFromJson(m as Map<String, dynamic>))
           .toList(growable: false),
+      cookedAt: _dateTime(json['cookedAt']),
+      cookedSessionId: _string(json['cookedSessionId']),
     );
   }
 

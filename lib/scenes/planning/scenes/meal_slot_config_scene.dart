@@ -16,6 +16,7 @@ import '../domain/meal_slot_template_item.dart';
 import '../stores/meal_slot_store.dart';
 import '../../../widgets/feature_banner.dart';
 import '../widgets/slot_form_sheet.dart';
+import '../../../widgets/feedback/app_toast.dart';
 
 /// Household tự định nghĩa khung bữa trong ngày (flexible-meal-planning-screens.md
 /// §8.1). Sửa trên bản nháp, chỉ gọi API khi bấm "Lưu".
@@ -67,9 +68,7 @@ class _MealSlotConfigSceneState extends State<MealSlotConfigScene> {
   Future<void> _save() async {
     final ok = await _store.save();
     if (!mounted || !ok) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.planningSlotSaved)),
-    );
+    AppToast.show(context.l10n.planningSlotSaved, type: AppToastType.success);
     _store.clearSaveStatus();
   }
 

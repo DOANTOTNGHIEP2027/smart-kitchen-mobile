@@ -1685,7 +1685,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get insightsTitleCalorie => 'Calo';
 
   @override
-  String get insightsTitleMacro => 'Macro';
+  String get insightsTitleMacro => 'Chất dinh dưỡng';
 
   @override
   String get insightsTitleAdherence => 'Mức Độ Tuân Thủ';
@@ -1713,7 +1713,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String insightsAvgCalories(Object calories) {
-    return 'TB $calories kcal/ngày';
+    return 'Trung bình $calories kcal/ngày';
   }
 
   @override
@@ -1740,7 +1740,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get insightsHistoryTooltip => 'Xu hướng dinh dưỡng';
+  String get insightsHistoryTooltip => 'Tổng kết tháng';
 
   @override
   String insightsCalorieTooltip(Object calories, Object day, Object month) {
@@ -1748,10 +1748,11 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get recapTitle => 'Weekly Recap';
+  String get recapTitle => 'Tổng kết tuần';
 
   @override
-  String get recapNoHousehold => 'Tham gia một hộ gia đình để xem Weekly Recap';
+  String get recapNoHousehold =>
+      'Tham gia một hộ gia đình để xem Tổng kết tuần';
 
   @override
   String get recapEmpty =>
@@ -1798,7 +1799,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get recapShare => 'Weekly Recap của nhà tôi trên Smart Kitchen!';
+  String get recapShare => 'Tổng kết tuần của nhà tôi trên Smart Kitchen!';
 
   @override
   String get recapShareFailed => 'Không thể chia sẻ ảnh, thử lại sau';
@@ -3479,7 +3480,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String nutritionAvgPerDay(String kcal, int days) {
-    return 'TB $kcal kcal/ngày ($days ngày có dữ liệu)';
+    return 'Trung bình $kcal kcal/ngày ($days ngày có dữ liệu)';
   }
 
   @override
@@ -3497,20 +3498,20 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String nutritionMacroLine(String p, String c, String f) {
-    return 'P $p g · C $c g · F $f g';
+    return 'Đạm $p g · Tinh bột $c g · Béo $f g';
   }
 
   @override
   String get nutritionNoMealsDay => 'Chưa có món nào';
 
   @override
-  String get nutritionProtein => 'Protein';
+  String get nutritionProtein => 'Chất đạm';
 
   @override
-  String get nutritionCarbs => 'Carbs';
+  String get nutritionCarbs => 'Tinh bột';
 
   @override
-  String get nutritionFat => 'Fat';
+  String get nutritionFat => 'Chất béo';
 
   @override
   String nutritionMacroPercent(String name, String percent) {
@@ -3518,7 +3519,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get nutritionNoMacroData => 'Chưa có dữ liệu macro';
+  String get nutritionNoMacroData => 'Chưa có dữ liệu dinh dưỡng';
 
   @override
   String get nutritionDayOver => 'Vượt mục tiêu';
@@ -4106,4 +4107,204 @@ class AppLocalizationsVi extends AppLocalizations {
   String mealComposeServingsShort(String servings) {
     return '$servings khẩu phần';
   }
+
+  @override
+  String get nutritionProteinShort => 'Đạm';
+
+  @override
+  String get nutritionCarbsShort => 'Tinh bột';
+
+  @override
+  String get nutritionFatShort => 'Béo';
+
+  @override
+  String nutritionGramValue(String name, String grams) {
+    return '$name $grams g';
+  }
+
+  @override
+  String get insightsMacroChartTitle => 'Cơ cấu dinh dưỡng hằng ngày';
+
+  @override
+  String get insightsMacroChartSubtitle =>
+      'Lượng chất đạm, tinh bột và chất béo tính theo gam (g)';
+
+  @override
+  String insightsMacroTooltip(
+      int day, int month, String p, String c, String f, String total) {
+    return 'Ngày $day/$month\n• Đạm: $p g\n• Tinh bột: $c g\n• Béo: $f g\nTổng: $total g';
+  }
+
+  @override
+  String get mealPlanNoSlotsForDay => 'Chưa có bữa nào trong ngày này';
+
+  @override
+  String get mealPlanSlotLocked =>
+      'Bữa đã qua giờ hoặc đã nấu, không thể chỉnh sửa';
+
+  @override
+  String get mealPlanSlotLockedToast =>
+      'Bữa này đã khoá, không thể chỉnh sửa nữa';
+
+  @override
+  String get mealPlanDishCooked => 'Đã nấu';
+
+  @override
+  String get homeUpcomingAllCooked => 'Đã nấu xong';
+
+  @override
+  String get dishCookedTitle => 'Món đã nấu xong';
+
+  @override
+  String get dishCookedMessage => 'Món này đã được nấu xong theo thực đơn.';
+
+  @override
+  String dishCookedMessageAt(String time, String date) {
+    return 'Món này đã được nấu xong lúc $time ngày $date.';
+  }
+
+  @override
+  String get dishCookedClose => 'Đóng';
+
+  @override
+  String get mealPlanAllergyWarningTitle => 'Cảnh báo dị ứng';
+
+  @override
+  String get mealPlanAllergyWarningMessage =>
+      'Món này có chất gây dị ứng với người ăn bữa này:';
+
+  @override
+  String mealPlanAllergyPersonLine(String name, String allergens) {
+    return '$name: $allergens';
+  }
+
+  @override
+  String get mealPlanAllergyUnverifiedNote =>
+      'Dữ liệu dị ứng của món này chưa kiểm chứng — hãy kiểm tra lại nguyên liệu.';
+
+  @override
+  String get mealPlanAllergyContinue => 'Tiếp tục';
+
+  @override
+  String get mealPlanAllergyGuest => 'Khách';
+
+  @override
+  String get mealPlanAllergyMember => 'Thành viên';
+
+  @override
+  String get mealPlanMissingAddWithShopping => 'Thêm món + đi chợ';
+
+  @override
+  String get mealPlanMissingAddOnly => 'Chỉ thêm món';
+
+  @override
+  String get monthlyRecapTitle => 'Tổng kết tháng';
+
+  @override
+  String get monthlyRecapPreviousMonth => 'Tháng trước';
+
+  @override
+  String get monthlyRecapNextMonth => 'Tháng sau';
+
+  @override
+  String get monthlyRecapNoHousehold =>
+      'Tham gia một hộ gia đình để xem Tổng kết tháng';
+
+  @override
+  String get monthlyRecapMonthInvalid =>
+      'Tháng này chưa có tổng kết. Hãy chọn tháng khác.';
+
+  @override
+  String get monthlyRecapHeroFallback =>
+      'Chưa có nhận xét cá nhân hoá cho bạn trong tháng này. Tiếp tục ghi nhật ký bữa ăn để có tổng kết chi tiết hơn!';
+
+  @override
+  String get monthlyRecapAvgCalories => 'Calo trung bình mỗi ngày';
+
+  @override
+  String get monthlyRecapAdherenceCaption =>
+      'Mức bám sát kế hoạch bữa ăn trong tháng';
+
+  @override
+  String monthlyRecapStreak(int count) {
+    return '$count tuần';
+  }
+
+  @override
+  String get monthlyRecapStreakCaption => 'Chuỗi tuần đạt mục tiêu';
+
+  @override
+  String get monthlyRecapEmptyInsights =>
+      'Chưa có nhận xét cá nhân hoá nào cho tháng này.';
+
+  @override
+  String get monthlyRecapShare =>
+      'Tổng kết tháng của nhà tôi trên Smart Kitchen!';
+
+  @override
+  String monthlyRecapWeekLabel(String date) {
+    return 'Tuần $date';
+  }
+
+  @override
+  String monthlyRecapShowWeeks(int count) {
+    return 'Xem chi tiết từng tuần ($count)';
+  }
+
+  @override
+  String get monthlyRecapHideWeeks => 'Ẩn chi tiết từng tuần';
+
+  @override
+  String monthlyRecapMonthRange(String start, String end) {
+    return 'Từ $start đến $end';
+  }
+
+  @override
+  String get monthlyRecapWasteTitle => 'Lãng phí trong tháng';
+
+  @override
+  String get monthlyRecapWasteNone =>
+      '🎉 Tháng này nhà bạn không bỏ đi món nào. Giữ nhịp này nhé!';
+
+  @override
+  String get monthlyRecapSpendTitle => 'Chi tiêu trong tháng';
+
+  @override
+  String get monthlyRecapSpendNone =>
+      'Chưa có món nào được nhập giá trong tháng này';
+
+  @override
+  String monthlyRecapSpendPercent(int percent) {
+    return '$percent% ngân sách tháng';
+  }
+
+  @override
+  String monthlyRecapSpendOver(int percent, String amount) {
+    return '$percent% ngân sách tháng · Vượt $amount';
+  }
+
+  @override
+  String monthlyRecapBudgetConvertedWeekly(String amount) {
+    return 'Ngân sách tuần ($amount) đã được quy đổi theo tháng.';
+  }
+
+  @override
+  String monthlyRecapBudgetConvertedOther(String amount) {
+    return 'Ngân sách bạn đặt ($amount) đã được quy đổi theo tháng.';
+  }
+
+  @override
+  String get monthlyRecapSpendTrend => 'Xu hướng theo tuần';
+
+  @override
+  String get monthlyRecapSpendCategoryEmpty =>
+      'Chưa có khoản chi nào được nhập giá trong tháng này';
+
+  @override
+  String get monthlyRecapSpendUpsell =>
+      'Xem chi tiêu theo nhóm và xu hướng theo tuần với gói Premium';
+
+  @override
+  String get monthlyRecapSpendDetailNeutral =>
+      'Chưa có dữ liệu chi tiết cho tháng này.';
 }
