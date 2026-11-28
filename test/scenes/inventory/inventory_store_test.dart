@@ -547,6 +547,22 @@ void main() {
       expect(store.lowStockCount, 2);
     });
 
+    test('bấm số sắp hết hạn/hết hàng → lọc đúng, bấm lại bỏ lọc', () async {
+      final dispose = autorun((_) => store.filteredItems);
+      addTearDown(dispose.call);
+      await seedAndInit();
+
+      store.toggleStatusFilter(InventoryStatusFilter.expiring);
+      expect(store.filteredItems.map((i) => i.id), <String>['b']);
+
+      store.toggleStatusFilter(InventoryStatusFilter.lowStock);
+      expect(store.filteredItems.map((i) => i.id), <String>['c']);
+
+      store.toggleStatusFilter(InventoryStatusFilter.lowStock);
+      expect(store.statusFilter, InventoryStatusFilter.all);
+      expect(store.filteredItems, hasLength(3));
+    });
+
     test('#201 item số lượng 0 bị ẩn và không tính "sắp hết"', () async {
       final dispose = autorun((_) {
         store.items;

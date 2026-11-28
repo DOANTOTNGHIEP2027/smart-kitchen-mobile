@@ -22,6 +22,9 @@ import '../../../utils/date_format.dart';
 /// vì model đó ý "lỗi = không có gì hiển thị" — sai với cache-first.
 enum InventoryLoadStatus { loading, ready }
 
+/// Lọc theo trạng thái — bấm số "Sắp hết hạn"/"Sắp hết hàng" ở banner.
+enum InventoryStatusFilter { all, expiring, lowStock }
+
 /// State + actions cho `InventoryListScene` (FE-5 §9).
 ///
 /// Bám pattern thủ công MobX của profile_store (Observable + runInAction) —
@@ -52,6 +55,8 @@ class InventoryStore with HouseholdScoped {
       ObservableList<InventoryItemModel>();
   final Observable<String> _searchQuery = Observable<String>('');
   final Observable<String?> _selectedCategory = Observable<String?>(null);
+  final Observable<InventoryStatusFilter> _statusFilter =
+      Observable<InventoryStatusFilter>(InventoryStatusFilter.all);
   final Observable<bool> _isSyncing = Observable<bool>(false);
   final Observable<ApiException?> _syncError = Observable<ApiException?>(null);
 
@@ -65,6 +70,7 @@ class InventoryStore with HouseholdScoped {
   List<InventoryItemModel> get items => _itemsView.value;
   String get searchQuery => _searchQuery.value;
   String? get selectedCategory => _selectedCategory.value;
+  InventoryStatusFilter get statusFilter => _statusFilter.value;
   bool get isSyncing => _isSyncing.value;
   ApiException? get syncError => _syncError.value;
 
@@ -91,10 +97,17 @@ class InventoryStore with HouseholdScoped {
       Computed<List<InventoryItemModel>>(() {
     final q = _searchQuery.value.toLowerCase();
     final cat = _selectedCategory.value;
+    final status = _statusFilter.value;
     return _itemsView.value.where((i) {
       final matchesSearch = q.isEmpty || i.name.toLowerCase().contains(q);
       final matchesCategory = cat == null || i.category == cat;
-      return matchesSearch && matchesCategory;
+      // Cùng điều kiện với expiringCount / lowStockCount để số khớp danh sách.
+      final matchesStatus = switch (status) {
+        InventoryStatusFilter.all => true,
+        InventoryStatusFilter.expiring => i.isExpiringSoon,
+        InventoryStatusFilter.lowStock => i.showsLowStock,
+      };
+      return matchesSearch && matchesCategory && matchesStatus;
     }).toList(growable: false);
   });
 
@@ -134,6 +147,7 @@ class InventoryStore with HouseholdScoped {
       _items.clear();
       _searchQuery.value = '';
       _selectedCategory.value = null;
+      _statusFilter.value = InventoryStatusFilter.all;
       _syncError.value = null;
       _isSyncing.value = false;
       _status.value =
@@ -175,6 +189,12 @@ class InventoryStore with HouseholdScoped {
 
   void setCategory(String? cat) =>
       runInAction(() => _selectedCategory.value = cat);
+
+  /// Bấm lại đúng bộ lọc đang bật thì bỏ lọc.
+  void toggleStatusFilter(InventoryStatusFilter filter) => runInAction(() =>
+      _statusFilter.value = _statusFilter.value == filter
+          ? InventoryStatusFilter.all
+          : filter);
 
   Future<void> clearSyncError() async {
     runInAction(() => _syncError.value = null);
