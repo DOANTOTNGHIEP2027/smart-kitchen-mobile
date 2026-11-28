@@ -797,6 +797,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assistantActionDone => 'Added to the meal plan';
 
   @override
+  String get assistantActionConfirmShopping => 'Add to shopping list';
+
+  @override
+  String get assistantActionDoneShopping => 'Added to the shopping list';
+
+  @override
   String assistantActionFailed(String code) {
     return 'Could not add ($code)';
   }

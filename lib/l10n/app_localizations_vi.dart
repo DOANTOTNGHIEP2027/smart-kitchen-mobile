@@ -790,6 +790,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get assistantActionDone => 'Đã thêm vào thực đơn';
 
   @override
+  String get assistantActionConfirmShopping => 'Thêm vào danh sách đi chợ';
+
+  @override
+  String get assistantActionDoneShopping => 'Đã thêm vào danh sách đi chợ';
+
+  @override
   String assistantActionFailed(String code) {
     return 'Chưa thêm được ($code)';
   }

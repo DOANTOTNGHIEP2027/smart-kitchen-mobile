@@ -348,6 +348,8 @@
   "assistantActionConfirm": "Add to meal plan",
   "assistantActionCancel": "Skip",
   "assistantActionDone": "Added to the meal plan",
+  "assistantActionConfirmShopping": "Add to shopping list",
+  "assistantActionDoneShopping": "Added to the shopping list",
   "assistantActionFailed": "Could not add ({code})",
   "@assistantActionFailed": {"placeholders": {"code": {"type": "String"}}},
   "assistantActionExpired": "This suggestion has expired",

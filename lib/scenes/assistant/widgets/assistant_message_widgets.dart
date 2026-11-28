@@ -458,8 +458,10 @@ class ActionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final small = theme.textTheme.bodySmall;
     final pending = status == ActionStatus.pending;
+    final shopping = action.type == AssistantAction.shoppingAddItems;
     final label = switch (status) {
-      ActionStatus.done => l10n.assistantActionDone,
+      ActionStatus.done =>
+        shopping ? l10n.assistantActionDoneShopping : l10n.assistantActionDone,
       ActionStatus.failed => l10n.assistantActionFailed(code ?? '-'),
       ActionStatus.expired => l10n.assistantActionExpired,
       ActionStatus.rejected => l10n.assistantActionRejected,
@@ -494,7 +496,9 @@ class ActionCard extends StatelessWidget {
                   ),
                   FilledButton(
                     onPressed: pending && !inFlight ? onConfirm : null,
-                    child: Text(l10n.assistantActionConfirm),
+                    child: Text(shopping
+                        ? l10n.assistantActionConfirmShopping
+                        : l10n.assistantActionConfirm),
                   ),
                 ],
               ),

@@ -1540,6 +1540,18 @@ abstract class AppLocalizations {
   /// **'Added to the meal plan'**
   String get assistantActionDone;
 
+  /// No description provided for @assistantActionConfirmShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to shopping list'**
+  String get assistantActionConfirmShopping;
+
+  /// No description provided for @assistantActionDoneShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to the shopping list'**
+  String get assistantActionDoneShopping;
+
   /// No description provided for @assistantActionFailed.
   ///
   /// In en, this message translates to:

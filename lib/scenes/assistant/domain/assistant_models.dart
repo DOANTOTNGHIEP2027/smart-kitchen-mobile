@@ -133,9 +133,12 @@ class PlanSlot {
 
 enum ActionStatus { pending, executing, done, failed, expired, rejected }
 
-/// Đề xuất ghi của AI chờ người dùng xác nhận (S6/S7) — hiện chỉ
-/// `MEALPLAN_ADD_DISH`. Không gì được ghi trước khi người dùng bấm xác nhận.
+/// Đề xuất ghi của AI chờ người dùng xác nhận (S6/S7) — `MEALPLAN_ADD_DISH`
+/// hoặc `SHOPPING_ADD_ITEMS`. Không gì được ghi trước khi người dùng bấm xác
+/// nhận.
 class AssistantAction {
+  static const String shoppingAddItems = 'SHOPPING_ADD_ITEMS';
+
   const AssistantAction({
     required this.actionId,
     required this.type,

@@ -292,6 +292,8 @@
   "assistantActionConfirm": "Thêm vào thực đơn",
   "assistantActionCancel": "Bỏ qua",
   "assistantActionDone": "Đã thêm vào thực đơn",
+  "assistantActionConfirmShopping": "Thêm vào danh sách đi chợ",
+  "assistantActionDoneShopping": "Đã thêm vào danh sách đi chợ",
   "assistantActionFailed": "Chưa thêm được ({code})",
   "@assistantActionFailed": {"placeholders": {"code": {"type": "String"}}},
   "assistantActionExpired": "Đề xuất đã hết hạn",

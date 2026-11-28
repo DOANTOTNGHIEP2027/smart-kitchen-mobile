@@ -115,6 +115,34 @@ void main() {
     expect(find.text('Bỏ qua'), findsNothing);
   });
 
+  testWidgets('SHOPPING_ADD_ITEMS: nút "Thêm vào danh sách đi chợ" ⇒ confirm, đã thêm',
+      (tester) async {
+    api.onSend = (call) async => answered('t-1',
+        reply: assistantReply(turnId: 't-1', answer: 'Nên mua thêm', actions: <AssistantAction>[
+          AssistantAction(
+            actionId: 'a-2',
+            type: AssistantAction.shoppingAddItems,
+            summary: 'Mua: thịt bò 0.5 kg, hành lá',
+            status: ActionStatus.pending,
+            expiresAt: DateTime.now().add(const Duration(minutes: 30)),
+          ),
+        ]));
+    await tester.pumpAppWidget(
+        AssistantScene(entry: const AssistantEntry.global(), store: store),
+        wrapInScaffold: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tối nay nấu gì?'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mua: thịt bò 0.5 kg, hành lá'), findsOneWidget);
+    expect(find.text('Thêm vào thực đơn'), findsNothing);
+    await tester.tap(find.text('Thêm vào danh sách đi chợ'));
+    await tester.pumpAndSettle();
+
+    expect(api.confirmed, <String>['a-2']);
+    expect(find.text('Đã thêm vào danh sách đi chợ'), findsOneWidget);
+  });
+
   testWidgets('Đề xuất đã hết hạn ⇒ không có nút xác nhận', (tester) async {
     api.onSend = (call) async => answered('t-1',
         reply: assistantReply(turnId: 't-1', answer: 'x', actions: <AssistantAction>[
