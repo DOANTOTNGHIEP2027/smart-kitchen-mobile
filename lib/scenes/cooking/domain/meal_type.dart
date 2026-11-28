@@ -44,3 +44,11 @@ String stripMealTypePrefix(String description) {
   if (type == null) return description;
   return description.substring('[${type.label}]'.length).trim();
 }
+/// Bữa mặc định theo giờ: sáng 6–10h, trưa 10–14h, tối 17–21h, còn lại ăn vặt.
+/// Dùng cho bữa mặc định của sheet ghi món và để xếp nhóm món cũ không có tiền tố.
+MealType mealTypeByHour(int hour) {
+  if (hour >= 6 && hour < 10) return MealType.breakfast;
+  if (hour >= 10 && hour < 14) return MealType.lunch;
+  if (hour >= 17 && hour < 21) return MealType.dinner;
+  return MealType.snack;
+}

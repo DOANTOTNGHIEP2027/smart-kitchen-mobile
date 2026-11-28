@@ -483,6 +483,8 @@
   "inventoryOcrPartialFailure": "{count} mặt hàng chưa lưu được — thử lại hoặc bỏ qua bên dưới",
   "@inventoryOcrPartialFailure": {"placeholders": {"count": {"type": "int"}}},
 
+  "mealLogSectionSummary": "{count} món · {kcal} kcal",
+  "@mealLogSectionSummary": {"placeholders": {"count": {"type": "int"}, "kcal": {"type": "int"}}},
   "mealLogTitle": "Nhật ký bữa ăn",
   "mealLogToday": "Hôm nay",
   "mealLogEmpty": "Chưa có nhật ký nào hôm nay",

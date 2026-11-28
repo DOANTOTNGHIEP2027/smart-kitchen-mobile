@@ -575,6 +575,8 @@
   "inventoryOcrPartialFailure": "{count} items could not be saved — retry or skip them below",
   "@inventoryOcrPartialFailure": {"placeholders": {"count": {"type": "int"}}},
 
+  "mealLogSectionSummary": "{count} items · {kcal} kcal",
+  "@mealLogSectionSummary": {"placeholders": {"count": {"type": "int"}, "kcal": {"type": "int"}}},
   "mealLogTitle": "Meal Log",
   "mealLogToday": "Today",
   "mealLogEmpty": "No meal logged today yet",

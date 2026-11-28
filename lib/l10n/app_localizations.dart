@@ -2992,6 +2992,12 @@ abstract class AppLocalizations {
   /// **'{count} items could not be saved — retry or skip them below'**
   String inventoryOcrPartialFailure(int count);
 
+  /// No description provided for @mealLogSectionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items · {kcal} kcal'**
+  String mealLogSectionSummary(int count, int kcal);
+
   /// No description provided for @mealLogTitle.
   ///
   /// In en, this message translates to:

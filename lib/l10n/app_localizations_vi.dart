@@ -1583,6 +1583,11 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String mealLogSectionSummary(int count, int kcal) {
+    return '$count món · $kcal kcal';
+  }
+
+  @override
   String get mealLogTitle => 'Nhật ký bữa ăn';
 
   @override
