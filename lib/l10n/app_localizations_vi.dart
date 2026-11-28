@@ -2368,16 +2368,25 @@ class AppLocalizationsVi extends AppLocalizations {
   String get shoppingNameHint => 'Tên thực phẩm, nguyên liệu...';
 
   @override
-  String get shoppingNameLabel => 'Tên món';
+  String get shoppingNameLabel => 'Tên món *';
 
   @override
-  String get shoppingQuantityLabel => 'Số lượng';
+  String get shoppingQuantityLabel => 'Số lượng *';
 
   @override
-  String get shoppingUnitLabel => 'Đơn vị';
+  String get shoppingUnitLabel => 'Đơn vị *';
 
   @override
-  String get shoppingCategoryLabel => 'Phân loại';
+  String get shoppingCategoryLabel => 'Phân loại *';
+
+  @override
+  String get shoppingNameRequired => 'Vui lòng nhập tên món';
+
+  @override
+  String get shoppingQuantityInvalid => 'Số lượng phải là số lớn hơn 0';
+
+  @override
+  String get shoppingCategoryRequired => 'Vui lòng chọn phân loại';
 
   @override
   String get shoppingAddToList => 'Thêm vào danh sách';
@@ -3878,6 +3887,12 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get dietTypeDiabeticDescription =>
       'Hạn chế đường và tinh bột hấp thu nhanh, ưu tiên món ít ngọt.';
+
+  @override
+  String get inventoryCategoryLabel => 'Phân loại *';
+
+  @override
+  String get inventoryCategoryRequired => 'Vui lòng chọn phân loại';
 
   @override
   String get inventoryZeroQuantityTitle => 'Đã dùng hết mặt hàng này?';

@@ -260,6 +260,8 @@ class _InventoryFormScreenState extends State<InventoryFormScene> {
   String? _validateForSave() {
     final nameErr = InventoryFormStore.validateName(_nameCtrl.text);
     if (nameErr != null) return _validationMessage(nameErr);
+    // Phân loại bắt buộc: thiếu thì kho không lọc/nhóm được mặt hàng.
+    if (_category == null) return context.l10n.inventoryCategoryRequired;
     if (_unit == null) return context.l10n.inventoryUnitRequired;
     final qtyErr = InventoryFormStore.validateQuantity(
       _quantityCtrl.text,
@@ -420,7 +422,7 @@ class _CategoryChips extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          context.l10n.inventoryCategoryOptional,
+          context.l10n.inventoryCategoryLabel,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w600,

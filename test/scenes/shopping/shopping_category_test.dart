@@ -619,6 +619,37 @@ void main() {
       expect(find.byKey(const ValueKey<String>('add-category-Đồ nhà')), findsNothing);
     });
 
+    testWidgets('sheet thêm món: thiếu phân loại → báo lỗi, không thêm; chọn rồi mới thêm', (tester) async {
+      final shoppingDao = ShoppingDao(db);
+      final s = session();
+      Get
+        ..put<SessionStore>(s)
+        ..put<ConnectivityService>(_OfflineConn());
+      Get.put<ShoppingStore>(ShoppingStore(dao: shoppingDao, api: _NoApi(shoppingDao), connectivity: _OfflineConn(), session: s));
+      Get.put<CategoryStore>(CategoryStore(_MemDao(db, <ShoppingCategory>[cat('a', 'Bánh', order: 0)]), s));
+      await tester.pumpAppWidget(const ShoppingListScene(), wrapInScaffold: false);
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'Sữa');
+      await tester.tap(find.text('Thêm vào danh sách'));
+      await tester.pump();
+      expect(find.byKey(const ValueKey<String>('add-category-error')), findsOneWidget);
+      expect((await tester.runAsync(() => shoppingDao.getAll('h1')))!.where((i) => i.name == 'Sữa'), isEmpty);
+
+      await tester.tap(find.byKey(const ValueKey<String>('add-category-Bánh')));
+      await tester.pump();
+      expect(find.byKey(const ValueKey<String>('add-category-error')), findsNothing);
+      await tester.tap(find.text('Thêm vào danh sách'));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pumpAndSettle();
+      final added = (await tester.runAsync(() => shoppingDao.getAll('h1')))!.firstWhere((i) => i.name == 'Sữa');
+      expect(added.category, 'Bánh');
+    });
+
     test('DI (Fix CRITICAL-1): ShoppingListBinding đăng ký CategoryStore — sheet thêm món không crash', () async {
       Get
         ..put<AppDatabase>(db)
