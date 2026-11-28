@@ -332,6 +332,36 @@ abstract class AppLocalizations {
   /// **'Cook this meal'**
   String get homeRecipeCook;
 
+  /// No description provided for @homeUpcomingMealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming meal'**
+  String get homeUpcomingMealTitle;
+
+  /// No description provided for @homeUpcomingToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get homeUpcomingToday;
+
+  /// No description provided for @homeUpcomingTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get homeUpcomingTomorrow;
+
+  /// No description provided for @homeUpcomingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming meal in your plan'**
+  String get homeUpcomingEmpty;
+
+  /// No description provided for @homeUpcomingOpenPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan meals'**
+  String get homeUpcomingOpenPlan;
+
   /// No description provided for @homeRecipeMinutes.
   ///
   /// In en, this message translates to:

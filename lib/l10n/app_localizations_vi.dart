@@ -127,6 +127,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeRecipeCook => 'Nấu món này';
 
   @override
+  String get homeUpcomingMealTitle => 'Bữa sắp tới';
+
+  @override
+  String get homeUpcomingToday => 'Hôm nay';
+
+  @override
+  String get homeUpcomingTomorrow => 'Ngày mai';
+
+  @override
+  String get homeUpcomingEmpty => 'Chưa có bữa nào sắp tới trong thực đơn';
+
+  @override
+  String get homeUpcomingOpenPlan => 'Lên thực đơn';
+
+  @override
   String homeRecipeMinutes(int minutes) {
     return '$minutes phút';
   }

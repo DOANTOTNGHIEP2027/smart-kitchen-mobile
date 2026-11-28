@@ -66,6 +66,16 @@
   "homeRecipeIngredients": "Ingredients",
   "homeRecipeGuide": "Recipe source",
   "homeRecipeCook": "Cook this meal",
+  "homeUpcomingMealTitle": "Upcoming meal",
+  "@homeUpcomingMealTitle": {},
+  "homeUpcomingToday": "Today",
+  "@homeUpcomingToday": {},
+  "homeUpcomingTomorrow": "Tomorrow",
+  "@homeUpcomingTomorrow": {},
+  "homeUpcomingEmpty": "No upcoming meal in your plan",
+  "@homeUpcomingEmpty": {},
+  "homeUpcomingOpenPlan": "Plan meals",
+  "@homeUpcomingOpenPlan": {},
   "homeRecipeMinutes": "{minutes} min",
   "@homeRecipeMinutes": {
     "placeholders": {
