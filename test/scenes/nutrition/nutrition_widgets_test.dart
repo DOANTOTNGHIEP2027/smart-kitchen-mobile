@@ -111,7 +111,7 @@ void main() {
 
   testWidgets('breakdown mở/đóng: hiện từng bữa và món', (tester) async {
     await build(tester, fullWeek, nutrition: nutritionMap());
-    final tile = find.byKey(ValueKey<String>('nutrition-day-${week.weekday + 2}'));
+    final tile = find.byKey(PageStorageKey<String>('nutrition-day-${week.weekday + 2}'));
     await tester.scrollUntilVisible(tile, 200);
     expect(find.textContaining('Món nodata'), findsNothing);
     await tester.tap(tile);
@@ -197,7 +197,7 @@ void main() {
           plannedSlot(w, 0, 'SNACK', <String>['ok']),
           plannedSlot(w, 0, 'BRUNCH', <String>['ok']),
         ], nutrition: nutritionMap());
-    final tile = find.byKey(ValueKey<String>('nutrition-day-${week.weekday}'));
+    final tile = find.byKey(PageStorageKey<String>('nutrition-day-${week.weekday}'));
     await tester.scrollUntilVisible(tile, 200);
     await tester.tap(tile);
     await tester.pumpAndSettle();

@@ -64,7 +64,8 @@ class _DayTile extends StatelessWidget {
           };
 
     return ExpansionTile(
-      key: ValueKey<String>('nutrition-day-${day.date.weekday}'),
+      // PageStorageKey: tránh đọc nhầm vị trí cuộn của danh sách cha làm trạng thái mở/đóng.
+      key: PageStorageKey<String>('nutrition-day-${day.date.weekday}'),
       tilePadding: EdgeInsets.zero,
       childrenPadding: const EdgeInsets.only(left: AppDimens.md, bottom: AppDimens.sm),
       expandedCrossAxisAlignment: CrossAxisAlignment.start,
