@@ -30,6 +30,10 @@ class MealPlanMapper {
       dishes: dishesJson
           .map((Object? d) => dishFromJson(d as Map<String, dynamic>))
           .toList(growable: false),
+      slotKey: json['slotKey'] as String?,
+      label: json['label'] as String?,
+      scheduledTime: json['scheduledTime'] as String?,
+      sortOrder: (json['sortOrder'] as num?)?.toInt(),
     );
   }
 
