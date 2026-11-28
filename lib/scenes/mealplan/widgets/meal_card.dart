@@ -5,8 +5,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimens.dart';
 import '../../../utils/l10n_x.dart';
-import '../../cooking/scenes/cooking_routes.dart'
-    show CookingArgs, CookingRoutes;
+import '../../cooking/widgets/start_cooking_guard.dart';
 import '../domain/meal_plan_slot.dart';
 import '../stores/meal_plan_store.dart';
 import '../scenes/meal_plan_routes.dart';
@@ -243,10 +242,7 @@ class ConfirmedDishSheet extends StatelessWidget {
               FilledButton.icon(
                 onPressed: () {
                   Get.back<void>();
-                  Get.toNamed<void>(
-                    CookingRoutes.session,
-                    arguments: CookingArgs.start(dish.recipe!.recipeId),
-                  );
+                  startCookingWithShoppingCheck(dish.recipe!.recipeId);
                 },
                 icon: const Icon(Icons.restaurant),
                 label: Text(context.l10n.mealplanStartCooking),

@@ -1173,6 +1173,23 @@ class AppLocalizationsVi extends AppLocalizations {
   String get mealplanCloseVoting => 'Đóng vote';
 
   @override
+  String get cookingPendingShoppingTitle => 'Vẫn còn thực phẩm chưa mua';
+
+  @override
+  String cookingPendingShoppingMessage(int count) {
+    return 'Món này còn $count thực phẩm chưa mua trong danh sách đi chợ:';
+  }
+
+  @override
+  String get cookingPendingShoppingUnassigned => 'Chưa ai nhận';
+
+  @override
+  String get cookingPendingShoppingGoShopping => 'Đi chợ & phân công';
+
+  @override
+  String get cookingPendingShoppingCookAnyway => 'Vẫn nấu';
+
+  @override
   String get recipesTitle => 'Công thức';
 
   @override

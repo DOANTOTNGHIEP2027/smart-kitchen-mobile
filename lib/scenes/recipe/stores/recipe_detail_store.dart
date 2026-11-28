@@ -5,7 +5,7 @@ import 'package:mobx/mobx.dart';
 
 import '../../../data/network/api_exception.dart';
 import '../../../widgets/states/view_state.dart';
-import '../../cooking/scenes/cooking_routes.dart';
+import '../../cooking/widgets/start_cooking_guard.dart';
 import '../data/recipe_catalog_api.dart';
 import '../domain/recipe.dart';
 import 'recipe_store.dart';
@@ -47,7 +47,7 @@ class RecipeDetailStore {
   void startCooking() {
     final current = recipe;
     if (current == null || !current.hasSteps) return;
-    Get.toNamed(CookingRoutes.session, arguments: CookingArgs.start(current.id));
+    startCookingWithShoppingCheck(current.id);
   }
 
   Future<void> toggleFavorite() async {
